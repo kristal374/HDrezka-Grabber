@@ -4,15 +4,15 @@
     "version": "0.1",
     "manifest_version": 3,
     "icons": {
-        "48": "icons/48.png",
-        "32": "icons/32.png",
-        "16": "icons/16.png"
+        "48": "src/img/icons/48.png",
+        "32": "src/img/icons/32.png",
+        "16": "src/img/icons/16.png"
     },
     "action": {
-        "default_popup": "popup.html"
+        "default_popup": "src/html/popup.html"
     },
     "background": {
-        "service_worker": "background.js"
+        "service_worker": "src/js/background.js"
     },
     "permissions": [
         "scripting",
@@ -25,10 +25,10 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "injection_scripts/video_info.js",
-                "injection_scripts/update_translate_info.js",
-                "injection_scripts/loader.js",
-                "injection_scripts/Blob.js"
+                "src/js/injection_scripts/video_info.js",
+                "src/js/injection_scripts/update_translate_info.js",
+                "src/js/injection_scripts/loader.js",
+                "src/js/injection_scripts/Blob.js"
                 
             ],
             "matches": [
