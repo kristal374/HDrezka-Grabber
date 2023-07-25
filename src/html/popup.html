@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="src/css/popup.css">
+    <link rel="stylesheet" type="text/css" href="../css/popup.css">
 </head>
 
 <body>
@@ -12,7 +12,7 @@
         <p id="user-message" style="display: none;">Сообщение для пользователя.</p>
         <div class="checkbox-container">
             <input type="checkbox" id="create-folder" />
-            <label for="create-folder">Создать отдельную папку</label>
+            <label for="create-folder" style="display: none;">Создать отдельную папку</label>
         </div>
         <div class="checkbox-container serials" style="display: none;">
             <input type="checkbox" id="load-entire-series" />
@@ -43,11 +43,11 @@
             </select>
         </div>
         <div class="save-button-container">
-            <button class="save-button" id="select-directory">Выбрать папку</button>
+            <button class="save-button" id="select-directory" style="display: none;">Выбрать папку</button>
         </div>
     </div>
-    <script src="src/js/popup.js"></script>
-    <script src="src/js/handler.js"></script>
+    <script src="../js/popup.js"></script>
+    <script src="../js/handler.js"></script>
 </body>
 
 </html>
