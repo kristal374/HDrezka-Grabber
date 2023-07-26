@@ -143,7 +143,20 @@ async function synchData() {
         dataPlayer = result[key].dataPlayer;
         displaySettings = result[key].displaySettings;
     }
-    await saveData()
+    await clearOldData();
+    await saveData();
+}
+
+async function clearOldData() {
+    let lstSavedTab = Object.keys(await chrome.storage.local.get(null))
+    const lstAllTab = await chrome.tabs.query({})
+    console.log(lstAllTab);
+    lstAllTab.forEach(function (item) {
+        if (lstSavedTab.includes(item.id.toString())) {
+            lstSavedTab = lstSavedTab.filter(id_ => id_ !== item.id.toString());
+        }
+    })
+    chrome.storage.local.remove(lstSavedTab);
 }
 
 async function saveData() {
