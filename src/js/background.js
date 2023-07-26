@@ -22,7 +22,6 @@ function sendProgress(message) {
 }
 
 function sendUserMessage(message) {
-    console.log(message);
     self.clients.matchAll().then(function (clients) {
         clients.forEach(function (client) {
             client.postMessage(message);
@@ -31,7 +30,6 @@ function sendUserMessage(message) {
 }
 
 self.addEventListener('message', async (event) => {
-    console.log(event.data);
     if (event.data.message === "start_load") {
         flagLoader = !flagLoader;
         if (flagLoader) {
@@ -128,6 +126,7 @@ async function startLoadVideo(tab_ID) {
     }
     flagLoader = false;
     flagWork = false;
+    sendProgress("")
 }
 
 async function initLoadVideo(tab_ID, settingsVideo) {
@@ -180,6 +179,7 @@ function injectLoader(videoSettings) {
 function loadVideo(url, filename) {
     return new Promise((resolve) => {
         console.log(filename);
+        console.log(url);
         console.log("load_start");
         let flagLoader = true;
         let isUser = false;
