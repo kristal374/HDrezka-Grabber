@@ -2,6 +2,7 @@
     "name": "HDrezka Grabber",
     "description": "Extract video current web page",
     "version": "0.1",
+    "version_name": "0.1 beta",
     "manifest_version": 3,
     "icons": {
         "48": "src/img/icons/48.png",
@@ -16,7 +17,6 @@
     },
     "permissions": [
         "scripting",
-        "activeTab",
         "storage"
     ],
     "host_permissions": [
@@ -25,15 +25,17 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "src/js/injection_scripts/video_info.js",
-                "src/js/injection_scripts/update_translate_info.js",
-                "src/js/injection_scripts/loader.js",
-                "src/js/injection_scripts/Blob.js"
-                
+                "src/js/injection_scripts/*"                
             ],
             "matches": [
                 "<all_urls>"
             ]
         }
-    ]
+    ],
+    "options_ui": {
+        "open_in_tab": false,
+        "page": "src/html/hello.html"
+     },
+    "author": "mail.aleks.for.work@gmail.com", 
+    "homepage_url": "https://github.com/kristal374/HDrezka-Grabber"
 }
