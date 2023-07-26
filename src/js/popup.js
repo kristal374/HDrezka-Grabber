@@ -150,7 +150,6 @@ async function synchData() {
 async function clearOldData() {
     let lstSavedTab = Object.keys(await chrome.storage.local.get(null))
     const lstAllTab = await chrome.tabs.query({})
-    console.log(lstAllTab);
     lstAllTab.forEach(function (item) {
         if (lstSavedTab.includes(item.id.toString())) {
             lstSavedTab = lstSavedTab.filter(id_ => id_ !== item.id.toString());
