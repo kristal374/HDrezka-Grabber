@@ -80,9 +80,11 @@ async function saveCurrentSettings() {
     displaySettings["load_all_series"] = downloadSeries.checked;
 
     displaySettings["quality"] = change_quality.value;
-    displaySettings["translator_id"] = change_translate.selectedOptions[0].getAttribute("translator_id");
-    displaySettings["season_start"] = change_season.value;
-    displaySettings["episode_start"] = change_episode.value;
+    if (change_translate.selectedOptions[0]) {
+        displaySettings["translator_id"] = change_translate.selectedOptions[0].getAttribute("translator_id");
+        displaySettings["season_start"] = change_season.value;
+        displaySettings["episode_start"] = change_episode.value;
+    }
     await saveData();
 }
 
