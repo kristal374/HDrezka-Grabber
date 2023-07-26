@@ -136,7 +136,7 @@ function displayTranslators() {
     voice_selector.innerHTML = "";
     if (Object.keys(dataPlayer.translators).length === 0) {
         let optionElement = document.createElement("option");
-        optionElement.text = "Неизвестная озвучка";
+        optionElement.text = chrome.i18n.getMessage("info_unknownVoice");
         optionElement.setAttribute("translator_id", dataVideo.translator_id)
         optionElement.selected = true;
         voice_selector.add(optionElement);

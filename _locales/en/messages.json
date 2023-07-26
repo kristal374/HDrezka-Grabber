@@ -1,0 +1,41 @@
+{
+    "popup_loadAll": {
+        "message": "Download Entire Series"
+    },
+    "popup_quality": {
+        "message": "Quality:"
+    },
+    "popup_translate": {
+        "message": "Translate:"
+    },
+    "popup_seasonStart": {
+        "message": "Season:"
+    },
+    "popup_episodeStart": {
+        "message": "Episode:"
+    },
+    "popup_infoTitle": {
+        "message": "Start downloading the series from:"
+    },
+    "popup_createFolder": {
+        "message": "Create Separate Folder"
+    },
+    "popup_selectDirectory": {
+        "message": "Select Folder"
+    },
+    "info_unknownVoice": {
+        "message": "Unknown translate"
+    },
+    "message_noDataVideo": {
+        "message": "Failed to retrieve video data. Check your internet connection or use a VPN."
+    },
+    "message_errorLoad": {
+        "message": "Error loading. Check your internet connection or use a VPN."
+    },
+    "message_userBreak": {
+        "message": "You interrupted the loading."
+    },
+    "message_badConnect": {
+        "message": ""
+    }
+}

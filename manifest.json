@@ -3,6 +3,7 @@
     "description": "Extract video current web page",
     "version": "0.1",
     "version_name": "0.1 beta",
+    "default_locale": "en",
     "manifest_version": 3,
     "icons": {
         "48": "src/img/icons/48.png",
@@ -32,10 +33,6 @@
             ]
         }
     ],
-    "options_ui": {
-        "open_in_tab": false,
-        "page": "src/html/hello.html"
-     },
     "author": "mail.aleks.for.work@gmail.com", 
     "homepage_url": "https://github.com/kristal374/HDrezka-Grabber"
 }

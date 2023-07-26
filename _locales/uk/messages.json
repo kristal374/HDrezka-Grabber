@@ -1,0 +1,41 @@
+{
+    "popup_loadAll": {
+        "message": "Завантажити весь серіал"
+    },
+    "popup_quality": {
+        "message": "Якість:"
+    },
+    "popup_translate": {
+        "message": "Озвучення:"
+    },
+    "popup_seasonStart": {
+        "message": "Сезон:"
+    },
+    "popup_episodeStart": {
+        "message": "Епізод:"
+    },
+    "popup_infoTitle": {
+        "message": "Почати завантаження серії з:"
+    },
+    "popup_createFolder": {
+        "message": "Створити окрему папку"
+    },
+    "popup_selectDirectory": {
+        "message": "Вибрати папку"
+    },
+    "info_unknownVoice": {
+        "message": "Невідоме озвучення"
+    },
+    "message_noDataVideo": {
+        "message": "Неможливо отримати дані відео. Перевірте інтернет-з'єднання або застосуйте VPN."
+    },
+    "message_errorLoad": {
+        "message": "Помилка завантаження. Перевірте інтернет-з'єднання або застосуйте VPN."
+    },
+    "message_userBreak": {
+        "message": "Ви перервали завантаження."
+    },
+    "message_badConnect": {
+        "message": ""
+    }
+}

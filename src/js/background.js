@@ -12,9 +12,9 @@ function sendProgress(message) {
     } else if (message.success === false) {
         flagLoader = false;
         if (message.content) {
-            sendUserMessage({ "message": "Error", "content": "Вы остановили загрузку." });
+            sendUserMessage({ "message": "Error", "content": chrome.i18n.getMessage("message_userBreak") });
         } else {
-            sendUserMessage({ "message": "Error", "content": "Ошибка загрузки. Проверьте интернет соеденение." });
+            sendUserMessage({ "message": "Error", "content": chrome.i18n.getMessage("message_errorLoad") });
         }
     } else {
         sendUserMessage({ "message": "Breake" });
@@ -140,7 +140,7 @@ async function initLoadVideo(tab_ID, settingsVideo) {
     })
     url = url[0].result.url
     if (!url) {
-        sendUserMessage({"message": "Error", "content": "Ошибка загрузки. Проверьте интернет соеденение или используйте VPN."})
+        sendUserMessage({ "message": "Error", "content": chrome.i18n.getMessage("message_noDataVideo") })
         flagLoader = false;
         return false
     }
