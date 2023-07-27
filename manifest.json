@@ -1,6 +1,6 @@
 {
     "name": "HDrezka Grabber",
-    "description": "Extract video current web page",
+    "description": "__MSG_manifest_description__",
     "version": "0.1",
     "version_name": "0.1 beta",
     "default_locale": "en",
