@@ -19,18 +19,15 @@
             "action": "get_episodes"
         },
         success: function (data) {
-            let tempElement = document.createElement('div');
-            tempElement.innerHTML = data.episodes;
-
-            let episodesList = tempElement.getElementsByTagName("ul");
-            for (let i = 0; i < episodesList.length; i++) {
-                let seasonId = episodesList[i].getAttribute("id").split("-")[3];
+            let seasonsList = data.episodes.split(`</ul>`).filter(item => item.trim() !== "");
+            for (let i = 0; i < seasonsList.length; i++) {
+                let seasonId = seasonsList[i].match(/id="simple-episodes-list-(\d*)"/)[1];
                 dictionary.seasons.push(seasonId);
                 let episodes = [];
 
-                let episodeItems = episodesList[i].getElementsByTagName("li");
+                let episodeItems = seasonsList[i].split(`</li>`).filter(item => item.trim() !== "");
                 for (let j = 0; j < episodeItems.length; j++) {
-                    let episodeId = episodeItems[j].getAttribute("data-episode_id");
+                    let episodeId = episodeItems[j].match(/data-episode_id="(\d*)"/)[1];
                     episodes.push(episodeId);
                 }
                 dictionary.episodes[seasonId] = episodes;
