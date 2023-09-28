@@ -24,7 +24,20 @@ async function getVideoURL(dictionary) {
         let data = item.match(/(\[.*])(\bhttps?:\/\/\S+\.mp4\b)/)
         url[data[1]] = data[2]
     })
-    return url["[" + dictionary.quality + "]"]
+    let quality = `[${dictionary.quality}]`;
+    if (Object.keys(url).length === 0) {
+        return false
+    } else if (url[quality]) {
+        return url[quality]
+    } else {
+        let keys = CDNPlayer.api('qualities').map((item) => item.match(/\d*p(\sUltra)?/)[0]);
+        let index = keys.indexOf(dictionary.quality)
+        while (index > 0 && !url[quality]) {
+            index -= 1;
+            quality = `[${keys[index]}]`
+        }
+        return url[quality]
+    }
 }
 
 function sendRequest(film_id, translator_id, season_id, episode_id, action) {
