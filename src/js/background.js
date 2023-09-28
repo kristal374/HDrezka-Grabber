@@ -93,7 +93,8 @@ async function startLoadVideo(tab_ID) {
         const episodes = data[key].dataPlayer.episodes;
         const videoConfig = data[key].displaySettings;
         for (let s of seasons.slice(seasons.indexOf(videoConfig.season_start))) {
-            for (let e of episodes[s].slice(episodes[s].indexOf(videoConfig.episode_start))) {
+            let sliceIndex = (s === videoConfig.season_start) ? episodes[s].indexOf(videoConfig.episode_start) : 0;
+            for (let e of episodes[s].slice(sliceIndex)) {
                 if (!flagLoader) {
                     break
                 }
@@ -107,10 +108,6 @@ async function startLoadVideo(tab_ID) {
                     "filename": video.filename
                 }
                 await initLoadVideo(tab_ID, dict)
-            }
-            videoConfig.episode_start = episodes[seasons.indexOf(s) + 1];
-            if (videoConfig.episode_start) {
-                videoConfig.episode_start = videoConfig.episode_start[0];
             }
         }
 
