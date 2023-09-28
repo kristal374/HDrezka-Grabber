@@ -4,47 +4,47 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="../css/popup.css">
+    <title>Popup</title>
 </head>
 
 <body>
 <div class="container">
-    <button class="round-button" id="load_btn"></button>
-    <p id="user-message" style="display: none;"></p>
+    <button id="load_btn" class="round-button"></button>
+    <p style="display: none;" id="user-message"></p>
     <div class="checkbox-container">
-        <input type="checkbox" id="create-folder"/>
-        <label for="create-folder" data-resource="popup_createFolder" style="display: none;"></label>
+        <input id="create-folder" type="checkbox">
+        <label style="display: none;" data-resource="popup_createFolder" for="create-folder"></label>
     </div>
-    <div class="checkbox-container serials" style="display: none;">
-        <input type="checkbox" id="load-entire-series"/>
-        <label for="load-entire-series" data-resource="popup_loadAll"></label>
+    <div style="display: none;" class="checkbox-container serials">
+        <input id="load-entire-series" type="checkbox">
+        <label data-resource="popup_loadAll" for="load-entire-series"></label>
     </div>
 
-    <div id="fields-container" style="display: none;">
+    <div style="display: none;" id="fields-container">
         <h2 data-resource="popup_infoTitle"></h2>
         <div class="field-container">
-            <label for="voice-select" data-resource="popup_translate"></label>
+            <label data-resource="popup_translate" for="voice-select"></label>
             <select id="voice-select">
             </select>
         </div>
         <div class="field-container">
-            <label for="season-select" data-resource="popup_seasonStart"></label>
+            <label data-resource="popup_seasonStart" for="season-select"></label>
             <select id="season-select">
             </select>
         </div>
         <div class="field-container">
-            <label for="episode-select" data-resource="popup_episodeStart"></label>
+            <label data-resource="popup_episodeStart" for="episode-select"></label>
             <select id="episode-select">
             </select>
         </div>
     </div>
     <div class="dropdown-container">
-        <label for="quality-select" data-resource="popup_quality"></label>
+        <label data-resource="popup_quality" for="quality-select"></label>
         <select id="quality-select">
         </select>
     </div>
     <div class="save-button-container">
-        <button class="save-button" id="select-directory" data-resource="popup_selectDirectory"
-                style="display: none;"></button>
+        <button style="display: none;" data-resource="popup_selectDirectory" id="select-directory" class="save-button"></button>
     </div>
 </div>
 <script src="../js/localize.js"></script>
