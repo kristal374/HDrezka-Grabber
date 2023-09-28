@@ -205,7 +205,7 @@ navigator.serviceWorker.addEventListener('message', function (event) {
         grabBtn.style.setProperty('background-image', "none");
         grabBtn.textContent = event.data.content + "%";
 
-    } else if (event.data.message === "Breake") {
+    } else if (event.data.message === "Break") {
         grabBtn.textContent = "";
         grabBtn.style.setProperty('background-image', `url("data:image/svg+xml,%3Csvg width='18' height='23' viewBox='0 0 18 23' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.66025 0H11.6603V10.25H17.3205L8.66025 17L0 10.25H5.66025V0Z' fill='white'/%3E%3Cpath d='M0.660254 23V20H16.6603V23H0.660254Z' fill='white'/%3E%3C/svg%3E%0A")`);
     } else if (event.data.message === "Error") {
