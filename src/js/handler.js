@@ -129,7 +129,9 @@ function displayValuesSeason() {
 
 function displayTranslators() {
     let voice_selector = document.getElementById("voice-select");
-    voice_selector.innerHTML = "";
+    while (voice_selector.firstChild) {
+        voice_selector.removeChild(voice_selector.firstChild);
+    }
     if (Object.keys(dataPlayer.translators).length === 0) {
         let optionElement = document.createElement("option");
         optionElement.text = chrome.i18n.getMessage("info_unknownVoice");
@@ -155,7 +157,10 @@ function displayTranslators() {
 
 function displaySeasons() {
     let season_selector = document.getElementById("season-select");
-    season_selector.innerHTML = "";
+
+    while (season_selector.firstChild) {
+        season_selector.removeChild(season_selector.firstChild);
+    }
     dataPlayer.seasons.forEach(function (item) {
         let optionElement = document.createElement("option");
         optionElement.text = item;
@@ -168,7 +173,10 @@ function displaySeasons() {
 
 function displayEpisodes() {
     let episode_selector = document.getElementById("episode-select");
-    episode_selector.innerHTML = "";
+
+    while (episode_selector.firstChild) {
+        episode_selector.removeChild(episode_selector.firstChild);
+    }
     let arr;
     if (dataPlayer.episodes[displaySettings.season_start]) {
         arr = dataPlayer.episodes[displaySettings.season_start]
@@ -188,7 +196,10 @@ function displayEpisodes() {
 
 function displayQuality() {
     let quality_selector = document.getElementById("quality-select");
-    quality_selector.innerHTML = "";
+
+    while (quality_selector.firstChild) {
+        quality_selector.removeChild(quality_selector.firstChild);
+    }
 
     dataPlayer.qualities.forEach(function (item) {
         let optionElement = document.createElement("option");
