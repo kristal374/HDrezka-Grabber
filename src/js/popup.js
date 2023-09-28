@@ -8,14 +8,20 @@ let CurrentTab = {
 
 (async () => {
     CurrentTab.id = await getCurrentTabId();
-    if (!CurrentTab.id) { return } // выход из функции если id вкладки отсутствует
-    const targetTab = { tabId: CurrentTab.id, allFrames: false };
+    if (!CurrentTab.id) {
+        return // выход из функции если id вкладки отсутствует
+    }
+    const targetTab = {tabId: CurrentTab.id, allFrames: false};
     await chrome.scripting.executeScript({
         target: targetTab,
         func: isTargetSite
-    }).then((result) => { CurrentTab.isHdrezka = result[0].result }) // Встраиваемый скрипт для проверки соответствия имени сайта
+    }).then((result) => {
+        CurrentTab.isHdrezka = result[0].result // Встраиваемый скрипт для проверки соответствия имени сайта
+    })
     console.log("isHDrezka = " + CurrentTab.isHdrezka);
-    if (!CurrentTab.isHdrezka) { return } // выход из функции если сайт не принадлежит ни к одному из зеркал или имён rezka.ag
+    if (!CurrentTab.isHdrezka) {
+        return // выход из функции если сайт не принадлежит ни к одному из зеркал или имён rezka.ag
+    }
 
     await chrome.scripting.executeScript({
         target: targetTab,
@@ -25,7 +31,7 @@ let CurrentTab = {
     })
     if (dataVideo.action === "get_stream") {
         // В случае если мы пытаемся загрузить сериал отображает checkbox позволяющий загрузить весь сериал за раз
-        // И получаем данные о количестви серий/епизодов/озвучек
+        // И получаем данные о количестве серий/эпизодов/озвучек
         showCheckBox();
         await chrome.scripting.executeScript({
             target: targetTab,
@@ -35,8 +41,11 @@ let CurrentTab = {
         })
     }
     await synchData() // Синхронизация данных через локальное хранилище расширения
-    if (dataVideo.action === "get_stream") { displayValuesSeason() }
-    else { displayQuality() }
+    if (dataVideo.action === "get_stream") {
+        displayValuesSeason()
+    } else {
+        displayQuality()
+    }
 
     if (Object.keys(displaySettings).length === 0) {
         await saveCurrentSettings()
@@ -46,25 +55,20 @@ let CurrentTab = {
 })();
 
 async function getCurrentTabId() {
-    const tabs = await chrome.tabs.query({ active: true })
+    const tabs = await chrome.tabs.query({active: true})
     if (tabs && tabs.length > 0) {
         return tabs[0].id;
     } else {
         return null;
     }
-};
+}
 
 function isTargetSite() {
     return new Promise((resolve) => {
         const nameSite = document.querySelector('meta[property="og:site_name"]')
-        if (nameSite && nameSite.content === 'rezka.ag') {
-            resolve(true)
-        }
-        else {
-            resolve(false)
-        }
+        resolve(nameSite && nameSite.content === 'rezka.ag')
     });
-};
+}
 
 function getDataVideo() {
     return new Promise((resolve) => {
@@ -191,4 +195,4 @@ function getNewSettings(film_id, translator_id) {
             }
         }, 30);
     });
-};
+}

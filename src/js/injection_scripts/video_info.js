@@ -1,9 +1,9 @@
 (() => {
-    console.log("load video_info sucsess");
+    console.log("load video_info success");
     const thisScript = document.currentScript;
 
     let dictionary = {};
-    let match = document.documentElement.outerHTML.match(/sof\.tv\.([^\.]*)\((\d+), (\d+), (\d+), (\d+)/);
+    let match = document.documentElement.outerHTML.match(/sof\.tv\.([^.]*)\((\d+), (\d+), (\d+), (\d+)/);
     const name_film = $('.b-post__title h1')[0].textContent.replaceAll(" ", "_").replaceAll("_/_", "|")
     let name_origin_film;
     try {
@@ -17,7 +17,7 @@
     } else {
         dictionary["filename"] = name_film;
     }
-    if (match[1] == "initCDNMoviesEvents") {
+    if (match[1] === "initCDNMoviesEvents") {
         dictionary["action"] = "get_movie";
     } else {
         dictionary["action"] = "get_stream";

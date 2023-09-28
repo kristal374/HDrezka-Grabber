@@ -8,16 +8,16 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 
 function sendProgress(message) {
     if (flagLoader) {
-        sendUserMessage({ "message": "Progress", "content": message.percent });
+        sendUserMessage({"message": "Progress", "content": message.percent});
     } else if (message.success === false) {
         flagLoader = false;
         if (message.content) {
-            sendUserMessage({ "message": "Error", "content": chrome.i18n.getMessage("message_userBreak") });
+            sendUserMessage({"message": "Error", "content": chrome.i18n.getMessage("message_userBreak")});
         } else {
-            sendUserMessage({ "message": "Error", "content": chrome.i18n.getMessage("message_errorLoad") });
+            sendUserMessage({"message": "Error", "content": chrome.i18n.getMessage("message_errorLoad")});
         }
     } else {
-        sendUserMessage({ "message": "Breake" });
+        sendUserMessage({"message": "Break"});
     }
 }
 
@@ -39,7 +39,7 @@ self.addEventListener('message', async (event) => {
 });
 
 async function preparationForVideoUpload(tab_ID) {
-    const targetTab = { tabId: tab_ID, allFrames: false };
+    const targetTab = {tabId: tab_ID, allFrames: false};
     chrome.scripting.executeScript({
         target: targetTab,
         func: blobIsLoad
@@ -50,9 +50,7 @@ async function preparationForVideoUpload(tab_ID) {
             chrome.scripting.executeScript({
                 target: targetTab,
                 func: loadBlob
-            }).then(async (result) => {
-                await startLoadVideo(tab_ID)
-            })
+            }).then(async () => await startLoadVideo(tab_ID))
         }
     })
 }
@@ -62,7 +60,9 @@ function blobIsLoad() {
         const script = document.querySelector('script[src*="src/js/injection_scripts/Blob.js"]');
         if (script) {
             resolve(true);
-        } else { resolve(false) }
+        } else {
+            resolve(false)
+        }
     });
 }
 
@@ -94,7 +94,9 @@ async function startLoadVideo(tab_ID) {
         const videoConfig = data[key].displaySettings;
         for (let s of seasons.slice(seasons.indexOf(videoConfig.season_start))) {
             for (let e of episodes[s].slice(episodes[s].indexOf(videoConfig.episode_start))) {
-                if (!flagLoader) { break }
+                if (!flagLoader) {
+                    break
+                }
                 const dict = {
                     "film_id": video.film_id,
                     "translator_id": videoConfig.translator_id,
@@ -130,7 +132,7 @@ async function startLoadVideo(tab_ID) {
 }
 
 async function initLoadVideo(tab_ID, settingsVideo) {
-    const targetTab = { tabId: tab_ID, allFrames: false };
+    const targetTab = {tabId: tab_ID, allFrames: false};
 
     let url = await chrome.scripting.executeScript({
         target: targetTab,
@@ -139,7 +141,7 @@ async function initLoadVideo(tab_ID, settingsVideo) {
     })
     url = url[0].result.url
     if (!url) {
-        sendUserMessage({ "message": "Error", "content": chrome.i18n.getMessage("message_noDataVideo") })
+        sendUserMessage({"message": "Error", "content": chrome.i18n.getMessage("message_noDataVideo")})
         flagLoader = false;
         return false
     }
@@ -173,7 +175,7 @@ function injectLoader(videoSettings) {
             }
         }, 30);
     });
-};
+}
 
 
 function loadVideo(url, filename) {
@@ -185,7 +187,7 @@ function loadVideo(url, filename) {
         let isUser = false;
         const controller = new AbortController();
 
-        fetch(url, { signal: controller.signal })
+        fetch(url, {signal: controller.signal})
             .then(response => {
                 const totalSize = response.headers.get('content-length');
                 let loadedSize = 0;
@@ -194,7 +196,11 @@ function loadVideo(url, filename) {
                     if (event.lengthComputable) {
                         loadedSize = event.loaded;
                         const percentComplete = (loadedSize / totalSize) * 100;
-                        chrome.runtime.sendMessage({ "loaded": loadedSize, "size": totalSize, "percent": percentComplete.toFixed(2) }, function (response) {
+                        chrome.runtime.sendMessage({
+                            "loaded": loadedSize,
+                            "size": totalSize,
+                            "percent": percentComplete.toFixed(2)
+                        }, function (response) {
                             flagLoader = response
                         });
                         if (!flagLoader) {
@@ -206,18 +212,18 @@ function loadVideo(url, filename) {
                 };
 
                 // Создание объекта Blob с обратным вызовом прогресса
-                const blobPromise = new Promise((resolve, reject) => {
+                return new Promise((resolve, reject) => {
                     const reader = response.body.getReader();
                     const chunks = [];
 
                     const pump = () => {
-                        reader.read().then(({ done, value }) => {
+                        reader.read().then(({done, value}) => {
                             if (done) {
                                 resolve(new Blob(chunks));
                             } else {
                                 chunks.push(value);
                                 loadedSize += value.byteLength;
-                                progressCallback({ loaded: loadedSize, lengthComputable: true });
+                                progressCallback({loaded: loadedSize, lengthComputable: true});
                                 pump();
                             }
                         }).catch(reject);
@@ -225,8 +231,6 @@ function loadVideo(url, filename) {
 
                     pump();
                 });
-
-                return blobPromise;
             })
             .then(blob => {
                 const url = window.URL.createObjectURL(blob);
@@ -241,9 +245,10 @@ function loadVideo(url, filename) {
                 console.log("success load");
                 resolve(true);
             })
-            .catch(error => {
+            .catch(() => {
                 console.log("error load");
-                chrome.runtime.sendMessage({ "success": false, "content": isUser }, function (response) { });
+                chrome.runtime.sendMessage({"success": false, "content": isUser}, function (response) {
+                });
                 resolve(false);
             });
 

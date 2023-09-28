@@ -19,7 +19,7 @@ grabBtn.addEventListener("click", async () => {
     if (CurrentTab.isHdrezka) {
         console.log("trigers loading video");
         grabBtn.style.setProperty('background-image', `url(../img/load.gif)`);
-        navigator.serviceWorker.controller.postMessage({ "message": "start_load", "content": CurrentTab.id });
+        navigator.serviceWorker.controller.postMessage({"message": "start_load", "content": CurrentTab.id});
     }
 });
 
@@ -38,21 +38,18 @@ downloadSeries.addEventListener("change", async () => {
 });
 
 create_folder.addEventListener("change", async () => {
-    const select_value = downloadSeries.checked;
-    displaySettings["create_folder"] = select_value;
+    displaySettings["create_folder"] = downloadSeries.checked;
     await saveData();
 });
 
 change_season.addEventListener("change", async (event) => {
-    const select_value = event.target.value;
-    displaySettings["season_start"] = select_value;
+    displaySettings["season_start"] = event.target.value;
     await saveData();
     displayEpisodes();
 });
 
 change_episode.addEventListener("change", async (event) => {
-    const select_value = event.target.value;
-    displaySettings["episode_start"] = select_value;
+    displaySettings["episode_start"] = event.target.value;
     await saveData();
 });
 
@@ -61,17 +58,16 @@ change_translate.addEventListener("change", async (event) => {
     displaySettings["translator_id"] = select_value;
     await saveData();
     chrome.scripting.executeScript({
-        target: { tabId: CurrentTab.id, allFrames: false },
+        target: {tabId: CurrentTab.id, allFrames: false},
         func: getNewSettings,
         args: [dataVideo.film_id, select_value]
     }).then(async (result) => {
-        updateDisplay(result[0].result);
+        await updateDisplay(result[0].result);
     })
 });
 
 change_quality.addEventListener("change", async (event) => {
-    const select_value = event.target.value;
-    displaySettings["quality"] = select_value;
+    displaySettings["quality"] = event.target.value;
     await saveData();
 });
 
@@ -89,7 +85,7 @@ async function saveCurrentSettings() {
 }
 
 function displayCurrentSettings() {
-    const changeEvent = new Event("change", { bubbles: true });
+    const changeEvent = new Event("change", {bubbles: true});
 
     create_folder.checked = displaySettings.create_folder;
     create_folder.dispatchEvent(changeEvent);

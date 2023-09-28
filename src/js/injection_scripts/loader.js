@@ -4,7 +4,7 @@
     const args = JSON.parse(thisScript.dataset.args);
     console.log(args);
     getVideoURL(args).then((result) => {
-        thisScript.dataset.result = JSON.stringify({ "url": result });
+        thisScript.dataset.result = JSON.stringify({"url": result});
     });
 })();
 
@@ -21,7 +21,7 @@ async function getVideoURL(dictionary) {
         return false
     }
     clearTrash(response.url).split(",").forEach(function (item) {
-        let data = item.match(/(\[.*\])(\bhttps?:\/\/\S+\.mp4\b)/)
+        let data = item.match(/(\[.*])(\bhttps?:\/\/\S+\.mp4\b)/)
         url[data[1]] = data[2]
     })
     return url["[" + dictionary.quality + "]"]
@@ -64,6 +64,5 @@ function clearTrash(data) {
         data = data.replace(new RegExp(trashList.join("|"), "g"), "");
     }
     data = data.replace("#h", "");
-    const final_string = atob(data);
-    return final_string;
+    return atob(data);
 }
