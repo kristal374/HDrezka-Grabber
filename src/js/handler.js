@@ -112,8 +112,8 @@ async function updateDisplay(frames) {
     dataPlayer["seasons"] = frames.seasons;
     dataPlayer["episodes"] = frames.episodes;
     displaySeasons();
-    displayEpisodes();
     displaySettings["season_start"] = change_season.value;
+    displayEpisodes();
     displaySettings["episode_start"] = change_episode.value;
     await saveData();
 }
