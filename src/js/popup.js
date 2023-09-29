@@ -144,7 +144,6 @@ function getSettingsPlayer() {
 }
 
 function setSettingsPlayer(frames) {
-    console.log(frames)
     dataPlayer["seasons"] = frames.seasons;
     dataPlayer["episodes"] = frames.episodes;
     dataPlayer["translators"] = frames.translators;
