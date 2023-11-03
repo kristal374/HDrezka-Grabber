@@ -1,7 +1,7 @@
 let flagLoader = false;
 let flagWork = false;
 
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     sendProgress(message)
     sendResponse(flagLoader);
 });
@@ -12,9 +12,9 @@ function sendProgress(message) {
     } else if (message.success === false) {
         flagLoader = false;
         if (message.content) {
-            sendUserMessage({"message": "Error", "content": chrome.i18n.getMessage("message_userBreak")});
+            sendUserMessage({"message": "Error", "content": browser.i18n.getMessage("message_userBreak")});
         } else {
-            sendUserMessage({"message": "Error", "content": chrome.i18n.getMessage("message_errorLoad")});
+            sendUserMessage({"message": "Error", "content": browser.i18n.getMessage("message_errorLoad")});
         }
     } else {
         sendUserMessage({"message": "Break"});
@@ -31,23 +31,20 @@ function sendUserMessage(message) {
 
 self.addEventListener('message', async (event) => {
     if (event.data.message === "start_load") {
-        flagLoader = !flagLoader;
-        if (flagLoader) {
-            await preparationForVideoUpload(event.data.content)
-        }
+
     }
 });
 
 async function preparationForVideoUpload(tab_ID) {
     const targetTab = {tabId: tab_ID, allFrames: false};
-    chrome.scripting.executeScript({
+    browser.scripting.executeScript({
         target: targetTab,
         func: blobIsLoad
     }).then(async (result) => {
         if (result[0].result) {
             await startLoadVideo(tab_ID)
         } else {
-            chrome.scripting.executeScript({
+            browser.scripting.executeScript({
                 target: targetTab,
                 func: loadBlob
             }).then(async () => await startLoadVideo(tab_ID))
@@ -69,7 +66,7 @@ function blobIsLoad() {
 function loadBlob() {
     return new Promise((resolve) => {
         const script = document.createElement('script');
-        script.src = chrome.runtime.getURL('src/js/injection_scripts/Blob.js');
+        script.src = browser.runtime.getURL('src/js/injection_scripts/Blob.js');
         document.documentElement.appendChild(script);
 
         script.onload = function () {
@@ -85,7 +82,7 @@ async function startLoadVideo(tab_ID) {
     }
     flagWork = true;
     const key = tab_ID.toString();
-    const data = await chrome.storage.local.get([key]);
+    const data = await browser.storage.local.get([key]);
     const video = data[key].dataVideo
 
     if (data[key].displaySettings.load_all_series) {
@@ -131,14 +128,14 @@ async function startLoadVideo(tab_ID) {
 async function initLoadVideo(tab_ID, settingsVideo) {
     const targetTab = {tabId: tab_ID, allFrames: false};
 
-    let url = await chrome.scripting.executeScript({
+    let url = await browser.scripting.executeScript({
         target: targetTab,
         func: injectLoader,
         args: [settingsVideo],
     })
     url = url[0].result.url
     if (!url) {
-        sendUserMessage({"message": "Error", "content": chrome.i18n.getMessage("message_noDataVideo")})
+        sendUserMessage({"message": "Error", "content": browser.i18n.getMessage("message_noDataVideo")})
         flagLoader = false;
         return false
     }
@@ -148,7 +145,7 @@ async function initLoadVideo(tab_ID, settingsVideo) {
     } else {
         filename = filename + "_S" + settingsVideo.season_id + "E" + settingsVideo.episode_id + ".mp4"
     }
-    await chrome.scripting.executeScript({
+    await browser.scripting.executeScript({
         target: targetTab,
         func: loadVideo,
         args: [url, filename]
@@ -159,7 +156,7 @@ async function initLoadVideo(tab_ID, settingsVideo) {
 function injectLoader(videoSettings) {
     return new Promise((resolve) => {
         const script = document.createElement('script');
-        script.src = chrome.runtime.getURL('src/js/injection_scripts/loader.js');
+        script.src = browser.runtime.getURL('src/js/injection_scripts/loader.js');
         script.dataset.args = JSON.stringify(videoSettings);
         document.documentElement.appendChild(script);
 
@@ -193,7 +190,7 @@ function loadVideo(url, filename) {
                     if (event.lengthComputable) {
                         loadedSize = event.loaded;
                         const percentComplete = (loadedSize / totalSize) * 100;
-                        chrome.runtime.sendMessage({
+                        browser.runtime.sendMessage({
                             "loaded": loadedSize,
                             "size": totalSize,
                             "percent": percentComplete.toFixed(2)
@@ -244,7 +241,7 @@ function loadVideo(url, filename) {
             })
             .catch(() => {
                 console.log("error load");
-                chrome.runtime.sendMessage({"success": false, "content": isUser}, function (response) {
+                browser.runtime.sendMessage({"success": false, "content": isUser}, function (response) {
                 });
                 resolve(false);
             });

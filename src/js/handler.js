@@ -57,7 +57,7 @@ change_translate.addEventListener("change", async (event) => {
     const select_value = event.target.selectedOptions[0].getAttribute("translator_id");
     displaySettings["translator_id"] = select_value;
     await saveData();
-    chrome.scripting.executeScript({
+    browser.scripting.executeScript({
         target: {tabId: CurrentTab.id, allFrames: false},
         func: getNewSettings,
         args: [dataVideo.film_id, select_value]
@@ -134,7 +134,7 @@ function displayTranslators() {
     }
     if (Object.keys(dataPlayer.translators).length === 0) {
         let optionElement = document.createElement("option");
-        optionElement.text = chrome.i18n.getMessage("info_unknownVoice");
+        optionElement.text = browser.i18n.getMessage("info_unknownVoice");
         optionElement.setAttribute("translator_id", dataVideo.translator_id)
         optionElement.selected = true;
         voice_selector.add(optionElement);

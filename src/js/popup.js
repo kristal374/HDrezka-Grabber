@@ -12,7 +12,7 @@ let CurrentTab = {
         return // выход из функции если id вкладки отсутствует
     }
     const targetTab = {tabId: CurrentTab.id, allFrames: false};
-    await chrome.scripting.executeScript({
+    await browser.scripting.executeScript({
         target: targetTab,
         func: isTargetSite
     }).then((result) => {
@@ -23,7 +23,7 @@ let CurrentTab = {
         return // выход из функции если сайт не принадлежит ни к одному из зеркал или имён rezka.ag
     }
 
-    await chrome.scripting.executeScript({
+    await browser.scripting.executeScript({
         target: targetTab,
         func: getDataVideo
     }).then((result) => {
@@ -33,7 +33,7 @@ let CurrentTab = {
         // В случае если мы пытаемся загрузить сериал отображает checkbox позволяющий загрузить весь сериал за раз
         // И получаем данные о количестве серий/эпизодов/озвучек
         showCheckBox();
-        await chrome.scripting.executeScript({
+        await browser.scripting.executeScript({
             target: targetTab,
             func: getSettingsPlayer
         }).then((result) => {
@@ -55,7 +55,7 @@ let CurrentTab = {
 })();
 
 async function getCurrentTabId() {
-    const tabs = await chrome.tabs.query({active: true})
+    const tabs = await browser.tabs.query({active: true})
     if (tabs && tabs.length > 0) {
         return tabs[0].id;
     } else {
@@ -119,7 +119,7 @@ function getSettingsPlayer() {
             let filteredElements = Array.from(elements).filter(element => element.textContent.includes('В переводе'));
             if (filteredElements.length > 0){
                 let match  = document.documentElement.outerHTML.match(/sof\.tv\.([^.]*)\((\d+), (\d+), (\d+), (\d+)/);
-                let translatorName = filteredElements[0].parentNode.nextElementSibling.textContent.trim();
+                let translatorName = filteredElements[0].parentNode["nextElementSibling"].textContent.trim();
                 dictionary.translators[translatorName] = match[3];
             }
         }
@@ -151,7 +151,7 @@ function setSettingsPlayer(frames) {
 
 async function synchData() {
     const key = CurrentTab.id.toString()
-    const result = await chrome.storage.local.get([key]);
+    const result = await browser.storage.local.get([key]);
 
     if (result[key] && result[key].dataVideo.film_id === dataVideo.film_id) {
         dataPlayer = result[key].dataPlayer;
@@ -162,19 +162,19 @@ async function synchData() {
 }
 
 async function clearOldData() {
-    let lstSavedTab = Object.keys(await chrome.storage.local.get(null))
-    const lstAllTab = await chrome.tabs.query({})
+    let lstSavedTab = Object.keys(await browser.storage.local.get())
+    const lstAllTab = await browser.tabs.query({})
     lstAllTab.forEach(function (item) {
         if (lstSavedTab.includes(item.id.toString())) {
             lstSavedTab = lstSavedTab.filter(id_ => id_ !== item.id.toString());
         }
     })
-    chrome.storage.local.remove(lstSavedTab);
+    browser.storage.local.remove(lstSavedTab);
 }
 
 async function saveData() {
     const key = CurrentTab.id.toString()
-    return await chrome.storage.local.set({
+    return browser.storage.local.set({
         [key]: {
             'dataVideo': dataVideo,
             'dataPlayer': dataPlayer,
@@ -188,7 +188,7 @@ function getNewSettings(film_id, translator_id) {
         console.log("getNewSettings inject success");
 
         const script = document.createElement('script');
-        script.src = chrome.runtime.getURL('src/js/injection_scripts/update_translate_info.js');
+        script.src = browser.runtime.getURL('src/js/injection_scripts/update_translate_info.js');
         script.dataset.args = JSON.stringify({
             "film_id": film_id,
             "translator_id": translator_id
