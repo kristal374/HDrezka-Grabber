@@ -12,6 +12,11 @@ let CurrentTab = {
         return // выход из функции если id вкладки отсутствует
     }
     const targetTab = {tabId: CurrentTab.id, allFrames: false};
+    await browser.scripting.executeScript(
+        {
+            target: targetTab,
+            files: ["../lib/browser-polyfill.min.js"]
+        })
     await browser.scripting.executeScript({
         target: targetTab,
         func: isTargetSite
@@ -113,12 +118,12 @@ function getSettingsPlayer() {
         document.querySelectorAll('.b-translator__item').forEach(function (item) {
             dictionary.translators[item.title] = item.getAttribute("data-translator_id")
         });
-        if (Object.keys(dictionary.translators).length === 0){
+        if (Object.keys(dictionary.translators).length === 0) {
             let elements = document.querySelectorAll('td.l h2');
 
             let filteredElements = Array.from(elements).filter(element => element.textContent.includes('В переводе'));
-            if (filteredElements.length > 0){
-                let match  = document.documentElement.outerHTML.match(/sof\.tv\.([^.]*)\((\d+), (\d+), (\d+), (\d+)/);
+            if (filteredElements.length > 0) {
+                let match = document.documentElement.outerHTML.match(/sof\.tv\.([^.]*)\((\d+), (\d+), (\d+), (\d+)/);
                 let translatorName = filteredElements[0].parentNode["nextElementSibling"].textContent.trim();
                 dictionary.translators[translatorName] = match[3];
             }

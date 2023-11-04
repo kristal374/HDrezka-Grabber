@@ -1,3 +1,9 @@
+(async () => {
+    if (!self.browser) {
+        await importScripts('../lib/browser-polyfill.min.js');
+    }
+})()
+
 let flagLoader = false;
 let flagWork = false;
 
