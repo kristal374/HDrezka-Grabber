@@ -1,8 +1,8 @@
 {
     "name": "HDrezka Grabber",
     "description": "__MSG_manifest_description__",
-    "version": "0.2",
-    "version_name": "0.2 beta",
+    "version": "0.3",
+    "version_name": "0.3 alpha",
     "default_locale": "en",
     "manifest_version": 3,
     "icons": {
@@ -22,17 +22,18 @@
     ],
     "host_permissions": [
         "<all_urls>"
-      ],
+    ],
     "web_accessible_resources": [
         {
             "resources": [
-                "src/js/injection_scripts/*"                
+                "src/js/injection_scripts/*",
+                "src/lib/*"
             ],
             "matches": [
                 "<all_urls>"
             ]
         }
     ],
-    "author": "mail.aleks.for.work@gmail.com", 
+    "author": "mail.aleks.for.work@gmail.com",
     "homepage_url": "https://github.com/kristal374/HDrezka-Grabber"
 }
