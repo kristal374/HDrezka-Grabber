@@ -19,7 +19,7 @@ grabBtn.addEventListener("click", async () => {
     if (CurrentTab.isHdrezka) {
         console.log("trigers loading video");
         grabBtn.style.setProperty('background-image', `url(../img/load.gif)`);
-        navigator.serviceWorker.controller.postMessage({"message": "start_load", "content": CurrentTab.id});
+        browser.runtime.sendMessage({"message": "Trigger", "content": CurrentTab.id})
     }
 });
 
@@ -211,18 +211,18 @@ function displayQuality() {
     });
 }
 
-navigator.serviceWorker.addEventListener('message', function (event) {
-    if (event.data.message === "Progress") {
-        grabBtn.style.setProperty('background-image', "none");
-        grabBtn.textContent = event.data.content + "%";
-
-    } else if (event.data.message === "Break") {
-        grabBtn.textContent = "";
-        grabBtn.style.setProperty('background-image', `url("data:image/svg+xml,%3Csvg width='18' height='23' viewBox='0 0 18 23' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.66025 0H11.6603V10.25H17.3205L8.66025 17L0 10.25H5.66025V0Z' fill='white'/%3E%3Cpath d='M0.660254 23V20H16.6603V23H0.660254Z' fill='white'/%3E%3C/svg%3E%0A")`);
-    } else if (event.data.message === "Error") {
-        grabBtn.style.setProperty('background-image', `url("data:image/svg+xml,%3Csvg width='18' height='23' viewBox='0 0 18 23' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.66025 0H11.6603V10.25H17.3205L8.66025 17L0 10.25H5.66025V0Z' fill='white'/%3E%3Cpath d='M0.660254 23V20H16.6603V23H0.660254Z' fill='white'/%3E%3C/svg%3E%0A")`);
-        messge_element.style.display = "block";
-        messge_element.textContent = event.data.content
+browser.runtime.onMessage.addListener(
+    function (data) {
+        if (data.message === "Progress") {
+            grabBtn.style.setProperty('background-image', "none");
+            grabBtn.textContent = data.content + "%";
+        } else if (data.message === "Break") {
+            grabBtn.textContent = "";
+            grabBtn.style.setProperty('background-image', `url(../img/startLoad.svg)`);
+        } else if (data.message === "Error") {
+            grabBtn.style.setProperty('background-image', `url(../img/startLoad.svg)`);
+            messge_element.style.display = "block";
+            messge_element.textContent = data.content
+        }
     }
-
-});
+);

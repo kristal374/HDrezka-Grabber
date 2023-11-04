@@ -1,39 +1,37 @@
 let flagLoader = false;
 let flagWork = false;
 
-browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-    sendProgress(message)
-    sendResponse(flagLoader);
-});
-
-function sendProgress(message) {
-    if (flagLoader) {
-        sendUserMessage({"message": "Progress", "content": message.percent});
-    } else if (message.success === false) {
-        flagLoader = false;
-        if (message.content) {
-            sendUserMessage({"message": "Error", "content": browser.i18n.getMessage("message_userBreak")});
+browser.runtime.onMessage.addListener(
+    function (data, sender, sendResponse) {
+        data.message !== "Progress" && console.log(data)
+        if (data.message === "Trigger") {
+            flagLoader = !flagLoader;
+            if (flagLoader) {
+                preparationForVideoUpload(data.content)
+            } else {
+                browser.runtime.sendMessage({"message": "Break"});
+            }
+            sendResponse(true);
+        } else if (data.message === "Progress") {
+            sendResponse(flagLoader);
+        } else if (data.success === false) {
+            flagLoader = false;
+            if (data.content) {
+                browser.runtime.sendMessage({
+                    "message": "Error",
+                    "content": browser.i18n.getMessage("message_userBreak")
+                });
+            } else {
+                browser.runtime.sendMessage({
+                    "message": "Error",
+                    "content": browser.i18n.getMessage("message_errorLoad")
+                });
+            }
         } else {
-            sendUserMessage({"message": "Error", "content": browser.i18n.getMessage("message_errorLoad")});
+            console.log(data)
         }
-    } else {
-        sendUserMessage({"message": "Break"});
     }
-}
-
-function sendUserMessage(message) {
-    self.clients.matchAll().then(function (clients) {
-        clients.forEach(function (client) {
-            client.postMessage(message);
-        });
-    });
-}
-
-self.addEventListener('message', async (event) => {
-    if (event.data.message === "start_load") {
-
-    }
-});
+);
 
 async function preparationForVideoUpload(tab_ID) {
     const targetTab = {tabId: tab_ID, allFrames: false};
@@ -122,7 +120,7 @@ async function startLoadVideo(tab_ID) {
     }
     flagLoader = false;
     flagWork = false;
-    sendProgress("")
+    await browser.runtime.sendMessage({"message": "Break"});
 }
 
 async function initLoadVideo(tab_ID, settingsVideo) {
@@ -135,7 +133,10 @@ async function initLoadVideo(tab_ID, settingsVideo) {
     })
     url = url[0].result.url
     if (!url) {
-        sendUserMessage({"message": "Error", "content": browser.i18n.getMessage("message_noDataVideo")})
+        await browser.runtime.sendMessage({
+            "message": "Error",
+            "content": browser.i18n.getMessage("message_noDataVideo")
+        })
         flagLoader = false;
         return false
     }
@@ -145,12 +146,14 @@ async function initLoadVideo(tab_ID, settingsVideo) {
     } else {
         filename = filename + "_S" + settingsVideo.season_id + "E" + settingsVideo.episode_id + ".mp4"
     }
-    await browser.scripting.executeScript({
-        target: targetTab,
-        func: loadVideo,
-        args: [url, filename]
-    })
-    return true
+    if (flagLoader) {
+        await browser.scripting.executeScript({
+            target: targetTab,
+            func: loadVideo,
+            args: [url, filename]
+        })
+        return true
+    } else return false
 }
 
 function injectLoader(videoSettings) {
@@ -187,21 +190,21 @@ function loadVideo(url, filename) {
                 let loadedSize = 0;
 
                 const progressCallback = (event) => {
-                    if (event.lengthComputable) {
+                    if (event.lengthComputable && flagLoader) {
                         loadedSize = event.loaded;
                         const percentComplete = (loadedSize / totalSize) * 100;
                         browser.runtime.sendMessage({
-                            "loaded": loadedSize,
-                            "size": totalSize,
-                            "percent": percentComplete.toFixed(2)
-                        }, function (response) {
+                            "message": "Progress",
+                            "content": percentComplete.toFixed(2)
+                        }).then((response) => {
                             flagLoader = response
+                            if (!flagLoader && !isUser) {
+                                controller.abort();
+                                isUser = true;
+                                console.log(flagLoader)
+                                console.log('Загрузка прервана пользователем.');
+                            }
                         });
-                        if (!flagLoader) {
-                            controller.abort();
-                            isUser = true;
-                            console.log('Загрузка прервана пользователем.');
-                        }
                     }
                 };
 
@@ -241,8 +244,7 @@ function loadVideo(url, filename) {
             })
             .catch(() => {
                 console.log("error load");
-                browser.runtime.sendMessage({"success": false, "content": isUser}, function (response) {
-                });
+                browser.runtime.sendMessage({"success": false, "content": isUser});
                 resolve(false);
             });
 
