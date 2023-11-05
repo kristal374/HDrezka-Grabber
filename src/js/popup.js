@@ -15,7 +15,7 @@ let CurrentTab = {
     await browser.scripting.executeScript(
         {
             target: targetTab,
-            files: ["../lib/browser-polyfill.min.js"]
+            files: ["/lib/browser-polyfill.min.js"]
         })
     await browser.scripting.executeScript({
         target: targetTab,
@@ -80,7 +80,7 @@ function getDataVideo() {
         console.log("inject getDataVideo success");
 
         const script = document.createElement('script');
-        script.src = chrome.runtime.getURL('src/js/injection_scripts/video_info.js');
+        script.src = chrome.runtime.getURL('js/injection_scripts/video_info.js');
         document.documentElement.appendChild(script);
 
         const intervalId = setInterval(() => {
@@ -193,7 +193,7 @@ function getNewSettings(film_id, translator_id) {
         console.log("getNewSettings inject success");
 
         const script = document.createElement('script');
-        script.src = browser.runtime.getURL('src/js/injection_scripts/update_translate_info.js');
+        script.src = browser.runtime.getURL('js/injection_scripts/update_translate_info.js');
         script.dataset.args = JSON.stringify({
             "film_id": film_id,
             "translator_id": translator_id

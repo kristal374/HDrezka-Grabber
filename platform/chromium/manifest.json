@@ -1,20 +1,20 @@
 {
     "name": "HDrezka Grabber",
     "description": "__MSG_manifest_description__",
-    "version": "0.3",
-    "version_name": "0.3 alpha",
+    "version": "0.1",
+    "version_name": "0.1",
     "default_locale": "en",
     "manifest_version": 3,
     "icons": {
-        "48": "src/img/icons/48.png",
-        "32": "src/img/icons/32.png",
-        "16": "src/img/icons/16.png"
+        "48": "img/icons/48.png",
+        "32": "img/icons/32.png",
+        "16": "img/icons/16.png"
     },
     "action": {
-        "default_popup": "src/html/popup.html"
+        "default_popup": "html/popup.html"
     },
     "background": {
-        "service_worker": "src/js/background.js"
+        "service_worker": "js/background.js"
     },
     "permissions": [
         "scripting",
@@ -26,14 +26,15 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "src/js/injection_scripts/*",
-                "src/lib/*"
+                "js/injection_scripts/*",
+                "lib/*"
             ],
             "matches": [
                 "<all_urls>"
             ]
         }
     ],
+
     "author": "mail.aleks.for.work@gmail.com",
     "homepage_url": "https://github.com/kristal374/HDrezka-Grabber"
 }

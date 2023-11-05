@@ -58,7 +58,7 @@ async function preparationForVideoUpload(tab_ID) {
 
 function blobIsLoad() {
     return new Promise((resolve) => {
-        const script = document.querySelector('script[src*="src/lib/Blob.js"]');
+        const script = document.querySelector('script[src*="lib/Blob.js"]');
         if (script) {
             resolve(true);
         } else {
@@ -70,7 +70,7 @@ function blobIsLoad() {
 function loadBlob() {
     return new Promise((resolve) => {
         const script = document.createElement('script');
-        script.src = browser.runtime.getURL('src/lib/Blob.js');
+        script.src = browser.runtime.getURL('lib/Blob.js');
         document.documentElement.appendChild(script);
 
         script.onload = function () {
@@ -165,7 +165,7 @@ async function initLoadVideo(tab_ID, settingsVideo) {
 function injectLoader(videoSettings) {
     return new Promise((resolve) => {
         const script = document.createElement('script');
-        script.src = browser.runtime.getURL('src/js/injection_scripts/loader.js');
+        script.src = browser.runtime.getURL('js/injection_scripts/loader.js');
         script.dataset.args = JSON.stringify(videoSettings);
         document.documentElement.appendChild(script);
 
