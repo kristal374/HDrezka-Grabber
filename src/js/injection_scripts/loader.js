@@ -16,27 +16,28 @@ async function getVideoURL(dictionary) {
         dictionary.season_id,
         dictionary.episode_id,
         dictionary.action)
-    let url = {};
+    let url_dict = {};
     if (!response.success) {
         return false
     }
     clearTrash(response.url).split(",").forEach(function (item) {
-        let data = item.match(/(\[.*])(\bhttps?:\/\/\S+\.mp4\b)/)
-        url[data[1]] = data[2]
+        let links_quality = item.match(/\[.*?]/)[0]
+        let urls_strings = item.slice(links_quality.length)
+        url_dict[links_quality] = urls_strings.split(/\sor\s/).filter(item => /https?:\/\/.*mp4$/.test(item))
     })
     let quality = `[${dictionary.quality}]`;
-    if (Object.keys(url).length === 0) {
+    if (Object.keys(url_dict).length === 0) {
         return false
-    } else if (url[quality]) {
-        return url[quality]
+    } else if (url_dict[quality]) {
+        return url_dict[quality]
     } else {
-        let keys = CDNPlayer.api('qualities').map((item) => item.match(/\d*p(\sUltra)?/)[0]);
+        let keys = CDNPlayer.api('qualities').map((item) => item.match(/\d*(?:(?:K)|(?:p(?:\sUltra)?))/)[0]);
         let index = keys.indexOf(dictionary.quality)
-        while (index > 0 && !url[quality]) {
+        while (index > 0 && !url_dict[quality]) {
             index -= 1;
             quality = `[${keys[index]}]`
         }
-        return url[quality]
+        return url_dict[quality]
     }
 }
 
