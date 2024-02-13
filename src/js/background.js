@@ -131,13 +131,13 @@ async function startLoadVideo(tab_ID) {
 async function initLoadVideo(tab_ID, settingsVideo) {
     const targetTab = {tabId: tab_ID, allFrames: false};
 
-    let url = await chrome.scripting.executeScript({
+    let urls = await chrome.scripting.executeScript({
         target: targetTab,
         func: injectLoader,
         args: [settingsVideo],
     })
-    url = url[0].result.url
-    if (!url) {
+    let url_list = urls[0].result.url
+    if (!url_list) {
         sendUserMessage({"message": "Error", "content": chrome.i18n.getMessage("message_noDataVideo")})
         flagLoader = false;
         return false
@@ -148,11 +148,16 @@ async function initLoadVideo(tab_ID, settingsVideo) {
     } else {
         filename = filename + "_S" + settingsVideo.season_id + "E" + settingsVideo.episode_id + ".mp4"
     }
-    await chrome.scripting.executeScript({
-        target: targetTab,
-        func: loadVideo,
-        args: [url, filename]
-    })
+    for (const url of url_list) {
+        let success = await chrome.scripting.executeScript({
+            target: targetTab,
+            func: loadVideo,
+            args: [url, filename]
+        });
+        if (success) break
+        console.log("success - false")
+    }
+
     return true
 }
 
