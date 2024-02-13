@@ -193,6 +193,7 @@ function loadVideo(url, filename) {
             .then(response => {
                 const totalSize = response.headers.get('content-length');
                 let loadedSize = 0;
+                if (!totalSize) throw new Error("Empty object");
 
                 const progressCallback = (event) => {
                     if (event.lengthComputable) {
