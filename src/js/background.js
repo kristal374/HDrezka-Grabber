@@ -132,13 +132,13 @@ async function startLoadVideo(tab_ID) {
 async function initLoadVideo(tab_ID, settingsVideo) {
     const targetTab = {tabId: tab_ID, allFrames: false};
 
-    let url = await browser.scripting.executeScript({
+    let urls = await browser.scripting.executeScript({
         target: targetTab,
         func: injectLoader,
         args: [settingsVideo],
     })
-    url = url[0].result.url
-    if (!url) {
+    let url_list = urls[0].result.url
+    if (!url_list.length) {
         await browser.runtime.sendMessage({
             "message": "Error",
             "content": browser.i18n.getMessage("message_noDataVideo")
@@ -153,12 +153,15 @@ async function initLoadVideo(tab_ID, settingsVideo) {
         filename = filename + "_S" + settingsVideo.season_id + "E" + settingsVideo.episode_id + ".mp4"
     }
     if (flagLoader) {
-        await browser.scripting.executeScript({
-            target: targetTab,
-            func: loadVideo,
-            args: [url, filename]
-        })
-        return true
+        for (const url of url_list) {
+            let is_success = await browser.scripting.executeScript({
+                target: targetTab,
+                func: loadVideo,
+                args: [url, filename]
+            });
+            if (is_success) return true
+            console.log("is_success - false")
+        }
     } else return false
 }
 
@@ -194,6 +197,7 @@ function loadVideo(url, filename) {
             .then(response => {
                 const totalSize = response.headers.get('content-length');
                 let loadedSize = 0;
+                if (!totalSize) throw new Error("Empty object");
 
                 const progressCallback = (event) => {
                     if (event.lengthComputable && flagLoader) {

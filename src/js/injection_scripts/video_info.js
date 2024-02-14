@@ -41,7 +41,7 @@
         dictionary["episode_id"] = match[5];
     }
     dictionary["film_id"] = match[2];
-    dictionary["quality"] = CDNPlayer.api('quality').match(/\d*p(\sUltra)?/)[0];
-    dictionary["qualities"] = CDNPlayer.api('qualities').map((item) => item.match(/\d*p(\sUltra)?/)[0]);
+    dictionary["quality"] = CDNPlayer.api('quality').match(/\d*(?:(?:K)|(?:p(?:\sUltra)?))/)[0];
+    dictionary["qualities"] = CDNPlayer.api('qualities').map((item) => item.match(/\d*(?:(?:K)|(?:p(?:\sUltra)?))/)[0]);
     thisScript.dataset.result = JSON.stringify(dictionary);
 })();
