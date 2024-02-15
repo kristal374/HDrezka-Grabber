@@ -1,56 +1,74 @@
 <!DOCTYPE html>
 <html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" type="text/css" href="../style.css" />
+        <title>Popup</title>
+    </head>
 
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="../css/popup.css">
-    <title>Popup</title>
-</head>
+    <body>
+        <div class="container">
+            <button id="load_btn" class="round-button"></button>
+            <p style="display: none" id="user-message"></p>
+            <div class="checkbox-container">
+                <input id="create-folder" type="checkbox" />
+                <label
+                    style="display: none"
+                    data-resource="popup_createFolder"
+                    for="create-folder"
+                ></label>
+            </div>
+            <div style="display: none" class="checkbox-container serials">
+                <input id="load-entire-series" type="checkbox" />
+                <label
+                    data-resource="popup_loadAll"
+                    for="load-entire-series"
+                ></label>
+            </div>
 
-<body>
-<div class="container">
-    <button id="load_btn" class="round-button"></button>
-    <p style="display: none;" id="user-message"></p>
-    <div class="checkbox-container">
-        <input id="create-folder" type="checkbox">
-        <label style="display: none;" data-resource="popup_createFolder" for="create-folder"></label>
-    </div>
-    <div style="display: none;" class="checkbox-container serials">
-        <input id="load-entire-series" type="checkbox">
-        <label data-resource="popup_loadAll" for="load-entire-series"></label>
-    </div>
-
-    <div style="display: none;" id="fields-container">
-        <h2 data-resource="popup_infoTitle"></h2>
-        <div class="field-container">
-            <label data-resource="popup_translate" for="voice-select"></label>
-            <select id="voice-select">
-            </select>
+            <div style="display: none" id="fields-container">
+                <h2 data-resource="popup_infoTitle"></h2>
+                <div class="field-container">
+                    <label
+                        data-resource="popup_translate"
+                        for="voice-select"
+                    ></label>
+                    <select id="voice-select"></select>
+                </div>
+                <div class="field-container">
+                    <label
+                        data-resource="popup_seasonStart"
+                        for="season-select"
+                    ></label>
+                    <select id="season-select"></select>
+                </div>
+                <div class="field-container">
+                    <label
+                        data-resource="popup_episodeStart"
+                        for="episode-select"
+                    ></label>
+                    <select id="episode-select"></select>
+                </div>
+            </div>
+            <div class="dropdown-container">
+                <label
+                    data-resource="popup_quality"
+                    for="quality-select"
+                ></label>
+                <select id="quality-select"></select>
+            </div>
+            <div class="save-button-container">
+                <button
+                    style="display: none"
+                    data-resource="popup_selectDirectory"
+                    id="select-directory"
+                    class="save-button"
+                ></button>
+            </div>
         </div>
-        <div class="field-container">
-            <label data-resource="popup_seasonStart" for="season-select"></label>
-            <select id="season-select">
-            </select>
-        </div>
-        <div class="field-container">
-            <label data-resource="popup_episodeStart" for="episode-select"></label>
-            <select id="episode-select">
-            </select>
-        </div>
-    </div>
-    <div class="dropdown-container">
-        <label data-resource="popup_quality" for="quality-select"></label>
-        <select id="quality-select">
-        </select>
-    </div>
-    <div class="save-button-container">
-        <button style="display: none;" data-resource="popup_selectDirectory" id="select-directory" class="save-button"></button>
-    </div>
-</div>
-<script src="../lib/browser-polyfill.min.js"></script>
-<script src="../js/localize.js"></script>
-<script src="../js/popup.js"></script>
-<script src="../js/handler.js"></script>
-</body>
-
+        <script src="../lib/browser-polyfill.min.js"></script>
+        <script src="../js/localize.js"></script>
+        <script src="../js/popup.js"></script>
+        <script src="../js/handler.js"></script>
+    </body>
 </html>

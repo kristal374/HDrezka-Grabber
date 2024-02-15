@@ -1,66 +1,71 @@
 let dataVideo = {};
 let dataPlayer = {};
-let displaySettings = {}
+let displaySettings = {};
 let CurrentTab = {
-    "id": null,
-    "isHdrezka": false
+    id: null,
+    isHdrezka: false,
 };
 
 (async () => {
     CurrentTab.id = await getCurrentTabId();
     if (!CurrentTab.id) {
-        return // выход из функции если id вкладки отсутствует
+        return; // выход из функции если id вкладки отсутствует
     }
-    const targetTab = {tabId: CurrentTab.id, allFrames: false};
-    await browser.scripting.executeScript(
-        {
-            target: targetTab,
-            files: ["/lib/browser-polyfill.min.js"]
-        })
+    const targetTab = { tabId: CurrentTab.id, allFrames: false };
     await browser.scripting.executeScript({
         target: targetTab,
-        func: isTargetSite
-    }).then((result) => {
-        CurrentTab.isHdrezka = result[0].result // Встраиваемый скрипт для проверки соответствия имени сайта
-    })
+        files: ["/lib/browser-polyfill.min.js"],
+    });
+    await browser.scripting
+        .executeScript({
+            target: targetTab,
+            func: isTargetSite,
+        })
+        .then((result) => {
+            CurrentTab.isHdrezka = result[0].result; // Встраиваемый скрипт для проверки соответствия имени сайта
+        });
     console.log("isHDrezka = " + CurrentTab.isHdrezka);
     if (!CurrentTab.isHdrezka) {
-        return // выход из функции если сайт не принадлежит ни к одному из зеркал или имён rezka.ag
+        return; // выход из функции если сайт не принадлежит ни к одному из зеркал или имён rezka.ag
     }
 
-    await browser.scripting.executeScript({
-        target: targetTab,
-        func: getDataVideo
-    }).then((result) => {
-        setDataVideo(result[0].result);
-    })
+    await browser.scripting
+        .executeScript({
+            target: targetTab,
+            func: getDataVideo,
+        })
+        .then((result) => {
+            setDataVideo(result[0].result);
+        });
     if (dataVideo.action === "get_stream") {
         // В случае если мы пытаемся загрузить сериал отображает checkbox позволяющий загрузить весь сериал за раз
         // И получаем данные о количестве серий/эпизодов/озвучек
         showCheckBox();
-        await browser.scripting.executeScript({
-            target: targetTab,
-            func: getSettingsPlayer
-        }).then((result) => {
-            setSettingsPlayer(result[0].result);
-        })
+        await browser.scripting
+            .executeScript({
+                target: targetTab,
+                func: getSettingsPlayer,
+            })
+            .then((result) => {
+                setSettingsPlayer(result[0].result);
+            });
     }
-    await synchData() // Синхронизация данных через локальное хранилище расширения
+    await synchData(); // Синхронизация данных через локальное хранилище расширения
     if (dataVideo.action === "get_stream") {
-        displayValuesSeason()
+        displayValuesSeason();
     } else {
-        displayQuality()
+        displayQuality();
     }
 
     if (Object.keys(displaySettings).length === 0) {
-        await saveCurrentSettings()
+        await saveCurrentSettings();
     } else {
-        displayCurrentSettings()
+        displayCurrentSettings();
     }
 })();
 
 async function getCurrentTabId() {
-    const tabs = await browser.tabs.query({active: true})
+    const tabs = await browser.tabs.query({ active: true });
     if (tabs && tabs.length > 0) {
         return tabs[0].id;
     } else {
@@ -70,8 +75,10 @@ async function getCurrentTabId() {
 
 function isTargetSite() {
     return new Promise((resolve) => {
-        const nameSite = document.querySelector('meta[property="og:site_name"]')
-        resolve(nameSite && nameSite.content === 'rezka.ag')
+        const nameSite = document.querySelector(
+            'meta[property="og:site_name"]'
+        );
+        resolve(nameSite && nameSite.content === "rezka.ag");
     });
 }
 
@@ -79,8 +86,10 @@ function getDataVideo() {
     return new Promise((resolve) => {
         console.log("inject getDataVideo success");
 
-        const script = document.createElement('script');
-        script.src = chrome.runtime.getURL('js/injection_scripts/video_info.js');
+        const script = document.createElement("script");
+        script.src = chrome.runtime.getURL(
+            "js/injection_scripts/video_info.js"
+        );
         document.documentElement.appendChild(script);
 
         const intervalId = setInterval(() => {
@@ -92,7 +101,6 @@ function getDataVideo() {
                 resolve(result);
             }
         }, 30);
-
     });
 }
 
@@ -111,27 +119,41 @@ function setDataVideo(frames) {
 function getSettingsPlayer() {
     return new Promise((resolve) => {
         let dictionary = {
-            "translators": {},
-            "seasons": [],
-            "episodes": {}
+            translators: {},
+            seasons: [],
+            episodes: {},
         };
-        document.querySelectorAll('.b-translator__item').forEach(function (item) {
-            dictionary.translators[item.title] = item.getAttribute("data-translator_id")
-        });
+        document
+            .querySelectorAll(".b-translator__item")
+            .forEach(function (item) {
+                dictionary.translators[item.title] =
+                    item.getAttribute("data-translator_id");
+            });
         if (Object.keys(dictionary.translators).length === 0) {
-            let elements = document.querySelectorAll('td.l h2');
+            let elements = document.querySelectorAll("td.l h2");
 
-            let filteredElements = Array.from(elements).filter(element => element.textContent.includes('В переводе'));
+            let filteredElements = Array.from(elements).filter((element) =>
+                element.textContent.includes("В переводе")
+            );
             if (filteredElements.length > 0) {
-                let match = document.documentElement.outerHTML.match(/sof\.tv\.([^.]*)\((\d+), (\d+), (\d+), (\d+)/);
-                let translatorName = filteredElements[0].parentNode["nextElementSibling"].textContent.trim();
+                let match = document.documentElement.outerHTML.match(
+                    /sof\.tv\.([^.]*)\((\d+), (\d+), (\d+), (\d+)/
+                );
+                let translatorName =
+                    filteredElements[0].parentNode[
+                        "nextElementSibling"
+                    ].textContent.trim();
                 dictionary.translators[translatorName] = match[3];
             }
         }
-        document.querySelectorAll('.b-simple_season__item').forEach(function (item) {
-            dictionary.seasons.push(item.getAttribute("data-tab_id"))
-        });
-        let episodesList = document.getElementById("simple-episodes-tabs").getElementsByTagName("ul");
+        document
+            .querySelectorAll(".b-simple_season__item")
+            .forEach(function (item) {
+                dictionary.seasons.push(item.getAttribute("data-tab_id"));
+            });
+        let episodesList = document
+            .getElementById("simple-episodes-tabs")
+            .getElementsByTagName("ul");
         for (let i = 0; i < episodesList.length; i++) {
             let seasonId = episodesList[i].getAttribute("id").split("-")[3];
             let episodes = [];
@@ -155,7 +177,7 @@ function setSettingsPlayer(frames) {
 }
 
 async function synchData() {
-    const key = CurrentTab.id.toString()
+    const key = CurrentTab.id.toString();
     const result = await browser.storage.local.get([key]);
 
     if (result[key] && result[key].dataVideo.film_id === dataVideo.film_id) {
@@ -167,24 +189,26 @@ async function synchData() {
 }
 
 async function clearOldData() {
-    let lstSavedTab = Object.keys(await browser.storage.local.get())
-    const lstAllTab = await browser.tabs.query({})
+    let lstSavedTab = Object.keys(await browser.storage.local.get());
+    const lstAllTab = await browser.tabs.query({});
     lstAllTab.forEach(function (item) {
         if (lstSavedTab.includes(item.id.toString())) {
-            lstSavedTab = lstSavedTab.filter(id_ => id_ !== item.id.toString());
+            lstSavedTab = lstSavedTab.filter(
+                (id_) => id_ !== item.id.toString()
+            );
         }
-    })
+    });
     browser.storage.local.remove(lstSavedTab);
 }
 
 async function saveData() {
-    const key = CurrentTab.id.toString()
+    const key = CurrentTab.id.toString();
     return browser.storage.local.set({
         [key]: {
-            'dataVideo': dataVideo,
-            'dataPlayer': dataPlayer,
-            'displaySettings': displaySettings
-        }
+            dataVideo: dataVideo,
+            dataPlayer: dataPlayer,
+            displaySettings: displaySettings,
+        },
     });
 }
 
@@ -192,11 +216,13 @@ function getNewSettings(film_id, translator_id) {
     return new Promise((resolve) => {
         console.log("getNewSettings inject success");
 
-        const script = document.createElement('script');
-        script.src = browser.runtime.getURL('js/injection_scripts/update_translate_info.js');
+        const script = document.createElement("script");
+        script.src = browser.runtime.getURL(
+            "js/injection_scripts/update_translate_info.js"
+        );
         script.dataset.args = JSON.stringify({
-            "film_id": film_id,
-            "translator_id": translator_id
+            film_id: film_id,
+            translator_id: translator_id,
         });
         document.documentElement.appendChild(script);
 

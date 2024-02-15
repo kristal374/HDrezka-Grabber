@@ -2,6 +2,9 @@
     "manifest_description": {
         "message": "Fast and convenient downloading of movies and TV shows from rezka.ag! Access your favorite movies and TV shows in just a few clicks."
     },
+    "default_description": {
+        "message": "Перейди на страницу сериала или фильмам на HDrezka, чтобы скачать его"
+    },
     "popup_loadAll": {
         "message": "Download Entire Series"
     },

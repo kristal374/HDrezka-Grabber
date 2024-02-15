@@ -3,3 +3,5 @@ dist/build/*
 
 # keys
 *.pem
+
+node_modules/

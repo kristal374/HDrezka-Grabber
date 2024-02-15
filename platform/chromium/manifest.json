@@ -11,27 +11,17 @@
         "16": "img/icons/16.png"
     },
     "action": {
-        "default_popup": "html/popup.html"
+        "default_popup": "index.html"
     },
     "background": {
         "service_worker": "js/background.js"
     },
-    "permissions": [
-        "scripting",
-        "storage"
-    ],
-    "host_permissions": [
-        "<all_urls>"
-    ],
+    "permissions": ["scripting", "storage"],
+    "host_permissions": ["<all_urls>"],
     "web_accessible_resources": [
         {
-            "resources": [
-                "js/injection_scripts/*",
-                "lib/*"
-            ],
-            "matches": [
-                "<all_urls>"
-            ]
+            "resources": ["js/injection_scripts/*", "lib/*"],
+            "matches": ["<all_urls>"]
         }
     ],
 

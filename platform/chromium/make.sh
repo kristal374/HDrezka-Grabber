@@ -16,6 +16,7 @@ cp platform/chromium/manifest.json $DES
 
 echo "HDrezka-Grabber.chromium: generate meta"
 python3 dist/make-meta.py $DES
+npm run build
 
 echo "HDrezka-Grabber.chromium: Creating package"
 pushd $(dirname $DES/) > /dev/null
