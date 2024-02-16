@@ -8,7 +8,12 @@ rm -rf $DES
 mkdir -p $DES
 
 echo "HDrezka-Grabber.chromium: copying common files"
-cp -r src/* $DES
+cp -r dist/build/HDrezka-Grabber.build/* $DES
+
+all_requirements=(img js _locales lib)
+for path in ${all_requirements[*]}; do
+  cp -r src/$path $DES
+done
 cp LICENSE.md $DES
 
 echo "HDrezka-Grabber.chromium: copy chromium-specific files"
@@ -16,7 +21,6 @@ cp platform/chromium/manifest.json $DES
 
 echo "HDrezka-Grabber.chromium: generate meta"
 python3 dist/make-meta.py $DES
-npm run build
 
 echo "HDrezka-Grabber.chromium: Creating package"
 pushd $(dirname $DES/) > /dev/null

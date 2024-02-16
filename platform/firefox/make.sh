@@ -8,7 +8,12 @@ rm -rf $DES
 mkdir -p $DES
 
 echo "HDrezka-Grabber.firefox: copying common files"
-cp -r src/* $DES
+cp -r dist/build/HDrezka-Grabber.build/* $DES
+
+all_requirements=(img js _locales lib)
+for path in ${all_requirements[*]}; do
+  cp -r src/$path $DES
+done
 cp LICENSE.md $DES
 
 echo "HDrezka-Grabber.firefox: copy firefox-specific files"
