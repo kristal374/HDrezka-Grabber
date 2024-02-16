@@ -12,7 +12,7 @@ cp -r dist/build/HDrezka-Grabber.build/* $DES
 
 all_requirements=(img js _locales lib)
 for path in ${all_requirements[*]}; do
-  cp -r src/$path $DES
+  cp -r src/"$path" $DES
 done
 cp LICENSE.md $DES
 
@@ -20,11 +20,11 @@ echo "HDrezka-Grabber.chromium: copy chromium-specific files"
 cp platform/chromium/manifest.json $DES
 
 echo "HDrezka-Grabber.chromium: generate meta"
-python3 dist/make-meta.py $DES
+python dist/make-meta.py $DES
 
 echo "HDrezka-Grabber.chromium: Creating package"
-pushd $(dirname $DES/) > /dev/null
-zip HDrezka-Grabber.chromium.zip -qr $(basename $DES/)*
+pushd "$(dirname $DES/)" > /dev/null
+zip HDrezka-Grabber.chromium.zip -qr "$(basename $DES/)"*
 popd > /dev/null
 
 echo "HDrezka-Grabber.chromium: Package done."

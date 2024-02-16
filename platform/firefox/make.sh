@@ -20,11 +20,11 @@ echo "HDrezka-Grabber.firefox: copy firefox-specific files"
 cp platform/firefox/manifest.json $DES
 
 echo "HDrezka-Grabber.firefox: generate meta"
-python3 dist/make-meta.py $DES
+python dist/make-meta.py $DES
 
 echo "HDrezka-Grabber.firefox: Creating package"
-pushd $(dirname $DES/) > /dev/null
-zip HDrezka-Grabber.firefox.xpi -qr $(basename $DES/)*
+pushd "$(dirname $DES/)" > /dev/null
+zip HDrezka-Grabber.firefox.xpi -qr "$(basename $DES/)"*
 popd > /dev/null
 
 echo "HDrezka-Grabber.firefox: Package done."

@@ -5,7 +5,7 @@ echo "*** HDrezka-Grabber: run building packages $(date +"%Y-%m-%d %H:%M:%S") **
 echo ""
 
 echo "HDrezka-Grabber.build: npm run build"
-npm run build # --silent
+npm run build --silent
 
 echo "HDrezka-Grabber.build: building done."
 echo ""

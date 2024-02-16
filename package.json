@@ -2,7 +2,7 @@
     "name": "hdrezka-grabber",
     "version": "0.1",
     "scripts": {
-        "build": "vite build ./src/ --outDir ../dist/build/HDrezka-Grabber.build"
+        "build": "vite build ./src/ --outDir ../dist/build/HDrezka-Grabber.build --logLevel=silent"
     },
     "dependencies": {
         "@types/react": "^18.2.55",
