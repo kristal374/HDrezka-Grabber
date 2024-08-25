@@ -1,6 +1,7 @@
 {
     "name": "hdrezka-grabber",
     "version": "0.1",
+    "type": "module",
     "scripts": {
         "build": "vite -c vite.config.ts build ./src/ --outDir ../dist/build/HDrezka-Grabber.build --logLevel error --sourcemap"
     },
@@ -13,5 +14,8 @@
         "react-dom": "^18.2.0",
         "typescript": "^5.3.3",
         "vite": "^5.1.2"
+    },
+    "devDependencies": {
+        "@rollup/plugin-terser": "^0.4.4"
     }
 }
