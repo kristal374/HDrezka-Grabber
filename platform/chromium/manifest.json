@@ -11,10 +11,10 @@
         "16": "img/icons/16.png"
     },
     "action": {
-        "default_popup": "index.html"
+        "default_popup": "popup.html"
     },
     "background": {
-        "service_worker": "js/background.js"
+        "service_worker": "src/js/background.js"
     },
     "permissions": ["scripting", "storage"],
     "host_permissions": ["<all_urls>"],
