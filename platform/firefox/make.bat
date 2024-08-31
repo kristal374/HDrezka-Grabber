@@ -10,7 +10,7 @@ mkdir "%DES%"
 echo HDrezka-Grabber.firefox: copying common files
 xcopy /e /i "dist\build\HDrezka-Grabber.build\*" "%DES%" > nul
 
-set all_requirements=img js _locales lib
+set all_requirements=img js _locales
 for %%p in (%all_requirements%) do (
   xcopy /e /i "src\%%p" "%DES%\%%p" > nul
 )

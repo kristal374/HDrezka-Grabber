@@ -20,8 +20,7 @@
     },
     "background": {
         "scripts": [
-            "js/background.js",
-            "lib/browser-polyfill.min.js"
+            "src/js/background.js"
         ]
     },
     "permissions": [

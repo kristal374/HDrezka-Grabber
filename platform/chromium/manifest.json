@@ -20,7 +20,7 @@
     "host_permissions": ["<all_urls>"],
     "web_accessible_resources": [
         {
-            "resources": ["js/injection_scripts/*", "lib/*"],
+            "resources": ["src/js/*"],
             "matches": ["<all_urls>"]
         }
     ],
