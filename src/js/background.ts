@@ -3,6 +3,7 @@ import {Logger, printLog} from "./module/logger"
 import {LogMessage, Message} from "./types";
 
 const logger = new Logger("/src/js/background.js.map");
+let logContainer: LogMessage[] = [];
 
 browser.runtime.onMessage.addListener(async (message, _sender, sendResponse) => {
     const data = message as Message<any>;
@@ -29,6 +30,7 @@ globalThis.addEventListener("logCreate", async (event) => {
 
 
 async function logCreate(message: LogMessage) {
+    logContainer.push(message)
     printLog(message)
     return true
 }
