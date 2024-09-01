@@ -5,8 +5,17 @@ export default {
   theme: {
     extend: {
       colors: {
+        foreground: 'var(--text-primary)',
+        'foreground-secondary': 'var(--text-secondary)',
+        'foreground-disabled': 'var(--text-disabled)',
+        'check-box': 'var(--check-box)',
+        input: 'var(--input)',
         background: 'var(--background)',
-        foreground: 'var(--foreground)',
+        'popup-border': 'var(--popup-border)',
+        error: 'var(--error)',
+
+        'light-color': 'var(--light-color)',
+        'link-color': 'var(--link-color)',
       },
     },
   },

@@ -4,13 +4,29 @@
 
 @layer base {
   :root {
-    --background: #021823;
-    --foreground: #ffffff;
+    --text-primary: #ffffff;
+    --text-secondary: #dddddd;
+    --text-disabled: #1e1e1e;
+    --check-box: #777777;
+    --input: #2d3c45;
+    --background: #222d33;
+    --popup-border: #021823;
+    --error: #562828;
+
+    /*default color*/
+    --light-color: #ffffff;
+    --link-color: #2472dd;
   }
 
   :root.light {
+    --text-primary: #000000;
+    --text-secondary: #212121;
+    --text-disabled: #666d77;
+    --check-box: #878787;
+    --input: #d1c2b9;
     --background: #ddd2cc;
-    --foreground: #000000;
+    --popup-border: #313131;
+    --error: #e1e289;
   }
 }
 
