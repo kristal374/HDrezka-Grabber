@@ -1,191 +1,192 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #021823;
-    color: #ffffff;
+  font-family: Arial, sans-serif;
+  background-color: #021823;
+  color: #ffffff;
 }
 
 .container {
-    width: 300px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #222d33;
+  width: 300px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #222d33;
 }
 
 .round-button {
-    display: block;
-    width: 120px;
-    height: 120px;
-    margin: 0 auto 20px;
-    border-radius: 50%;
-    border: none;
-    background-color: #021823;
-    background-image: url("../img/startLoad.svg");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 50%;
-    cursor: pointer;
-    transition: background-color 0.6s ease;
-    color: #ffffff;
-    font-size: 20px;
+  display: block;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  border: none;
+  background-color: #021823;
+  background-image: url('../img/startLoad.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 50%;
+  cursor: pointer;
+  transition: background-color 0.6s ease;
+  color: #ffffff;
+  font-size: 20px;
 }
 
 .round-button:hover {
-    background-color: #021823;
-    transform: scale(1.1);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.463),
-        inset 0 0 5px rgb(255, 255, 255);
+  background-color: #021823;
+  transform: scale(1.1);
+  box-shadow:
+    0 0 10px rgba(255, 255, 255, 0.463),
+    inset 0 0 5px rgb(255, 255, 255);
 }
 
 .round-button:active {
-    transition: background-color 0.1s ease;
-    background-color: #092c3d;
-    transform: scale(0.9);
-    box-shadow: 0 0 50px rgb(255, 255, 255);
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.1s ease;
+  background-color: #092c3d;
+  transform: scale(0.9);
+  box-shadow: 0 0 50px rgb(255, 255, 255);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
 .checkbox-container {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 .checkbox-container label {
-    display: inline-block;
-    vertical-align: middle;
-    margin-left: 5px;
-    color: #ffffff;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 5px;
+  color: #ffffff;
 }
 
 h2 {
-    margin: 0;
-    /* margin-bottom: 10px; */
-    font-size: 16px;
+  margin: 0;
+  /* margin-bottom: 10px; */
+  font-size: 16px;
 }
 
 .title {
-    text-align: center;
-    text-wrap: balance;
+  text-align: center;
+  text-wrap: balance;
 }
 
 .field-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    margin-left: 20px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  margin-left: 20px;
 }
 
 .dropdown-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .label-container {
-    display: flex;
-    align-items: center;
-    margin-right: 10px;
-    min-width: 70px;
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  min-width: 70px;
 }
 
 label {
-    display: inline-block;
-    margin-bottom: 5px;
-    color: #dddddd;
-    font-size: 16px;
+  display: inline-block;
+  margin-bottom: 5px;
+  color: #dddddd;
+  font-size: 16px;
 }
 
 .select-container {
-    flex: 1;
+  flex: 1;
 }
 
 select {
-    width: 100%;
-    padding: 5px;
-    border: 2px solid #777777;
-    border-radius: 4px;
-    background-color: #222d33;
-    color: #dddddd;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: none;
+  width: 100%;
+  padding: 5px;
+  border: 2px solid #777777;
+  border-radius: 4px;
+  background-color: #222d33;
+  color: #dddddd;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: none;
 }
 
 select option {
-    background-color: #222d33;
-    color: #dddddd;
+  background-color: #222d33;
+  color: #dddddd;
 }
 
 select:hover {
-    transition: background-color 0.3s ease;
-    border-color: #aaaaaa;
-    box-shadow: 0 0 3px rgba(255, 255, 255, 0.47);
+  transition: background-color 0.3s ease;
+  border-color: #aaaaaa;
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.47);
 }
 
 select:focus {
-    border-color: #aaaaaa;
-    box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+  border-color: #aaaaaa;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
 }
 
 #voice-select {
-    margin-left: 10px;
+  margin-left: 10px;
 }
 
 #season-select {
-    margin-left: 22px;
+  margin-left: 22px;
 }
 
 #episode-select {
-    margin-left: 16px;
+  margin-left: 16px;
 }
 
 #quality-select {
-    margin-left: 10px;
+  margin-left: 10px;
 }
 
 .save-button-container {
-    text-align: center;
+  text-align: center;
 }
 
 .save-button {
-    padding: 5px 10px;
-    border: 2px solid #777777;
-    border-radius: 4px;
-    background-color: #222d33;
-    color: #bbbbbb;
-    font-size: 14px;
-    cursor: pointer;
+  padding: 5px 10px;
+  border: 2px solid #777777;
+  border-radius: 4px;
+  background-color: #222d33;
+  color: #bbbbbb;
+  font-size: 14px;
+  cursor: pointer;
 }
 
-input[type="checkbox"] {
-    display: none;
+input[type='checkbox'] {
+  display: none;
 }
 
-input[type="checkbox"] + label::before {
-    content: "";
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    margin-right: 8px;
-    border: 2px solid #dddddd;
-    border-radius: 4px;
-    vertical-align: middle;
+input[type='checkbox'] + label::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  border: 2px solid #dddddd;
+  border-radius: 4px;
+  vertical-align: middle;
 }
 
-input[type="checkbox"]:checked + label::before {
-    background-color: #dddddd;
-    border-color: #dddddd;
-    content: "✓";
-    color: #021823;
-    text-align: center;
-    line-height: 16px;
-    font-size: 12px;
+input[type='checkbox']:checked + label::before {
+  background-color: #dddddd;
+  border-color: #dddddd;
+  content: '✓';
+  color: #021823;
+  text-align: center;
+  line-height: 16px;
+  font-size: 12px;
 }
 
 label {
-    color: #dddddd;
-    cursor: pointer;
+  color: #dddddd;
+  cursor: pointer;
 }
 
-input[type="checkbox"]:hover + label::before {
-    border-color: #aaaaaa;
+input[type='checkbox']:hover + label::before {
+  border-color: #aaaaaa;
 }

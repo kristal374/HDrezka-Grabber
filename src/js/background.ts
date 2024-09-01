@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
-import { Logger, printLog } from './module/logger';
-import { LogMessage, Message } from './types';
+import { Logger, printLog } from '../lib/logger';
+import { LogMessage, Message } from '../lib/types';
 
 const logger = new Logger('/src/js/background.js.map');
 let logContainer: LogMessage[] = [];

@@ -1,5 +1,5 @@
 import browser from 'webextension-polyfill';
-import { LogLevel, LogMessage, Message, SourceMap } from '../types';
+import { LogLevel, LogMessage, Message, SourceMap } from '../lib/types';
 
 let debugFlag: boolean;
 
