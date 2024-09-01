@@ -1,11 +1,11 @@
-import { createRoot } from "react-dom/client";
-import { App } from "../components/App";
-import { Router } from "../components/Router";
+import { createRoot } from 'react-dom/client';
+import { App } from './App';
+import { Router } from './Router';
 
-const element = document.querySelector("body")!;
+const element = document.querySelector('body')!;
 const root = createRoot(element);
 root.render(
-    <App>
-        <Router />
-    </App>
+  <App>
+      <Router />
+  </App>,
 );
