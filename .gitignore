@@ -5,3 +5,5 @@ dist/build/*
 *.pem
 
 node_modules/
+
+.idea/*

@@ -16,12 +16,11 @@
         }
     },
     "browser_action": {
-        "default_popup": "index.html"
+        "default_popup": "popup.html"
     },
     "background": {
         "scripts": [
-            "js/background.js",
-            "lib/browser-polyfill.min.js"
+            "src/js/background.js"
         ]
     },
     "permissions": [

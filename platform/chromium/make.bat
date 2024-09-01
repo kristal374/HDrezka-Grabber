@@ -9,8 +9,12 @@ mkdir "%DES%"
 
 echo HDrezka-Grabber.chromium: copying common files
 xcopy /e /i "dist\build\HDrezka-Grabber.build\*" "%DES%" > nul
+if errorlevel 1 (
+    echo ~~~ Not found HDrezka-Grabber.build files ~~~
+    exit
+)
 
-set all_requirements=img js _locales lib
+set all_requirements=img js _locales
 for %%p in (%all_requirements%) do (
   xcopy /e /i "src\%%p" "%DES%\%%p" > nul
 )

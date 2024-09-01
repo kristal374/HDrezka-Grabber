@@ -5,7 +5,7 @@ declare global {
     // interface Window {
     //     browser: Browser;
     // }
-    var browser: Browser;
+    let browser: Browser;
 
     namespace I18n {
         interface Static {

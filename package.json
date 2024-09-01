@@ -1,17 +1,28 @@
 {
     "name": "hdrezka-grabber",
     "version": "0.1",
+    "type": "module",
     "scripts": {
-        "build": "vite build ./src/ --outDir ../dist/build/HDrezka-Grabber.build --logLevel=silent"
+        "build:popup": "vite -c vite.config.ts build ./src/html/ --outDir ../../dist/build/HDrezka-Grabber.build --logLevel error --sourcemap",
+        "build:background": "rollup -c rollup.config.js",
+        "build": "npm run build:popup && npm run build:background"
     },
     "dependencies": {
+        "@rollup/plugin-commonjs": "^26.0.1",
+        "@rollup/plugin-typescript": "^11.1.6",
         "@types/react": "^18.2.55",
         "@types/react-dom": "^18.2.19",
-        "@types/webextension-polyfill": "^0.10.7",
+        "@types/webextension-polyfill": "^0.12.0",
         "@vitejs/plugin-react-swc": "^3.6.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "typescript": "^5.3.3",
         "vite": "^5.1.2"
+    },
+    "devDependencies": {
+        "@rollup/plugin-node-resolve": "^15.2.3",
+        "@rollup/plugin-terser": "^0.4.4",
+        "rollup-plugin-copy": "^3.5.0",
+        "webextension-polyfill": "^0.12.0"
     }
 }

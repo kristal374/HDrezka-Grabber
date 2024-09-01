@@ -10,7 +10,7 @@ mkdir -p $DES
 echo "HDrezka-Grabber.chromium: copying common files"
 cp -r dist/build/HDrezka-Grabber.build/* $DES
 
-all_requirements=(img js _locales lib)
+all_requirements=(img js _locales)
 for path in ${all_requirements[*]}; do
   cp -r src/"$path" $DES
 done
