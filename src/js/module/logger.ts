@@ -43,7 +43,7 @@ function printLogForChrome(message: LogMessage) {
             colorLevel = "\x1b[34m"
             break
     }
-    console.log(`${colorTime}${message.timestamp}${colorReset} | ${colorLevel}${message.level}${colorReset} | ${message.location} - ${colorLevel}${message.text}${colorReset}`);
+    console.log(`${colorTime}${message.timestamp}${colorReset} | ${colorLevel}${message.level}${colorReset} | ${message.location} - `, ...message.content);
 
 }
 
@@ -69,8 +69,8 @@ function printLogForFirefox(message: LogMessage) {
             colorLevel = "color: blue;"
             break
     }
-    console.log(`%c${message.timestamp}%c | %c${message.level}%c | %c${message.location}%c - %c${message.text}`,
-        colorTime, colorReset, colorLevel, colorReset, colorLink, colorReset, colorLevel
+    console.log(`%c${message.timestamp}%c | %c${message.level}%c | %c${message.location}%c - `,
+        colorTime, colorReset, colorLevel, colorReset, colorLink, colorReset, ...message.content
     );
 }
 
@@ -107,11 +107,11 @@ export class Logger {
         this.sourcemap = new SourceMapParser(file)
     }
 
-    private emit(level: LogLevel, message: string) {
+    private emit(level: LogLevel, message: any[]) {
         const log: LogMessage = {
             timestamp: new Date().toString(),
             level: level,
-            text: message,
+            content: message,
             location: this.getCallerInfo()
         }
         const messageToSend: Message<LogMessage> = {
@@ -128,42 +128,27 @@ export class Logger {
 
     @checkingDebugFlag
     critical(...message: any[]) {
-        this.emit(LogLevel.CRITICAL, this.concatenateArgs(...message));
+        this.emit(LogLevel.CRITICAL, message);
     }
 
     @checkingDebugFlag
     error(...message: any[]) {
-        this.emit(LogLevel.ERROR, this.concatenateArgs(...message));
+        this.emit(LogLevel.ERROR, message);
     }
 
     @checkingDebugFlag
     warning(...message: any[]) {
-        this.emit(LogLevel.WARNING, this.concatenateArgs(...message));
+        this.emit(LogLevel.WARNING, message);
     }
 
     @checkingDebugFlag
     debug(...message: any[]) {
-        this.emit(LogLevel.DEBUG, this.concatenateArgs(...message));
+        this.emit(LogLevel.DEBUG, message);
     }
 
     @checkingDebugFlag
     info(...message: any[]) {
-        this.emit(LogLevel.INFO, this.concatenateArgs(...message));
-    }
-
-    private concatenateArgs(...args: any[]): string {
-        return args.map(arg => {
-            if (typeof arg === 'symbol') {
-                return arg.toString();
-            } else if (typeof arg === 'string') {
-                return arg; // Оставляем строку как есть
-            } else if (typeof arg === 'object' && arg !== null) {
-                // Проверка, если объект является массивом, обрабатываем его иначе
-                return Array.isArray(arg) ? arg.join(', ') : JSON.stringify(arg);
-            } else {
-                return String(arg); // Преобразуем остальные типы к строке
-            }
-        }).join(' ');
+        this.emit(LogLevel.INFO, message);
     }
 
 
