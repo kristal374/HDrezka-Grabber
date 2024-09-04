@@ -2,35 +2,50 @@
   "manifest_description": {
     "message": "Быстрое и удобное скачивание фильмов и сериалов с rezka.ag! Получайте доступ к вашим любимым фильмам и сериалам за несколько кликов."
   },
-  "default_description": {
-    "message": "Перейди на страницу сериала или фильма на HDrezka, чтобы скачать его"
+  "popup_stub_default": {
+    "message": "Для скачивания видео перейдите на страницу сериала или фильма на сайте"
   },
-  "popup_loadAll": {
-    "message": "Загрузить весь сериал"
+  "popup_stub_trailer": {
+    "message": "Похоже что контент в ожидании выхода.\nВернитесь сюда позже!"
   },
-  "popup_quality": {
-    "message": "Качество:"
+  "popup_stub_locationFilm": {
+    "message": "Увы, но фильм не доступен с вашего местоположения :(\nПопробуйте воспользоваться VPN."
+  },
+  "popup_stub_locationSerial": {
+    "message": "Увы, но сериал не доступен с вашего местоположения :(\nПопробуйте воспользоваться VPN."
+  },
+  "popup_stub_unvalible": {
+    "message": "Контент недоступен для загрузки — отсутствуют данные для обработки."
+  },
+  "popup_stub_error": {
+    "message": "Упс! Кажется что-то пошло не так..."
+  },
+  "popup_loadSerial": {
+    "message": "Загрузить сериал"
+  },
+  "popup_loadSubtitle": {
+    "message": "Загрузить субтитры"
+  },
+  "popup_textFrom": {
+    "message": "с"
+  },
+  "popup_textTo": {
+    "message": "до"
+  },
+  "popup_textEndSeason": {
+    "message": "конца сезона"
+  },
+  "popup_textEndSeries": {
+    "message": "конца сериала"
+  },
+  "popup_subtitleLang": {
+    "message": "Язык"
   },
   "popup_translate": {
-    "message": "Озвучка:"
+    "message": "Озвучка"
   },
-  "popup_seasonStart": {
-    "message": "Сезон:"
-  },
-  "popup_episodeStart": {
-    "message": "Эпизод:"
-  },
-  "popup_infoTitle": {
-    "message": "Начать загрузку сериала с:"
-  },
-  "popup_createFolder": {
-    "message": "Создать отдельную папку"
-  },
-  "popup_selectDirectory": {
-    "message": "Выбрать папку"
-  },
-  "info_unknownVoice": {
-    "message": "Неизвестная озвучка"
+  "popup_quality": {
+    "message": "Качество"
   },
   "message_noDataVideo": {
     "message": "Не удалось получить данные видео. Проверьте интернет соеденение или используйте VPN."
@@ -40,8 +55,5 @@
   },
   "message_userBreak": {
     "message": "Вы прервали загрузку."
-  },
-  "message_badConnect": {
-    "message": ""
   }
 }

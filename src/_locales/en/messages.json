@@ -2,35 +2,50 @@
   "manifest_description": {
     "message": "Fast and convenient downloading of movies and TV shows from rezka.ag! Access your favorite movies and TV shows in just a few clicks."
   },
-  "default_description": {
-    "message": "Перейди на страницу сериала или фильма на HDrezka, чтобы скачать его"
+  "popup_stub_default": {
+    "message": "To download the video, go to the show's or movie's page on the website."
   },
-  "popup_loadAll": {
-    "message": "Download Entire Series"
+  "popup_stub_trailer": {
+    "message": "It seems that the content is pending release.\nCheck back later!"
+  },
+  "popup_stub_locationFilm": {
+    "message": "Sorry, but the movie is not available from your location :(\nTry using a VPN."
+  },
+  "popup_stub_locationSerial": {
+    "message": "Sorry, but the serial is not available from your location :(\nTry using a VPN."
+  },
+  "popup_stub_unvalible": {
+    "message": "Content is unavailable for download — no data to process."
+  },
+  "popup_stub_error": {
+    "message": "Oops! Something went wrong..."
+  },
+  "popup_loadSerial": {
+    "message": "Load serial"
+  },
+  "popup_loadSubtitle": {
+    "message": "Load subtitle"
+  },
+  "popup_textFrom": {
+    "message": "from"
+  },
+  "popup_textTo": {
+    "message": "to"
+  },
+  "popup_textEndSeason": {
+    "message": "the end of the season"
+  },
+  "popup_textEndSeries": {
+    "message": "the end of the serial"
+  },
+  "popup_subtitleLang": {
+    "message": "Lang"
   },
   "popup_quality": {
-    "message": "Quality:"
+    "message": "Quality"
   },
   "popup_translate": {
-    "message": "Translate:"
-  },
-  "popup_seasonStart": {
-    "message": "Season:"
-  },
-  "popup_episodeStart": {
-    "message": "Episode:"
-  },
-  "popup_infoTitle": {
-    "message": "Start downloading the series from:"
-  },
-  "popup_createFolder": {
-    "message": "Create Separate Folder"
-  },
-  "popup_selectDirectory": {
-    "message": "Select Folder"
-  },
-  "info_unknownVoice": {
-    "message": "Unknown translate"
+    "message": "Translate"
   },
   "message_noDataVideo": {
     "message": "Failed to retrieve video data. Check your internet connection or use a VPN."
@@ -40,8 +55,5 @@
   },
   "message_userBreak": {
     "message": "You interrupted the loading."
-  },
-  "message_badConnect": {
-    "message": ""
   }
 }
