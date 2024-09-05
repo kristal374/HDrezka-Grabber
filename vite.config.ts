@@ -5,13 +5,11 @@ export default defineConfig({
     target: 'es2022',
     minify: false,
     rollupOptions: {
-      input: {
-        app: 'src/html/popup.html',
-      },
+      input: ['src/html/popup.html', 'src/html/settings.html'],
       output: {
         assetFileNames: 'src/[ext]/[name][extname]',
-        chunkFileNames: 'src/[chunks]/[name].[hash].js',
-        entryFileNames: 'src/js/popup.js',
+        chunkFileNames: 'src/js/[name].js',
+        entryFileNames: 'src/js/[name].js',
       },
     },
   },

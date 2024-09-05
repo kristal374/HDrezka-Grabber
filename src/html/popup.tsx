@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
-import { App } from './App';
-import { Router } from './Router';
+import { App } from '../app/App';
+import { Router } from '../app/Router';
 import { Layout } from '../components/Layout';
 import { createDefaultSettings, getFromStorage } from '../lib/storage';
 

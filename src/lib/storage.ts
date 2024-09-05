@@ -1,5 +1,3 @@
-import browser from 'webextension-polyfill';
-
 export async function getFromStorage<T>(key: string): Promise<T> {
   const storage = await browser.storage.local.get([key]);
   return storage[key] as T;

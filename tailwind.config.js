@@ -4,6 +4,9 @@ export default {
   content: ['./src/**/*.{jsx,tsx}'],
   theme: {
     extend: {
+      fontSize: {
+        base: ['17px', '1.375'],
+      },
       colors: {
         foreground: 'var(--text-primary)',
         'foreground-secondary': 'var(--text-secondary)',

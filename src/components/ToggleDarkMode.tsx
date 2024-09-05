@@ -8,7 +8,7 @@ export function ToggleDarkMode() {
   }, []);
   return (
     <button
-      className='bg-red-600 text-white p-2 rounded-xl'
+      className='rounded-lg bg-red-700 p-2 text-white'
       onClick={async () => {
         document.documentElement.classList.toggle('light');
         const state = !document.documentElement.classList.contains('light');

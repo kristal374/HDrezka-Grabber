@@ -9,10 +9,13 @@
     "message": "It seems that the content is pending release.\nCheck back later!"
   },
   "popup_stub_locationFilm": {
-    "message": "Sorry, but the movie is not available from your location :(\nTry using a VPN."
+    "message": "Sorry, but the movie is not available from your location :("
   },
   "popup_stub_locationSerial": {
-    "message": "Sorry, but the serial is not available from your location :(\nTry using a VPN."
+    "message": "Sorry, but the serial is not available from your location :("
+  },
+  "popup_stub_vpn": {
+    "message": "Try using a VPN."
   },
   "popup_stub_unvalible": {
     "message": "Content is unavailable for download — no data to process."
