@@ -1,52 +1,51 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Logger } from '../../lib/logger';
+import { FilmInfo, PageType, SerialInfo } from '../../lib/types';
 
-type Props = {
-  currentTab: { id: number | undefined; isHdrezka: boolean };
-  targetTab: { tabId: number | undefined; allFrames: boolean };
-};
 
-const defaultValue: Props = {
-  currentTab: { id: undefined, isHdrezka: false },
-  targetTab: { tabId: undefined, allFrames: false },
-};
+const logger = await Logger.create('/src/js/popup.js.map');
 
-const Context = createContext(defaultValue);
+const TargetTabContext = createContext<number|undefined>(undefined);
 
-export function useCurrentTab() {
-  return useContext(Context);
+const StatusContext = createContext<PageType | null>(null);
+
+export function useTabID() {
+  return useContext(TargetTabContext);
+}
+
+export function usePageType() {
+  return useContext(StatusContext);
 }
 
 export function CurrentTabProvider({ children }: React.PropsWithChildren) {
   const [id, setId] = useState<number>();
-  const [isHdrezka, setIsHdrezka] = useState(false);
-  const targetTab = { tabId: id, allFrames: false };
+  const [pageType, setPageType] = useState<PageType | null>(null);
+
   useEffect(() => {
-    getCurrentTabId().then((id) => id && setId(id));
-  }, []);
-  useEffect(() => {
-    if (!targetTab.tabId) return;
-    browser.scripting.executeScript({
-      target: targetTab,
-      files: ['/src/js/browser-polyfill.min.js'],
+    getCurrentTabId().then((tabID) => {
+      if (!tabID) return;
+      setId(tabID);
+
+      browser.scripting
+        .executeScript({
+          target: { tabId: tabID },
+          func: getPageType,
+        })
+        .then((response) => {
+          const result = response[0].result as PageType;
+          logger.debug(result);
+          setPageType(result);
+        });
     });
-    browser.scripting
-      .executeScript({
-        target: targetTab,
-        func: isTargetSite,
-      })
-      .then((result: any) => {
-        setIsHdrezka(result[0].result);
-      });
-  }, [id]);
+  }, []);
+
   return (
-    <Context.Provider
-      value={{
-        currentTab: { id, isHdrezka },
-        targetTab,
-      }}
-    >
-      {children}
-    </Context.Provider>
+    <TargetTabContext.Provider value={id}>
+        <StatusContext.Provider value={pageType}>
+          {children}
+        </StatusContext.Provider>
+    </TargetTabContext.Provider>
   );
 }
 
@@ -65,4 +64,34 @@ function isTargetSite() {
     // @ts-expect-error
     resolve(nameSite ? nameSite.content === 'rezka.ag' : false);
   });
+async function getPageType(): Promise<PageType> {
+  const regexp =
+    /sof\.tv\.(.*?)\((\d+), (\d+), (\d+), (\d+), (\d+|false|true), '(.*?)', (false|true), ({".*?":.*?})\);/;
+  const playerConfig = document.documentElement.outerHTML.match(regexp);
+
+  if (playerConfig === null) {
+    const initFunc =
+      document.documentElement.outerHTML.match(/sof\.tv\.(.*?)\(/);
+    const trailerURL = document
+      .getElementById('videoplayer')
+      ?.children[0].getAttribute('src');
+
+    if (!!trailerURL) return 'TRAILER';
+    if (initFunc !== null && initFunc[1] === 'initWatchingEvents')
+      return 'UNAVAILABLE';
+    return 'DEFAULT';
+  }
+  const playerInfo = JSON.parse(playerConfig[9]);
+  const argsIsFalse: boolean = Object.values(playerInfo).every(
+    (value) => value === false,
+  );
+
+  if (playerConfig[1] === 'initCDNMoviesEvents' && argsIsFalse)
+    return 'LOCATION_FILM';
+  if (playerConfig[1] === 'initCDNSeriesEvents' && argsIsFalse)
+    return 'LOCATION_SERIAL';
+  if (playerConfig[1] === 'initCDNMoviesEvents') return 'FILM';
+  if (playerConfig[1] === 'initCDNSeriesEvents') return 'SERIAL';
+  return 'ERROR';
+}
 }

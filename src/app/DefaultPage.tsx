@@ -1,4 +1,4 @@
-import { Menu } from '../components/PopupLinks';
+import { Menu } from '../components/Menu';
 
 export function DefaultPage({ children }: React.PropsWithChildren) {
   return (
