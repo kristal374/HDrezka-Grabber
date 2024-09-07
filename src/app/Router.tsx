@@ -1,68 +1,52 @@
 import { useTabID, usePageType } from './providers/CurrentTabProvider';
-import { DefaultPage } from './DefaultPage';
+import { DefaultScreen } from './DefaultScreen';
 import { Link } from '../components/Link';
+import { DownloadScreen } from './DownloadScreen';
 
 export function Router() {
   const tabID = useTabID();
   const pageType = usePageType();
   if (!!tabID && pageType) {
-    if (pageType === "FILM" || pageType === "SERIAL") return
+    if (pageType === 'FILM' || pageType === 'SERIAL') {
+      return <DownloadScreen pageType={pageType} />;
+    }
     switch (pageType) {
       case 'TRAILER':
         return (
-          <DefaultPage>
-            <h2 className='text-center text-base'>
-              {browser.i18n.getMessage('popup_stub_trailer')}
-            </h2>
-          </DefaultPage>
+          <DefaultScreen>
+            {browser.i18n.getMessage('popup_stub_trailer')}
+          </DefaultScreen>
         );
       case 'LOCATION_FILM':
         return (
-          <DefaultPage>
-            <h2 className='text-center text-base'>
-              {browser.i18n.getMessage('popup_stub_locationFilm')}
-            </h2>
-            <h2 className='text-center text-base'>
-              {browser.i18n.getMessage('popup_stub_vpn')}
-            </h2>
-          </DefaultPage>
+          <DefaultScreen vpnNotice>
+            {browser.i18n.getMessage('popup_stub_locationFilm')}
+          </DefaultScreen>
         );
       case 'LOCATION_SERIAL':
         return (
-          <DefaultPage>
-            <h2 className='text-center text-base'>
-              {browser.i18n.getMessage('popup_stub_locationSerial')}
-            </h2>
-            <h2 className='text-center text-base'>
-              {browser.i18n.getMessage('popup_stub_vpn')}
-            </h2>
-          </DefaultPage>
+          <DefaultScreen vpnNotice>
+            {browser.i18n.getMessage('popup_stub_locationSerial')}
+          </DefaultScreen>
         );
       case 'UNAVAILABLE':
         return (
-          <DefaultPage>
-            <h2 className='text-center text-base'>
-              {browser.i18n.getMessage('popup_stub_unvalible')}
-            </h2>
-          </DefaultPage>
+          <DefaultScreen>
+            {browser.i18n.getMessage('popup_stub_unvalible')}
+          </DefaultScreen>
         );
       case 'ERROR':
         return (
-          <DefaultPage>
-            <h2 className='text-center text-base'>
-              {browser.i18n.getMessage('popup_stub_error')}
-            </h2>
-          </DefaultPage>
+          <DefaultScreen>
+            {browser.i18n.getMessage('popup_stub_error')}
+          </DefaultScreen>
         );
     }
   }
   return (
-    <DefaultPage>
-      <h2 className='text-center text-base'>
-        {browser.i18n.getMessage('popup_stub_default')}{' '}
-        <Link href='https://hdrezka.ag'>HDrezka.ag</Link>!
-      </h2>
-    </DefaultPage>
+    <DefaultScreen>
+      {browser.i18n.getMessage('popup_stub_default')}{' '}
+      <Link href='https://hdrezka.ag'>HDrezka.ag</Link>!
+    </DefaultScreen>
   );
 }
-

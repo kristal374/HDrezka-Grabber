@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import { App } from '../app/App';
 import { createDefaultSettings, getFromStorage } from '../lib/storage';
-import { SettingsPage } from '../app/SettingsPage';
+import { SettingsScreen } from '../app/SettingsScreen';
 import { Layout } from '../components/Layout';
 
 // await createDefaultSettings();
@@ -17,7 +17,7 @@ const root = createRoot(element);
 root.render(
   <App>
     <Layout>
-      <SettingsPage />
+      <SettingsScreen />
     </Layout>
   </App>,
 );

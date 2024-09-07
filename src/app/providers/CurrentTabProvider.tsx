@@ -1,12 +1,10 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Logger } from '../../lib/logger';
-import { FilmInfo, PageType, SerialInfo } from '../../lib/types';
-
+import { PageType } from '../../lib/types';
 
 const logger = await Logger.create('/src/js/popup.js.map');
 
-const TargetTabContext = createContext<number|undefined>(undefined);
+const TargetTabContext = createContext<number | undefined>(undefined);
 
 const StatusContext = createContext<PageType | null>(null);
 
@@ -42,9 +40,9 @@ export function CurrentTabProvider({ children }: React.PropsWithChildren) {
 
   return (
     <TargetTabContext.Provider value={id}>
-        <StatusContext.Provider value={pageType}>
-          {children}
-        </StatusContext.Provider>
+      <StatusContext.Provider value={pageType}>
+        {children}
+      </StatusContext.Provider>
     </TargetTabContext.Provider>
   );
 }
@@ -58,12 +56,6 @@ async function getCurrentTabId() {
   }
 }
 
-function isTargetSite() {
-  return new Promise<boolean>((resolve) => {
-    const nameSite = document.querySelector('meta[property="og:site_name"]');
-    // @ts-expect-error
-    resolve(nameSite ? nameSite.content === 'rezka.ag' : false);
-  });
 async function getPageType(): Promise<PageType> {
   const regexp =
     /sof\.tv\.(.*?)\((\d+), (\d+), (\d+), (\d+), (\d+|false|true), '(.*?)', (false|true), ({".*?":.*?})\);/;
@@ -93,5 +85,4 @@ async function getPageType(): Promise<PageType> {
   if (playerConfig[1] === 'initCDNMoviesEvents') return 'FILM';
   if (playerConfig[1] === 'initCDNSeriesEvents') return 'SERIAL';
   return 'ERROR';
-}
 }
