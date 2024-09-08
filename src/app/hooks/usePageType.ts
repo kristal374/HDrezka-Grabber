@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { PageType } from '../../lib/types';
+import { useTabID } from '../providers/CurrentTabProvider';
 
-export function usePageType(tabID: number | undefined) {
+export function usePageType() {
+  const tabID = useTabID();
   const [pageType, setPageType] = useState<PageType | null>(null);
 
   useEffect(() => {

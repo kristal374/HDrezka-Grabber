@@ -1,8 +1,10 @@
 import { PageType, VoiceOverInfo } from '../../lib/types';
 import { useEffect, useState } from 'react';
+import { useTabID } from '../providers/CurrentTabProvider';
 
-export function useConfigInfo(tabID: number | undefined, pageType: PageType) {
-  const [translate, setTranslate] = useState<VoiceOverInfo | null>(null);
+export function useVoiceOver(pageType: PageType) {
+  const tabID = useTabID();
+  const [translate, setTranslate] = useState<VoiceOverInfo[] | null>(null);
 
   useEffect(() => {
     if (!tabID || !pageType) return;
@@ -13,9 +15,9 @@ export function useConfigInfo(tabID: number | undefined, pageType: PageType) {
         func: extractTranslate,
       })
       .then((response) => {
-        const result = response[0].result;
+        const result = response[0].result as VoiceOverInfo[];
         // logger.debug(result);
-        setTranslate(result as VoiceOverInfo);
+        setTranslate(result);
       });
   }, [tabID, pageType]);
 
@@ -24,26 +26,18 @@ export function useConfigInfo(tabID: number | undefined, pageType: PageType) {
 
 async function extractTranslate(): Promise<VoiceOverInfo[] | null> {
   const translators: VoiceOverInfo[] = [];
-  const flags: { [key: string]: string | ArrayBuffer } = {};
 
   const translatorItems = document.querySelectorAll('.b-translator__item');
   if (translatorItems.length > 0) {
     for (const item of translatorItems) {
-      const flagURL = item.querySelector('img')?.src;
-      if (!!flagURL) {
-        const response = await fetch(flagURL, { mode: 'no-cors' });
-        const blob = await response.blob();
-        flags[flagURL] = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result!);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-      }
       const voiceOver: VoiceOverInfo = {
         id: parseInt(item.getAttribute('data-translator_id')!),
         title: (item as HTMLElement).title.trim() || 'Unknown Translator',
-        flag_url: flags.flagURL,
+        flag_country: item
+          .querySelector('img')
+          ?.src.split('/')
+          .at(-1)
+          ?.split('.')[0],
         prem_content: item.classList.contains('b-prem_translator'),
         is_camrip: item.getAttribute('is_camrip'),
         is_director: item.getAttribute('is_director'),

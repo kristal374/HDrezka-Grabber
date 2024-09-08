@@ -1,11 +1,13 @@
 import { PageType, Seasons } from '../../lib/types';
 import { useEffect, useState } from 'react';
+import { useTabID } from '../providers/CurrentTabProvider';
 
-export function useConfigInfo(tabID: number | undefined, pageType: PageType) {
+export function useEpisodes(pageType: PageType) {
+  const tabID = useTabID();
   const [seasons, setSeasons] = useState<Seasons | null>(null);
 
   useEffect(() => {
-    if (!tabID || !pageType) return;
+    if (!tabID || pageType !== 'SERIAL') return;
 
     browser.scripting
       .executeScript({
@@ -13,9 +15,9 @@ export function useConfigInfo(tabID: number | undefined, pageType: PageType) {
         func: extractSeasons,
       })
       .then((response) => {
-        const result = response[0].result;
+        const result = response[0].result as Seasons;
         // logger.debug(result);
-        setSeasons(result as Seasons);
+        setSeasons(result);
       });
   }, [tabID, pageType]);
 

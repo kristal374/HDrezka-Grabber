@@ -63,20 +63,21 @@ export type SerialInfo = {
 };
 
 export type SubtitleInfo = {
-  subtitle: boolean | string;
-  subtitle_def: boolean | string;
-  subtitle_lns: boolean | { [key: string]: string };
+  subtitle: false | string;
+  subtitle_def: false | string;
+  subtitle_lns: false | Record<string, string>;
 };
 
 export type VoiceOverInfo = {
   id: number;
   title: string;
-  flag_url?: string | ArrayBuffer;
+  flag_country?: string;
   prem_content?: boolean;
   is_camrip?: string | null;
   is_director?: string | null;
   is_ads?: string | null;
 };
+
 export type Episode = { title: string; id: string };
 
 export type Seasons = Record<string, { title: string; episodes: Episode[] }>;

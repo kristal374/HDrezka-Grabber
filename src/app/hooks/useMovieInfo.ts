@@ -1,10 +1,12 @@
 import { FilmInfo, PageType, SerialInfo, SubtitleInfo } from '../../lib/types';
 import { useEffect, useState } from 'react';
+import { useTabID } from '../providers/CurrentTabProvider';
 
-export function useMovieInfo(tabID: number | undefined, pageType: PageType) {
+export function useMovieInfo(pageType: PageType) {
+  const tabID = useTabID();
   const [movieInfo, setMovieInfo] = useState<
-    [FilmInfo | SerialInfo, SubtitleInfo] | null
-  >(null);
+    [FilmInfo | SerialInfo | null, SubtitleInfo | null]
+  >([null, null]);
 
   useEffect(() => {
     if (!tabID || !pageType) return;
