@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Logger } from '../../lib/logger';
-import { PageType } from '../../lib/types';
+import { FilmInfo, PageType, SerialInfo } from '../../lib/types';
 
 const logger = await Logger.create('/src/js/popup.js.map');
 

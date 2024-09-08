@@ -37,14 +37,24 @@ export type PageType =
   | 'UNAVAILABLE'
   | 'ERROR';
 
-export type MovieInfo = {
+export type FilmInfo = {
   film_id: number;
   translator_id: number;
-  season_id?: number;
-  episode_id?: number;
-  is_camrip?: string;
-  is_director?: string;
-  is_ads?: string;
+  is_camrip: string;
+  is_director: string;
+  is_ads: string;
+  favs: string;
+  action: string;
+  local_film_name: string;
+  original_film_name: string | undefined;
+  streams: string;
+};
+
+export type SerialInfo = {
+  film_id: number;
+  translator_id: number;
+  season_id: number;
+  episode_id: number;
   favs: string;
   action: string;
   local_film_name: string;
@@ -57,3 +67,18 @@ export type SubtitleInfo = {
   subtitle_def: boolean | string;
   subtitle_lns: boolean | { [key: string]: string };
 };
+
+export type VoiceOverInfo = {
+  id: number;
+  title: string;
+  flag_url?: string | ArrayBuffer;
+  prem_content?: boolean;
+  is_camrip?: string | null;
+  is_director?: string | null;
+  is_ads?: string | null;
+};
+export type Episode = { title: string; id: string };
+
+export type Seasons = Record<string, { title: string; episodes: Episode[] }>;
+
+export type TargetTab = { tabId: number };
