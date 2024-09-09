@@ -20,13 +20,13 @@
 
   :root.light {
     --text-primary: #000000;
-    --text-secondary: #212121;
-    --text-disabled: #666d77;
-    --check-box: #878787;
-    --input: #d1c2b9;
-    --background: #ddd2cc;
+    --text-secondary: #222222;
+    --text-disabled: #676E78;
+    --check-box: #313131;
+    --input: #D2C2BA;
+    --background: #FFFFFF;
     --popup-border: #313131;
-    --error: #e1e289;
+    --error: #CC3340;
   }
 }
 

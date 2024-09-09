@@ -15,7 +15,7 @@ export function useVoiceOver(pageType: PageType) {
         func: extractTranslate,
       })
       .then((response) => {
-        const result = response[0].result as VoiceOverInfo[];
+        const result = response[0].result as VoiceOverInfo[] | null;
         // logger.debug(result);
         setTranslate(result);
       });

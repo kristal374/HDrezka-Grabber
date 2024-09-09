@@ -37,15 +37,21 @@ async function extractFilmInfo() {
   ) as RegExpMatchArray;
   const playerInfo = JSON.parse(playerConfig[9]);
 
-  const translateID = document.querySelector('.b-translator__item.active');
+  const translateElement = document.querySelector('.b-translator__item.active');
   const extractedInfo: FilmInfo = {
-    film_id: parseInt(playerConfig[2]),
-    translator_id: translateID
-      ? parseInt(translateID.getAttribute('data-translator_id')!)
-      : parseInt(playerConfig[3]),
-    is_camrip: playerConfig[4],
-    is_ads: playerConfig[6],
-    is_director: playerConfig[5],
+    film_id: playerConfig[2],
+    translator_id: translateElement
+      ? translateElement.getAttribute('data-translator_id')!
+      : playerConfig[3],
+    is_camrip: translateElement
+      ? translateElement.getAttribute('data-camrip')!
+      : playerConfig[4],
+    is_ads: translateElement
+      ? translateElement.getAttribute('data-ads')!
+      : playerConfig[6],
+    is_director: translateElement
+      ? translateElement.getAttribute('data-director')!
+      : playerConfig[5],
     favs: document.getElementById('ctrl_favs')!.getAttribute('value')!,
     action: 'get_movie',
     local_film_name: document.querySelector('.b-post__title h1')!.textContent!,
