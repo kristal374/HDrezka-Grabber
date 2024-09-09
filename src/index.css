@@ -21,12 +21,12 @@
   :root.light {
     --text-primary: #000000;
     --text-secondary: #222222;
-    --text-disabled: #676E78;
+    --text-disabled: #676e78;
     --check-box: #313131;
-    --input: #D2C2BA;
-    --background: #FFFFFF;
+    --input: #d2c2ba;
+    --background: #ffffff;
     --popup-border: #313131;
-    --error: #CC3340;
+    --error: #cc3340;
   }
 }
 

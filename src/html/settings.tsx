@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { App } from '../app/App';
-import { createDefaultSettings, getFromStorage } from '../lib/storage';
+import { getFromStorage } from '../lib/storage';
 import { SettingsScreen } from '../app/SettingsScreen';
 import { Layout } from '../components/Layout';
 
@@ -8,7 +8,7 @@ import { Layout } from '../components/Layout';
 
 const darkMode: boolean = await getFromStorage('darkMode');
 
-if (darkMode === false) {
+if (!darkMode) {
   document.documentElement.classList.add('light');
 }
 

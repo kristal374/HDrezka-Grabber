@@ -60,7 +60,7 @@ async function getQualityFileSize(stream: string | false) {
   const items = clearTrash(stream).split(',');
 
   const promises = items.map(async (item) => {
-    const qualityName = item.match(/\[.*?]/)![0];
+    const qualityName = item.match(/\[(.*?)]/)![1];
     const qualityURLs = item.slice(qualityName.length);
     const urlsList = qualityURLs
       .split(/\sor\s/)
