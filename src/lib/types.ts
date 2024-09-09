@@ -6,6 +6,13 @@ export enum LogLevel {
   INFO = 'INFO',
 }
 
+export type MessageType =
+  | 'logCreate'
+  | 'Progress'
+  | 'Trigger'
+  | 'getFileSize'
+  | 'updateMovieInfo';
+
 export type LogMessage = {
   timestamp: string;
   level: LogLevel;
@@ -14,7 +21,7 @@ export type LogMessage = {
 };
 
 export type Message<T> = {
-  type: string;
+  type: MessageType;
   message: T;
 };
 
@@ -51,10 +58,10 @@ export type FilmInfo = {
 };
 
 export type SerialInfo = {
-  film_id: number;
-  translator_id: number;
-  season_id: number;
-  episode_id: number;
+  film_id: string;
+  translator_id: string;
+  season_id: string;
+  episode_id: string;
   favs: string;
   action: string;
   local_film_name: string;
@@ -83,3 +90,31 @@ export type Episode = { title: string; id: string };
 export type Seasons = Record<string, { title: string; episodes: Episode[] }>;
 
 export type TargetTab = { tabId: number };
+
+export type QualityItem =
+  | '360p'
+  | '480p'
+  | '720p'
+  | '1080p'
+  | '1080p Ultra'
+  | '2K'
+  | '4K'
+  | string;
+
+export type URLItem = { url: string; size: string; rawSize: number };
+
+export type URLsContainer = Record<QualityItem, URLItem>;
+
+export type ResponseVideoData = {
+  success: boolean;
+  message: string;
+  premium_content: number;
+  seasons?: string;
+  episodes?: string;
+  url: string;
+  quality: QualityItem;
+  subtitle: string | false;
+  subtitle_lns: Record<string, string> | false;
+  subtitle_def: string | false;
+  thumbnails: string;
+};
