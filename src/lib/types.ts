@@ -38,8 +38,8 @@ export type PageType =
   | 'ERROR';
 
 export type FilmInfo = {
-  film_id: number;
-  translator_id: number;
+  film_id: string;
+  translator_id: string;
   is_camrip: string;
   is_director: string;
   is_ads: string;
