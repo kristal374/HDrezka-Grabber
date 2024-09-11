@@ -4,8 +4,8 @@ import {
   LogMessage,
   Message,
   QualityItem,
+  QueryData,
   ResponseVideoData,
-  SerialInfo,
   URLsContainer,
 } from '../lib/types';
 
@@ -189,26 +189,24 @@ async function removeHeaderModificationRule() {
   });
 }
 
-async function updateVideoData(siteURL: string, data: SerialInfo) {
+async function updateVideoData(siteURL: string, data: QueryData) {
   const url = new URL(siteURL);
   const time = new Date().getTime();
   const params = new URLSearchParams({ t: time.toString() });
   const fullURL = `${url.origin}/ajax/get_cdn_series/?${params}`;
 
   await addHeaderModificationRule(fullURL, url.href, url.origin);
-
-  try {
-    const response = await fetch(fullURL, {
-      method: 'POST',
-      body: new URLSearchParams(data as Record<string, string>),
-      headers: {
-        Accept: 'application/json, text/javascript, */*; q=0.01',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      },
-    });
-    return (await response.json()) as ResponseVideoData;
-  } finally {
-    await removeHeaderModificationRule();
-  }
+  return await fetch(fullURL, {
+    method: 'POST',
+    body: new URLSearchParams(data),
+    headers: {
+      Accept: 'application/json, text/javascript, */*; q=0.01',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+    },
+  })
+    .then(async (response) => {
+      return (await response.json()) as ResponseVideoData;
+    })
+    .finally(async () => await removeHeaderModificationRule());
 }

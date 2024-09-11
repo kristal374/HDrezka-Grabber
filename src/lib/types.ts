@@ -10,6 +10,7 @@ export type MessageType =
   | 'logCreate'
   | 'Progress'
   | 'Trigger'
+  | 'decodeURL'
   | 'getFileSize'
   | 'updateMovieInfo';
 
@@ -105,6 +106,16 @@ export type URLItem = { url: string; size: string; rawSize: number };
 
 export type URLsContainer = Record<QualityItem, URLItem>;
 
+export type Action = 'get_movie' | 'get_stream' | 'get_episodes';
+
+export type QueryData = {
+  id: string;
+  translator_id: string;
+  season_id: string;
+  episode_id: string;
+  favs: string;
+  action: Action;
+};
 export type ResponseVideoData = {
   success: boolean;
   message: string;
