@@ -3,9 +3,9 @@ import { Logger, printLog } from '../lib/logger';
 import {
   LogMessage,
   Message,
+  QualityItem,
   ResponseVideoData,
   SerialInfo,
-  URLItem,
   URLsContainer,
 } from '../lib/types';
 
@@ -19,6 +19,8 @@ browser.runtime.onMessage.addListener(
     switch (data.type) {
       case 'logCreate':
         return await logCreate(data.message);
+      case 'decodeURL':
+        return await decodeURL(data.message);
       case 'getFileSize':
         return await getQualityFileSize(data.message);
       // case 'updateMovieInfo':
@@ -52,26 +54,37 @@ async function eventProgress(message: Message<number>) {
   return true;
 }
 
-async function getQualityFileSize(stream: string | false) {
+async function decodeURL(stream: string | false) {
   if (!stream) return null;
 
-  const urlsContainer: URLsContainer = {};
-
-  const items = clearTrash(stream).split(',');
-
-  const promises = items.map(async (item) => {
-    const qualityName = item.match(/\[(.*?)]/)![1];
-    const qualityURLs = item.slice(qualityName.length);
-    const urlsList = qualityURLs
-      .split(/\sor\s/)
-      .filter((item) => /https?:\/\/.*mp4$/.test(item));
-
-    urlsContainer[qualityName] = await fetchUrlSizes(urlsList);
-  });
-
-  await Promise.all(promises);
+  const urlsContainer: Record<QualityItem, string[]> = {};
+  clearTrash(stream)
+    .split(',')
+    .map((item) => {
+      const qualityName = item.match(/\[.*?]/)![0];
+      const qualityURLs = item.slice(qualityName.length);
+      urlsContainer[qualityName.slice(1, -1)] = qualityURLs
+        .split(/\sor\s/)
+        .filter((item) => /https?:\/\/.*mp4$/.test(item));
+    });
 
   return urlsContainer;
+}
+
+async function getQualityFileSize(
+  urlsContainer: Record<QualityItem, string[]>,
+) {
+  if (!urlsContainer) return null;
+
+  const urlsSizes: URLsContainer = {};
+
+  await Promise.all(
+    Object.entries(urlsContainer).map(async ([item, urls]) => {
+      urlsSizes[item] = await fetchUrlSizes(urls);
+    }),
+  );
+
+  return urlsSizes;
 }
 
 function clearTrash(data: string) {
@@ -90,15 +103,14 @@ function clearTrash(data: string) {
 }
 
 async function fetchUrlSizes(urlsList: string[]) {
-  const urlsItemsList: URLItem[] = await Promise.all(
-    urlsList.map(async (item) => {
-      const size = await getFileSize(item);
-      return { url: item, size: formatBytes(size), rawSize: size };
-    }),
-  );
+  const promises = urlsList.map(async (item) => {
+    const size = await getFileSize(item);
+    return { url: urlsList[0], size: formatBytes(size), rawSize: size };
+  });
 
-  urlsItemsList.sort((a, b) => b.rawSize - a.rawSize);
-  return urlsItemsList[0];
+  return await Promise.any(promises).catch(() => {
+    return { url: urlsList[0], size: formatBytes(0), rawSize: 0 };
+  });
 }
 
 function formatBytes(bytes: number | null) {
@@ -108,21 +120,27 @@ function formatBytes(bytes: number | null) {
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-async function getFileSize(url: string) {
-  try {
-    const response = await fetch(url, { method: 'HEAD' });
-
-    if (!response.ok) return 0;
-
-    const contentLength = response.headers.get('content-length');
-    return contentLength ? parseInt(contentLength) : 0;
-  } catch (error) {
-    return 0;
-  }
+async function getFileSize(videoURL: string) {
+  const controller = new AbortController();
+  return await fetch(videoURL, {
+    signal: controller.signal,
+    method: 'GET',
+  })
+    .then((response) => {
+      if (!response.ok) throw new Error();
+      const contentLength = response.headers.get('content-length');
+      if (!contentLength || contentLength === '0') throw new Error();
+      return parseInt(contentLength);
+    })
+    .catch(() => {
+      throw new Error();
+    })
+    .finally(async () => {
+      controller.abort();
+    });
 }
 
 async function addHeaderModificationRule(
