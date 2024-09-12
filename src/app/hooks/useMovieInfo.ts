@@ -84,16 +84,16 @@ async function extractSerialInfo() {
   );
 
   const extractedInfo: SerialInfo = {
-    film_id: parseInt(playerConfig[2]),
+    film_id: playerConfig[2],
     translator_id: translateID
-      ? parseInt(translateID.getAttribute('data-translator_id')!)
-      : parseInt(playerConfig[3]),
+      ? translateID.getAttribute('data-translator_id')!
+      : playerConfig[3],
     season_id: seasonID
-      ? parseInt(seasonID.getAttribute('data-tab_id')!)
-      : parseInt(playerConfig[4]),
+      ? seasonID.getAttribute('data-tab_id')!
+      : playerConfig[4],
     episode_id: episodeID
-      ? parseInt(episodeID.getAttribute('data-episode_id')!)
-      : parseInt(playerConfig[5]),
+      ? episodeID.getAttribute('data-episode_id')!
+      : playerConfig[5],
     favs: document.getElementById('ctrl_favs')!.getAttribute('value')!,
     action: 'get_stream',
     local_film_name: document.querySelector('.b-post__title h1')!.textContent!,
