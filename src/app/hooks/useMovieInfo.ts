@@ -1,5 +1,5 @@
-import { FilmInfo, PageType, SerialInfo, SubtitleInfo } from '../../lib/types';
 import { useEffect, useState } from 'react';
+import { FilmInfo, PageType, SerialInfo, SubtitleInfo } from '../../lib/types';
 import { useTabID } from '../providers/CurrentTabProvider';
 
 export function useMovieInfo(pageType: PageType) {
@@ -106,5 +106,5 @@ async function extractSerialInfo() {
     subtitle_def: playerInfo['subtitle_def'],
     subtitle_lns: playerInfo['subtitle_lns'],
   };
-  return [extractedInfo, subtitleInfo] as const;
+  return [extractedInfo, !subtitleInfo.subtitle ? null : subtitleInfo] as const;
 }

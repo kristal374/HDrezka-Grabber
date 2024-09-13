@@ -1,5 +1,5 @@
-import { PageType, VoiceOverInfo } from '../../lib/types';
 import { useEffect, useState } from 'react';
+import { PageType, VoiceOverInfo } from '../../lib/types';
 import { useTabID } from '../providers/CurrentTabProvider';
 
 export function useVoiceOver(pageType: PageType) {
@@ -31,7 +31,7 @@ async function extractTranslate(): Promise<VoiceOverInfo[] | null> {
   if (translatorItems.length > 0) {
     for (const item of translatorItems) {
       const voiceOver: VoiceOverInfo = {
-        id: parseInt(item.getAttribute('data-translator_id')!),
+        id: item.getAttribute('data-translator_id')!,
         title: (item as HTMLElement).title.trim() || 'Unknown Translator',
         flag_country: item
           .querySelector('img')
@@ -52,16 +52,16 @@ async function extractTranslate(): Promise<VoiceOverInfo[] | null> {
       (element) => element.cells[0].textContent === 'В переводе:',
     );
 
-    if (elements.length === 0) return null;
     const match = document.documentElement.outerHTML.match(
       /sof\.tv\.([^.]*)\((\d+), (\d+), (\d+), (\d+)/,
     );
     if (match) {
-      const translatorName = elements[0].textContent
-        ? elements[0].textContent.trim()
-        : 'Unknown Translator';
+      const translatorName =
+        elements.length !== 0
+          ? elements[0].children[1].textContent!.trim()
+          : 'Unknown Translator';
       const voiceOver: VoiceOverInfo = {
-        id: parseInt(match[3]),
+        id: match[3],
         title: translatorName,
       };
       translators.push(voiceOver);

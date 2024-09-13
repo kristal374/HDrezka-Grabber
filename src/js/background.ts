@@ -3,7 +3,7 @@ import { Logger, printLog } from '../lib/logger';
 import {
   LogMessage,
   Message,
-  QualityItem,
+  Quality,
   QueryData,
   ResponseVideoData,
   URLsContainer,
@@ -54,15 +54,16 @@ async function eventProgress(message: Message<number>) {
   return true;
 }
 
-async function decodeURL(stream: string | false) {
+async function decodeURL(stream: string | false): Promise<Quality | null> {
   if (!stream) return null;
 
-  const urlsContainer: Record<QualityItem, string[]> = {};
+  const urlsContainer: Quality = {};
   clearTrash(stream)
     .split(',')
     .map((item) => {
       const qualityName = item.match(/\[.*?]/)![0];
       const qualityURLs = item.slice(qualityName.length);
+      // @ts-ignore
       urlsContainer[qualityName.slice(1, -1)] = qualityURLs
         .split(/\sor\s/)
         .filter((item) => /https?:\/\/.*mp4$/.test(item));
@@ -72,14 +73,15 @@ async function decodeURL(stream: string | false) {
 }
 
 async function getQualityFileSize(
-  urlsContainer: Record<QualityItem, string[]>,
-) {
+  urlsContainer: Quality,
+): Promise<URLsContainer | null> {
   if (!urlsContainer) return null;
 
   const urlsSizes: URLsContainer = {};
 
   await Promise.all(
     Object.entries(urlsContainer).map(async ([item, urls]) => {
+      // @ts-ignore
       urlsSizes[item] = await fetchUrlSizes(urls);
     }),
   );

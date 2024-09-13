@@ -35,10 +35,10 @@
   "popup_textTo": {
     "message": "до"
   },
-  "popup_textEndSeason": {
+  "popup_textEndEpisodes": {
     "message": "кінця сезону"
   },
-  "popup_textEndSeries": {
+  "popup_textEndSeasons": {
     "message": "кінця серіалу"
   },
   "popup_subtitleLang": {

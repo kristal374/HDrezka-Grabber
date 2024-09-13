@@ -1,11 +1,13 @@
-import { useTabID, usePageType } from './providers/CurrentTabProvider';
+import { useTabID } from './providers/CurrentTabProvider';
 import { DefaultScreen } from './DefaultScreen';
-import { Link } from '../components/Link';
 import { DownloadScreen } from './DownloadScreen';
+import { usePageType } from './hooks/usePageType';
+import { Loader2 } from 'lucide-react';
 
 export function Router() {
   const tabID = useTabID();
   const pageType = usePageType();
+
   if (!!tabID && pageType) {
     if (pageType === 'FILM' || pageType === 'SERIAL') {
       return <DownloadScreen pageType={pageType} />;
@@ -41,12 +43,25 @@ export function Router() {
             {browser.i18n.getMessage('popup_stub_error')}
           </DefaultScreen>
         );
+      case 'DEFAULT':
+        return (
+          <DefaultScreen>
+            {browser.i18n.getMessage('popup_stub_default')}{' '}
+            <a
+              href='https://hdrezka.ag'
+              target='_blank'
+              className='font-bold text-link-color underline underline-offset-4'
+            >
+              HDrezka.ag
+            </a>
+            !
+          </DefaultScreen>
+        );
     }
   }
   return (
     <DefaultScreen>
-      {browser.i18n.getMessage('popup_stub_default')}{' '}
-      <Link href='https://hdrezka.ag'>HDrezka.ag</Link>!
+      <Loader2 size={32} className='animate-spin' />
     </DefaultScreen>
   );
 }

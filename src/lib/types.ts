@@ -77,7 +77,7 @@ export type SubtitleInfo = {
 };
 
 export type VoiceOverInfo = {
-  id: number;
+  id: string;
   title: string;
   flag_country?: string;
   prem_content?: boolean;
@@ -99,12 +99,13 @@ export type QualityItem =
   | '1080p'
   | '1080p Ultra'
   | '2K'
-  | '4K'
-  | string;
+  | '4K';
+
+export type Quality = Partial<Record<QualityItem, string[]>>;
 
 export type URLItem = { url: string; size: string; rawSize: number };
 
-export type URLsContainer = Record<QualityItem, URLItem>;
+export type URLsContainer = Partial<Record<QualityItem, URLItem>>;
 
 export type Action = 'get_movie' | 'get_stream' | 'get_episodes';
 
@@ -116,6 +117,7 @@ export type QueryData = {
   favs: string;
   action: Action;
 };
+
 export type ResponseVideoData = {
   success: boolean;
   message: string;

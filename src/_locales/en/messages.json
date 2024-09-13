@@ -35,10 +35,10 @@
   "popup_textTo": {
     "message": "to"
   },
-  "popup_textEndSeason": {
+  "popup_textEndEpisodes": {
     "message": "the end of the season"
   },
-  "popup_textEndSeries": {
+  "popup_textEndSeasons": {
     "message": "the end of the serial"
   },
   "popup_subtitleLang": {

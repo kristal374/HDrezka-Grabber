@@ -11,7 +11,7 @@ type Props = {
 export function MenuButton({ href, ...props }: Props) {
   return (
     <button
-      className='rounded-md p-0.5 transition-colors hover:bg-popup-border'
+      className='rounded-md p-0.5 transition-colors hover:bg-input'
       onClick={() => {
         browser.windows.create({
           url: browser.runtime.getURL(`${href}.html`),

@@ -1,5 +1,5 @@
-import { PageType, Seasons } from '../../lib/types';
 import { useEffect, useState } from 'react';
+import { PageType, Seasons } from '../../lib/types';
 import { useTabID } from '../providers/CurrentTabProvider';
 
 export function useEpisodes(pageType: PageType) {
