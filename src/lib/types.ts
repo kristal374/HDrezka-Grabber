@@ -109,14 +109,26 @@ export type URLsContainer = Partial<Record<QualityItem, URLItem>>;
 
 export type Action = 'get_movie' | 'get_stream' | 'get_episodes';
 
+type SerialFields = {
+  season: string;
+  episode: string;
+  action: "get_stream";
+};
+
+type FilmsFields = {
+  is_camrip: string;
+  is_director: string;
+  is_ads: string;
+  action: "get_movie"
+
+};
+
 export type QueryData = {
   id: string;
   translator_id: string;
-  season_id: string;
-  episode_id: string;
   favs: string;
   action: Action;
-};
+} & (FilmsFields | SerialFields);
 
 export type ResponseVideoData = {
   success: boolean;
@@ -130,4 +142,44 @@ export type ResponseVideoData = {
   subtitle_lns: Record<string, string> | false;
   subtitle_def: string | false;
   thumbnails: string;
+};
+export type LoadStatus =
+  | 'LoadCandidate'
+  | 'InitiatingDownload'
+  | 'InitiationError'
+  | 'Loading'
+  | 'DownloadFailed'
+  | 'DownloadSuccess'
+  | 'StoppedByUser';
+
+export type LoadInfo = {
+  uid: number;
+  download_id: number | null;
+  query_data: QueryData;
+  path: string | null;
+  local_film_name: string;
+  original_film_name: string | null;
+  filename: string | null;
+  url: string | null;
+  site_url: string;
+  size: { stringSize: string; rawSize: number } | null;
+  voice_over: string;
+  season_name?: string;
+  episode_name?: string;
+  quality: QualityItem;
+  subtitle: { lang: string; code: string; url: string } | null;
+  timestamp: Date;
+  status: LoadStatus;
+};
+
+export type Initiator = {
+  query_data: QueryData;
+  site_url: string;
+  range: Seasons | null;
+  local_film_name: string;
+  original_film_name: string | null;
+  voice_over: string;
+  quality: QualityItem;
+  subtitle: { lang: string; code: string; url: string } | null;
+  timestamp: Date;
 };
