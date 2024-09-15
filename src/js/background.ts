@@ -25,9 +25,10 @@ browser.runtime.onMessage.addListener(
         return await getQualityFileSize(data.message);
       // case 'updateMovieInfo':
       //   return await updateVideoData("d", {})
-      case 'Trigger':
+      case 'trigger':
+        console.log(data.message);
         return await triggerEvent(data.message);
-      case 'Progress':
+      case 'progress':
         return await eventProgress(data.message);
       default:
         logger.warning(message);

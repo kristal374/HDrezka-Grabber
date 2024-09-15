@@ -8,8 +8,8 @@ export enum LogLevel {
 
 export type MessageType =
   | 'logCreate'
-  | 'Progress'
-  | 'Trigger'
+  | 'progress'
+  | 'trigger'
   | 'decodeURL'
   | 'getFileSize'
   | 'updateMovieInfo';
@@ -54,7 +54,7 @@ export type FilmInfo = {
   favs: string;
   action: string;
   local_film_name: string;
-  original_film_name: string | undefined;
+  original_film_name: string | null;
   streams: string;
 };
 
@@ -66,7 +66,7 @@ export type SerialInfo = {
   favs: string;
   action: string;
   local_film_name: string;
-  original_film_name: string | undefined;
+  original_film_name: string | null;
   streams: string;
 };
 
@@ -109,18 +109,17 @@ export type URLsContainer = Partial<Record<QualityItem, URLItem>>;
 
 export type Action = 'get_movie' | 'get_stream' | 'get_episodes';
 
-type SerialFields = {
+export type SerialFields = {
   season: string;
   episode: string;
-  action: "get_stream";
+  action: 'get_stream';
 };
 
-type FilmsFields = {
+export type FilmsFields = {
   is_camrip: string;
   is_director: string;
   is_ads: string;
-  action: "get_movie"
-
+  action: 'get_movie';
 };
 
 export type QueryData = {
@@ -143,6 +142,7 @@ export type ResponseVideoData = {
   subtitle_def: string | false;
   thumbnails: string;
 };
+
 export type LoadStatus =
   | 'LoadCandidate'
   | 'InitiatingDownload'

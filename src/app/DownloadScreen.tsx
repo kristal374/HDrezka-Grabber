@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Menu } from '../components/Menu';
-import type { PageType, Message, QualityItem, SerialInfo } from '../lib/types';
+import type {
+  PageType,
+  Message,
+  QualityItem,
+  SerialInfo,
+  Initiator,
+  FilmsFields,
+  SerialFields,
+  FilmInfo,
+  Seasons,
+} from '../lib/types';
 import { DownloadIcon, PremiumIcon } from '../components/Icons';
 import { useMovieInfo } from './hooks/useMovieInfo';
 import { useVoiceOver } from './hooks/useVoiceOver';
@@ -16,7 +26,7 @@ import { useQualitySize } from './hooks/useQualitySize';
 import { Combobox } from '../components/Combobox';
 import { useEpisodes } from './hooks/useEpisodes';
 import { Checkbox } from '../components/Checkbox';
-import { cn } from '../lib/utils';
+import { cn, sliceSeasons } from '../lib/utils';
 
 type Props = {
   pageType: PageType;
@@ -24,9 +34,11 @@ type Props = {
 
 export function DownloadScreen({ pageType }: Props) {
   const [movieInfo, subtitles] = useMovieInfo(pageType);
-  const voiceOver = useVoiceOver(pageType);
+  const voiceOvers = useVoiceOver(pageType);
+  const [voiceOverId, setVoiceOverId] = useState('');
   const qualities = useQualities(movieInfo);
   const sizes = useQualitySize(qualities);
+  const [quality, setQuality] = useState<QualityItem>('720p');
   const seasons = useEpisodes(pageType);
   const [downloadSerial, setDownloadSerial] = useState(false);
   const [seasonFrom, setSeasonFrom] = useState('');
@@ -39,18 +51,59 @@ export function DownloadScreen({ pageType }: Props) {
     if (!m) return;
     setSeasonFrom(m.season_id);
     setEpisodeFrom(m.episode_id);
+    setVoiceOverId(m.translator_id);
   }, [movieInfo]);
   const [error, setError] = useState<string | null>('Error message');
-  useEffect(() => {
-    browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-      return true;
-    });
-  }, []);
   if (!movieInfo) return null;
+  const queryData: FilmsFields | SerialFields =
+    pageType === 'FILM'
+      ? {
+          is_camrip: (movieInfo as FilmInfo).is_camrip,
+          is_director: (movieInfo as FilmInfo).is_director,
+          is_ads: (movieInfo as FilmInfo).is_ads,
+          action: 'get_movie',
+        }
+      : {
+          season: '1',
+          episode: '1',
+          action: 'get_stream',
+        };
   return (
     <div className='flex size-full flex-col gap-5'>
       <div className='relative flex items-center justify-center'>
-        <button className='flex size-[120px] cursor-pointer items-center justify-center rounded-full bg-popup-border text-white'>
+        <button
+          className='flex size-[120px] cursor-pointer items-center justify-center rounded-full bg-popup-border text-white hover:bg-input'
+          onClick={() => {
+            browser.runtime.sendMessage<Message<Initiator>>({
+              type: 'trigger',
+              message: {
+                query_data: {
+                  id: movieInfo.film_id,
+                  translator_id: voiceOverId,
+                  favs: movieInfo.favs,
+                  ...queryData,
+                },
+                site_url: '',
+                range: seasons
+                  ? sliceSeasons(
+                      seasons,
+                      seasonFrom,
+                      episodeFrom,
+                      seasonTo,
+                      episodeTo,
+                    )
+                  : null,
+                local_film_name: movieInfo.local_film_name,
+                original_film_name: movieInfo.original_film_name,
+                voice_over: voiceOvers?.find((v) => v.id === voiceOverId)
+                  ?.title!,
+                quality: quality,
+                subtitle: null,
+                timestamp: new Date(),
+              },
+            });
+          }}
+        >
           <DownloadIcon />
         </button>
         <Menu />
@@ -235,17 +288,20 @@ export function DownloadScreen({ pageType }: Props) {
         {pageType === 'FILM' && !subtitles ? null : (
           <hr className='w-full border-b border-popup-border' />
         )}
-        {voiceOver && (
+        {voiceOvers && (
           <div className='flex items-center gap-2.5'>
             <label htmlFor='voiceOver' className='ml-auto text-sm'>
               {browser.i18n.getMessage('popup_translate')}
             </label>
-            <Select defaultValue={movieInfo.translator_id}>
+            <Select
+              value={voiceOverId}
+              onValueChange={(v) => setVoiceOverId(v)}
+            >
               <SelectTrigger id='voiceOver' className='w-[225px] py-1.5'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {voiceOver.map((voiceOverInfo) => {
+                {voiceOvers.map((voiceOverInfo) => {
                   return (
                     <SelectItem value={voiceOverInfo.id} key={voiceOverInfo.id}>
                       {voiceOverInfo.title}
@@ -269,7 +325,8 @@ export function DownloadScreen({ pageType }: Props) {
             </label>
             <Combobox
               id='qualities'
-              defaultValue='720p'
+              value={quality}
+              onValueChange={(v) => setQuality(v as QualityItem)}
               data={Object.keys(qualities).map((quality) => {
                 const q = quality as QualityItem;
                 return {

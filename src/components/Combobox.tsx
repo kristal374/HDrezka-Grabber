@@ -8,10 +8,16 @@ import { Popover, PopoverContent, PopoverTrigger } from './Popover';
 type Props = {
   id?: string;
   data: Array<{ value: string; label: React.ReactNode }>;
-  defaultValue?: string;
+  value?: string;
+  onValueChange?: (v: string) => void;
 };
 
-export function Combobox({ id, data, defaultValue = '' }: Props) {
+export function Combobox({
+  id,
+  data,
+  value: defaultValue = '',
+  onValueChange,
+}: Props) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState(defaultValue);
 
@@ -47,6 +53,7 @@ export function Combobox({ id, data, defaultValue = '' }: Props) {
                     // setValue(currentValue === value ? '' : currentValue);
                     setValue(currentValue);
                     setOpen(false);
+                    onValueChange?.(currentValue);
                   }}
                 >
                   {/* <Check
