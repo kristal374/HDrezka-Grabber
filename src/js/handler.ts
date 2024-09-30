@@ -1,0 +1,168 @@
+import browser from 'webextension-polyfill';
+import {
+  Quality,
+  QueryData,
+  ResponseVideoData,
+  URLsContainer,
+} from '../lib/types';
+
+export async function decodeURL(
+  stream: string | false,
+): Promise<Quality | null> {
+  if (!stream) return null;
+
+  const urlsContainer: Quality = {};
+  clearTrash(stream)
+    .split(',')
+    .map((item) => {
+      const qualityName = item.match(/\[.*?]/)![0];
+      const qualityURLs = item.slice(qualityName.length);
+      // @ts-ignore
+      urlsContainer[qualityName.slice(1, -1)] = qualityURLs
+        .split(/\sor\s/)
+        .filter((item) => /https?:\/\/.*mp4$/.test(item));
+    });
+
+  return urlsContainer;
+}
+
+export async function getQualityFileSize(
+  urlsContainer: Quality | null,
+): Promise<URLsContainer | null> {
+  if (!urlsContainer) return null;
+
+  const urlsSizes: URLsContainer = {};
+
+  await Promise.all(
+    Object.entries(urlsContainer).map(async ([item, urls]) => {
+      // @ts-ignore
+      urlsSizes[item] = await fetchUrlSizes(urls);
+    }),
+  );
+
+  return urlsSizes;
+}
+
+function clearTrash(data: string) {
+  const trashList = [
+    '//_//QEBAQEAhIyMhXl5e',
+    '//_//Xl5eIUAjIyEhIyM=',
+    '//_//JCQhIUAkJEBeIUAjJCRA',
+    '//_//IyMjI14hISMjIUBA',
+    '//_//JCQjISFAIyFAIyM=',
+  ];
+  while (trashList.some((subString) => data.includes(subString))) {
+    data = data.replace(new RegExp(trashList.join('|'), 'g'), '');
+  }
+  data = data.replace('#h', '');
+  return atob(data);
+}
+
+async function fetchUrlSizes(urlsList: string[]) {
+  const promises = urlsList.map(async (item) => {
+    const size = await getFileSize(item);
+    return { url: urlsList[0], size: formatBytes(size), rawSize: size };
+  });
+
+  return await Promise.any(promises).catch(() => {
+    return { url: urlsList[0], size: formatBytes(0), rawSize: 0 };
+  });
+}
+
+export function formatBytes(bytes: number | null) {
+  if (!bytes) return '0 B';
+
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+async function getFileSize(videoURL: string) {
+  const controller = new AbortController();
+  return await fetch(videoURL, {
+    signal: controller.signal,
+    method: 'GET',
+  })
+    .then((response) => {
+      if (!response.ok) throw new Error();
+      const contentLength = response.headers.get('content-length');
+      if (!contentLength || contentLength === '0') throw new Error();
+      return parseInt(contentLength);
+    })
+    .catch(() => {
+      throw new Error();
+    })
+    .finally(async () => {
+      controller.abort();
+    });
+}
+
+async function addHeaderModificationRule(
+  fullURL: string,
+  referer: string,
+  origin: string,
+) {
+  await browser.declarativeNetRequest.updateDynamicRules({
+    addRules: [
+      {
+        id: 1,
+        priority: 1,
+        action: {
+          type: 'modifyHeaders',
+          requestHeaders: [
+            {
+              header: 'Referer',
+              operation: 'set',
+              value: referer,
+            },
+            {
+              header: 'Origin',
+              operation: 'set',
+              value: origin,
+            },
+            {
+              header: 'Sec-Fetch-Site',
+              operation: 'set',
+              value: 'same-origin',
+            },
+          ],
+        },
+        condition: {
+          urlFilter: fullURL,
+          resourceTypes: ['xmlhttprequest'],
+        },
+      },
+    ],
+    removeRuleIds: [1],
+  });
+}
+
+async function removeHeaderModificationRule() {
+  await browser.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: [1],
+  });
+}
+
+export async function updateVideoData(siteURL: string, data: QueryData) {
+  const url = new URL(siteURL);
+  const time = new Date().getTime();
+  const params = new URLSearchParams({ t: time.toString() });
+  const fullURL = `${url.origin}/ajax/get_cdn_series/?${params}`;
+
+  await addHeaderModificationRule(fullURL, url.href, url.origin);
+  return await fetch(fullURL, {
+    method: 'POST',
+    body: new URLSearchParams(data),
+    headers: {
+      Accept: 'application/json, text/javascript, */*; q=0.01',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+    },
+  })
+    .then(async (response) => {
+      return (await response.json()) as ResponseVideoData;
+    })
+    .finally(async () => await removeHeaderModificationRule());
+}

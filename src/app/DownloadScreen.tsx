@@ -9,7 +9,6 @@ import type {
   FilmsFields,
   SerialFields,
   FilmInfo,
-  Seasons,
 } from '../lib/types';
 import { DownloadIcon, PremiumIcon } from '../components/Icons';
 import { useMovieInfo } from './hooks/useMovieInfo';
@@ -33,7 +32,7 @@ type Props = {
 };
 
 export function DownloadScreen({ pageType }: Props) {
-  const [movieInfo, subtitles] = useMovieInfo(pageType);
+  const [movieInfo, subtitles, siteURL] = useMovieInfo(pageType);
   const voiceOvers = useVoiceOver(pageType);
   const [voiceOverId, setVoiceOverId] = useState('');
   const qualities = useQualities(movieInfo);
@@ -83,14 +82,22 @@ export function DownloadScreen({ pageType }: Props) {
                   favs: movieInfo.favs,
                   ...queryData,
                 },
-                site_url: '',
+                site_url: siteURL!,
                 range: seasons
-                  ? sliceSeasons(
+                  ? downloadSerial || !('season_id' in movieInfo)
+                    ? sliceSeasons(
                       seasons,
                       seasonFrom,
                       episodeFrom,
                       seasonTo,
                       episodeTo,
+                    )
+                    : sliceSeasons(
+                      seasons,
+                      movieInfo.season_id,
+                      movieInfo.episode_id,
+                      movieInfo.season_id,
+                      movieInfo.episode_id,
                     )
                   : null,
                 local_film_name: movieInfo.local_film_name,
