@@ -16,7 +16,13 @@
   "background": {
     "service_worker": "src/js/background.js"
   },
-  "permissions": ["scripting", "storage", "tabs"],
+  "permissions": [
+    "scripting",
+    "storage",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "downloads"
+  ],
   "host_permissions": ["<all_urls>"],
   "web_accessible_resources": [
     {

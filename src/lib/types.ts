@@ -148,6 +148,7 @@ export type LoadStatus =
   | 'InitiatingDownload'
   | 'InitiationError'
   | 'Loading'
+  | 'DownloadPaused'
   | 'DownloadFailed'
   | 'DownloadSuccess'
   | 'StoppedByUser';
@@ -156,7 +157,8 @@ export type LoadInfo = {
   uid: number;
   download_id: number | null;
   query_data: QueryData;
-  path: string | null;
+  relative_path: string
+  absolute_path: string | null;
   local_film_name: string;
   original_film_name: string | null;
   filename: string | null;
@@ -168,7 +170,8 @@ export type LoadInfo = {
   episode_name?: string;
   quality: QualityItem;
   subtitle: { lang: string; code: string; url: string } | null;
-  timestamp: Date;
+  attempts_retries: number,
+  timestamp: string;
   status: LoadStatus;
 };
 
@@ -181,5 +184,5 @@ export type Initiator = {
   voice_over: string;
   quality: QualityItem;
   subtitle: { lang: string; code: string; url: string } | null;
-  timestamp: Date;
+  timestamp: Date | string;
 };

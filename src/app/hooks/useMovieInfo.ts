@@ -5,8 +5,8 @@ import { useTabID } from '../providers/CurrentTabProvider';
 export function useMovieInfo(pageType: PageType) {
   const tabID = useTabID();
   const [movieInfo, setMovieInfo] = useState<
-    [FilmInfo | SerialInfo | null, SubtitleInfo | null]
-  >([null, null]);
+    [FilmInfo | SerialInfo | null, SubtitleInfo | null, string | null]
+  >([null, null, null]);
 
   useEffect(() => {
     if (!tabID || !pageType) return;
@@ -20,6 +20,7 @@ export function useMovieInfo(pageType: PageType) {
         const result = response[0].result as [
           FilmInfo | SerialInfo,
           SubtitleInfo,
+          string,
         ];
         // logger.debug(result);
         setMovieInfo(result);
@@ -64,7 +65,8 @@ async function extractFilmInfo() {
     subtitle_def: playerInfo['subtitle_def'],
     subtitle_lns: playerInfo['subtitle_lns'],
   };
-  return [extractedInfo, subtitleInfo] as const;
+  const siteURL = window.location.href.split("#")[0]
+  return [extractedInfo, subtitleInfo, siteURL] as const;
 }
 
 async function extractSerialInfo() {
@@ -106,5 +108,6 @@ async function extractSerialInfo() {
     subtitle_def: playerInfo['subtitle_def'],
     subtitle_lns: playerInfo['subtitle_lns'],
   };
-  return [extractedInfo, !subtitleInfo.subtitle ? null : subtitleInfo] as const;
+  const siteURL = window.location.href.split("#")[0]
+  return [extractedInfo, !subtitleInfo.subtitle ? null : subtitleInfo, siteURL] as const;
 }
