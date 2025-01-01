@@ -9,7 +9,7 @@ type Props = {
   id?: string;
   data: Array<{ value: string; label: React.ReactNode }>;
   value?: string;
-  onValueChange?: (v: string) => void;
+  onValueChange?: (v: string, l: string) => void;
 };
 
 export function Combobox({
@@ -53,7 +53,7 @@ export function Combobox({
                     // setValue(currentValue === value ? '' : currentValue);
                     setValue(currentValue);
                     setOpen(false);
-                    onValueChange?.(currentValue);
+                    onValueChange?.(currentValue, item.label as string);
                   }}
                 >
                   {/* <Check

@@ -1,4 +1,4 @@
-import { Menu } from '../components/Menu';
+import { Menu } from '../../components/Menu';
 
 type Props = {
   vpnNotice?: boolean;

@@ -17,7 +17,7 @@
   "popup_stub_vpn": {
     "message": "Try using a VPN."
   },
-  "popup_stub_unvalible": {
+  "popup_stub_unavailable": {
     "message": "Content is unavailable for download — no data to process."
   },
   "popup_stub_error": {

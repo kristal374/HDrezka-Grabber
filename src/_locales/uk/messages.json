@@ -17,7 +17,7 @@
   "popup_stub_vpn": {
     "message": "Спробуйте скористатися VPN."
   },
-  "popup_stub_unvalible": {
+  "popup_stub_unavailable": {
     "message": "Контент недоступний для завантаження — відсутні дані для обробки."
   },
   "popup_stub_error": {
