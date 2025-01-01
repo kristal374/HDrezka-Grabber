@@ -3,6 +3,7 @@ import { DefaultScreen } from './screens/DefaultScreen';
 import { DownloadScreen } from './screens/DownloadScreen/DownloadScreen';
 import { usePageType } from './hooks/usePageType';
 import { Loader2 } from 'lucide-react';
+import { PageType } from '../lib/types';
 
 export function Router() {
   const tabID = useTabID();
@@ -10,9 +11,8 @@ export function Router() {
 
   if (!!tabID && pageType) {
     console.log(pageType);
-    if (['FILM', 'SERIAL'].includes(pageType)) {
+    if (pageType === 'FILM' || pageType === 'SERIAL') {
       return <DownloadScreen pageType={pageType} />;
-
     }
     const messages = {
       TRAILER: browser.i18n.getMessage('popup_stub_trailer'),
@@ -33,10 +33,15 @@ export function Router() {
           !
         </>
       ),
-    };
+    } satisfies Record<
+      Exclude<PageType, 'FILM' | 'SERIAL'>,
+      string | React.ReactNode
+    >;
     return (
       <DefaultScreen
-        vpnNotice={['LOCATION_FILM', 'LOCATION_SERIAL'].includes(pageType)}
+        vpnNotice={
+          pageType === 'LOCATION_FILM' || pageType === 'LOCATION_SERIAL'
+        }
       >
         {messages[pageType]}
       </DefaultScreen>
@@ -44,7 +49,7 @@ export function Router() {
   }
 
   return (
-    <DefaultScreen>
+    <DefaultScreen className='py-12'>
       <Loader2 size={32} className='animate-spin' />
     </DefaultScreen>
   );

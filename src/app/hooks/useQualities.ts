@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
-import { FilmInfo, Message, Quality, SerialInfo } from '../../lib/types';
+import { Message, Quality } from '../../lib/types';
 
-export function useQualities(movieInfo: FilmInfo | SerialInfo | null) {
+export function useQualities(streams: string | undefined) {
   const [qualities, setQualities] = useState<Quality | null>(null);
 
   useEffect(() => {
-    if (!movieInfo) return;
+    if (!streams) return;
     browser.runtime
       .sendMessage<Message<string>>({
         type: 'decodeURL',
-        message: movieInfo.streams,
+        message: streams,
       })
       .then((response) => {
         const result = response as Quality;
         // logger.debug(result);
         setQualities(result);
       });
-  }, [movieInfo]);
+  }, [streams]);
 
   return qualities;
 }

@@ -65,7 +65,7 @@ async function extractFilmInfo() {
     subtitle_def: playerInfo['subtitle_def'],
     subtitle_lns: playerInfo['subtitle_lns'],
   };
-  const siteURL = window.location.href.split("#")[0]
+  const siteURL = window.location.href.split('#')[0];
   return [extractedInfo, subtitleInfo, siteURL] as const;
 }
 
@@ -108,6 +108,10 @@ async function extractSerialInfo() {
     subtitle_def: playerInfo['subtitle_def'],
     subtitle_lns: playerInfo['subtitle_lns'],
   };
-  const siteURL = window.location.href.split("#")[0]
-  return [extractedInfo, !subtitleInfo.subtitle ? null : subtitleInfo, siteURL] as const;
+  const siteURL = window.location.href.split('#')[0];
+  return [
+    extractedInfo,
+    !subtitleInfo.subtitle ? null : subtitleInfo,
+    siteURL,
+  ] as const;
 }

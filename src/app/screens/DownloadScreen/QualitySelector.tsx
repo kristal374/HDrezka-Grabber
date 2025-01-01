@@ -9,7 +9,7 @@ type Props = {
 };
 
 export function QualitySelector({ movieInfo }: Props) {
-  const qualities = useQualities(movieInfo);
+  const qualities = useQualities(movieInfo?.streams);
   // const sizes = useQualitySize(qualities); // TODO: вернуть в проде
   const sizes = useQualitySize(null);
   const [quality, setQuality] = useState<QualityItem>('720p');
@@ -30,6 +30,7 @@ export function QualitySelector({ movieInfo }: Props) {
           label: (
             <>
               {q}
+              {/* @ts-ignore */}
               {sizes && <span className='ml-auto'>{sizes[q]!.size}</span>}
             </>
           ),
