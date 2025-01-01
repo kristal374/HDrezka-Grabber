@@ -4,11 +4,11 @@ import { Router } from '../app/Router';
 import { Layout } from '../components/Layout';
 import { createDefaultSettings, getFromStorage } from '../lib/storage';
 
-// await createDefaultSettings();
+await createDefaultSettings();
 
 const darkMode: boolean = await getFromStorage('darkMode');
 
-if (darkMode === false) {
+if (!darkMode) {
   document.documentElement.classList.add('light');
 }
 
