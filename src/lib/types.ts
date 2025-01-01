@@ -1,3 +1,5 @@
+export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
+
 export enum LogLevel {
   CRITICAL = 'CRITICAL',
   ERROR = 'ERROR',
@@ -157,7 +159,7 @@ export type LoadInfo = {
   uid: number;
   download_id: number | null;
   query_data: QueryData;
-  relative_path: string
+  relative_path: string;
   absolute_path: string | null;
   local_film_name: string;
   original_film_name: string | null;
@@ -170,7 +172,7 @@ export type LoadInfo = {
   episode_name?: string;
   quality: QualityItem;
   subtitle: { lang: string; code: string; url: string } | null;
-  attempts_retries: number,
+  attempts_retries: number;
   timestamp: string;
   status: LoadStatus;
 };

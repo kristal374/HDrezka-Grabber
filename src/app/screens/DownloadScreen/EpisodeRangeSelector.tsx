@@ -6,31 +6,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../components/Select';
-import type { PageType } from '../../../lib/types';
-import { cn } from '../../../lib/utils';
+import type { PageType, Seasons, SetState } from '../../../lib/types';
+import { cn, sliceSeasons } from '../../../lib/utils';
 import { useEpisodes } from '../../hooks/useEpisodes';
 import { useEffect, useState } from 'react';
 
 type Props = {
-  pageType: PageType;
+  seasons: Seasons | null;
   defaultSeasonStart: string;
   defaultEpisodeStart: string;
+  setRange: SetState<Seasons | null>;
 };
 
 export function EpisodeRangeSelector({
-  pageType,
+  seasons,
   defaultSeasonStart,
   defaultEpisodeStart,
+  setRange,
 }: Props) {
-  if (pageType !== 'SERIAL') return null;
-
-  const seasons = useEpisodes(pageType);
+  if (!seasons) return null;
   const [downloadSerial, setDownloadSerial] = useState(false);
   const [seasonFrom, setSeasonFrom] = useState(defaultSeasonStart);
   const [episodeFrom, setEpisodeFrom] = useState(defaultEpisodeStart);
   const [seasonTo, setSeasonTo] = useState('-2');
   const [episodeTo, setEpisodeTo] = useState('');
   const downloadToEnd = Number(seasonTo) < 0;
+  useEffect(() => {
+    if (!seasons) return;
+    setRange(
+      sliceSeasons(
+        seasons,
+        downloadSerial ? seasonFrom : defaultSeasonStart,
+        downloadSerial ? episodeFrom : defaultEpisodeStart,
+        downloadSerial ? seasonTo : defaultSeasonStart,
+        downloadSerial ? episodeTo : defaultEpisodeStart,
+      ),
+    );
+  }, [seasons, downloadSerial, seasonFrom, episodeFrom, seasonTo, episodeTo]);
 
   return (
     <>
@@ -47,7 +59,7 @@ export function EpisodeRangeSelector({
       {downloadSerial && seasons && (
         <>
           <div className='flex items-center gap-2.5'>
-            {/* 82 > 106 */}
+            {/* Components width in pixels: [82] ">" [115] */}
             <label htmlFor='seasonFrom' className='ml-auto text-base font-bold'>
               {browser.i18n.getMessage('popup_textFrom')}
             </label>
@@ -108,7 +120,7 @@ export function EpisodeRangeSelector({
           </div>
 
           <div className='flex items-center gap-2.5'>
-            {/* 82 > 106 */}
+            {/* Components width in pixels: [82] ">" [115] */}
             <label htmlFor='seasonTo' className='ml-auto text-base font-bold'>
               {browser.i18n.getMessage('popup_textTo')}
             </label>

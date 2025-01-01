@@ -5,11 +5,11 @@ import type { FilmInfo, QualityItem, SerialInfo } from '../../../lib/types';
 import { useState } from 'react';
 
 type Props = {
-  movieInfo: FilmInfo | SerialInfo;
+  streams: string;
 };
 
-export function QualitySelector({ movieInfo }: Props) {
-  const qualities = useQualities(movieInfo?.streams);
+export function QualitySelector({ streams }: Props) {
+  const qualities = useQualities(streams);
   // const sizes = useQualitySize(qualities); // TODO: вернуть в проде
   const sizes = useQualitySize(null);
   const [quality, setQuality] = useState<QualityItem>('720p');

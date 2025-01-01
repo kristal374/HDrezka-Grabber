@@ -7,7 +7,7 @@ import {
 } from '../../../components/Select';
 import { useVoiceOver } from '../../hooks/useVoiceOver';
 import { useEffect, useState } from 'react';
-import { PageType, VoiceOverInfo } from '../../../lib/types';
+import { PageType, SetState, VoiceOverInfo } from '../../../lib/types';
 import { PremiumIcon } from '../../../components/Icons';
 
 type Props = {
@@ -16,6 +16,8 @@ type Props = {
   is_camrip?: string;
   is_director?: string;
   is_ads?: string;
+  voiceOver: VoiceOverInfo | null;
+  setVoiceOver: SetState<VoiceOverInfo | null>;
 };
 
 export function VoiceOverSelector({
@@ -24,17 +26,15 @@ export function VoiceOverSelector({
   is_camrip,
   is_director,
   is_ads,
+  voiceOver,
+  setVoiceOver,
 }: Props) {
-  const voiceOvers = useVoiceOver(pageType);
-  const [voiceOverInfo, setVoiceOverInfo] = useState<VoiceOverInfo | null>(
-    null,
-  );
+  const voiceOverList = useVoiceOver(pageType);
 
   useEffect(() => {
-    if (!voiceOvers) return;
-
+    if (!voiceOverList) return;
     const targetVoiceOver =
-      voiceOvers?.find((voiceOver) =>
+      voiceOverList?.find((voiceOver) =>
         pageType === 'SERIAL'
           ? voiceOver.id === defaultVoiceOverId
           : voiceOver.id === defaultVoiceOverId &&
@@ -42,10 +42,10 @@ export function VoiceOverSelector({
             voiceOver.is_director === is_director &&
             voiceOver.is_ads === is_ads,
       ) || null;
-    setVoiceOverInfo(targetVoiceOver);
-  }, [voiceOvers]);
+    setVoiceOver(targetVoiceOver);
+  }, [voiceOverList]);
 
-  if (!voiceOvers) return null;
+  if (!voiceOverList) return null;
 
   return (
     <div className='flex items-center gap-2.5'>
@@ -53,14 +53,14 @@ export function VoiceOverSelector({
         {browser.i18n.getMessage('popup_translate')}
       </label>
       <Select
-        value={JSON.stringify(voiceOverInfo)}
-        onValueChange={(v) => setVoiceOverInfo(JSON.parse(v))}
+        value={JSON.stringify(voiceOver)}
+        onValueChange={(v) => setVoiceOver(JSON.parse(v))}
       >
         <SelectTrigger id='voiceOver' className='w-[225px] py-1.5'>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {voiceOvers.map((voiceOverInfo) => {
+          {voiceOverList.map((voiceOverInfo) => {
             return (
               <SelectItem
                 value={JSON.stringify(voiceOverInfo)}

@@ -7,17 +7,41 @@ import { EpisodeRangeSelector } from './EpisodeRangeSelector';
 import { VoiceOverSelector } from './VoiceOverSelector';
 import { useMovieInfo } from '../../hooks/useMovieInfo';
 import { sliceSeasons } from '../../../lib/utils';
-import type { PageType, Message, Initiator } from '../../../lib/types';
+import type {
+  PageType,
+  Message,
+  Initiator,
+  Seasons,
+  VoiceOverInfo,
+} from '../../../lib/types';
 import { FilmInfo, SerialInfo } from '../../../lib/types';
 import { NotificationField } from './NotificationField';
+import { useEpisodes } from '../../hooks/useEpisodes';
 
 type Props = {
   pageType: PageType;
 };
 
 export function DownloadScreen({ pageType }: Props) {
+  const notificationString = null;
   const [movieInfo, subtitles, siteURL] = useMovieInfo(pageType);
-  const notificationString = "Возникла ошибка!";
+  const [voiceOver, setVoiceOver] = useState<VoiceOverInfo | null>(null);
+  const defaultSeasons = useEpisodes(pageType);
+  const [seasons, setSeasons] = useState<Seasons | null>(null);
+  const [range, setRange] = useState<Seasons | null>(null);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  useEffect(() => {
+    if (isFirstLoad) {
+      setIsFirstLoad(false);
+      return;
+    }
+    if (!voiceOver) return;
+    console.log(voiceOver);
+    // callBackground('updateMovieInfo', voiceOver).then(() => {
+    //  setSeasons(null);
+    // });
+  }, [voiceOver]);
+
   if (!movieInfo) return null;
 
   return (
@@ -50,23 +74,7 @@ export function DownloadScreen({ pageType }: Props) {
             //             action: 'get_stream',
             //           },
             //     site_url: siteURL!,
-            //     range: seasons
-            //       ? downloadSerial || !('season_id' in movieInfo)
-            //         ? sliceSeasons(
-            //             seasons,
-            //             seasonFrom,
-            //             episodeFrom,
-            //             seasonTo,
-            //             episodeTo,
-            //           )
-            //         : sliceSeasons(
-            //             seasons,
-            //             movieInfo.season_id,
-            //             movieInfo.episode_id,
-            //             movieInfo.season_id,
-            //             movieInfo.episode_id,
-            //           )
-            //       : null,
+            //     range: range,
             //     local_film_name: movieInfo!.local_film_name,
             //     original_film_name: movieInfo!.original_film_name,
             //     voice_over: voiceOvers!.find((v) => v.id === voiceOverId)
@@ -86,15 +94,18 @@ export function DownloadScreen({ pageType }: Props) {
         <NotificationField notificationString={notificationString} />
 
         <EpisodeRangeSelector
-          pageType={pageType}
+          seasons={seasons}
           defaultSeasonStart={(movieInfo as SerialInfo).season_id}
           defaultEpisodeStart={(movieInfo as SerialInfo).episode_id}
+          setRange={setRange}
         />
 
         <SubtitleSelector subtitles={subtitles} />
         {/*TODO: скрывать разделитель после закрытия ошибки если нет других элементов*/}
         {/*Добавляем разделитель если это сериал или есть субтитры или ошибка*/}
-        {(pageType === 'SERIAL' || subtitles?.subtitle || notificationString) && (
+        {(pageType === 'SERIAL' ||
+          subtitles?.subtitle ||
+          notificationString) && (
           <hr className='w-full border-b border-popup-border' />
         )}
 
@@ -104,8 +115,10 @@ export function DownloadScreen({ pageType }: Props) {
           is_camrip={(movieInfo as FilmInfo)?.is_camrip}
           is_director={(movieInfo as FilmInfo)?.is_director}
           is_ads={(movieInfo as FilmInfo)?.is_ads}
+          voiceOver={voiceOver}
+          setVoiceOver={setVoiceOver}
         />
-        <QualitySelector movieInfo={movieInfo} />
+        <QualitySelector streams={movieInfo.streams} />
       </div>
     </div>
   );
