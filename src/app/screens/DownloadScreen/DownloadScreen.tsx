@@ -6,14 +6,8 @@ import { SubtitleSelector } from './SubtitleSelector';
 import { EpisodeRangeSelector } from './EpisodeRangeSelector';
 import { VoiceOverSelector } from './VoiceOverSelector';
 import { useMovieInfo } from '../../hooks/useMovieInfo';
-import { sliceSeasons } from '../../../lib/utils';
-import type {
-  PageType,
-  Message,
-  Initiator,
-  Seasons,
-  VoiceOverInfo,
-} from '../../../lib/types';
+
+import type { PageType, Seasons, VoiceOverInfo } from '../../../lib/types';
 import { FilmInfo, SerialInfo } from '../../../lib/types';
 import { NotificationField } from './NotificationField';
 import { useEpisodes } from '../../hooks/useEpisodes';
@@ -22,25 +16,79 @@ type Props = {
   pageType: PageType;
 };
 
+type CurrentEpisode = {
+  seasonID: string | null;
+  episodeID: string | null;
+};
 export function DownloadScreen({ pageType }: Props) {
   const notificationString = null;
   const [movieInfo, subtitles, siteURL] = useMovieInfo(pageType);
   const [voiceOver, setVoiceOver] = useState<VoiceOverInfo | null>(null);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+
   const defaultSeasons = useEpisodes(pageType);
   const [seasons, setSeasons] = useState<Seasons | null>(null);
   const [range, setRange] = useState<Seasons | null>(null);
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
+
+  const [currentEpisode, setCurrentEpisode] = useState<CurrentEpisode>(
+      {
+        seasonID: null,
+        episodeID: null,
+      }
+  );
+
   useEffect(() => {
+    // При обновление озвучки мы должны обновить список эпизодов(если есть),
+    // после, мы должны установить стартовый сезон и эпизод. В следствии чего
+    // должен измениться range, где мы для первого эпизода должны получить
+    // список доступных качеств и субтитров. Но при этом все данные уже придут
+    // актуальными с сервера и мы не должны обновлять данные эпизода.
+
+    if (!voiceOver) return;
     if (isFirstLoad) {
       setIsFirstLoad(false);
       return;
     }
-    if (!voiceOver) return;
-    console.log(voiceOver);
-    // callBackground('updateMovieInfo', voiceOver).then(() => {
-    //  setSeasons(null);
-    // });
+
+    console.log('Update voiceOver data', voiceOver);
   }, [voiceOver]);
+
+  useEffect(() => {
+    // При обновлении range-а мы должны отслеживать только самый первый эпизод
+    // в списке. При обновлении данных эпизода мы должны обновить списки
+    // доступного качества и субтитров.
+    //
+    // Первое обновление данных должно игнорироваться т.к. данные мы
+    // подтягиваем со страницы фильма и они уже являются актуальными.
+
+    if (!range) return;
+
+    const seasonID =
+      currentEpisode.seasonID === null
+        ? (movieInfo as SerialInfo).season_id
+        : Object.keys(range).sort((a, b) => Number(a) - Number(b))[0];
+
+    const episodeID =
+      currentEpisode.seasonID === null
+        ? (movieInfo as SerialInfo).episode_id
+        : range[seasonID].episodes[0].id;
+
+    const newCurrentEpisode: CurrentEpisode =  { seasonID, episodeID }
+    if (JSON.stringify(currentEpisode) === JSON.stringify(newCurrentEpisode))
+      return;
+
+    const isFirstUpdate = currentEpisode.seasonID === null;
+    setCurrentEpisode(newCurrentEpisode);
+
+    if (isFirstUpdate) return;
+
+    console.log('Update episodes data', newCurrentEpisode);
+  }, [range]);
+
+  useEffect(() => {
+    if (!defaultSeasons) return;
+    setSeasons(defaultSeasons);
+  }, [defaultSeasons]);
 
   if (!movieInfo) return null;
 
@@ -111,14 +159,14 @@ export function DownloadScreen({ pageType }: Props) {
 
         <VoiceOverSelector
           pageType={pageType}
-          defaultVoiceOverId={movieInfo.translator_id}
+          defaultVoiceOverId={movieInfo!.translator_id}
           is_camrip={(movieInfo as FilmInfo)?.is_camrip}
           is_director={(movieInfo as FilmInfo)?.is_director}
           is_ads={(movieInfo as FilmInfo)?.is_ads}
           voiceOver={voiceOver}
           setVoiceOver={setVoiceOver}
         />
-        <QualitySelector streams={movieInfo.streams} />
+        <QualitySelector streams={movieInfo!.streams} />
       </div>
     </div>
   );
