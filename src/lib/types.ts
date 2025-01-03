@@ -14,7 +14,8 @@ export type MessageType =
   | 'trigger'
   | 'decodeURL'
   | 'getFileSize'
-  | 'updateMovieInfo';
+  | 'updateTranslateInfo'
+  | 'updateEpisodesInfo';
 
 export type LogMessage = {
   timestamp: string;
@@ -111,6 +112,12 @@ export type URLsContainer = Partial<Record<QualityItem, URLItem>>;
 
 export type Action = 'get_movie' | 'get_stream' | 'get_episodes';
 
+export type Fields = {
+  id: string;
+  translator_id: string;
+  favs: string;
+};
+
 export type SerialFields = {
   season: string;
   episode: string;
@@ -124,12 +131,10 @@ export type FilmsFields = {
   action: 'get_movie';
 };
 
-export type QueryData = {
-  id: string;
-  translator_id: string;
-  favs: string;
-  action: Action;
-} & (FilmsFields | SerialFields);
+export type UpdateTranslateFields = { action: 'get_episodes' };
+
+export type QueryData = Fields &
+  (FilmsFields | SerialFields | UpdateTranslateFields);
 
 export type ResponseVideoData = {
   success: boolean;
@@ -187,4 +192,19 @@ export type Initiator = {
   quality: QualityItem;
   subtitle: { lang: string; code: string; url: string } | null;
   timestamp: Date | string;
+};
+
+export type DataForUpdate = {
+  siteURL: string;
+  movieData: QueryData;
+};
+export type ActualEpisodeData = {
+  subtitle: SubtitleInfo;
+  streams: string;
+};
+
+export type ActualVoiceOverData = {
+  seasons: Seasons;
+  subtitle: SubtitleInfo;
+  streams: string;
 };

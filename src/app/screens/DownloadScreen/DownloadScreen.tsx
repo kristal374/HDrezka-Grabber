@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 import { Menu } from '../../../components/Menu';
 import { DownloadIcon } from '../../../components/Icons';
 import { QualitySelector } from './QualitySelector';
@@ -7,19 +7,28 @@ import { EpisodeRangeSelector } from './EpisodeRangeSelector';
 import { VoiceOverSelector } from './VoiceOverSelector';
 import { useMovieInfo } from '../../hooks/useMovieInfo';
 
-import type { PageType, Seasons, VoiceOverInfo } from '../../../lib/types';
+import type {
+  PageType,
+  Seasons,
+  VoiceOverInfo,
+  Message,
+  DataForUpdate,
+  ActualVoiceOverData, ActualEpisodeData
+} from "../../../lib/types";
 import { FilmInfo, SerialInfo } from '../../../lib/types';
 import { NotificationField } from './NotificationField';
 import { useEpisodes } from '../../hooks/useEpisodes';
+import { useQualities } from "../../hooks/useQualities";
 
 type Props = {
   pageType: PageType;
 };
 
 type CurrentEpisode = {
-  seasonID: string | null;
-  episodeID: string | null;
+  seasonID: string;
+  episodeID: string;
 };
+
 export function DownloadScreen({ pageType }: Props) {
   const notificationString = null;
   const [movieInfo, subtitles, siteURL] = useMovieInfo(pageType);
@@ -30,12 +39,11 @@ export function DownloadScreen({ pageType }: Props) {
   const [seasons, setSeasons] = useState<Seasons | null>(null);
   const [range, setRange] = useState<Seasons | null>(null);
 
-  const [currentEpisode, setCurrentEpisode] = useState<CurrentEpisode>(
-      {
-        seasonID: null,
-        episodeID: null,
-      }
+  const [currentEpisode, setCurrentEpisode] = useState<CurrentEpisode | null>(
+    null,
   );
+  const qualityRef = useRef<any>();
+  const [streams, setStreams] = useState<string|undefined>();
 
   useEffect(() => {
     // При обновление озвучки мы должны обновить список эпизодов(если есть),
@@ -49,8 +57,25 @@ export function DownloadScreen({ pageType }: Props) {
       setIsFirstLoad(false);
       return;
     }
-
-    console.log('Update voiceOver data', voiceOver);
+    browser.runtime
+      .sendMessage<Message<DataForUpdate>>({
+        type: 'updateTranslateInfo',
+        message: {
+          siteURL: siteURL!,
+          movieData: {
+            id: movieInfo!.film_id,
+            translator_id: voiceOver.id,
+            favs: movieInfo!.favs,
+            action: 'get_episodes',
+          },
+        },
+      })
+      .then((response) => {
+        const result = response as ActualVoiceOverData;
+        setSeasons(result.seasons);
+        // setSubtitles(result.subtitle);
+        setStreams(result.streams);
+      });
   }, [voiceOver]);
 
   useEffect(() => {
@@ -64,31 +89,55 @@ export function DownloadScreen({ pageType }: Props) {
     if (!range) return;
 
     const seasonID =
-      currentEpisode.seasonID === null
+      currentEpisode === null
         ? (movieInfo as SerialInfo).season_id
         : Object.keys(range).sort((a, b) => Number(a) - Number(b))[0];
 
     const episodeID =
-      currentEpisode.seasonID === null
+      currentEpisode === null
         ? (movieInfo as SerialInfo).episode_id
         : range[seasonID].episodes[0].id;
 
-    const newCurrentEpisode: CurrentEpisode =  { seasonID, episodeID }
+    const newCurrentEpisode: CurrentEpisode = { seasonID, episodeID };
     if (JSON.stringify(currentEpisode) === JSON.stringify(newCurrentEpisode))
       return;
 
-    const isFirstUpdate = currentEpisode.seasonID === null;
+    const isFirstUpdate = currentEpisode === null;
     setCurrentEpisode(newCurrentEpisode);
 
     if (isFirstUpdate) return;
-
     console.log('Update episodes data', newCurrentEpisode);
+    browser.runtime
+      .sendMessage<Message<DataForUpdate>>({
+        type: 'updateEpisodesInfo',
+        message: {
+          siteURL: siteURL!,
+          movieData: {
+            id: movieInfo!.film_id,
+            translator_id: voiceOver!.id,
+            season: newCurrentEpisode!.seasonID,
+            episode: newCurrentEpisode!.episodeID,
+            favs: movieInfo!.favs,
+            action: 'get_episodes',
+          },
+        },
+      })
+      .then((response) => {
+        const result = response as ActualEpisodeData;
+        // setSubtitles(result.subtitle);
+        setStreams(result.streams);
+      });
   }, [range]);
 
   useEffect(() => {
     if (!defaultSeasons) return;
     setSeasons(defaultSeasons);
   }, [defaultSeasons]);
+
+  useEffect(() => {
+    if (!movieInfo) return;
+    setStreams(movieInfo.streams);
+  }, [movieInfo]);
 
   if (!movieInfo) return null;
 
@@ -166,7 +215,7 @@ export function DownloadScreen({ pageType }: Props) {
           voiceOver={voiceOver}
           setVoiceOver={setVoiceOver}
         />
-        <QualitySelector streams={movieInfo!.streams} />
+        <QualitySelector streams={streams}  ref={qualityRef}/>
       </div>
     </div>
   );
