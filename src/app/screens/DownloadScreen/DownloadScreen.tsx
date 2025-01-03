@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 import { Menu } from '../../../components/Menu';
 import { DownloadIcon } from '../../../components/Icons';
 import { QualitySelector } from './QualitySelector';
@@ -6,19 +6,21 @@ import { SubtitleSelector } from './SubtitleSelector';
 import { EpisodeRangeSelector } from './EpisodeRangeSelector';
 import { VoiceOverSelector } from './VoiceOverSelector';
 import { useMovieInfo } from '../../hooks/useMovieInfo';
-
 import type {
   PageType,
   Seasons,
   VoiceOverInfo,
   Message,
   DataForUpdate,
-  ActualVoiceOverData, ActualEpisodeData
-} from "../../../lib/types";
+  ActualVoiceOverData,
+  ActualEpisodeData,
+  QualityRef,
+  SerialFields,
+  Fields,
+} from '../../../lib/types';
 import { FilmInfo, SerialInfo } from '../../../lib/types';
 import { NotificationField } from './NotificationField';
 import { useEpisodes } from '../../hooks/useEpisodes';
-import { useQualities } from "../../hooks/useQualities";
 
 type Props = {
   pageType: PageType;
@@ -35,15 +37,13 @@ export function DownloadScreen({ pageType }: Props) {
   const [voiceOver, setVoiceOver] = useState<VoiceOverInfo | null>(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-  const defaultSeasons = useEpisodes(pageType);
-  const [seasons, setSeasons] = useState<Seasons | null>(null);
+  const [seasons, setSeasons] = useEpisodes(pageType);
   const [range, setRange] = useState<Seasons | null>(null);
 
   const [currentEpisode, setCurrentEpisode] = useState<CurrentEpisode | null>(
     null,
   );
-  const qualityRef = useRef<any>();
-  const [streams, setStreams] = useState<string|undefined>();
+  const qualityRef = useRef<QualityRef>(null);
 
   useEffect(() => {
     // При обновление озвучки мы должны обновить список эпизодов(если есть),
@@ -74,7 +74,12 @@ export function DownloadScreen({ pageType }: Props) {
         const result = response as ActualVoiceOverData;
         setSeasons(result.seasons);
         // setSubtitles(result.subtitle);
-        setStreams(result.streams);
+        qualityRef.current?.setStreams(result.streams);
+        const seasonID = Object.keys(result.seasons)[0];
+        setCurrentEpisode({
+          seasonID: seasonID,
+          episodeID: result.seasons[seasonID].episodes[0].id,
+        });
       });
   }, [voiceOver]);
 
@@ -118,25 +123,20 @@ export function DownloadScreen({ pageType }: Props) {
             season: newCurrentEpisode!.seasonID,
             episode: newCurrentEpisode!.episodeID,
             favs: movieInfo!.favs,
-            action: 'get_episodes',
-          },
+            action: 'get_stream',
+          } satisfies Fields & SerialFields,
         },
       })
       .then((response) => {
         const result = response as ActualEpisodeData;
         // setSubtitles(result.subtitle);
-        setStreams(result.streams);
+        qualityRef.current?.setStreams(result.streams);
       });
   }, [range]);
 
   useEffect(() => {
-    if (!defaultSeasons) return;
-    setSeasons(defaultSeasons);
-  }, [defaultSeasons]);
-
-  useEffect(() => {
     if (!movieInfo) return;
-    setStreams(movieInfo.streams);
+    qualityRef.current?.setStreams(movieInfo.streams);
   }, [movieInfo]);
 
   if (!movieInfo) return null;
@@ -176,7 +176,7 @@ export function DownloadScreen({ pageType }: Props) {
             //     original_film_name: movieInfo!.original_film_name,
             //     voice_over: voiceOvers!.find((v) => v.id === voiceOverId)
             //       ?.title!,
-            //     quality: quality,
+            //     quality: qualityRef.current?.quality,
             //     subtitle: subtitleLang,
             //     timestamp: new Date(),
             //   },
@@ -192,8 +192,8 @@ export function DownloadScreen({ pageType }: Props) {
 
         <EpisodeRangeSelector
           seasons={seasons}
-          defaultSeasonStart={(movieInfo as SerialInfo).season_id}
-          defaultEpisodeStart={(movieInfo as SerialInfo).episode_id}
+          currentSeasonStart={currentEpisode?.seasonID}
+          currentEpisodeStart={currentEpisode?.episodeID}
           setRange={setRange}
         />
 
@@ -215,7 +215,7 @@ export function DownloadScreen({ pageType }: Props) {
           voiceOver={voiceOver}
           setVoiceOver={setVoiceOver}
         />
-        <QualitySelector streams={streams}  ref={qualityRef}/>
+        <QualitySelector qualityRef={qualityRef} />
       </div>
     </div>
   );

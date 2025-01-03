@@ -21,7 +21,7 @@ export function useEpisodes(pageType: PageType) {
       });
   }, [tabID, pageType]);
 
-  return seasons;
+  return [seasons, setSeasons] as const;
 }
 
 async function extractSeasons() {

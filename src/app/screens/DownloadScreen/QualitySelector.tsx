@@ -1,28 +1,32 @@
 import { Combobox } from '../../../components/Combobox';
 import { useQualities } from '../../hooks/useQualities';
 import { useQualitySize } from '../../hooks/useQualitySize';
-import type { FilmInfo, QualityItem, SerialInfo } from '../../../lib/types';
-import { Ref, useEffect, useImperativeHandle, useState } from "react";
-
+import type { QualityItem, QualityRef } from '../../../lib/types';
+import { Ref, useEffect, useImperativeHandle, useState } from 'react';
 
 type Props = {
-  streams: string | undefined;
-  ref: Ref<any>;
+  qualityRef: Ref<QualityRef>;
 };
 
-export function QualitySelector({ streams, ref }: Props) {
-  const qualities = useQualities(streams);
+export function QualitySelector({ qualityRef }: Props) {
+  const [quality, setQuality] = useState<QualityItem>('360p');
+  const [streams, setStreams] = useState<string | undefined>();
+  const qualities = useQualities(streams, setQuality);
   // const sizes = useQualitySize(qualities); // TODO: вернуть в проде
   const sizes = useQualitySize(null);
-  const [quality, setQuality] = useState<QualityItem>('720p');
-
-  useImperativeHandle(ref, () => ({
-    getQuality: () => quality,
-  }));
 
   useEffect(() => {
-    console.log(streams?.slice(0, 10));
+    console.log(streams?.slice(-10, -1));
   }, [streams]);
+
+  useImperativeHandle(
+    qualityRef,
+    () => ({
+      quality: quality,
+      setStreams: setStreams,
+    }),
+    [quality],
+  );
 
   if (!qualities) return null;
 

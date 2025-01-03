@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Message, Quality } from '../../lib/types';
+import { Message, QualitiesList, QualityItem, SetState } from '../../lib/types';
 
-export function useQualities(streams: string | undefined) {
-  const [qualities, setQualities] = useState<Quality | null>(null);
+export function useQualities(
+  streams: string | undefined,
+  setQuality: SetState<QualityItem>,
+) {
+  const [qualitiesList, setQualitiesList] = useState<QualitiesList | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!streams) return;
@@ -12,11 +17,13 @@ export function useQualities(streams: string | undefined) {
         message: streams,
       })
       .then((response) => {
-        const result = response as Quality;
+        const result = response as QualitiesList;
         // logger.debug(result);
-        setQualities(result);
+        setQualitiesList(result);
+        const qualities = Object.keys(result) as QualityItem[];
+        setQuality(qualities.at(-1)!);
       });
   }, [streams]);
 
-  return qualities;
+  return qualitiesList;
 }

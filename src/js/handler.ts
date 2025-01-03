@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 import {
-  Quality,
+  QualitiesList,
   QueryData,
   ResponseVideoData,
   URLsContainer,
@@ -8,10 +8,10 @@ import {
 
 export async function decodeURL(
   stream: string | false,
-): Promise<Quality | null> {
+): Promise<QualitiesList | null> {
   if (!stream) return null;
 
-  const urlsContainer: Quality = {};
+  const urlsContainer: QualitiesList = {};
   clearTrash(stream)
     .split(',')
     .map((item) => {
@@ -27,7 +27,7 @@ export async function decodeURL(
 }
 
 export async function getQualityFileSize(
-  urlsContainer: Quality | null,
+  urlsContainer: QualitiesList | null,
 ): Promise<URLsContainer | null> {
   if (!urlsContainer) return null;
 

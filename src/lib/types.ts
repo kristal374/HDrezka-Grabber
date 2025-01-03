@@ -104,7 +104,12 @@ export type QualityItem =
   | '2K'
   | '4K';
 
-export type Quality = Partial<Record<QualityItem, string[]>>;
+export type QualitiesList = Partial<Record<QualityItem, string[]>>;
+
+export type QualityRef = {
+  quality: QualityItem;
+  setStreams: (stream: string) => void;
+};
 
 export type URLItem = { url: string; size: string; rawSize: number };
 

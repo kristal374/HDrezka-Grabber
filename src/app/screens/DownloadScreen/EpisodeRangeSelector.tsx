@@ -13,21 +13,27 @@ import { useEffect, useState } from 'react';
 
 type Props = {
   seasons: Seasons | null;
-  defaultSeasonStart: string;
-  defaultEpisodeStart: string;
+  currentSeasonStart?: string;
+  currentEpisodeStart?: string;
   setRange: SetState<Seasons | null>;
 };
 
 export function EpisodeRangeSelector({
   seasons,
-  defaultSeasonStart,
-  defaultEpisodeStart,
+  currentSeasonStart,
+  currentEpisodeStart,
   setRange,
 }: Props) {
   if (!seasons) return null;
   const [downloadSerial, setDownloadSerial] = useState(false);
-  const [seasonFrom, setSeasonFrom] = useState(defaultSeasonStart);
-  const [episodeFrom, setEpisodeFrom] = useState(defaultEpisodeStart);
+  const defaultSeasonStart = Object.keys(seasons)[0];
+  const defaultEpisodeStart = seasons[defaultSeasonStart].episodes[0].id;
+  const [seasonFrom, setSeasonFrom] = useState(
+    currentSeasonStart || defaultEpisodeStart,
+  );
+  const [episodeFrom, setEpisodeFrom] = useState(
+    currentEpisodeStart || defaultEpisodeStart,
+  );
   const [seasonTo, setSeasonTo] = useState('-2');
   const [episodeTo, setEpisodeTo] = useState('');
   const downloadToEnd = Number(seasonTo) < 0;
