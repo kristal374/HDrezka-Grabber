@@ -7,20 +7,19 @@ import { EpisodeRangeSelector } from './EpisodeRangeSelector';
 import { VoiceOverSelector } from './VoiceOverSelector';
 import { useMovieInfo } from '../../hooks/useMovieInfo';
 import type {
-  PageType,
-  Seasons,
-  VoiceOverInfo,
-  Message,
-  DataForUpdate,
-  ActualVoiceOverData,
   ActualEpisodeData,
-  QualityRef,
-  SerialFields,
+  ActualVoiceOverData,
+  DataForUpdate,
   Fields,
+  Message,
+  PageType,
+  QualityRef,
+  Seasons,
+  SerialFields,
+  VoiceOverInfo,
 } from '../../../lib/types';
-import { FilmInfo, SerialInfo } from '../../../lib/types';
+import { FilmInfo, SeasonsRef, SerialInfo } from '../../../lib/types';
 import { NotificationField } from './NotificationField';
-import { useEpisodes } from '../../hooks/useEpisodes';
 
 type Props = {
   pageType: PageType;
@@ -35,15 +34,19 @@ export function DownloadScreen({ pageType }: Props) {
   const notificationString = null;
   const [movieInfo, subtitles, siteURL] = useMovieInfo(pageType);
   const [voiceOver, setVoiceOver] = useState<VoiceOverInfo | null>(null);
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [isFirstLoad, setIsFirstLoad] = useState({
+    voiceOver: true,
+    episodes: true,
+  });
 
-  const [seasons, setSeasons] = useEpisodes(pageType);
+  const [downloadSerial, setDownloadSerial] = useState(false);
+  const seasonsRef = useRef<SeasonsRef | null>(null);
   const [range, setRange] = useState<Seasons | null>(null);
 
   const [currentEpisode, setCurrentEpisode] = useState<CurrentEpisode | null>(
     null,
   );
-  const qualityRef = useRef<QualityRef>(null);
+  const qualityRef = useRef<QualityRef | null>(null);
 
   useEffect(() => {
     // При обновление озвучки мы должны обновить список эпизодов(если есть),
@@ -53,8 +56,11 @@ export function DownloadScreen({ pageType }: Props) {
     // актуальными с сервера и мы не должны обновлять данные эпизода.
 
     if (!voiceOver) return;
-    if (isFirstLoad) {
-      setIsFirstLoad(false);
+    if (isFirstLoad.voiceOver) {
+      setIsFirstLoad({
+        voiceOver: false,
+        episodes: isFirstLoad.episodes,
+      });
       return;
     }
     browser.runtime
@@ -72,7 +78,7 @@ export function DownloadScreen({ pageType }: Props) {
       })
       .then((response) => {
         const result = response as ActualVoiceOverData;
-        setSeasons(result.seasons);
+        seasonsRef.current?.setSeasonsList(result.seasons);
         // setSubtitles(result.subtitle);
         qualityRef.current?.setStreams(result.streams);
         const seasonID = Object.keys(result.seasons)[0];
@@ -93,24 +99,22 @@ export function DownloadScreen({ pageType }: Props) {
 
     if (!range) return;
 
-    const seasonID =
-      currentEpisode === null
-        ? (movieInfo as SerialInfo).season_id
-        : Object.keys(range).sort((a, b) => Number(a) - Number(b))[0];
-
-    const episodeID =
-      currentEpisode === null
-        ? (movieInfo as SerialInfo).episode_id
-        : range[seasonID].episodes[0].id;
-
+    if (isFirstLoad.episodes) {
+      setIsFirstLoad({
+        voiceOver: isFirstLoad.voiceOver,
+        episodes: false,
+      });
+      return;
+    }
+    const seasonID = Object.keys(range).sort(
+      (a, b) => Number(a) - Number(b),
+    )[0];
+    const episodeID = range[seasonID].episodes[0].id;
     const newCurrentEpisode: CurrentEpisode = { seasonID, episodeID };
     if (JSON.stringify(currentEpisode) === JSON.stringify(newCurrentEpisode))
       return;
-
-    const isFirstUpdate = currentEpisode === null;
     setCurrentEpisode(newCurrentEpisode);
 
-    if (isFirstUpdate) return;
     console.log('Update episodes data', newCurrentEpisode);
     browser.runtime
       .sendMessage<Message<DataForUpdate>>({
@@ -137,6 +141,10 @@ export function DownloadScreen({ pageType }: Props) {
   useEffect(() => {
     if (!movieInfo) return;
     qualityRef.current?.setStreams(movieInfo.streams);
+    setCurrentEpisode({
+      seasonID: (movieInfo as SerialInfo).season_id,
+      episodeID: (movieInfo as SerialInfo).episode_id,
+    });
   }, [movieInfo]);
 
   if (!movieInfo) return null;
@@ -191,9 +199,12 @@ export function DownloadScreen({ pageType }: Props) {
         <NotificationField notificationString={notificationString} />
 
         <EpisodeRangeSelector
-          seasons={seasons}
-          currentSeasonStart={currentEpisode?.seasonID}
-          currentEpisodeStart={currentEpisode?.episodeID}
+          pageType={pageType}
+          seasonsRef={seasonsRef}
+          defaultSeasonStart={(movieInfo as SerialInfo).season_id}
+          defaultEpisodeStart={(movieInfo as SerialInfo).episode_id}
+          downloadSerial={downloadSerial}
+          setDownloadSerial={setDownloadSerial}
           setRange={setRange}
         />
 
@@ -214,6 +225,7 @@ export function DownloadScreen({ pageType }: Props) {
           is_ads={(movieInfo as FilmInfo)?.is_ads}
           voiceOver={voiceOver}
           setVoiceOver={setVoiceOver}
+          downloadSerial={downloadSerial}
         />
         <QualitySelector qualityRef={qualityRef} />
       </div>

@@ -7,36 +7,37 @@ import {
   SelectValue,
 } from '../../../components/Select';
 import type { PageType, Seasons, SetState } from '../../../lib/types';
+import { SeasonsRef } from '../../../lib/types';
 import { cn, sliceSeasons } from '../../../lib/utils';
+import { Ref, useEffect, useImperativeHandle, useState } from 'react';
 import { useEpisodes } from '../../hooks/useEpisodes';
-import { useEffect, useState } from 'react';
 
 type Props = {
-  seasons: Seasons | null;
-  currentSeasonStart?: string;
-  currentEpisodeStart?: string;
+  pageType: PageType;
+  seasonsRef: Ref<SeasonsRef>;
+  defaultSeasonStart: string;
+  defaultEpisodeStart: string;
+  downloadSerial: boolean;
+  setDownloadSerial: SetState<boolean>;
   setRange: SetState<Seasons | null>;
 };
 
 export function EpisodeRangeSelector({
-  seasons,
-  currentSeasonStart,
-  currentEpisodeStart,
+  pageType,
+  seasonsRef,
+  defaultSeasonStart,
+  defaultEpisodeStart,
+  downloadSerial,
+  setDownloadSerial,
   setRange,
 }: Props) {
-  if (!seasons) return null;
-  const [downloadSerial, setDownloadSerial] = useState(false);
-  const defaultSeasonStart = Object.keys(seasons)[0];
-  const defaultEpisodeStart = seasons[defaultSeasonStart].episodes[0].id;
-  const [seasonFrom, setSeasonFrom] = useState(
-    currentSeasonStart || defaultEpisodeStart,
-  );
-  const [episodeFrom, setEpisodeFrom] = useState(
-    currentEpisodeStart || defaultEpisodeStart,
-  );
+  const [seasons, setSeasons] = useEpisodes(pageType);
+  const [seasonFrom, setSeasonFrom] = useState(defaultSeasonStart);
+  const [episodeFrom, setEpisodeFrom] = useState(defaultEpisodeStart);
   const [seasonTo, setSeasonTo] = useState('-2');
   const [episodeTo, setEpisodeTo] = useState('');
   const downloadToEnd = Number(seasonTo) < 0;
+
   useEffect(() => {
     if (!seasons) return;
     setRange(
@@ -49,6 +50,22 @@ export function EpisodeRangeSelector({
       ),
     );
   }, [seasons, downloadSerial, seasonFrom, episodeFrom, seasonTo, episodeTo]);
+
+  useImperativeHandle(
+    seasonsRef,
+    () => ({
+      setSeasonsList: (seasonsList: Seasons) => {
+        const startSeason = Object.keys(seasonsList)[0];
+        const startEpisode = seasonsList[defaultSeasonStart].episodes[0].id;
+        setEpisodeFrom(startEpisode);
+        setSeasonFrom(startSeason);
+        setSeasons(seasonsList);
+      },
+    }),
+    [],
+  );
+
+  if (!seasons) return null;
 
   return (
     <>

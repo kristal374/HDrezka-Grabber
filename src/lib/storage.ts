@@ -12,8 +12,8 @@ export async function setToStorage<T>(key: string, value: T) {
 }
 
 export async function createDefaultSettings() {
-  const storage = await browser.storage.local.get()
-  if (Object.keys(storage).length !== 0) return
+  const storage = await browser.storage.local.get();
+  if (Object.keys(storage).length !== 0) return;
 
   await setToStorage('debugFlag', true);
   await setToStorage('darkMode', true);

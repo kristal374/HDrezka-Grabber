@@ -7,8 +7,8 @@ export function SettingsScreen() {
       <ToggleDarkMode />
       <button
         className='rounded-lg bg-red-700 p-2 text-white'
-        onClick={async () => await browser.storage.local.clear() }
-        >
+        onClick={async () => await browser.storage.local.clear()}
+      >
         Clear storage
       </button>
     </div>

@@ -111,6 +111,10 @@ export type QualityRef = {
   setStreams: (stream: string) => void;
 };
 
+export type SeasonsRef = {
+  setSeasonsList: (seasonsList: Seasons) => void;
+};
+
 export type URLItem = { url: string; size: string; rawSize: number };
 
 export type URLsContainer = Partial<Record<QualityItem, URLItem>>;

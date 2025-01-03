@@ -12,10 +12,10 @@ export function NotificationField({ notificationString }: Props) {
   if (!notification) return null;
 
   return (
-    <div className='relative rounded bg-error px-1.5 py-1 text-white flex items-center'>
-      <p className='text-sm flex-grow break-all pr-6'>{notification}</p>
+    <div className='relative flex items-center rounded bg-error px-1.5 py-1 text-white'>
+      <p className='flex-grow break-all pr-6 text-sm'>{notification}</p>
       <button
-        className='absolute right-3 text-white font-bold text-sm'
+        className='absolute right-3 text-sm font-bold text-white'
         onClick={() => setNotification(null)}
       >
         ✕

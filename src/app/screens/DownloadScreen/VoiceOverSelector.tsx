@@ -18,6 +18,7 @@ type Props = {
   is_ads?: string;
   voiceOver: VoiceOverInfo | null;
   setVoiceOver: SetState<VoiceOverInfo | null>;
+  downloadSerial: boolean;
 };
 
 export function VoiceOverSelector({
@@ -28,6 +29,7 @@ export function VoiceOverSelector({
   is_ads,
   voiceOver,
   setVoiceOver,
+  downloadSerial,
 }: Props) {
   const voiceOverList = useVoiceOver(pageType);
 
@@ -46,6 +48,7 @@ export function VoiceOverSelector({
   }, [voiceOverList]);
 
   if (!voiceOverList) return null;
+  const isDisabled = pageType === 'SERIAL' && !downloadSerial;
 
   return (
     <div className='flex items-center gap-2.5'>
@@ -56,7 +59,12 @@ export function VoiceOverSelector({
         value={JSON.stringify(voiceOver)}
         onValueChange={(v) => setVoiceOver(JSON.parse(v))}
       >
-        <SelectTrigger id='voiceOver' className='w-[225px] py-1.5'>
+        <SelectTrigger
+          id='voiceOver'
+          className='w-[225px] py-1.5'
+          disabled={isDisabled}
+          title={isDisabled ? 'ПНХ' : undefined}
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
