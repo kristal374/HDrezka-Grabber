@@ -11,15 +11,17 @@ import type {
   ActualVoiceOverData,
   DataForUpdate,
   Fields,
+  FilmData,
   Message,
   PageType,
   QualityRef,
   Seasons,
+  SerialData,
   SerialFields,
   SubtitleRef,
   VoiceOverInfo,
 } from '../../../lib/types';
-import { FilmInfo, SeasonsRef, SerialInfo } from '../../../lib/types';
+import { SeasonsRef } from '../../../lib/types';
 import { NotificationField } from './NotificationField';
 
 type Props = {
@@ -33,7 +35,7 @@ type CurrentEpisode = {
 
 export function DownloadScreen({ pageType }: Props) {
   const notificationString = null;
-  const [movieInfo, subtitles, siteURL] = useMovieInfo(pageType);
+  const movieInfo = useMovieInfo(pageType);
   const [voiceOver, setVoiceOver] = useState<VoiceOverInfo | null>(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
@@ -64,11 +66,11 @@ export function DownloadScreen({ pageType }: Props) {
       .sendMessage<Message<DataForUpdate>>({
         type: 'updateTranslateInfo',
         message: {
-          siteURL: siteURL!,
+          siteURL: movieInfo!.url!,
           movieData: {
-            id: movieInfo!.film_id,
+            id: movieInfo!.data.id,
             translator_id: voiceOver.id,
-            favs: movieInfo!.favs,
+            favs: movieInfo!.data.favs,
             action: 'get_episodes',
           },
         },
@@ -97,11 +99,11 @@ export function DownloadScreen({ pageType }: Props) {
     const isFirstUpdate = currentEpisode === null;
 
     const seasonID = isFirstUpdate
-      ? (movieInfo as SerialInfo).season_id
+      ? (movieInfo?.data as SerialData).season
       : Object.keys(range).sort((a, b) => Number(a) - Number(b))[0];
 
     const episodeID = isFirstUpdate
-      ? (movieInfo as SerialInfo).episode_id
+      ? (movieInfo?.data as SerialData).episode
       : range[seasonID].episodes[0].id;
 
     const newCurrentEpisode: CurrentEpisode = { seasonID, episodeID };
@@ -116,13 +118,13 @@ export function DownloadScreen({ pageType }: Props) {
       .sendMessage<Message<DataForUpdate>>({
         type: 'updateEpisodesInfo',
         message: {
-          siteURL: siteURL!,
+          siteURL: movieInfo!.url!,
           movieData: {
-            id: movieInfo!.film_id,
+            id: movieInfo!.data.id,
             translator_id: voiceOver!.id,
             season: newCurrentEpisode!.seasonID,
             episode: newCurrentEpisode!.episodeID,
-            favs: movieInfo!.favs,
+            favs: movieInfo!.data.favs,
             action: 'get_stream',
           } satisfies Fields & SerialFields,
         },
@@ -137,10 +139,10 @@ export function DownloadScreen({ pageType }: Props) {
   useEffect(() => {
     if (!movieInfo) return;
     qualityRef.current?.setStreams(movieInfo.streams);
-    subtitleRef.current?.setSubtitles(subtitles);
+    subtitleRef.current?.setSubtitles(movieInfo.subtitle);
   }, [movieInfo]);
 
-  if (!movieInfo) return null;
+  if (movieInfo === null || !movieInfo.success) return null;
 
   return (
     <div className='flex size-full flex-col gap-5'>
@@ -194,8 +196,8 @@ export function DownloadScreen({ pageType }: Props) {
         <EpisodeRangeSelector
           pageType={pageType}
           seasonsRef={seasonsRef}
-          defaultSeasonStart={(movieInfo as SerialInfo).season_id}
-          defaultEpisodeStart={(movieInfo as SerialInfo).episode_id}
+          defaultSeasonStart={(movieInfo?.data as SerialData).season}
+          defaultEpisodeStart={(movieInfo?.data as SerialData).episode}
           downloadSerial={downloadSerial}
           setDownloadSerial={setDownloadSerial}
           setRange={setRange}
@@ -205,17 +207,17 @@ export function DownloadScreen({ pageType }: Props) {
         {/*TODO: скрывать разделитель после закрытия ошибки если нет других элементов*/}
         {/*Добавляем разделитель если это сериал или есть субтитры или ошибка*/}
         {(pageType === 'SERIAL' ||
-          subtitles?.subtitle ||
+          movieInfo?.subtitle?.subtitle ||
           notificationString) && (
           <hr className='w-full border-b border-popup-border' />
         )}
 
         <VoiceOverSelector
           pageType={pageType}
-          defaultVoiceOverId={movieInfo!.translator_id}
-          is_camrip={(movieInfo as FilmInfo)?.is_camrip}
-          is_director={(movieInfo as FilmInfo)?.is_director}
-          is_ads={(movieInfo as FilmInfo)?.is_ads}
+          defaultVoiceOverId={movieInfo!.data.translator_id}
+          is_camrip={(movieInfo?.data as FilmData)?.is_camrip}
+          is_director={(movieInfo?.data as FilmData)?.is_director}
+          is_ads={(movieInfo?.data as FilmData)?.is_ads}
           voiceOver={voiceOver}
           setVoiceOver={setVoiceOver}
           downloadSerial={downloadSerial}

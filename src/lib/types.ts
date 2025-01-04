@@ -48,29 +48,17 @@ export type PageType =
   | 'UNAVAILABLE'
   | 'ERROR';
 
-export type FilmInfo = {
-  film_id: string;
-  translator_id: string;
-  is_camrip: string;
-  is_director: string;
-  is_ads: string;
-  favs: string;
-  action: string;
-  local_film_name: string;
-  original_film_name: string | null;
+export type MovieInfo = {
+  success: boolean;
+  data: Fields & (FilmsFields | SerialFields);
+  quality: QualityItem;
   streams: string;
-};
-
-export type SerialInfo = {
-  film_id: string;
-  translator_id: string;
-  season_id: string;
-  episode_id: string;
-  favs: string;
-  action: string;
-  local_film_name: string;
-  original_film_name: string | null;
-  streams: string;
+  subtitle: SubtitleInfo | null;
+  filename: {
+    local: string;
+    origin: string | null;
+  };
+  url: string | null;
 };
 
 export type SubtitleInfo = {
@@ -152,8 +140,10 @@ export type FilmsFields = {
 
 export type UpdateTranslateFields = { action: 'get_episodes' };
 
-export type QueryData = Fields &
-  (FilmsFields | SerialFields | UpdateTranslateFields);
+export type FilmData = Fields & FilmsFields;
+export type SerialData = Fields & SerialFields;
+export type UpdateTranslateData = Fields & UpdateTranslateFields;
+export type QueryData = FilmData | SerialData | UpdateTranslateData;
 
 export type ResponseVideoData = {
   success: boolean;

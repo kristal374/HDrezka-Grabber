@@ -29,7 +29,7 @@
     "downloads",
     "<all_urls>"
   ],
-  "web_accessible_resources": ["js/injection_scripts/*", "lib/*"],
+  "web_accessible_resources": ["src/js/*"],
   "author": "mail.aleks.for.work@gmail.com",
   "homepage_url": "https://github.com/kristal374/HDrezka-Grabber"
 }

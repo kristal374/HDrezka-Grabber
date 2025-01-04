@@ -26,7 +26,7 @@ export function SubtitleSelector({ subtitleRef }: Props) {
     [subtitleLang],
   );
 
-  if (subtitlesList === null || subtitles === null) return null;
+  if (subtitlesList === null || subtitleLang === null) return null;
 
   return (
     <>
