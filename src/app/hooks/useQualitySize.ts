@@ -18,5 +18,5 @@ export function useQualitySize(qualitiesList: QualitiesList | null) {
       });
   }, [qualitiesList]);
 
-  return sizes;
+  return [sizes, setSizes];
 }

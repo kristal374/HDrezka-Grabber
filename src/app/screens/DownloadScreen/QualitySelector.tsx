@@ -2,7 +2,7 @@ import { Combobox } from '../../../components/Combobox';
 import { useQualities } from '../../hooks/useQualities';
 import { useQualitySize } from '../../hooks/useQualitySize';
 import type { QualityItem, QualityRef } from '../../../lib/types';
-import { Ref, useEffect, useImperativeHandle, useState } from 'react';
+import { Ref, useImperativeHandle, useState } from 'react';
 
 type Props = {
   qualityRef: Ref<QualityRef>;
@@ -11,24 +11,23 @@ type Props = {
 export function QualitySelector({ qualityRef }: Props) {
   const [quality, setQuality] = useState<QualityItem>('360p');
   const [streams, setStreams] = useState<string | undefined>();
-  const qualities = useQualities(streams, setQuality);
-  // const sizes = useQualitySize(qualities); // TODO: вернуть в проде
-  const sizes = useQualitySize(null);
-
-  useEffect(() => {
-    console.log(streams?.slice(-10, -1));
-  }, [streams]);
+  const qualitiesList = useQualities(streams, setQuality);
+  // const [sizes, setSizes] = useQualitySize(qualitiesList); // TODO: вернуть в проде
+  const [sizes, setSizes] = useQualitySize(null);
 
   useImperativeHandle(
     qualityRef,
     () => ({
       quality: quality,
-      setStreams: setStreams,
+      setStreams: (stream) => {
+        setSizes(null);
+        setStreams(stream);
+      },
     }),
     [quality],
   );
 
-  if (!qualities) return null;
+  if (!qualitiesList) return null;
 
   return (
     <div className='flex items-center gap-2.5'>
@@ -39,7 +38,7 @@ export function QualitySelector({ qualityRef }: Props) {
         id='qualities'
         value={quality}
         onValueChange={(v) => setQuality(v as QualityItem)}
-        data={Object.keys(qualities).map((q) => ({
+        data={Object.keys(qualitiesList).map((q) => ({
           value: q,
           label: (
             <>

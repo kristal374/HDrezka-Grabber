@@ -16,6 +16,7 @@ import type {
   QualityRef,
   Seasons,
   SerialFields,
+  SubtitleRef,
   VoiceOverInfo,
 } from '../../../lib/types';
 import { FilmInfo, SeasonsRef, SerialInfo } from '../../../lib/types';
@@ -34,19 +35,18 @@ export function DownloadScreen({ pageType }: Props) {
   const notificationString = null;
   const [movieInfo, subtitles, siteURL] = useMovieInfo(pageType);
   const [voiceOver, setVoiceOver] = useState<VoiceOverInfo | null>(null);
-  const [isFirstLoad, setIsFirstLoad] = useState({
-    voiceOver: true,
-    episodes: true,
-  });
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   const [downloadSerial, setDownloadSerial] = useState(false);
   const seasonsRef = useRef<SeasonsRef | null>(null);
   const [range, setRange] = useState<Seasons | null>(null);
 
+  const qualityRef = useRef<QualityRef | null>(null);
+  const subtitleRef = useRef<SubtitleRef | null>(null);
+
   const [currentEpisode, setCurrentEpisode] = useState<CurrentEpisode | null>(
     null,
   );
-  const qualityRef = useRef<QualityRef | null>(null);
 
   useEffect(() => {
     // При обновление озвучки мы должны обновить список эпизодов(если есть),
@@ -56,11 +56,8 @@ export function DownloadScreen({ pageType }: Props) {
     // актуальными с сервера и мы не должны обновлять данные эпизода.
 
     if (!voiceOver) return;
-    if (isFirstLoad.voiceOver) {
-      setIsFirstLoad({
-        voiceOver: false,
-        episodes: isFirstLoad.episodes,
-      });
+    if (isFirstLoad) {
+      setIsFirstLoad(false);
       return;
     }
     browser.runtime
@@ -79,13 +76,11 @@ export function DownloadScreen({ pageType }: Props) {
       .then((response) => {
         const result = response as ActualVoiceOverData;
         seasonsRef.current?.setSeasonsList(result.seasons);
-        // setSubtitles(result.subtitle);
+        subtitleRef.current?.setSubtitles(result.subtitle);
         qualityRef.current?.setStreams(result.streams);
         const seasonID = Object.keys(result.seasons)[0];
-        setCurrentEpisode({
-          seasonID: seasonID,
-          episodeID: result.seasons[seasonID].episodes[0].id,
-        });
+        const episodeID = result.seasons[seasonID].episodes[0].id;
+        setCurrentEpisode({ seasonID, episodeID });
       });
   }, [voiceOver]);
 
@@ -99,23 +94,24 @@ export function DownloadScreen({ pageType }: Props) {
 
     if (!range) return;
 
-    if (isFirstLoad.episodes) {
-      setIsFirstLoad({
-        voiceOver: isFirstLoad.voiceOver,
-        episodes: false,
-      });
-      return;
-    }
-    const seasonID = Object.keys(range).sort(
-      (a, b) => Number(a) - Number(b),
-    )[0];
-    const episodeID = range[seasonID].episodes[0].id;
+    const isFirstUpdate = currentEpisode === null;
+
+    const seasonID = isFirstUpdate
+      ? (movieInfo as SerialInfo).season_id
+      : Object.keys(range).sort((a, b) => Number(a) - Number(b))[0];
+
+    const episodeID = isFirstUpdate
+      ? (movieInfo as SerialInfo).episode_id
+      : range[seasonID].episodes[0].id;
+
     const newCurrentEpisode: CurrentEpisode = { seasonID, episodeID };
     if (JSON.stringify(currentEpisode) === JSON.stringify(newCurrentEpisode))
       return;
+
     setCurrentEpisode(newCurrentEpisode);
 
-    console.log('Update episodes data', newCurrentEpisode);
+    if (isFirstUpdate) return;
+
     browser.runtime
       .sendMessage<Message<DataForUpdate>>({
         type: 'updateEpisodesInfo',
@@ -133,7 +129,7 @@ export function DownloadScreen({ pageType }: Props) {
       })
       .then((response) => {
         const result = response as ActualEpisodeData;
-        // setSubtitles(result.subtitle);
+        subtitleRef.current?.setSubtitles(result.subtitle);
         qualityRef.current?.setStreams(result.streams);
       });
   }, [range]);
@@ -141,10 +137,7 @@ export function DownloadScreen({ pageType }: Props) {
   useEffect(() => {
     if (!movieInfo) return;
     qualityRef.current?.setStreams(movieInfo.streams);
-    setCurrentEpisode({
-      seasonID: (movieInfo as SerialInfo).season_id,
-      episodeID: (movieInfo as SerialInfo).episode_id,
-    });
+    subtitleRef.current?.setSubtitles(subtitles);
   }, [movieInfo]);
 
   if (!movieInfo) return null;
@@ -208,7 +201,7 @@ export function DownloadScreen({ pageType }: Props) {
           setRange={setRange}
         />
 
-        <SubtitleSelector subtitles={subtitles} />
+        <SubtitleSelector subtitleRef={subtitleRef} />
         {/*TODO: скрывать разделитель после закрытия ошибки если нет других элементов*/}
         {/*Добавляем разделитель если это сериал или есть субтитры или ошибка*/}
         {(pageType === 'SERIAL' ||

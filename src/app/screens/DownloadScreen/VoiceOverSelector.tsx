@@ -6,7 +6,7 @@ import {
   SelectValue,
 } from '../../../components/Select';
 import { useVoiceOver } from '../../hooks/useVoiceOver';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { PageType, SetState, VoiceOverInfo } from '../../../lib/types';
 import { PremiumIcon } from '../../../components/Icons';
 

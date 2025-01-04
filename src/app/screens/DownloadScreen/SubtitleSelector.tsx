@@ -1,41 +1,32 @@
 import { Combobox } from '../../../components/Combobox';
 import { Checkbox } from '../../../components/Checkbox';
-import { useState } from 'react';
-import { SubtitleInfo } from '../../../lib/types';
-
-type Subtitle = {
-  lang: string;
-  code: string;
-};
+import { Ref, useImperativeHandle, useState } from 'react';
+import { Subtitle, SubtitleInfo, SubtitleRef } from '../../../lib/types';
+import { useSubtitle } from '../../hooks/useSubtitle';
 
 type Props = {
-  subtitles: SubtitleInfo | null;
+  subtitleRef: Ref<SubtitleRef>;
 };
 
-export function SubtitleSelector({ subtitles }: Props) {
-  if (!subtitles?.subtitle) return null;
-
-  const subtitleArray: Subtitle[] = subtitles.subtitle
-    .split(',')
-    .map((subtitleInfo) => {
-      const [_, lang, _url] = subtitleInfo.match(
-        /\[(.*)](https?:\/\/.*\.vtt)/,
-      )!;
-      return {
-        lang: lang,
-        code: subtitles!.subtitle_lns[lang],
-      };
-    });
-
-  const selectedSubtitle =
-    subtitleArray.find(
-      (subtitle) => subtitle.code === subtitles.subtitle_def,
-    ) || null;
-
-  const [subtitleLang, setSubtitleLang] = useState<Subtitle | null>(
-    selectedSubtitle,
-  );
+export function SubtitleSelector({ subtitleRef }: Props) {
+  const [subtitleLang, setSubtitleLang] = useState<Subtitle | null>(null);
   const [downloadSubtitle, setDownloadSubtitle] = useState(false);
+  const [subtitles, setSubtitles] = useState<SubtitleInfo | null>(null);
+  const subtitlesList: Subtitle[] | null = useSubtitle(
+    subtitles,
+    setSubtitleLang,
+  );
+
+  useImperativeHandle(
+    subtitleRef,
+    () => ({
+      subtitleLang: subtitleLang,
+      setSubtitles: setSubtitles,
+    }),
+    [subtitleLang],
+  );
+
+  if (subtitlesList === null || subtitles === null) return null;
 
   return (
     <>
@@ -59,7 +50,7 @@ export function SubtitleSelector({ subtitles }: Props) {
             id='subtitles'
             value={subtitleLang!.code}
             onValueChange={(v, l) => setSubtitleLang({ lang: l, code: v })}
-            data={subtitleArray.map((subtitle) => ({
+            data={subtitlesList.map((subtitle) => ({
               value: subtitle.code,
               label: subtitle.lang,
             }))}

@@ -104,11 +104,21 @@ export type QualityItem =
   | '2K'
   | '4K';
 
+export type Subtitle = {
+  lang: string;
+  code: string;
+};
+
 export type QualitiesList = Partial<Record<QualityItem, string[]>>;
 
 export type QualityRef = {
   quality: QualityItem;
   setStreams: (stream: string) => void;
+};
+
+export type SubtitleRef = {
+  subtitleLang: Subtitle | null;
+  setSubtitles: (subtitles: SubtitleInfo | null) => void;
 };
 
 export type SeasonsRef = {
