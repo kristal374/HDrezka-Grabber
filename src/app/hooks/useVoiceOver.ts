@@ -41,11 +41,9 @@ async function extractTranslate(): Promise<VoiceOverInfo[] | null> {
             : itemID === '0'
               ? 'Озвучка #1'
               : 'Unknown Translator'),
-        flag_country: item
-          .querySelector('img')
-          ?.src.split('/')
-          .at(-1)
-          ?.split('.')[0],
+        flag_country:
+          item.querySelector('img')?.src.split('/').at(-1)?.split('.')[0] ||
+          null,
         prem_content: item.classList.contains('b-prem_translator'),
         is_camrip: item.getAttribute('data-camrip'),
         is_ads: item.getAttribute('data-ads'),
@@ -75,7 +73,7 @@ async function extractTranslate(): Promise<VoiceOverInfo[] | null> {
     const voiceOver: VoiceOverInfo = {
       id: translatorID,
       title: translatorName,
-      flag_country: undefined,
+      flag_country: null,
       prem_content: false,
       is_camrip: initiator === 'initCDNMoviesEvents' ? param_1 : null,
       is_ads: initiator === 'initCDNMoviesEvents' ? param_2 : null,

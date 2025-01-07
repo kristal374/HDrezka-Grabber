@@ -39,7 +39,7 @@
     filename: await extractFilename(),
     url: await extractURL(),
   };
-  console.log(resultExtractedData);
+
   thisScript.dataset.result = JSON.stringify(resultExtractedData);
 })();
 

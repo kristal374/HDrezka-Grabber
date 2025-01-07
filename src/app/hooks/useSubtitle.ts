@@ -3,7 +3,7 @@ import { SetState, Subtitle, SubtitleInfo } from '../../lib/types';
 
 export function useSubtitle(
   subtitles: SubtitleInfo | null,
-  setSubtitleItem: SetState<Subtitle>,
+  setSubtitleItem: SetState<Subtitle | null>,
 ) {
   const [subtitlesList, setSubtitleList] = useState<Subtitle[] | null>(null);
 
@@ -20,7 +20,7 @@ export function useSubtitle(
         )!;
         return {
           lang: lang,
-          code: subtitles!.subtitle_lns[lang],
+          code: (subtitles!.subtitle_lns as Record<string, string>)[lang],
         };
       });
     setSubtitleList(subtitleArray);

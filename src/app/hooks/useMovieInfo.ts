@@ -14,7 +14,7 @@ export function useMovieInfo(pageType: PageType) {
         target: { tabId: tabID },
         files: ['/src/js/browser-polyfill.min.js'],
       })
-      .then((response) => {
+      .then((_) => {
         browser.scripting
           .executeScript({
             target: { tabId: tabID },
@@ -36,11 +36,10 @@ function getMovieInfo() {
     script.src = browser.runtime.getURL(
       'src/js/InjectionScripts/extractMovieInfo.js',
     );
-    console.log(script.src);
     document.documentElement.appendChild(script);
 
     const intervalId = setInterval(() => {
-      if (script.dataset.result !== undefined) {
+      if (script.dataset.result) {
         clearInterval(intervalId);
         const result = JSON.parse(script.dataset.result);
         document.documentElement.removeChild(script);

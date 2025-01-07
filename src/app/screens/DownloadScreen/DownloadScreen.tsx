@@ -12,6 +12,7 @@ import type {
   DataForUpdate,
   Fields,
   FilmData,
+  Initiator,
   Message,
   PageType,
   QualityRef,
@@ -150,40 +151,22 @@ export function DownloadScreen({ pageType }: Props) {
         <button
           className='flex size-[120px] cursor-pointer items-center justify-center rounded-full bg-popup-border text-white hover:bg-input'
           onClick={() => {
-            console.log('download');
-            // browser.runtime.sendMessage<Message<Initiator>>({
-            //   type: 'trigger',
-            //   message: {
-            //     query_data:
-            //       pageType === 'FILM'
-            //         ? {
-            //             id: movieInfo!.film_id,
-            //             translator_id: voiceOverId,
-            //             is_camrip: (movieInfo as FilmInfo).is_camrip,
-            //             is_ads: (movieInfo as FilmInfo).is_ads,
-            //             is_director: (movieInfo as FilmInfo).is_director,
-            //             favs: movieInfo!.favs,
-            //             action: 'get_movie',
-            //           }
-            //         : {
-            //             id: movieInfo!.film_id,
-            //             translator_id: voiceOverId,
-            //             season: '1',
-            //             episode: '1',
-            //             favs: movieInfo!.favs,
-            //             action: 'get_stream',
-            //           },
-            //     site_url: siteURL!,
-            //     range: range,
-            //     local_film_name: movieInfo!.local_film_name,
-            //     original_film_name: movieInfo!.original_film_name,
-            //     voice_over: voiceOvers!.find((v) => v.id === voiceOverId)
-            //       ?.title!,
-            //     quality: qualityRef.current?.quality,
-            //     subtitle: subtitleLang,
-            //     timestamp: new Date(),
-            //   },
-            // });
+            browser.runtime
+              .sendMessage<Message<Initiator>>({
+                type: 'trigger',
+                message: {
+                  query_data: movieInfo!.data,
+                  site_url: movieInfo!.url!,
+                  range: range,
+                  local_film_name: movieInfo!.filename.local,
+                  original_film_name: movieInfo!.filename.origin,
+                  voice_over: voiceOver!,
+                  quality: qualityRef.current!.quality,
+                  subtitle: subtitleRef.current!.subtitleLang,
+                  timestamp: new Date(),
+                },
+              })
+              .then();
           }}
         >
           <DownloadIcon />

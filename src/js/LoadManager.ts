@@ -1,6 +1,7 @@
 import browser from 'webextension-polyfill';
 import {
   Episode,
+  FilmData,
   Initiator,
   LoadInfo,
   QualityItem,
@@ -106,10 +107,18 @@ export class LoadManager {
       download_id: null,
       query_data:
         initiator.query_data.action === 'get_movie'
-          ? initiator.query_data
+          ? ({
+              id: initiator.query_data.id,
+              translator_id: initiator.voice_over.id,
+              is_camrip: initiator.voice_over.is_camrip,
+              is_director: initiator.voice_over.is_director,
+              is_ads: initiator.voice_over.is_ads,
+              favs: initiator.query_data.favs,
+              action: initiator.query_data.action,
+            } as FilmData)
           : {
               id: initiator.query_data.id,
-              translator_id: initiator.query_data.translator_id,
+              translator_id: initiator.voice_over.id,
               episode: episode!.id,
               season: season!.id,
               favs: initiator.query_data.favs,
@@ -170,11 +179,17 @@ export class LoadManager {
   removeFromDownloadQueue(groupToRemove: number[]) {
     let queueIsRemoved = false;
     for (const uID of groupToRemove) {
-      if (!["DownloadFailed", "DownloadSuccess"].includes(this.storage[uID].status)) {
-        this.storage[uID].status = "StoppedByUser"
+      if (
+        !['DownloadFailed', 'DownloadSuccess'].includes(
+          this.storage[uID].status,
+        )
+      ) {
+        this.storage[uID].status = 'StoppedByUser';
       }
       if (this.activeDownloads.includes(uID)) {
-        browser.downloads.cancel(this.storage[uID].download_id!).catch(() => {});
+        browser.downloads
+          .cancel(this.storage[uID].download_id!)
+          .catch(() => {});
         this.activeDownloads.splice(this.activeDownloads.indexOf(uID), 1);
       }
       if (queueIsRemoved) continue;
@@ -254,14 +269,14 @@ export class LoadManager {
       next_obj.quality,
     );
     // @ts-ignore
-    if (correctURL !== null && next_obj.status !== "StoppedByUser") {
+    if (correctURL !== null && next_obj.status !== 'StoppedByUser') {
       next_obj.url = correctURL.url;
       next_obj.quality = correctURL.quality;
 
       next_obj.download_id = await this.downloadFile(
         next_obj.url,
         this.get_full_path(next_obj.uid),
-        next_obj.query_data.action === "get_movie",
+        next_obj.query_data.action === 'get_movie',
       );
     } else {
       this.activeDownloads.splice(
@@ -298,7 +313,7 @@ export class LoadManager {
   }
 
   async remove_load(uID: number) {
-    this.removeFromDownloadQueue([uID])
+    this.removeFromDownloadQueue([uID]);
     delete this.storage[uID];
   }
 

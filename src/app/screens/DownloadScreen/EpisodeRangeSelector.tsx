@@ -40,15 +40,15 @@ export function EpisodeRangeSelector({
 
   useEffect(() => {
     if (!seasons) return;
-    setRange(
-      sliceSeasons(
-        seasons,
-        downloadSerial ? seasonFrom : defaultSeasonStart,
-        downloadSerial ? episodeFrom : defaultEpisodeStart,
-        downloadSerial ? seasonTo : defaultSeasonStart,
-        downloadSerial ? episodeTo : defaultEpisodeStart,
-      ),
+    const newRange = sliceSeasons(
+      seasons,
+      downloadSerial ? seasonFrom : defaultSeasonStart,
+      downloadSerial ? episodeFrom : defaultEpisodeStart,
+      downloadSerial ? seasonTo : defaultSeasonStart,
+      downloadSerial ? episodeTo : defaultEpisodeStart,
     );
+
+    setRange(newRange);
   }, [seasons, downloadSerial, seasonFrom, episodeFrom, seasonTo, episodeTo]);
 
   useImperativeHandle(
@@ -56,13 +56,23 @@ export function EpisodeRangeSelector({
     () => ({
       setSeasonsList: (seasonsList: Seasons) => {
         const startSeason = Object.keys(seasonsList)[0];
-        const startEpisode = seasonsList[defaultSeasonStart].episodes[0].id;
-        setEpisodeFrom(startEpisode);
+        const startEpisode = seasonsList[startSeason].episodes[0].id;
         setSeasonFrom(startSeason);
+        setEpisodeFrom(startEpisode);
+        if (seasonTo === '-2' || seasonTo === '-1') {
+        } else if (
+          !(
+            seasonTo in seasonsList &&
+            seasonsList[seasonTo].episodes.map((e) => e.id).includes(episodeTo)
+          )
+        ) {
+          setSeasonTo('-2');
+          setEpisodeTo('');
+        }
         setSeasons(seasonsList);
       },
     }),
-    [],
+    [downloadSerial, seasonFrom, episodeFrom, seasonTo, episodeTo],
   );
 
   if (!seasons) return null;

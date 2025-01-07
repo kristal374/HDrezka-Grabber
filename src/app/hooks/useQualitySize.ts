@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Message, QualitiesList, URLsContainer } from '../../lib/types';
+import {
+  Message,
+  QualitiesList,
+  SetState,
+  URLsContainer,
+} from '../../lib/types';
 
-export function useQualitySize(qualitiesList: QualitiesList | null) {
+export function useQualitySize(
+  qualitiesList: QualitiesList | null,
+): [URLsContainer | null, SetState<URLsContainer | null>] {
   const [sizes, setSizes] = useState<URLsContainer | null>(null);
 
   useEffect(() => {

@@ -50,7 +50,7 @@ export type PageType =
 
 export type MovieInfo = {
   success: boolean;
-  data: Fields & (FilmsFields | SerialFields);
+  data: FilmData | SerialData;
   quality: QualityItem;
   streams: string;
   subtitle: SubtitleInfo | null;
@@ -70,7 +70,7 @@ export type SubtitleInfo = {
 export type VoiceOverInfo = {
   id: string;
   title: string;
-  flag_country?: string;
+  flag_country: string | null;
   prem_content?: boolean;
   is_camrip?: string | null;
   is_director?: string | null;
@@ -172,7 +172,7 @@ export type LoadStatus =
 export type LoadInfo = {
   uid: number;
   download_id: number | null;
-  query_data: QueryData;
+  query_data: FilmData | SerialData;
   relative_path: string;
   absolute_path: string | null;
   local_film_name: string;
@@ -181,25 +181,25 @@ export type LoadInfo = {
   url: string | null;
   site_url: string;
   size: { stringSize: string; rawSize: number } | null;
-  voice_over: string;
+  voice_over: VoiceOverInfo;
   season_name?: string;
   episode_name?: string;
   quality: QualityItem;
-  subtitle: { lang: string; code: string; url: string } | null;
+  subtitle: Subtitle | null;
   attempts_retries: number;
   timestamp: string;
   status: LoadStatus;
 };
 
 export type Initiator = {
-  query_data: QueryData;
+  query_data: FilmData | SerialData;
   site_url: string;
   range: Seasons | null;
   local_film_name: string;
   original_film_name: string | null;
-  voice_over: string;
+  voice_over: VoiceOverInfo;
   quality: QualityItem;
-  subtitle: { lang: string; code: string; url: string } | null;
+  subtitle: Subtitle | null;
   timestamp: Date | string;
 };
 
