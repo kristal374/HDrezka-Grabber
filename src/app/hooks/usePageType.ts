@@ -17,6 +17,10 @@ export function usePageType() {
         const result = response[0].result as PageType;
         // logger.debug(result);
         setPageType(result);
+      })
+      .catch((error) => {
+        logger.error(`TypeError: ${error.name}. Message: ${error.message}`);
+        setPageType('ERROR');
       });
   }, [tabID]);
 
@@ -24,9 +28,9 @@ export function usePageType() {
 }
 
 async function getPageType(): Promise<PageType> {
-  const regexp =
-    /sof\.tv\.(.*?)\((\d+), (\d+), (\d+), (\d+), (\d+|false|true), '(.*?)', (false|true), ({".*?":.*?})\);/;
-  const playerConfig = document.documentElement.outerHTML.match(regexp);
+  const playerConfig = document.documentElement.outerHTML.match(
+    /sof\.tv\.(.*?)\((\d+), (\d+), (\d+), (\d+), (\d+|false|true), '(.*?)', (false|true), ({".*?":.*?})\);/,
+  );
 
   if (playerConfig === null) {
     const initFunc =
@@ -36,7 +40,10 @@ async function getPageType(): Promise<PageType> {
       ?.children[0].getAttribute('src');
 
     if (!!trailerURL) return 'TRAILER';
-    if (initFunc !== null && initFunc[1] === 'initWatchingEvents')
+    if (
+      initFunc !== null &&
+      (initFunc[1] === 'initWatchingEvents' || initFunc[1] === 'initEvents')
+    )
       return 'UNAVAILABLE';
     return 'DEFAULT';
   }
