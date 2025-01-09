@@ -2,8 +2,7 @@ import browser from 'webextension-polyfill';
 import { Logger, printLog } from '../lib/logger';
 import { LoadManager } from './LoadManager';
 import {
-  ActualEpisodeData,
-  ActualVoiceOverData,
+  ActualVideoData,
   DataForUpdate,
   Initiator,
   LogMessage,
@@ -28,10 +27,8 @@ browser.runtime.onMessage.addListener(
         return await decodeURL(data.message);
       case 'getFileSize':
         return await getQualityFileSize(data.message);
-      case 'updateTranslateInfo':
-        return await updateTranslateInfo(data.message);
-      case 'updateEpisodesInfo':
-        return await updateEpisodesInfo(data.message);
+      case 'updateVideoInfo':
+        return await updateVideoInfo(data.message);
       case 'trigger':
         return await triggerEvent(data.message);
       case 'progress':
@@ -97,26 +94,12 @@ async function extractAllEpisodes(serverResponse: ResponseVideoData) {
   return seasonsStorage;
 }
 
-async function updateTranslateInfo(
-  data: DataForUpdate,
-): Promise<ActualVoiceOverData> {
+async function updateVideoInfo(data: DataForUpdate): Promise<ActualVideoData> {
   const serverResponse = await updateVideoData(data.siteURL, data.movieData);
   return {
-    seasons: await extractAllEpisodes(serverResponse),
-    subtitle: {
-      subtitle: serverResponse.subtitle,
-      subtitle_def: serverResponse.subtitle_def,
-      subtitle_lns: serverResponse.subtitle_lns,
-    },
-    streams: serverResponse.url,
-  };
-}
-
-async function updateEpisodesInfo(
-  data: DataForUpdate,
-): Promise<ActualEpisodeData> {
-  const serverResponse = await updateVideoData(data.siteURL, data.movieData);
-  return {
+    seasons: serverResponse?.seasons
+      ? await extractAllEpisodes(serverResponse)
+      : null,
     subtitle: {
       subtitle: serverResponse.subtitle,
       subtitle_def: serverResponse.subtitle_def,

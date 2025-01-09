@@ -14,8 +14,7 @@ export type MessageType =
   | 'trigger'
   | 'decodeURL'
   | 'getFileSize'
-  | 'updateTranslateInfo'
-  | 'updateEpisodesInfo';
+  | 'updateVideoInfo';
 
 export type LogMessage = {
   timestamp: string;
@@ -207,13 +206,9 @@ export type DataForUpdate = {
   siteURL: string;
   movieData: QueryData;
 };
-export type ActualEpisodeData = {
-  subtitle: SubtitleInfo;
-  streams: string;
-};
 
-export type ActualVoiceOverData = {
-  seasons: Seasons;
+export type ActualVideoData = {
+  seasons: Seasons | null;
   subtitle: SubtitleInfo;
   streams: string;
 };

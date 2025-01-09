@@ -7,8 +7,7 @@ import { EpisodeRangeSelector } from './EpisodeRangeSelector';
 import { VoiceOverSelector } from './VoiceOverSelector';
 import { useMovieInfo } from '../../hooks/useMovieInfo';
 import type {
-  ActualEpisodeData,
-  ActualVoiceOverData,
+  ActualVideoData,
   DataForUpdate,
   Fields,
   FilmData,
@@ -69,26 +68,41 @@ export function DownloadScreen({ pageType }: Props) {
     logger.info('Start update voice over.');
     browser.runtime
       .sendMessage<Message<DataForUpdate>>({
-        type: 'updateTranslateInfo',
+        type: 'updateVideoInfo',
         message: {
           siteURL: movieInfo!.url!,
-          movieData: {
-            id: movieInfo!.data.id,
-            translator_id: voiceOver.id,
-            favs: movieInfo!.data.favs,
-            action: 'get_episodes',
-          },
+          movieData:
+            pageType === 'SERIAL'
+              ? {
+                  id: movieInfo!.data.id,
+                  translator_id: voiceOver.id,
+                  favs: movieInfo!.data.favs,
+                  action: 'get_episodes',
+                }
+              : {
+                  id: movieInfo!.data.id,
+                  translator_id: voiceOver.id,
+                  is_camrip: voiceOver.is_camrip!,
+                  is_ads: voiceOver.is_ads!,
+                  is_director: voiceOver.is_director!,
+                  favs: movieInfo!.data.favs,
+                  action: 'get_movie',
+                },
         },
       })
       .then((response) => {
-        const result = response as ActualVoiceOverData;
+        const result = response as ActualVideoData;
         logger.debug('Set new popup data:', result);
-        seasonsRef.current?.setSeasonsList(result.seasons);
+
         subtitleRef.current?.setSubtitles(result.subtitle);
         qualityRef.current?.setStreams(result.streams);
-        const seasonID = Object.keys(result.seasons)[0];
-        const episodeID = result.seasons[seasonID].episodes[0].id;
-        setCurrentEpisode({ seasonID, episodeID });
+
+        if (result.seasons) {
+          seasonsRef.current?.setSeasonsList(result.seasons);
+          const seasonID = Object.keys(result.seasons)[0];
+          const episodeID = result.seasons[seasonID].episodes[0].id;
+          setCurrentEpisode({ seasonID, episodeID });
+        }
       });
   }, [voiceOver]);
 
@@ -125,7 +139,7 @@ export function DownloadScreen({ pageType }: Props) {
     logger.info('Start update episodes info.');
     browser.runtime
       .sendMessage<Message<DataForUpdate>>({
-        type: 'updateEpisodesInfo',
+        type: 'updateVideoInfo',
         message: {
           siteURL: movieInfo!.url!,
           movieData: {
@@ -139,7 +153,7 @@ export function DownloadScreen({ pageType }: Props) {
         },
       })
       .then((response) => {
-        const result = response as ActualEpisodeData;
+        const result = response as ActualVideoData;
         logger.debug('Set new episodes info:', result);
         subtitleRef.current?.setSubtitles(result.subtitle);
         qualityRef.current?.setStreams(result.streams);
