@@ -10,6 +10,7 @@ export function NotificationField({ notificationString }: Props) {
   );
 
   if (!notification) return null;
+  logger.info('New render NotificationField component.');
 
   return (
     <div className='relative flex items-center rounded bg-error px-1.5 py-1 text-white'>

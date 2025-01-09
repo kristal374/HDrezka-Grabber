@@ -21,6 +21,7 @@ export function QualitySelector({ qualityRef }: Props) {
       quality: quality,
       setStreams: (stream) => {
         setSizes(null);
+        logger.debug('Set new streams value:', { value: stream });
         setStreams(stream);
       },
     }),
@@ -28,6 +29,7 @@ export function QualitySelector({ qualityRef }: Props) {
   );
 
   if (!qualitiesList) return null;
+  logger.info('New render QualitySelector component.');
 
   return (
     <div className='flex items-center gap-2.5'>

@@ -49,6 +49,8 @@ export function VoiceOverSelector({
 
   if (!voiceOverList) return null;
   const isDisabled = pageType === 'SERIAL' && !downloadSerial;
+  logger.info('New render VoiceOverSelector component.');
+  logger.debug('VoiceOver component is disabled:', isDisabled);
 
   return (
     <div className='flex items-center gap-2.5'>

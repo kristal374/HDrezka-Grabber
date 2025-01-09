@@ -1,7 +1,7 @@
 import browser from 'webextension-polyfill';
-import { LogLevel, LogMessage, Message, SourceMap } from '../lib/types';
+import { LogLevel, LogMessage, Message, SourceMap } from './types';
 
-let debugFlag: boolean;
+let debugFlag: boolean = false;
 
 browser.storage.local
   .get(['debugFlag'])
@@ -9,7 +9,7 @@ browser.storage.local
 
 browser.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && typeof changes.debugFlag?.newValue === 'boolean') {
-    debugFlag = changes.debugFlag!.newValue;
+    debugFlag = changes.debugFlag?.newValue || false;
   }
 });
 
@@ -46,7 +46,7 @@ function printLogForChrome(message: LogMessage) {
       break;
   }
   console.log(
-    `${colorTime}${message.timestamp}${colorReset} | ${colorLevel}${message.level}${colorReset} | ${message.location} - `,
+    `${colorTime}${message.timestamp}${colorReset} | ${colorLevel}${message.level.padEnd(8)}${colorReset} | ${message.location} -`,
     ...message.content,
   );
 }
@@ -74,7 +74,7 @@ function printLogForFirefox(message: LogMessage) {
       break;
   }
   console.log(
-    `%c${message.timestamp}%c | %c${message.level}%c | %c${message.location}%c - `,
+    `%c${message.timestamp}%c | %c${message.level.padEnd(8)}%c | %c${message.location}%c - `,
     colorTime,
     colorReset,
     colorLevel,
@@ -114,7 +114,9 @@ export class Logger {
     return logger;
   }
 
-  async init(url: string) {
+  async init(url?: string) {
+    if (url === undefined)
+      throw new Error('There is no URL to the minified file for logging');
     const fileUrl = browser.runtime.getURL(url);
     const response = await fetch(fileUrl);
     const file = await response.json();
@@ -122,21 +124,28 @@ export class Logger {
   }
 
   private emit(level: LogLevel, message: any[]) {
-    const log: LogMessage = {
-      timestamp: new Date().toString(),
-      level: level,
-      content: message,
-      location: this.getCallerInfo(),
-    };
-    const messageToSend: Message<LogMessage> = {
-      type: 'logCreate',
-      message: log,
-    };
-    const event: CustomEventInit = {
-      detail: log,
-    };
-    browser.runtime.sendMessage(messageToSend).then();
-    globalThis.dispatchEvent(new CustomEvent('logCreate', event));
+    try {
+      const timestamp = new Date().toString();
+      this.getCallerInfo().then((location) => {
+        const log: LogMessage = {
+          timestamp: timestamp,
+          level: level,
+          content: message,
+          location: location,
+        };
+        const messageToSend: Message<LogMessage> = {
+          type: 'logCreate',
+          message: log,
+        };
+        const event: CustomEventInit = {
+          detail: log,
+        };
+        browser.runtime.sendMessage(messageToSend).then();
+        globalThis.dispatchEvent(new CustomEvent('logCreate', event));
+      });
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   @checkingDebugFlag
@@ -164,13 +173,21 @@ export class Logger {
     this.emit(LogLevel.INFO, message);
   }
 
-  private getCallerInfo() {
-    const exception = new Error();
-    const regexFindURL =
-      /((?:chrome|moz)-extension:\/(?:\/.*?)+\.js:(\d+):(\d+))/g;
-    const urlStackTrace = exception.stack!.match(regexFindURL);
-    const callerURL = urlStackTrace![4];
-    return this.sourcemap.getOriginalURL(callerURL);
+  private getCallerInfo(): Promise<string> {
+    return new Promise((resolve) => {
+      const exception = new Error();
+      const regexFindURL =
+        /((?:chrome|moz)-extension:\/(?:\/.*?)+\.js:(\d+):(\d+))/g;
+      const urlStackTrace = exception.stack!.match(regexFindURL);
+      const callerURL = urlStackTrace![5];
+
+      const intervalId = setInterval(() => {
+        if (!!this.sourcemap) {
+          clearInterval(intervalId);
+          resolve(this.sourcemap.getOriginalURL(callerURL));
+        }
+      }, 5);
+    });
   }
 }
 
@@ -319,7 +336,10 @@ class SourceMapParser {
           source: this.sources[sourceIndex],
           line: sourceLine + 1,
           column: sourceColumn + 1,
-          name: nameIndex !== undefined ? this.names[nameIndex] : undefined,
+          name:
+            (nameIndex as number | undefined) !== undefined
+              ? this.names[nameIndex]
+              : undefined,
         };
         this.cash[cashIndex] = result;
         return result;

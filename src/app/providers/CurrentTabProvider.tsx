@@ -1,7 +1,4 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { Logger } from '../../lib/logger';
-
-const logger = await Logger.create('/src/js/popup.js.map');
 
 const TabIDContext = createContext<number | undefined>(undefined);
 
@@ -14,7 +11,9 @@ export function CurrentTabProvider({ children }: React.PropsWithChildren) {
 
   useEffect(() => {
     getCurrentTabId().then((tabID) => {
+      logger.info('Attempt set new tabID.')
       if (!tabID) return;
+      logger.debug(`Current tab id: ${tabID}`);
       setId(tabID);
     });
   }, []);

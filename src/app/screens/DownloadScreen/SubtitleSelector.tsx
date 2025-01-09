@@ -21,12 +21,16 @@ export function SubtitleSelector({ subtitleRef }: Props) {
     subtitleRef,
     () => ({
       subtitleLang: subtitleLang,
-      setSubtitles: setSubtitles,
+      setSubtitles: (s) =>{
+        logger.debug('Set new subtitle:', s);
+        setSubtitles(s)
+      },
     }),
     [subtitleLang],
   );
 
   if (subtitlesList === null || subtitleLang === null) return null;
+  logger.info('New render SubtitleSelector component.');
 
   return (
     <>

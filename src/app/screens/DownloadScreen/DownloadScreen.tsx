@@ -58,11 +58,14 @@ export function DownloadScreen({ pageType }: Props) {
     // список доступных качеств и субтитров. Но при этом все данные уже придут
     // актуальными с сервера и мы не должны обновлять данные эпизода.
 
+    logger.info('Attempt to update voice over.');
     if (!voiceOver) return;
+    logger.debug('Voice over:', voiceOver);
     if (isFirstLoad) {
       setIsFirstLoad(false);
       return;
     }
+    logger.info('Start update voice over.');
     browser.runtime
       .sendMessage<Message<DataForUpdate>>({
         type: 'updateTranslateInfo',
@@ -78,6 +81,7 @@ export function DownloadScreen({ pageType }: Props) {
       })
       .then((response) => {
         const result = response as ActualVoiceOverData;
+        logger.debug('Set new popup data:', result);
         seasonsRef.current?.setSeasonsList(result.seasons);
         subtitleRef.current?.setSubtitles(result.subtitle);
         qualityRef.current?.setStreams(result.streams);
@@ -95,8 +99,9 @@ export function DownloadScreen({ pageType }: Props) {
     // Первое обновление данных должно игнорироваться т.к. данные мы
     // подтягиваем со страницы фильма и они уже являются актуальными.
 
+    logger.info('Attempt to update current episode.');
     if (!range) return;
-
+    logger.debug('Range episodes:', range);
     const isFirstUpdate = currentEpisode === null;
 
     const seasonID = isFirstUpdate
@@ -111,10 +116,12 @@ export function DownloadScreen({ pageType }: Props) {
     if (JSON.stringify(currentEpisode) === JSON.stringify(newCurrentEpisode))
       return;
 
+    logger.debug('Set new current episode:', newCurrentEpisode);
     setCurrentEpisode(newCurrentEpisode);
 
     if (isFirstUpdate) return;
 
+    logger.info('Start update episodes info.');
     browser.runtime
       .sendMessage<Message<DataForUpdate>>({
         type: 'updateEpisodesInfo',
@@ -132,18 +139,25 @@ export function DownloadScreen({ pageType }: Props) {
       })
       .then((response) => {
         const result = response as ActualEpisodeData;
+        logger.debug('Set new episodes info:', result);
         subtitleRef.current?.setSubtitles(result.subtitle);
         qualityRef.current?.setStreams(result.streams);
       });
   }, [range]);
 
   useEffect(() => {
+    logger.info('Attempt to update movieInfo');
     if (!movieInfo) return;
+    logger.debug('Update movieInfo', movieInfo);
     qualityRef.current?.setStreams(movieInfo.streams);
     subtitleRef.current?.setSubtitles(movieInfo.subtitle);
   }, [movieInfo]);
 
-  if (movieInfo === null || !movieInfo.success) return null;
+  if (movieInfo === null || !movieInfo.success) {
+    logger.info('"MovieInfo" is missing.');
+    return null;
+  }
+  logger.info('New render DownloadScreen component.');
 
   return (
     <div className='flex size-full flex-col gap-5'>

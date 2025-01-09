@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   build: {
     target: 'es2022',
-    minify: false,
+    minify: true,
     rollupOptions: {
       input: ['src/html/popup.html', 'src/html/settings.html'],
       output: {

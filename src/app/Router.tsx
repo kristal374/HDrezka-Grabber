@@ -10,7 +10,7 @@ export function Router() {
   const pageType = usePageType();
 
   if (!!tabID && pageType) {
-    console.log(pageType);
+    logger.debug('Page type defined:', pageType);
     if (pageType === 'FILM' || pageType === 'SERIAL') {
       return <DownloadScreen pageType={pageType} />;
     }
@@ -47,6 +47,7 @@ export function Router() {
       </DefaultScreen>
     );
   }
+  logger.info('Rendering loader screen');
 
   return (
     <DefaultScreen className='py-12'>

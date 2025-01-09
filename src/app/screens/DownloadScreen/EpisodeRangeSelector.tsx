@@ -39,6 +39,7 @@ export function EpisodeRangeSelector({
   const downloadToEnd = Number(seasonTo) < 0;
 
   useEffect(() => {
+    logger.info('Attempt change range episodes.');
     if (!seasons) return;
     const newRange = sliceSeasons(
       seasons,
@@ -47,7 +48,7 @@ export function EpisodeRangeSelector({
       downloadSerial ? seasonTo : defaultSeasonStart,
       downloadSerial ? episodeTo : defaultEpisodeStart,
     );
-
+    logger.debug('New range episodes:', newRange);
     setRange(newRange);
   }, [seasons, downloadSerial, seasonFrom, episodeFrom, seasonTo, episodeTo]);
 
@@ -55,6 +56,7 @@ export function EpisodeRangeSelector({
     seasonsRef,
     () => ({
       setSeasonsList: (seasonsList: Seasons) => {
+        logger.info('Trying to update new seasons list.');
         const startSeason = Object.keys(seasonsList)[0];
         const startEpisode = seasonsList[startSeason].episodes[0].id;
         setSeasonFrom(startSeason);
@@ -69,6 +71,7 @@ export function EpisodeRangeSelector({
           setSeasonTo('-2');
           setEpisodeTo('');
         }
+        logger.debug('Set new seasons list:', seasonsList);
         setSeasons(seasonsList);
       },
     }),
@@ -76,6 +79,7 @@ export function EpisodeRangeSelector({
   );
 
   if (!seasons) return null;
+  logger.info('New render EpisodeRangeSelector component.');
 
   return (
     <>

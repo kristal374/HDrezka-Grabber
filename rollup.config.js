@@ -14,7 +14,7 @@ export default [
     plugins: [
       nodeResolve({ browser: true, preferBuiltins: false }),
       commonjs(),
-      typescript({ sourceMap: false }),
+      typescript({ sourceMap: true }),
       terser(),
       copy({
         targets: [

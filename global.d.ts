@@ -1,9 +1,9 @@
 import messages from './src/_locales/ru/messages.json';
 import Browser from 'webextension-polyfill';
+import { Logger } from './src/lib/logger';
 
-type OverridedBrowser = typeof Browser & {
+type OverrideBrowser = typeof Browser & {
   i18n: {
-    // Override the type for getMessage function
     getMessage: (
       messageName: keyof typeof messages,
       substitutions?: string | string[],
@@ -12,5 +12,6 @@ type OverridedBrowser = typeof Browser & {
 };
 
 declare global {
-  const browser: OverridedBrowser;
+  const browser: OverrideBrowser;
+  const logger: Logger;
 }
