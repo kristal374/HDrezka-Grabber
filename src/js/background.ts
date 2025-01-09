@@ -10,7 +10,7 @@ import {
   ResponseVideoData,
   Seasons,
 } from '../lib/types';
-import { decodeURL, getQualityFileSize, updateVideoData } from './handler';
+import { getQualityFileSize, updateVideoData } from './handler';
 
 const logger = new Logger('/src/js/background.js.map');
 const loadManager = new LoadManager();
@@ -23,16 +23,12 @@ browser.runtime.onMessage.addListener(
     switch (data.type) {
       case 'logCreate':
         return await logCreate(data.message);
-      case 'decodeURL':
-        return await decodeURL(data.message);
       case 'getFileSize':
         return await getQualityFileSize(data.message);
       case 'updateVideoInfo':
         return await updateVideoInfo(data.message);
       case 'trigger':
         return await triggerEvent(data.message);
-      case 'progress':
-        return await eventProgress(data.message);
       default:
         logger.warning(message);
     }
@@ -52,10 +48,6 @@ async function logCreate(message: LogMessage) {
 
 async function triggerEvent(message: Initiator) {
   return await loadManager.init_new_load(message);
-}
-
-async function eventProgress(message: Message<number>) {
-  return true;
 }
 
 async function extractSeasons(seasons: string) {

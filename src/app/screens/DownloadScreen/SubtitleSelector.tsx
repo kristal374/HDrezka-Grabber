@@ -1,21 +1,39 @@
 import { Combobox } from '../../../components/Combobox';
 import { Checkbox } from '../../../components/Checkbox';
-import { Ref, useImperativeHandle, useState } from 'react';
+import { Ref, useEffect, useImperativeHandle, useState } from 'react';
 import { Subtitle, SubtitleInfo, SubtitleRef } from '../../../lib/types';
-import { useSubtitle } from '../../hooks/useSubtitle';
+import {
+  decodeSubtitleURL,
+  getTargetSubtitle,
+} from '../../../lib/link-processing';
 
 type Props = {
   subtitleRef: Ref<SubtitleRef>;
 };
 
 export function SubtitleSelector({ subtitleRef }: Props) {
+  const [subtitlesInfo, setSubtitlesInfo] = useState<SubtitleInfo | null>(null);
+  const [subtitlesList, setSubtitleList] = useState<Subtitle[] | null>(null);
   const [subtitleLang, setSubtitleLang] = useState<Subtitle | null>(null);
   const [downloadSubtitle, setDownloadSubtitle] = useState(false);
-  const [subtitles, setSubtitles] = useState<SubtitleInfo | null>(null);
-  const subtitlesList: Subtitle[] | null = useSubtitle(
-    subtitles,
-    setSubtitleLang,
-  );
+
+  useEffect(() => {
+    if (!subtitlesInfo?.subtitle) {
+      setDownloadSubtitle(false);
+      setSubtitleList(null);
+      setSubtitleLang(null);
+      return;
+    }
+
+    const subtitleArray = decodeSubtitleURL(subtitlesInfo) as Subtitle[];
+    setSubtitleList(subtitleArray);
+
+    const targetSubtitleItem = getTargetSubtitle(
+      subtitleArray,
+      subtitlesInfo.subtitle_def as string,
+    );
+    setSubtitleLang(targetSubtitleItem);
+  }, [subtitlesInfo]);
 
   useImperativeHandle(
     subtitleRef,
@@ -23,7 +41,7 @@ export function SubtitleSelector({ subtitleRef }: Props) {
       subtitleLang: subtitleLang,
       setSubtitles: (s) => {
         logger.debug('Set new subtitle:', s);
-        setSubtitles(s);
+        setSubtitlesInfo(s);
       },
     }),
     [subtitleLang],
@@ -52,10 +70,10 @@ export function SubtitleSelector({ subtitleRef }: Props) {
           </label>
           <Combobox
             id='subtitles'
-            value={subtitleLang!.code}
-            onValueChange={(v, l) => setSubtitleLang({ lang: l, code: v })}
+            value={JSON.stringify(subtitleLang)}
+            onValueChange={(v, _l) => setSubtitleLang(JSON.parse(v))}
             data={subtitlesList.map((subtitle) => ({
-              value: subtitle.code,
+              value: JSON.stringify(subtitle),
               label: subtitle.lang,
             }))}
           />
