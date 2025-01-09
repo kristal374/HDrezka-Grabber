@@ -7,13 +7,9 @@ import {
   QualityItem,
   QueryData,
 } from '../lib/types';
-import {
-  decodeURL,
-  formatBytes,
-  getQualityFileSize,
-  updateVideoData,
-} from './handler';
+import { formatBytes, getQualityFileSize, updateVideoData } from './handler';
 import { getFromStorage } from '../lib/storage';
+import { decodeVideoURL } from '../lib/link-processing';
 
 export class LoadManager {
   private maxDownloads: number = 5;
@@ -389,7 +385,7 @@ export class LoadManager {
     quality: QualityItem,
   ) {
     const response = await updateVideoData(site_url, query_data);
-    const urlsContainer = await decodeURL(response.url);
+    const urlsContainer = decodeVideoURL(response.url);
     const qualitySizes = await getQualityFileSize(urlsContainer);
     if (qualitySizes === null) return null;
 

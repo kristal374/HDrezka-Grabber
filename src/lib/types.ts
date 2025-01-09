@@ -10,9 +10,7 @@ export enum LogLevel {
 
 export type MessageType =
   | 'logCreate'
-  | 'progress'
   | 'trigger'
-  | 'decodeURL'
   | 'getFileSize'
   | 'updateVideoInfo';
 
@@ -94,6 +92,7 @@ export type QualityItem =
 export type Subtitle = {
   lang: string;
   code: string;
+  url: string;
 };
 
 export type QualitiesList = Partial<Record<QualityItem, string[]>>;

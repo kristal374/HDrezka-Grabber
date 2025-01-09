@@ -6,26 +6,6 @@ import {
   URLsContainer,
 } from '../lib/types';
 
-export async function decodeURL(
-  stream: string | false,
-): Promise<QualitiesList | null> {
-  if (!stream) return null;
-
-  const urlsContainer: QualitiesList = {};
-  clearTrash(stream)
-    .split(',')
-    .map((item) => {
-      const qualityName = item.match(/\[.*?]/)![0];
-      const qualityURLs = item.slice(qualityName.length);
-      // @ts-ignore
-      urlsContainer[qualityName.slice(1, -1)] = qualityURLs
-        .split(/\sor\s/)
-        .filter((item) => /https?:\/\/.*mp4$/.test(item));
-    });
-
-  return urlsContainer;
-}
-
 export async function getQualityFileSize(
   urlsContainer: QualitiesList | null,
 ): Promise<URLsContainer | null> {
@@ -41,21 +21,6 @@ export async function getQualityFileSize(
   );
 
   return urlsSizes;
-}
-
-function clearTrash(data: string) {
-  const trashList = [
-    '//_//QEBAQEAhIyMhXl5e',
-    '//_//Xl5eIUAjIyEhIyM=',
-    '//_//JCQhIUAkJEBeIUAjJCRA',
-    '//_//IyMjI14hISMjIUBA',
-    '//_//JCQjISFAIyFAIyM=',
-  ];
-  while (trashList.some((subString) => data.includes(subString))) {
-    data = data.replace(new RegExp(trashList.join('|'), 'g'), '');
-  }
-  data = data.replace('#h', '');
-  return atob(data);
 }
 
 async function fetchUrlSizes(urlsList: string[]) {
