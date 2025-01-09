@@ -14,7 +14,7 @@ if errorlevel 1 (
     exit
 )
 
-set all_requirements=img js _locales
+set all_requirements=img _locales
 for %%p in (%all_requirements%) do (
   xcopy /e /i "src\%%p" "%DES%\%%p" > nul
 )

@@ -21,9 +21,9 @@ export function SubtitleSelector({ subtitleRef }: Props) {
     subtitleRef,
     () => ({
       subtitleLang: subtitleLang,
-      setSubtitles: (s) =>{
+      setSubtitles: (s) => {
         logger.debug('Set new subtitle:', s);
-        setSubtitles(s)
+        setSubtitles(s);
       },
     }),
     [subtitleLang],

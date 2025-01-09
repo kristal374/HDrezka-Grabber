@@ -11,7 +11,7 @@ export function CurrentTabProvider({ children }: React.PropsWithChildren) {
 
   useEffect(() => {
     getCurrentTabId().then((tabID) => {
-      logger.info('Attempt set new tabID.')
+      logger.info('Attempt set new tabID.');
       if (!tabID) return;
       logger.debug(`Current tab id: ${tabID}`);
       setId(tabID);
