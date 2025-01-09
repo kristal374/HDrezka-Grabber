@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Menu } from '../../../components/Menu';
-import { DownloadIcon } from '../../../components/Icons';
+import { DownloadIcon, LoadAnimation } from '../../../components/Icons';
 import { QualitySelector } from './QualitySelector';
 import { SubtitleSelector } from './SubtitleSelector';
 import { EpisodeRangeSelector } from './EpisodeRangeSelector';
@@ -24,6 +24,7 @@ import type {
 } from '../../../lib/types';
 import { SeasonsRef } from '../../../lib/types';
 import { NotificationField } from './NotificationField';
+import { DefaultScreen } from '../DefaultScreen';
 
 type Props = {
   pageType: PageType;
@@ -155,7 +156,11 @@ export function DownloadScreen({ pageType }: Props) {
 
   if (movieInfo === null || !movieInfo.success) {
     logger.info('"MovieInfo" is missing.');
-    return null;
+    return (
+      <DefaultScreen className='py-12'>
+        <LoadAnimation size={128} fill={'white'}></LoadAnimation>
+      </DefaultScreen>
+    );
   }
   logger.info('New render DownloadScreen component.');
 

@@ -2,7 +2,7 @@ import { useTabID } from './providers/CurrentTabProvider';
 import { DefaultScreen } from './screens/DefaultScreen';
 import { DownloadScreen } from './screens/DownloadScreen/DownloadScreen';
 import { usePageType } from './hooks/usePageType';
-import { Loader2 } from 'lucide-react';
+import { LoadAnimation } from '../components/Icons';
 import { PageType } from '../lib/types';
 
 export function Router() {
@@ -51,7 +51,7 @@ export function Router() {
 
   return (
     <DefaultScreen className='py-12'>
-      <Loader2 size={32} className='animate-spin' />
+      <LoadAnimation size={128} fill={'white'}></LoadAnimation>
     </DefaultScreen>
   );
 }
