@@ -102,30 +102,29 @@ function checkingDebugFlag(
 }
 
 export class Logger {
+  private readonly fileUrl!: string;
   private sourcemap!: SourceMapParser;
+  private sourcemapInitialized: boolean = false;
 
   constructor(url?: string) {
-    if (!!url) this.init(url).then();
-  }
-
-  public static async create(url: string): Promise<Logger> {
-    const logger = new Logger();
-    await logger.init(url);
-    return logger;
-  }
-
-  async init(url?: string) {
     if (url === undefined)
       throw new Error('There is no URL to the minified file for logging');
-    const fileUrl = browser.runtime.getURL(url);
-    const response = await fetch(fileUrl);
+    this.fileUrl = browser.runtime.getURL(url);
+  }
+
+  private async initSourcemap() {
+    if (this.sourcemapInitialized) return;
+    this.sourcemapInitialized = true;
+
+    const response = await fetch(this.fileUrl);
     const file = await response.json();
     this.sourcemap = new SourceMapParser(file);
   }
 
   private emit(level: LogLevel, message: any[]) {
+    const timestamp = new Date().toString();
+    this.initSourcemap().then();
     try {
-      const timestamp = new Date().toString();
       this.getCallerInfo().then((location) => {
         const log: LogMessage = {
           timestamp: timestamp,
