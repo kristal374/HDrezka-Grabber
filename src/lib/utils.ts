@@ -10,57 +10,47 @@ export function sliceSeasons(
   seasonFrom: string,
   episodeFrom: string,
   seasonTo: string | '-1' | '-2',
-  episodeTo: string | '-1',
+  episodeTo: string | '',
 ): Seasons {
-  const seasonsKeys = Object.keys(seasons).sort(
+  const sortedSeasonKeys = Object.keys(seasons).sort(
     (a, b) => parseInt(a) - parseInt(b),
-  ); // Сортируем сезоны по возрастанию
-
-  // Обрабатываем случаи для seasonTo
-  if (seasonTo === '-1') {
-    seasonTo = seasonFrom;
-    episodeTo = '-1'; // Последний эпизод в том же сезоне
-  } else if (seasonTo === '-2') {
-    seasonTo = seasonsKeys[seasonsKeys.length - 1]; // Последний сезон
-    episodeTo = '-1'; // Последний эпизод
+  );
+  if (parseInt(seasonTo) < 0) {
+    seasonTo =
+      seasonTo === '-2'
+        ? sortedSeasonKeys[sortedSeasonKeys.length - 1]
+        : seasonFrom;
+    episodeTo = '';
   }
 
   const result: Seasons = {};
 
-  for (let seasonKey of seasonsKeys) {
+  for (const seasonKey of sortedSeasonKeys) {
     if (
       parseInt(seasonKey) < parseInt(seasonFrom) ||
       parseInt(seasonKey) > parseInt(seasonTo)
     ) {
-      continue; // Пропускаем сезоны вне диапазона
+      continue;
     }
 
-    const season = seasons[seasonKey];
-    const episodes = season.episodes;
-    let slicedEpisodes = episodes;
+    const { title, episodes } = seasons[seasonKey];
+    let slicedEpisodes = episodes.sort(
+      (a, b) => parseInt(a.id) - parseInt(b.id),
+    );
 
-    // Если это первый сезон, обрезаем эпизоды начиная с episodeFrom
     if (seasonKey === seasonFrom) {
-      slicedEpisodes = episodes.filter(
+      slicedEpisodes = slicedEpisodes.filter(
         (episode) => parseInt(episode.id) >= parseInt(episodeFrom),
       );
     }
 
-    // Если это последний сезон, обрезаем эпизоды до episodeTo
-    if (seasonKey === seasonTo) {
-      if (episodeTo === '-1') {
-        // Если episodeTo -1, берем последний эпизод
-        episodeTo = episodes[episodes.length - 1].id;
-      }
+    if (seasonKey === seasonTo && episodeTo !== '') {
       slicedEpisodes = slicedEpisodes.filter(
         (episode) => parseInt(episode.id) <= parseInt(episodeTo),
       );
     }
 
-    result[seasonKey] = {
-      title: season.title,
-      episodes: slicedEpisodes,
-    };
+    result[seasonKey] = { title, episodes: slicedEpisodes };
   }
 
   return result;
