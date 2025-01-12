@@ -9,33 +9,28 @@ export function useMovieInfo(pageType: PageType) {
   useEffect(() => {
     if (!tabID || !pageType) return;
 
+    const pathToInjectScript = browser.runtime.getURL(
+      'src/js/InjectionScripts/extractMovieInfo.js',
+    );
     browser.scripting
       .executeScript({
         target: { tabId: tabID },
-        files: ['/src/js/browser-polyfill.min.js'],
+        func: getMovieInfo,
+        args: [pathToInjectScript],
       })
-      .then((_) => {
-        browser.scripting
-          .executeScript({
-            target: { tabId: tabID },
-            func: getMovieInfo,
-          })
-          .then((response) => {
-            const result = response[0].result as MovieInfo;
-            setMovieInfo(result);
-          });
+      .then((response) => {
+        const result = response[0].result as MovieInfo;
+        setMovieInfo(result);
       });
   }, [tabID, pageType]);
 
   return movieInfo;
 }
 
-function getMovieInfo() {
+function getMovieInfo(pathToInjectScript: string) {
   return new Promise((resolve) => {
     const script = document.createElement('script');
-    script.src = browser.runtime.getURL(
-      'src/js/InjectionScripts/extractMovieInfo.js',
-    );
+    script.src = pathToInjectScript;
     document.documentElement.appendChild(script);
 
     const intervalId = setInterval(() => {
