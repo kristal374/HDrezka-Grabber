@@ -6,6 +6,7 @@ import { createDefaultSettings, getFromStorage } from '../lib/storage';
 import { Logger } from '../lib/logger';
 
 globalThis.logger = new Logger('/src/js/popup.js.map');
+logger.info('Popup open.');
 await createDefaultSettings();
 
 const darkMode: boolean = await getFromStorage('darkMode');
@@ -17,6 +18,8 @@ if (!darkMode) {
 
 const element = document.querySelector('body')!;
 const root = createRoot(element);
+
+logger.info('Start rendering.');
 root.render(
   <App>
     <Layout>

@@ -1,20 +1,16 @@
 import browser from 'webextension-polyfill';
-import { Logger, printLog } from '../lib/logger';
+import logger, { logCreate } from './background-logger';
 import { LoadManager } from './LoadManager';
 import {
   ActualVideoData,
   DataForUpdate,
-  Initiator,
-  LogMessage,
   Message,
   ResponseVideoData,
   Seasons,
 } from '../lib/types';
 import { getQualityFileSize, updateVideoData } from './handler';
 
-const logger = new Logger('/src/js/background.js.map');
 const loadManager = new LoadManager();
-let logContainer: LogMessage[] = [];
 
 browser.runtime.onMessage.addListener(
   async (message, _sender, _sendResponse) => {
@@ -31,24 +27,10 @@ browser.runtime.onMessage.addListener(
         return await triggerEvent(data.message);
       default:
         logger.warning(message);
+        return true;
     }
   },
 );
-
-globalThis.addEventListener('logCreate', async (event) => {
-  const message = event as CustomEvent;
-  await logCreate(message.detail);
-});
-
-async function logCreate(message: LogMessage) {
-  logContainer.push(message);
-  printLog(message);
-  return true;
-}
-
-async function triggerEvent(message: Initiator) {
-  return await loadManager.init_new_load(message);
-}
 
 async function extractSeasons(seasons: string) {
   const seasonsStorage: Seasons = {};
@@ -87,6 +69,7 @@ async function extractAllEpisodes(serverResponse: ResponseVideoData) {
 }
 
 async function updateVideoInfo(data: DataForUpdate): Promise<ActualVideoData> {
+  logger.debug('Request to update video data:', data);
   const serverResponse = await updateVideoData(data.siteURL, data.movieData);
   return {
     seasons: serverResponse?.seasons

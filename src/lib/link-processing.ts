@@ -1,4 +1,4 @@
-import { QualitiesList, Subtitle, SubtitleInfo } from './types';
+import { QualitiesList, QualityItem, Subtitle, SubtitleInfo } from './types';
 
 function clearTrash(data: string) {
   const trashList = [

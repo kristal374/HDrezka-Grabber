@@ -95,7 +95,7 @@ const main = () => {
   const {
     version: buildVersion,
     package: shouldPackage,
-    "output-dir": outputDir,
+    'output-dir': outputDir,
   } = argv;
 
   try {

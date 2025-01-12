@@ -13,5 +13,5 @@ type OverrideBrowser = typeof Browser & {
 
 declare global {
   const browser: OverrideBrowser;
-  const logger: Logger;
+  var logger: Logger;
 }

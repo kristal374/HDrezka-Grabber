@@ -1,11 +1,10 @@
 import browser from 'webextension-polyfill';
 import { LogLevel, LogMessage, Message, SourceMap } from './types';
+import { getFromStorage } from './storage';
 
 let debugFlag: boolean = false;
 
-browser.storage.local
-  .get(['debugFlag'])
-  .then((storage) => (debugFlag = storage.debugFlag as boolean));
+getFromStorage<boolean>('debugFlag').then((storage) => (debugFlag = storage));
 
 browser.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && typeof changes.debugFlag?.newValue === 'boolean') {
@@ -103,13 +102,15 @@ function checkingDebugFlag(
 
 export class Logger {
   private readonly fileUrl!: string;
+  private readonly context!: string;
   private sourcemap!: SourceMapParser;
   private sourcemapInitialized: boolean = false;
 
   constructor(url?: string) {
-    if (url === undefined)
+    if (typeof url !== 'string')
       throw new Error('There is no URL to the minified file for logging');
     this.fileUrl = browser.runtime.getURL(url);
+    this.context = this.fileUrl.split('/').at(-1)?.split('.')[0]!;
   }
 
   private async initSourcemap() {
@@ -129,6 +130,7 @@ export class Logger {
         const log: LogMessage = {
           timestamp: timestamp,
           level: level,
+          context: this.context,
           content: message,
           location: location,
         };
@@ -139,7 +141,7 @@ export class Logger {
         const event: CustomEventInit = {
           detail: log,
         };
-        browser.runtime.sendMessage(messageToSend).then();
+        browser.runtime.sendMessage(messageToSend).catch(() => {});
         globalThis.dispatchEvent(new CustomEvent('logCreate', event));
       });
     } catch (e) {
@@ -368,15 +370,5 @@ class SourceMapParser {
     return (
       browser.runtime.getURL(path.replaceAll('../', '')) + `:${line}:${column}`
     );
-  }
-
-  public normalizeStackTrace(stacktrace: string): string {
-    const regexFindURL =
-      /(?:chrome|moz)-extension:\/(?:\/.*?)+\.js:(\d+):(\d+)/g;
-    const allUrl = stacktrace.matchAll(regexFindURL);
-    for (const url of allUrl) {
-      stacktrace = stacktrace.replace(url[0], this.getOriginalURL(url[0]));
-    }
-    return stacktrace;
   }
 }

@@ -17,6 +17,7 @@ export type MessageType =
 export type LogMessage = {
   timestamp: string;
   level: LogLevel;
+  context: string;
   content: any[];
   location: string;
 };
@@ -78,6 +79,8 @@ export type Episode = { title: string; id: string };
 
 export type Seasons = Record<string, { title: string; episodes: Episode[] }>;
 
+export type SimpleSeason = Episode;
+
 export type TargetTab = { tabId: number };
 
 export type QualityItem =
@@ -111,7 +114,7 @@ export type SeasonsRef = {
   setSeasonsList: (seasonsList: Seasons) => void;
 };
 
-export type URLItem = { url: string; size: string; rawSize: number };
+export type URLItem = { url: string; stringSize: string; rawSize: number };
 
 export type URLsContainer = Partial<Record<QualityItem, URLItem>>;
 

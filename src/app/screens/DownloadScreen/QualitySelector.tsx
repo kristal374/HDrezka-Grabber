@@ -57,7 +57,7 @@ export function QualitySelector({ qualityRef }: Props) {
             <>
               {q}
               {/* @ts-ignore */}
-              {sizes && <span className='ml-auto'>{sizes[q]!.size}</span>}
+              {sizes && <span className='ml-auto'>{sizes[q].stringSize}</span>}
             </>
           ),
         }))}

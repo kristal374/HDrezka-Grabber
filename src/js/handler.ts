@@ -1,8 +1,10 @@
 import browser from 'webextension-polyfill';
 import {
   QualitiesList,
+  QualityItem,
   QueryData,
   ResponseVideoData,
+  URLItem,
   URLsContainer,
 } from '../lib/types';
 
@@ -15,22 +17,21 @@ export async function getQualityFileSize(
 
   await Promise.all(
     Object.entries(urlsContainer).map(async ([item, urls]) => {
-      // @ts-ignore
-      urlsSizes[item] = await fetchUrlSizes(urls);
+      urlsSizes[item as QualityItem] = await fetchUrlSizes(urls);
     }),
   );
 
   return urlsSizes;
 }
 
-async function fetchUrlSizes(urlsList: string[]) {
+export async function fetchUrlSizes(urlsList: string[]): Promise<URLItem> {
   const promises = urlsList.map(async (item) => {
-    const size = await getFileSize(item);
-    return { url: urlsList[0], size: formatBytes(size), rawSize: size };
+    const size = (await getFileSize(item)) as number;
+    return { url: urlsList[0], stringSize: formatBytes(size), rawSize: size };
   });
 
   return await Promise.any(promises).catch(() => {
-    return { url: urlsList[0], size: formatBytes(0), rawSize: 0 };
+    return { url: urlsList[0], stringSize: formatBytes(0), rawSize: 0 };
   });
 }
 
@@ -78,6 +79,7 @@ async function addHeaderModificationRule(
           type: 'modifyHeaders',
           requestHeaders: [
             {
+              // I don't know why, but this header in FF uses lowercase
               header: 'Referer',
               operation: 'set',
               value: referer,
@@ -119,6 +121,7 @@ export async function updateVideoData(siteURL: string, data: QueryData) {
   await addHeaderModificationRule(fullURL, url.href, url.origin);
   return await fetch(fullURL, {
     method: 'POST',
+    credentials: 'include',
     body: new URLSearchParams(data),
     headers: {
       Accept: 'application/json, text/javascript, */*; q=0.01',
