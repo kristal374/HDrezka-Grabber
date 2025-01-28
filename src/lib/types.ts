@@ -170,25 +170,35 @@ export type LoadStatus =
   | 'DownloadSuccess'
   | 'StoppedByUser';
 
-export type LoadInfo = {
-  uid: number;
-  download_id: number | null;
-  query_data: FilmData | SerialData;
-  relative_path: string;
-  absolute_path: string | null;
-  local_film_name: string;
-  original_film_name: string | null;
-  filename: string | null;
-  url: string | null;
-  site_url: string;
-  size: { stringSize: string; rawSize: number } | null;
-  voice_over: VoiceOverInfo;
-  season_name?: string;
-  episode_name?: string;
+export type MovieLoadingOptions = {
+  siteUrl: string;
+  filmTitle: {
+    localized: string;
+    original: string | null;
+  };
+  season: SimpleSeason | null;
+  episode: Episode | null;
+  subtitle: string | null;
+  voiceOver: VoiceOverInfo;
   quality: QualityItem;
-  subtitle: Subtitle | null;
-  attempts_retries: number;
-  timestamp: string;
+};
+
+export type FileInfo = {
+  downloadId: number | null;
+  fileName: string | null;
+  realQuality: QualityItem | null;
+  absolutePath: string | null; // Путь к загружаемому файлу
+  urlItem: URLItem | null;
+  saveAs: boolean;
+};
+
+export type LoadItem = {
+  uid: number;
+  queryData: FilmData | SerialData;
+  loadOptions: MovieLoadingOptions;
+  file: FileInfo;
+  retryAttempts: number;
+  createdAt: string;
   status: LoadStatus;
 };
 
@@ -196,11 +206,13 @@ export type Initiator = {
   query_data: FilmData | SerialData;
   site_url: string;
   range: Seasons | null;
-  local_film_name: string;
-  original_film_name: string | null;
+  film_name: {
+    localized: string;
+    original: string | null;
+  };
   voice_over: VoiceOverInfo;
   quality: QualityItem;
-  subtitle: Subtitle | null;
+  subtitle: string | null;
   timestamp: Date | string;
 };
 

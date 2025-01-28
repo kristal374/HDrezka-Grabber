@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 import logger, { logCreate } from './background-logger';
-import { LoadManager } from './LoadManager';
+import { LoadManager } from './load-manager';
 import {
   ActualVideoData,
   DataForUpdate,
@@ -24,7 +24,7 @@ browser.runtime.onMessage.addListener(
       case 'updateVideoInfo':
         return await updateVideoInfo(data.message);
       case 'trigger':
-        return await triggerEvent(data.message);
+        return await loadManager.initNewLoad(data.message);
       default:
         logger.warning(message);
         return true;

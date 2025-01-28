@@ -191,11 +191,13 @@ export function DownloadScreen({ pageType }: Props) {
                   query_data: movieInfo!.data,
                   site_url: movieInfo!.url!,
                   range: range,
-                  local_film_name: movieInfo!.filename.local,
-                  original_film_name: movieInfo!.filename.origin,
+                  film_name: {
+                    localized: movieInfo!.filename.local,
+                    original: movieInfo!.filename.origin,
+                  },
                   voice_over: voiceOver!,
                   quality: qualityRef.current!.quality,
-                  subtitle: subtitleRef.current!.subtitleLang,
+                  subtitle: subtitleRef.current!.subtitleLang?.lang!,
                   timestamp: new Date(),
                 },
               })
