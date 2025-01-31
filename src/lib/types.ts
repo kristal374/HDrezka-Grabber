@@ -56,7 +56,7 @@ export type MovieInfo = {
     local: string;
     origin: string | null;
   };
-  url: string | null;
+  url: string;
 };
 
 export type SubtitleInfo = {
@@ -170,19 +170,6 @@ export type LoadStatus =
   | 'DownloadSuccess'
   | 'StoppedByUser';
 
-export type MovieLoadingOptions = {
-  siteUrl: string;
-  filmTitle: {
-    localized: string;
-    original: string | null;
-  };
-  season: SimpleSeason | null;
-  episode: Episode | null;
-  subtitle: string | null;
-  voiceOver: VoiceOverInfo;
-  quality: QualityItem;
-};
-
 export type FileInfo = {
   downloadId: number | null;
   fileName: string | null;
@@ -194,12 +181,26 @@ export type FileInfo = {
 
 export type LoadItem = {
   uid: number;
+  urlHash: number;
   queryData: FilmData | SerialData;
-  loadOptions: MovieLoadingOptions;
+  season: SimpleSeason | null;
+  episode: Episode | null;
   file: FileInfo;
   retryAttempts: number;
-  createdAt: string;
   status: LoadStatus;
+};
+
+export type LoadConfig = {
+  siteUrl: string;
+  filmTitle: {
+    localized: string;
+    original: string | null;
+  };
+  subtitle: string | null;
+  voiceOver: VoiceOverInfo;
+  quality: QualityItem;
+  loadItems: number[];
+  createdAt: string;
 };
 
 export type Initiator = {

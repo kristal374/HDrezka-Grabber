@@ -5,8 +5,8 @@ import {
   FileInfo,
   FilmData,
   Initiator,
+  LoadConfig,
   LoadItem,
-  MovieLoadingOptions,
   QualityItem,
   SerialData,
   SimpleSeason,
@@ -14,6 +14,7 @@ import {
 } from '../lib/types';
 import { fetchUrlSizes, getQualityFileSize, updateVideoData } from './handler';
 import { decodeVideoURL } from '../lib/link-processing';
+import { hashCode } from '../lib/utils';
 
 function AwaitProcessingAccess<T extends { [key: string]: any }>() {
   // Декоратор позволяющй дождаться полной инициализации класса
@@ -89,6 +90,7 @@ export class LoadManager {
   private askAboutLoadingLocation: boolean = true;
 
   private storage: Record<number, LoadItem> = {};
+  private urlStorage: Record<number, LoadConfig[]> = {};
   private activeDownloads: number[] = [];
   private queue: (number | number[])[] = [];
 
@@ -140,7 +142,8 @@ export class LoadManager {
     this.maxEpisodeDownloads =
       allData['maxEpisodeDownloads'] || this.maxEpisodeDownloads;
 
-    this.storage = this.prepareStorageData(allData);
+    this.storage = this.prepareSpecificData(allData, 'd');
+    this.urlStorage = this.prepareSpecificData(allData, 'u');
     this.activeDownloads = this.createProxyForObject(
       allData['activeDownloads'] || this.activeDownloads,
       'activeDownloads',
@@ -153,15 +156,18 @@ export class LoadManager {
     logger.info('LoadManager is ready to go.');
   }
 
-  prepareStorageData(allData: Record<string, any>) {
+  prepareSpecificData(allData: Record<string, any>, keyIdentifier: string) {
     // Подготавливает данные из хранилища для работы с объектами, создаёт прокси.
     // Возвращает связанный объект-прокси с хранилищем.
-    const storage: Record<number, LoadItem> = Object.entries(allData)
-      .filter(([key, _value]) => key.startsWith('d-'))
+    const specificData: Record<number, any> = Object.entries(allData)
+      .filter(([key, _value]) => key.startsWith(`${keyIdentifier}-`))
       .reduce(
         (acc, [key, value]) => {
-          const uid = parseInt(key.split('-')[1]);
-          acc[uid] = this.createProxyForObject(value, `d-${uid}`);
+          const realKey = parseInt(key.split('-')[1]);
+          acc[realKey] = this.createProxyForObject(
+            value,
+            `${keyIdentifier}-${realKey}`,
+          );
           return acc;
         },
         {} as { [uid: string]: any },
@@ -177,11 +183,11 @@ export class LoadManager {
         newValue: any,
         receiver: any,
       ): boolean {
-        save(`d-${prop}`, newValue);
+        save(`${keyIdentifier}-${prop}`, newValue);
         return Reflect.set(
           target,
           prop,
-          makeProxy(newValue, `d-${prop}`),
+          makeProxy(newValue, `${keyIdentifier}-${prop}`),
           receiver,
         );
       },
@@ -190,13 +196,13 @@ export class LoadManager {
         prop: string | symbol,
       ): boolean {
         if (target[prop]) {
-          browser.storage.local.remove(`d-${prop}`);
+          browser.storage.local.remove(`${keyIdentifier}-${prop}`);
           delete target[prop];
         }
         return true;
       },
     };
-    return new Proxy(storage, handler);
+    return new Proxy(specificData, handler);
   }
 
   @AwaitProcessingAccess()
@@ -218,6 +224,13 @@ export class LoadManager {
     }
     logger.info('Creating new load.');
     const loadItems: LoadItem[] = await this.makeLoadItemArray(initiator);
+
+    if (!this.urlStorage[hashCode(initiator.site_url)])
+      this.urlStorage[hashCode(initiator.site_url)] = [];
+    const loadConfig = this.createLoadConfig(initiator);
+    loadConfig.loadItems = loadItems.map((item) => item.uid);
+    this.urlStorage[hashCode(initiator.site_url)].push(loadConfig);
+
     await this.enqueueDownload(loadItems);
     return await this.startNextLoad();
   }
@@ -247,6 +260,22 @@ export class LoadManager {
     return loadItemArray;
   }
 
+  private createLoadConfig(initiator: Initiator): LoadConfig {
+    const filmTitle = {
+      localized: initiator.film_name.localized,
+      original: initiator.film_name.original,
+    };
+    return {
+      siteUrl: initiator.site_url,
+      filmTitle: filmTitle,
+      subtitle: initiator.subtitle,
+      voiceOver: initiator.voice_over,
+      quality: initiator.quality,
+      loadItems: [],
+      createdAt: initiator.timestamp as string,
+    };
+  }
+
   private createLoadItem(
     initiator: Initiator,
     season?: SimpleSeason,
@@ -272,19 +301,6 @@ export class LoadManager {
             favs: initiator.query_data.favs,
             action: initiator.query_data.action,
           };
-    const filmTitle = {
-      localized: initiator.film_name.localized,
-      original: initiator.film_name.original,
-    };
-    const loadOptions: MovieLoadingOptions = {
-      siteUrl: initiator.site_url,
-      filmTitle: filmTitle,
-      season: season || null,
-      episode: episode || null,
-      subtitle: initiator.subtitle,
-      voiceOver: initiator.voice_over,
-      quality: initiator.quality,
-    };
     const file: FileInfo = {
       downloadId: null,
       fileName: null,
@@ -295,35 +311,39 @@ export class LoadManager {
     };
     return {
       uid: ++this.lastUId,
+      urlHash: hashCode(initiator.site_url),
       queryData,
-      loadOptions,
+      season: season || null,
+      episode: episode || null,
       file,
       retryAttempts: 0,
-      createdAt: initiator.timestamp as string,
       status: 'LoadCandidate',
     };
   }
 
-  async findActiveDownloads(siteURL: string): Promise<number[]> {
+  async findActiveDownloads(siteUrl: string): Promise<number[]> {
     // Возвращает список uid активных загрузок для заданного url
     const activeDownloads: number[] = [];
-    const matchingItems = Object.values(this.storage).filter(
-      (item) => item.loadOptions.siteUrl === siteURL,
-    );
+    const currentSiteDownloads: LoadConfig[] =
+      this.urlStorage[hashCode(siteUrl)]?.filter(
+        (item) => item.siteUrl === siteUrl,
+      ) || [];
 
-    if (matchingItems.length === 0) return activeDownloads;
+    if (currentSiteDownloads.length === 0) return activeDownloads;
 
-    for (const item of matchingItems) {
-      if (
-        [
-          'DownloadSuccess',
-          'DownloadFailed',
-          'StoppedByUser',
-          'InitiationError',
-        ].includes(item.status)
-      )
-        continue;
-      activeDownloads.push(item.uid);
+    for (const loads of currentSiteDownloads) {
+      for (const itemUId of loads.loadItems) {
+        if (
+          [
+            'DownloadSuccess',
+            'DownloadFailed',
+            'StoppedByUser',
+            'InitiationError',
+          ].includes(this.storage[itemUId].status)
+        )
+          continue;
+        activeDownloads.push(itemUId);
+      }
     }
     return activeDownloads;
   }
@@ -458,21 +478,22 @@ export class LoadManager {
   ): Promise<[URLItem, QualityItem] | [null, null]> {
     // Отвечает за получение и декодирования URL видео, так же если
     // запрашиваемое качество отсутствует в списке автоматически понижает его
+    const loadConfig = this.findLoadConfig(loadItem.urlHash, loadItem.uid);
+
+    if (!loadConfig) return [null, null];
     const newVideoData = await updateVideoData(
-      loadItem.loadOptions.siteUrl,
+      loadConfig.siteUrl,
       loadItem.queryData,
     );
     if (!newVideoData.success || !newVideoData.url) return [null, null];
     const qualitiesList = decodeVideoURL(newVideoData.url)!;
 
-    if (loadItem.loadOptions.quality in qualitiesList) {
-      const urlItem = await fetchUrlSizes(
-        qualitiesList[loadItem.loadOptions.quality]!,
-      );
-      if (urlItem.rawSize > 0) return [urlItem, loadItem.loadOptions.quality];
+    if (loadConfig.quality in qualitiesList) {
+      const urlItem = await fetchUrlSizes(qualitiesList[loadConfig.quality]!);
+      if (urlItem.rawSize > 0) return [urlItem, loadConfig.quality];
     }
 
-    delete qualitiesList[loadItem.loadOptions.quality];
+    delete qualitiesList[loadConfig.quality];
     const qualitySizes = await getQualityFileSize(qualitiesList);
     if (qualitySizes === null) return [null, null];
     const qualityArr: QualityItem[] = [
@@ -487,7 +508,7 @@ export class LoadManager {
 
     let qualityPassedFlag = false;
     for (const qualityItem of qualityArr) {
-      if (qualityPassedFlag || loadItem.loadOptions.quality === qualityItem) {
+      if (qualityPassedFlag || loadConfig.quality === qualityItem) {
         qualityPassedFlag = true;
         if (
           !(
@@ -507,12 +528,16 @@ export class LoadManager {
     // Формирует итоговое имя для загружаемого файла
     // на основе шаблона пользователя и данных загрузки
     // TODO: Создать логику формирования имени файла в зависимости от шаблона пользователя
-    const filmTitle =
-      loadItem.loadOptions.filmTitle.original ||
-      loadItem.loadOptions.filmTitle.localized;
-    const filename = filmTitle.split('/')[0].replace(/\s/g, '_');
-    const season = loadItem.loadOptions?.season!.title;
-    const episode = loadItem.loadOptions?.episode!.title;
+    const loadConfig = this.findLoadConfig(loadItem.urlHash, loadItem.uid)!;
+    const filmTitle: string =
+      loadConfig.filmTitle.original || loadConfig.filmTitle.localized;
+    const filename = filmTitle
+      .split('/')[0]
+      .trim()
+      .replace(/\s/g, '_')
+      .replace(/[:;]+/, '');
+    const season = loadItem?.season!.title;
+    const episode = loadItem?.episode!.title;
     const seasonNumber = season?.match(/Сезон\s(\d+(?:-\d+)?)/);
     const episodeNumber = episode?.match(/Серия\s(\d+(?:-\d+)?)/);
     const postfix = season
@@ -651,6 +676,14 @@ export class LoadManager {
       if (loadItem.file.downloadId === downloadId) return loadItem.uid;
     }
     return null;
+  }
+
+  private findLoadConfig(siteUrlHash: number, uid: number): LoadConfig | null {
+    return (
+      this.urlStorage[siteUrlHash].find((item) =>
+        item.loadItems.includes(uid),
+      ) || null
+    );
   }
 
   async saveInStorage(objName: string, data: any): Promise<void> {
