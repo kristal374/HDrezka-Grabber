@@ -56,7 +56,7 @@ export function sliceSeasons(
   return result;
 }
 
-export function hashCode(s): number {
+export function hashCode(s: string): number {
   return (
     s.split('').reduce(function (a, b) {
       a = (a << 5) - a + b.charCodeAt(0);

@@ -3,7 +3,11 @@ import { Logger, printLog } from '../lib/logger';
 import { LogMessage } from '../lib/types';
 
 const logger = new Logger('/src/js/background.js.map');
-let id: number = browser.storage.session.get(['id'])['id'] || 0;
+
+let id: number = 0;
+browser.storage.session.get(['id']).then((result) => {
+  id = (result as Record<string, number>)?.['id'] || 0;
+});
 
 globalThis.addEventListener('logCreate', async (event) => {
   // Поскольку browser.runtime.sendMessage не отправляет сообщения в контекст

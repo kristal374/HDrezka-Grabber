@@ -38,7 +38,7 @@ async function extractSeasons(seasons: string) {
     .split('</li>')
     .filter((item) => item.trim() !== '');
   seasonsList.forEach((line) => {
-    const [_, seasonID, seasonTitle] = line.match(/data-tab_id="(\d+)">(.*)$/);
+    const [_, seasonID, seasonTitle] = line.match(/data-tab_id="(\d+)">(.*)$/)!;
     seasonsStorage[seasonID] = { title: seasonTitle, episodes: [] };
   });
   return seasonsStorage;
@@ -58,7 +58,7 @@ async function extractAllEpisodes(serverResponse: ResponseVideoData) {
     episodesList.forEach((line) => {
       const [_, seasonID, episodeId, EpisodeTitle] = line.match(
         /data-season_id="(\d+)" data-episode_id="(\d+)">(.*)$/,
-      );
+      )!;
       seasonsStorage[seasonID].episodes.push({
         id: episodeId,
         title: EpisodeTitle,

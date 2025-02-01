@@ -5,7 +5,6 @@ import { Layout } from '../components/Layout';
 import { ErrorFallback } from './ErrorFallback';
 import { init } from './initialization';
 import { InitialDataProvider } from './providers/InitialDataProvider';
-import { Router } from './Router';
 import { DefaultScreen } from './screens/DefaultScreen';
 
 export function App({ children }: React.PropsWithChildren) {
@@ -20,7 +19,7 @@ export function App({ children }: React.PropsWithChildren) {
           }
         >
           <InitialDataProvider initPromise={init()}>
-            <Router />
+            {children}
           </InitialDataProvider>
         </Suspense>
       </ErrorBoundary>

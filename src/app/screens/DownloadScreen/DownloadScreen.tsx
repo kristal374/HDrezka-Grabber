@@ -60,8 +60,8 @@ export function DownloadScreen({ pageType }: Props) {
   );
 
   useEffect(() => {
-    // При обновление озвучки мы должны обновить список эпизодов(если есть),
-    // после, мы должны установить стартовый сезон и эпизод. В следствии чего
+    // При обновлении озвучки мы должны обновить список эпизодов(если есть),
+    // после, мы должны установить стартовый сезон и эпизод. Вследствие чего
     // должен измениться range, где мы для первого эпизода должны получить
     // список доступных качеств и субтитров. Но при этом все данные уже придут
     // актуальными с сервера и мы не должны обновлять данные эпизода.
@@ -78,7 +78,7 @@ export function DownloadScreen({ pageType }: Props) {
       .sendMessage<Message<DataForUpdate>>({
         type: 'updateVideoInfo',
         message: {
-          siteURL: movieInfo!.url!,
+          siteURL: movieInfo!.url,
           movieData:
             pageType === 'SERIAL'
               ? {
@@ -149,7 +149,7 @@ export function DownloadScreen({ pageType }: Props) {
       .sendMessage<Message<DataForUpdate>>({
         type: 'updateVideoInfo',
         message: {
-          siteURL: movieInfo!.url!,
+          siteURL: movieInfo!.url,
           movieData: {
             id: movieInfo!.data.id,
             translator_id: voiceOver!.id,
@@ -230,7 +230,7 @@ export function DownloadScreen({ pageType }: Props) {
 
         <SubtitleSelector subtitleRef={subtitleRef} />
         {/*TODO: скрывать разделитель после закрытия ошибки если нет других элементов*/}
-        {/*Добавляем разделитель если это сериал или есть субтитры или ошибка*/}
+        {/*Добавляем разделитель если это сериал или есть субтитры, или ошибка*/}
         {(pageType === 'SERIAL' ||
           movieInfo?.subtitle?.subtitle ||
           notificationString) && (

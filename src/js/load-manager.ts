@@ -17,11 +17,11 @@ import { decodeVideoURL } from '../lib/link-processing';
 import { hashCode } from '../lib/utils';
 
 function AwaitProcessingAccess<T extends { [key: string]: any }>() {
-  // Декоратор позволяющй дождаться полной инициализации класса
+  // Декоратор позволяющий дождаться полной инициализации класса
   // перед вызовом метода
   return function (
-    target: T,
-    propertyKey: string,
+    _target: T,
+    _propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value;
@@ -44,10 +44,10 @@ function createProxy<T extends object>(
   target: T,
   objName: string,
   saveInStorage: (objName: string, data: any) => Promise<void>,
-  realTarget?: T,
+  realTarget?: any,
 ): T {
   // Создаёт объект прокси связывающий js объект с хранилищем
-  // расширения что позволяет синхронизировать изменения между
+  // расширения, что позволяет синхронизировать изменения между
   // двумя объектами не заботясь о ручном обновлении данных
   const proxiesCache = new WeakMap<object, any>();
 
@@ -109,7 +109,7 @@ export class LoadManager {
       chrome.downloads.onDeterminingFilename.addListener(
         (item: any, suggest: Function) => {
           // Когда начинается загрузка "рекомендует" имя для загружаемого файла.
-          // Актуально только для хрома и реализовано исключительно во избежании
+          // Актуально только для хрома и реализовано исключительно во избежание
           // конфликтов с другими расширениями которые могут назначать имена файлов.
           const uId = this.getUIdFromDownloadId(item.id);
           if (uId === null) return true;
@@ -178,26 +178,28 @@ export class LoadManager {
 
     const handler: ProxyHandler<Record<number, LoadItem>> = {
       set(
-        target: Record<number, LoadItem>,
-        prop: string | symbol,
+        target: Record<number, any>,
+        prop: string | symbol | number,
         newValue: any,
         receiver: any,
       ): boolean {
-        save(`${keyIdentifier}-${prop}`, newValue);
+        const targetKey = `${keyIdentifier}-${String(prop)}`;
+        save(targetKey, newValue);
         return Reflect.set(
           target,
           prop,
-          makeProxy(newValue, `${keyIdentifier}-${prop}`),
+          makeProxy(newValue, targetKey),
           receiver,
         );
       },
       deleteProperty(
-        target: Record<number, LoadItem>,
-        prop: string | symbol,
+        target: Record<number, any>,
+        prop: string | symbol | number,
       ): boolean {
-        if (target[prop]) {
-          browser.storage.local.remove(`${keyIdentifier}-${prop}`);
-          delete target[prop];
+        const targetKey = `${keyIdentifier}-${String(prop)}`;
+        if (target[prop as number]) {
+          browser.storage.local.remove(targetKey);
+          delete target[prop as number];
         }
         return true;
       },
@@ -236,7 +238,7 @@ export class LoadManager {
   }
 
   async makeLoadItemArray(initiator: Initiator): Promise<LoadItem[]> {
-    // Формирует массив объектов на основе которых будет производится загрузка
+    // Формирует массив объектов на основе которых будет производиться загрузка
     const loadItemArray: LoadItem[] = [];
     if (initiator.query_data.action === 'get_stream') {
       for (const [s, data] of Object.entries(initiator.range!)) {
@@ -392,7 +394,7 @@ export class LoadManager {
   }
 
   private async startNextLoad(): Promise<number> {
-    // Отеает за правильную последовательность инициализации
+    // Отвечает за правильную последовательность инициализации
     // загрузки, а так же запускает её
     logger.info('Attempt starting load.');
     const nextLoadObj = await this.getNextObjectForLoad();
@@ -402,7 +404,10 @@ export class LoadManager {
       return 0;
     }
 
-    logger.debug('Start initiating download for:', nextLoadObj['origin']);
+    logger.debug(
+      'Start initiating download for:',
+      (nextLoadObj as any)['origin'],
+    );
     nextLoadObj.status = 'InitiatingDownload';
     this.activeDownloads.push(nextLoadObj.uid);
 
@@ -448,7 +453,7 @@ export class LoadManager {
   }
 
   private async getNextObjectForLoad(): Promise<LoadItem | null> {
-    // Отвечает за получение объекта на основе которого будет производится загрузка
+    // Отвечает за получение объекта на основе которого будет производиться загрузка
     if (
       this.queue.length === 0 ||
       this.activeDownloads.length >= this.maxDownloads
@@ -536,13 +541,15 @@ export class LoadManager {
       .trim()
       .replace(/\s/g, '_')
       .replace(/[:;]+/, '');
-    const season = loadItem?.season!.title;
-    const episode = loadItem?.episode!.title;
-    const seasonNumber = season?.match(/Сезон\s(\d+(?:-\d+)?)/);
-    const episodeNumber = episode?.match(/Серия\s(\d+(?:-\d+)?)/);
-    const postfix = season
-      ? `_S${seasonNumber ? seasonNumber[1] : season}_E${episodeNumber ? episodeNumber[1] : episode}`
-      : '';
+
+    let postfix = '';
+    if (loadItem.queryData.action === 'get_stream') {
+      const season = loadItem!.season!.title;
+      const episode = loadItem!.episode!.title;
+      const seasonNumber = season?.match(/Сезон\s(\d+(?:-\d+)?)/);
+      const episodeNumber = episode?.match(/Серия\s(\d+(?:-\d+)?)/);
+      postfix = `_S${seasonNumber ? seasonNumber[1] : season}_E${episodeNumber ? episodeNumber[1] : episode}`;
+    }
     return `${filename}${postfix}.mp4`;
   }
 
@@ -613,7 +620,7 @@ export class LoadManager {
   }
 
   async resumeLoad(uID: number) {
-    // Обработчик возобнавления загрузки
+    // Обработчик возобновления загрузки
     logger.debug('Download resumed:', uID);
     this.storage[uID].status = 'Loading';
     browser.downloads.resume(this.storage[uID].file.downloadId!).then();
@@ -671,7 +678,7 @@ export class LoadManager {
   }
 
   private getUIdFromDownloadId(downloadId: number) {
-    // Находит UID которому соответствует ID загрузки
+    // Находит UID которому, соответствует ID загрузки
     for (const loadItem of Object.values(this.storage)) {
       if (loadItem.file.downloadId === downloadId) return loadItem.uid;
     }
