@@ -1,11 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { Menu } from '../../../components/Menu';
+import { useEffect, useRef } from 'react';
 import { DownloadIcon, LoadAnimation } from '../../../components/Icons';
-import { QualitySelector } from './QualitySelector';
-import { SubtitleSelector } from './SubtitleSelector';
-import { EpisodeRangeSelector } from './EpisodeRangeSelector';
-import { VoiceOverSelector } from './VoiceOverSelector';
-import { useMovieInfo } from '../../hooks/useMovieInfo';
+import { Menu } from '../../../components/Menu';
 import type {
   ActualVideoData,
   DataForUpdate,
@@ -22,8 +17,14 @@ import type {
   VoiceOverInfo,
 } from '../../../lib/types';
 import { SeasonsRef } from '../../../lib/types';
-import { NotificationField } from './NotificationField';
+import { useMovieInfo } from '../../hooks/useMovieInfo';
+import { useStorage } from '../../hooks/useStorage';
 import { DefaultScreen } from '../DefaultScreen';
+import { EpisodeRangeSelector } from './EpisodeRangeSelector';
+import { NotificationField } from './NotificationField';
+import { QualitySelector } from './QualitySelector';
+import { SubtitleSelector } from './SubtitleSelector';
+import { VoiceOverSelector } from './VoiceOverSelector';
 
 type Props = {
   pageType: PageType;
@@ -36,18 +37,25 @@ type CurrentEpisode = {
 
 export function DownloadScreen({ pageType }: Props) {
   const notificationString = null;
-  const movieInfo = useMovieInfo(pageType);
-  const [voiceOver, setVoiceOver] = useState<VoiceOverInfo | null>(null);
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const movieInfo = useMovieInfo();
+  const [voiceOver, setVoiceOver] = useStorage<VoiceOverInfo | null>(
+    'voiceOver',
+    null,
+  );
+  const [isFirstLoad, setIsFirstLoad] = useStorage('isFirstLoad', true);
 
-  const [downloadSerial, setDownloadSerial] = useState(false);
+  const [downloadSerial, setDownloadSerial] = useStorage(
+    'downloadSerial',
+    false,
+  );
   const seasonsRef = useRef<SeasonsRef | null>(null);
-  const [range, setRange] = useState<Seasons | null>(null);
+  const [range, setRange] = useStorage<Seasons | null>('range', null);
 
   const qualityRef = useRef<QualityRef | null>(null);
   const subtitleRef = useRef<SubtitleRef | null>(null);
 
-  const [currentEpisode, setCurrentEpisode] = useState<CurrentEpisode | null>(
+  const [currentEpisode, setCurrentEpisode] = useStorage<CurrentEpisode | null>(
+    'currentEpisode',
     null,
   );
 
@@ -212,7 +220,6 @@ export function DownloadScreen({ pageType }: Props) {
         <NotificationField notificationString={notificationString} />
 
         <EpisodeRangeSelector
-          pageType={pageType}
           seasonsRef={seasonsRef}
           defaultSeasonStart={(movieInfo?.data as SerialData).season}
           defaultEpisodeStart={(movieInfo?.data as SerialData).episode}

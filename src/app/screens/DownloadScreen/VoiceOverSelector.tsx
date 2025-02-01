@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { PremiumIcon } from '../../../components/Icons';
 import {
   Select,
   SelectContent,
@@ -5,10 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../components/Select';
-import { useVoiceOver } from '../../hooks/useVoiceOver';
-import { useEffect } from 'react';
 import { PageType, SetState, VoiceOverInfo } from '../../../lib/types';
-import { PremiumIcon } from '../../../components/Icons';
+import { useVoiceOver } from '../../hooks/useVoiceOver';
 
 type Props = {
   pageType: PageType;
@@ -31,7 +31,7 @@ export function VoiceOverSelector({
   setVoiceOver,
   downloadSerial,
 }: Props) {
-  const voiceOverList = useVoiceOver(pageType);
+  const voiceOverList = useVoiceOver();
 
   useEffect(() => {
     if (!voiceOverList) return;

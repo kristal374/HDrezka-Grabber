@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useStorage } from '../../hooks/useStorage';
 
 type Props = {
   notificationString: string | null;
 };
 
 export function NotificationField({ notificationString }: Props) {
-  const [notification, setNotification] = useState<string | null>(
+  const [notification, setNotification] = useStorage<string | null>(
+    'notification',
     notificationString,
   );
 

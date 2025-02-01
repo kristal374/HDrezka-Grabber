@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
-import { PageType, Seasons } from '../../lib/types';
-import { useTabID } from '../providers/CurrentTabProvider';
+import { useEffect } from 'react';
+import { Seasons } from '../../lib/types';
+import { useInitData } from '../providers/InitialDataProvider';
+import { useStorage } from './useStorage';
 
-export function useEpisodes(pageType: PageType) {
-  const tabID = useTabID();
-  const [seasons, setSeasons] = useState<Seasons | null>(null);
+export function useEpisodes() {
+  const { tabID, pageType } = useInitData();
+  const [seasons, setSeasons] = useStorage<Seasons | null>('seasons', null);
 
   useEffect(() => {
-    if (!tabID || pageType !== 'SERIAL') return;
+    if (pageType !== 'SERIAL') return;
 
     browser.scripting
       .executeScript({
@@ -19,7 +20,7 @@ export function useEpisodes(pageType: PageType) {
         // logger.debug(result);
         setSeasons(result);
       });
-  }, [tabID, pageType]);
+  }, []);
 
   return [seasons, setSeasons] as const;
 }

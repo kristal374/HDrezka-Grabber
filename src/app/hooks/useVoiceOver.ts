@@ -1,30 +1,31 @@
-import { useEffect, useState } from 'react';
-import { PageType, VoiceOverInfo } from '../../lib/types';
-import { useTabID } from '../providers/CurrentTabProvider';
+import { useEffect } from 'react';
+import { VoiceOverInfo } from '../../lib/types';
+import { useInitData } from '../providers/InitialDataProvider';
+import { useStorage } from './useStorage';
 
-export function useVoiceOver(pageType: PageType) {
-  const tabID = useTabID();
-  const [translate, setTranslate] = useState<VoiceOverInfo[] | null>(null);
+export function useVoiceOver() {
+  const { tabID } = useInitData();
+  const [voiceOversList, setVoiceOversList] = useStorage<
+    VoiceOverInfo[] | null
+  >('voiceOversList', null);
 
   useEffect(() => {
-    if (!tabID || !pageType) return;
-
     browser.scripting
       .executeScript({
         target: { tabId: tabID },
-        func: extractTranslate,
+        func: extractVoiceOversList,
       })
       .then((response) => {
         const result = response[0].result as VoiceOverInfo[] | null;
 
-        setTranslate(result);
+        setVoiceOversList(result);
       });
-  }, [tabID, pageType]);
+  }, []);
 
-  return translate;
+  return voiceOversList;
 }
 
-async function extractTranslate(): Promise<VoiceOverInfo[] | null> {
+async function extractVoiceOversList(): Promise<VoiceOverInfo[] | null> {
   const translators: VoiceOverInfo[] = [];
 
   const translatorItems = document.querySelectorAll('.b-translator__item');
@@ -35,6 +36,7 @@ async function extractTranslate(): Promise<VoiceOverInfo[] | null> {
       const voiceOver: VoiceOverInfo = {
         id: itemID,
         title:
+          // TODO: useI18n
           itemTitle ||
           (itemID === '110'
             ? 'Оригинал'

@@ -1,21 +1,34 @@
-import { Combobox } from '../../../components/Combobox';
+import { Ref, useEffect, useImperativeHandle } from 'react';
 import { Checkbox } from '../../../components/Checkbox';
-import { Ref, useEffect, useImperativeHandle, useState } from 'react';
-import { Subtitle, SubtitleInfo, SubtitleRef } from '../../../lib/types';
+import { Combobox } from '../../../components/Combobox';
 import {
   decodeSubtitleURL,
   getTargetSubtitle,
 } from '../../../lib/link-processing';
+import { Subtitle, SubtitleInfo, SubtitleRef } from '../../../lib/types';
+import { useStorage } from '../../hooks/useStorage';
 
 type Props = {
   subtitleRef: Ref<SubtitleRef>;
 };
 
 export function SubtitleSelector({ subtitleRef }: Props) {
-  const [subtitlesInfo, setSubtitlesInfo] = useState<SubtitleInfo | null>(null);
-  const [subtitlesList, setSubtitleList] = useState<Subtitle[] | null>(null);
-  const [subtitleLang, setSubtitleLang] = useState<Subtitle | null>(null);
-  const [downloadSubtitle, setDownloadSubtitle] = useState(false);
+  const [subtitlesInfo, setSubtitlesInfo] = useStorage<SubtitleInfo | null>(
+    'subtitlesInfo',
+    null,
+  );
+  const [subtitlesList, setSubtitleList] = useStorage<Subtitle[] | null>(
+    'subtitlesList',
+    null,
+  );
+  const [subtitleLang, setSubtitleLang] = useStorage<Subtitle | null>(
+    'subtitleLang',
+    null,
+  );
+  const [downloadSubtitle, setDownloadSubtitle] = useStorage(
+    'downloadSubtitle',
+    false,
+  );
 
   useEffect(() => {
     if (!subtitlesInfo?.subtitle) {

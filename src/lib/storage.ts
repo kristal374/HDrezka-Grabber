@@ -12,9 +12,6 @@ export async function setToStorage<T>(key: string, value: T) {
 }
 
 export async function createDefaultSettings() {
-  const storage = await browser.storage.local.get('darkMode');
-  if (Object.keys(storage).length !== 0) return;
-
   await setToStorage('debugFlag', true);
   await setToStorage('darkMode', true);
 
@@ -23,4 +20,10 @@ export async function createDefaultSettings() {
   await setToStorage('activeDownloads', []);
   await setToStorage('queue', []);
   await setToStorage('lastUId', 0);
+}
+
+export async function loadSessionStorageSave(tabID: number) {
+  const key = `t-${tabID}`;
+  const sessionStorage = await browser.storage.session.get(key);
+  return (sessionStorage[key] || {}) as Record<string, any>;
 }

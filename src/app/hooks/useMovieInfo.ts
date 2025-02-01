@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react';
-import { MovieInfo, PageType } from '../../lib/types';
-import { useTabID } from '../providers/CurrentTabProvider';
+import { useEffect } from 'react';
+import { MovieInfo } from '../../lib/types';
+import { useInitData } from '../providers/InitialDataProvider';
+import { useStorage } from './useStorage';
 
-export function useMovieInfo(pageType: PageType) {
-  const tabID = useTabID();
-  const [movieInfo, setMovieInfo] = useState<MovieInfo | null>(null);
+export function useMovieInfo() {
+  const { tabID } = useInitData();
+  const [movieInfo, setMovieInfo] = useStorage<MovieInfo | null>(
+    'movieInfo',
+    null,
+  );
 
   useEffect(() => {
-    if (!tabID || !pageType) return;
-
     const pathToInjectScript = browser.runtime.getURL(
       'src/js/InjectionScripts/extractMovieInfo.js',
     );
@@ -22,7 +24,7 @@ export function useMovieInfo(pageType: PageType) {
         const result = response[0].result as MovieInfo;
         setMovieInfo(result);
       });
-  }, [tabID, pageType]);
+  }, []);
 
   return movieInfo;
 }

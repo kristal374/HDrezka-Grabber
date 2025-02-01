@@ -1,3 +1,4 @@
+import { Ref, useEffect, useImperativeHandle } from 'react';
 import { Checkbox } from '../../../components/Checkbox';
 import {
   Select,
@@ -6,14 +7,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../components/Select';
-import type { PageType, Seasons, SetState } from '../../../lib/types';
+import type { Seasons, SetState } from '../../../lib/types';
 import { SeasonsRef } from '../../../lib/types';
 import { cn, sliceSeasons } from '../../../lib/utils';
-import { Ref, useEffect, useImperativeHandle, useState } from 'react';
 import { useEpisodes } from '../../hooks/useEpisodes';
+import { useStorage } from '../../hooks/useStorage';
 
 type Props = {
-  pageType: PageType;
   seasonsRef: Ref<SeasonsRef>;
   defaultSeasonStart: string;
   defaultEpisodeStart: string;
@@ -23,7 +23,6 @@ type Props = {
 };
 
 export function EpisodeRangeSelector({
-  pageType,
   seasonsRef,
   defaultSeasonStart,
   defaultEpisodeStart,
@@ -31,11 +30,17 @@ export function EpisodeRangeSelector({
   setDownloadSerial,
   setRange,
 }: Props) {
-  const [seasons, setSeasons] = useEpisodes(pageType);
-  const [seasonFrom, setSeasonFrom] = useState(defaultSeasonStart);
-  const [episodeFrom, setEpisodeFrom] = useState(defaultEpisodeStart);
-  const [seasonTo, setSeasonTo] = useState('-2');
-  const [episodeTo, setEpisodeTo] = useState('');
+  const [seasons, setSeasons] = useEpisodes();
+  const [seasonFrom, setSeasonFrom] = useStorage(
+    'seasonFrom',
+    defaultSeasonStart,
+  );
+  const [episodeFrom, setEpisodeFrom] = useStorage(
+    'episodeFrom',
+    defaultEpisodeStart,
+  );
+  const [seasonTo, setSeasonTo] = useStorage('seasonTo', '-2');
+  const [episodeTo, setEpisodeTo] = useStorage('episodeTo', '');
   const downloadToEnd = Number(seasonTo) < 0;
 
   useEffect(() => {

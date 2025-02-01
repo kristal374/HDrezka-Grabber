@@ -1,15 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import {
   Message,
   QualitiesList,
   SetState,
   URLsContainer,
 } from '../../lib/types';
+import { useStorage } from './useStorage';
 
 export function useQualitySize(
   qualitiesList: QualitiesList | null,
 ): [URLsContainer | null, SetState<URLsContainer | null>] {
-  const [sizes, setSizes] = useState<URLsContainer | null>(null);
+  const [sizes, setSizes] = useStorage<URLsContainer | null>(
+    'qualitySizes',
+    null,
+  );
 
   useEffect(() => {
     if (!qualitiesList) return;
@@ -25,5 +29,5 @@ export function useQualitySize(
       });
   }, [qualitiesList]);
 
-  return [sizes, setSizes];
+  return [sizes, setSizes] as const;
 }
