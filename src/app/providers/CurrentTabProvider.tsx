@@ -22,7 +22,7 @@ export function CurrentTabProvider({ children }: React.PropsWithChildren) {
 }
 
 async function getCurrentTabId() {
-  const tabs = await browser.tabs.query({ active: true });
+  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
   if (tabs && tabs.length > 0) {
     return tabs[0].id;
   } else {
