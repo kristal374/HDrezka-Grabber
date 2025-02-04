@@ -22,8 +22,8 @@ export async function createDefaultSettings() {
   await setToStorage('lastUId', 0);
 }
 
-export async function loadSessionStorageSave(tabID: number) {
-  const key = `t-${tabID}`;
+export async function loadSessionStorageSave(tabId: number) {
+  const key = `t-${tabId}`;
   const sessionStorage = await browser.storage.session.get(key);
   return (sessionStorage[key] || {}) as Record<string, any>;
 }

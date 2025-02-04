@@ -1,3 +1,4 @@
+import { OutsideLink } from '../components/OutsideLink';
 import { PageType } from '../lib/types';
 import { useInitData } from './providers/InitialDataProvider';
 import { DefaultScreen } from './screens/DefaultScreen';
@@ -8,8 +9,11 @@ export function Router() {
 
   logger.debug('Page type defined:', pageType);
   if (pageType === 'FILM' || pageType === 'SERIAL') {
-    return <DownloadScreen pageType={pageType} />;
+    return <DownloadScreen />;
   }
+
+  const isLocationProblem =
+    pageType === 'LOCATION_FILM' || pageType === 'LOCATION_SERIAL';
   const messages = {
     TRAILER: browser.i18n.getMessage('popup_stub_trailer'),
     LOCATION_FILM: browser.i18n.getMessage('popup_stub_locationFilm'),
@@ -19,24 +23,16 @@ export function Router() {
     DEFAULT: (
       <>
         {browser.i18n.getMessage('popup_stub_default')}{' '}
-        <a
-          href='https://hdrezka.ag'
-          target='_blank'
-          className='font-bold text-link-color underline underline-offset-4'
-        >
-          HDrezka.ag
-        </a>
-        !
+        <OutsideLink text={'HDrezka.ag'} />!
       </>
     ),
   } satisfies Record<
     Exclude<PageType, 'FILM' | 'SERIAL'>,
     string | React.ReactNode
   >;
+
   return (
-    <DefaultScreen
-      vpnNotice={pageType === 'LOCATION_FILM' || pageType === 'LOCATION_SERIAL'}
-    >
+    <DefaultScreen vpnNotice={isLocationProblem}>
       {messages[pageType]}
     </DefaultScreen>
   );

@@ -5,7 +5,7 @@ import { Logger } from '../lib/logger';
 
 globalThis.logger = new Logger('/src/js/popup.js.map');
 
-logger.info('Start rendering');
+logger.info('Popup open.');
 
 const element = document.querySelector('body')!;
 const root = createRoot(element);

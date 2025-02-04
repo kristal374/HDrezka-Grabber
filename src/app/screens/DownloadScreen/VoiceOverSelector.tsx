@@ -18,7 +18,6 @@ type Props = {
   is_ads?: string;
   voiceOver: VoiceOverInfo | null;
   setVoiceOver: SetState<VoiceOverInfo | null>;
-  downloadSerial: boolean;
 };
 
 export function VoiceOverSelector({
@@ -29,14 +28,14 @@ export function VoiceOverSelector({
   is_ads,
   voiceOver,
   setVoiceOver,
-  downloadSerial,
 }: Props) {
   const voiceOverList = useVoiceOver();
 
   useEffect(() => {
     if (!voiceOverList) return;
+    logger.debug('Set voiceOverList:', voiceOverList);
     const targetVoiceOver =
-      voiceOverList?.find((voiceOver) =>
+      voiceOverList.find((voiceOver) =>
         pageType === 'SERIAL'
           ? voiceOver.id === defaultVoiceOverId
           : voiceOver.id === defaultVoiceOverId &&
@@ -48,10 +47,7 @@ export function VoiceOverSelector({
   }, [voiceOverList]);
 
   if (!voiceOverList) return null;
-  const isDisabled = pageType === 'SERIAL' && !downloadSerial;
   logger.info('New render VoiceOverSelector component.');
-  logger.debug('VoiceOver component is disabled:', isDisabled);
-
   return (
     <div className='flex items-center gap-2.5'>
       <label htmlFor='voiceOver' className='ml-auto text-sm'>
@@ -61,12 +57,7 @@ export function VoiceOverSelector({
         value={JSON.stringify(voiceOver)}
         onValueChange={(v) => setVoiceOver(JSON.parse(v))}
       >
-        <SelectTrigger
-          id='voiceOver'
-          className='w-[225px] py-1.5'
-          disabled={isDisabled}
-          title={isDisabled ? 'ПНХ' : undefined}
-        >
+        <SelectTrigger id='voiceOver' className='w-[225px] py-1.5'>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

@@ -6,13 +6,12 @@ import {
 import { PageType } from '../lib/types';
 
 export async function init() {
-  logger.info('Popup open');
   await setDarkMode();
-  const tabID = await getCurrentTabID();
-  if (!tabID) return {};
-  const pageType = await getPageType(tabID);
-  const sessionStorage = await loadSessionStorageSave(tabID);
-  return { tabID, pageType, sessionStorage };
+  const tabId = await getCurrentTabID();
+  if (!tabId) return {};
+  const pageType = await getPageType(tabId);
+  const sessionStorage = await loadSessionStorageSave(tabId);
+  return { tabId, pageType, sessionStorage };
 }
 
 async function setDarkMode() {
@@ -29,21 +28,19 @@ async function setDarkMode() {
 
 async function getCurrentTabID() {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-  const tabID = tabs && tabs.length > 0 ? tabs[0].id : undefined;
-  logger.debug(`Current tab id: ${tabID}`);
-  return tabID;
+  const tabId = tabs && tabs.length > 0 ? tabs[0].id : undefined;
+  logger.debug(`Current tab id: ${tabId}`);
+  return tabId;
 }
 
-async function getPageType(tabID: number) {
+async function getPageType(tabId: number) {
   return await browser.scripting
     .executeScript({
-      target: { tabId: tabID },
+      target: { tabId },
       func: extractPageType,
     })
     .then((response) => {
-      const result = response[0].result as PageType;
-      logger.debug(result);
-      return result;
+      return response[0].result as PageType;
     })
     .catch((error) => {
       logger.error(`TypeError: ${error.name}. Message: ${error.message}`);

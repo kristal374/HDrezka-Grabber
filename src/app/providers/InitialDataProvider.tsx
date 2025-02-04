@@ -11,7 +11,7 @@ type Props = {
 
 export function InitialDataProvider({ initPromise, children }: Props) {
   const initData = use(initPromise);
-  if (!initData.tabID) {
+  if (!initData.tabId) {
     throw new Error('Tab ID is undefined');
   }
   return (

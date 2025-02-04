@@ -1,14 +1,11 @@
-import { useEffect, useRef } from 'react';
-import { DownloadIcon, LoadAnimation } from '../../../components/Icons';
+import { useEffect, useRef, useState } from 'react';
 import { Menu } from '../../../components/Menu';
 import type {
   ActualVideoData,
   DataForUpdate,
   Fields,
   FilmData,
-  Initiator,
   Message,
-  PageType,
   QualityRef,
   Seasons,
   SerialData,
@@ -19,30 +16,29 @@ import type {
 import { SeasonsRef } from '../../../lib/types';
 import { useMovieInfo } from '../../hooks/useMovieInfo';
 import { useStorage } from '../../hooks/useStorage';
-import { DefaultScreen } from '../DefaultScreen';
+import { useInitData } from '../../providers/InitialDataProvider';
+import { ProcessingScreen } from '../ProcessingScreen';
 import { EpisodeRangeSelector } from './EpisodeRangeSelector';
+import { LoadButton } from './LoadButton';
 import { NotificationField } from './NotificationField';
 import { QualitySelector } from './QualitySelector';
 import { SubtitleSelector } from './SubtitleSelector';
 import { VoiceOverSelector } from './VoiceOverSelector';
-
-type Props = {
-  pageType: PageType;
-};
 
 type CurrentEpisode = {
   seasonID: string;
   episodeID: string;
 };
 
-export function DownloadScreen({ pageType }: Props) {
+export function DownloadScreen() {
+  const { pageType } = useInitData();
   const notificationString = null;
   const movieInfo = useMovieInfo();
   const [voiceOver, setVoiceOver] = useStorage<VoiceOverInfo | null>(
     'voiceOver',
     null,
   );
-  const [isFirstLoad, setIsFirstLoad] = useStorage('isFirstLoad', true);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   const [downloadSerial, setDownloadSerial] = useStorage(
     'downloadSerial',
@@ -54,8 +50,7 @@ export function DownloadScreen({ pageType }: Props) {
   const qualityRef = useRef<QualityRef | null>(null);
   const subtitleRef = useRef<SubtitleRef | null>(null);
 
-  const [currentEpisode, setCurrentEpisode] = useStorage<CurrentEpisode | null>(
-    'currentEpisode',
+  const [currentEpisode, setCurrentEpisode] = useState<CurrentEpisode | null>(
     null,
   );
 
@@ -178,14 +173,10 @@ export function DownloadScreen({ pageType }: Props) {
 
   if (movieInfo === null || !movieInfo.success) {
     logger.info('"MovieInfo" is missing.');
-    return (
-      <DefaultScreen className='py-12'>
-        <LoadAnimation size={128} fill={'white'}></LoadAnimation>
-      </DefaultScreen>
-    );
+    return <ProcessingScreen />;
   }
-  logger.info('New render DownloadScreen component.');
 
+  logger.info('New render DownloadScreen component.');
   return (
     <div className='flex size-full flex-col gap-5'>
       <div className='relative flex items-center justify-center'>
@@ -245,7 +236,6 @@ export function DownloadScreen({ pageType }: Props) {
           is_ads={(movieInfo?.data as FilmData)?.is_ads}
           voiceOver={voiceOver}
           setVoiceOver={setVoiceOver}
-          downloadSerial={downloadSerial}
         />
         <QualitySelector qualityRef={qualityRef} />
       </div>

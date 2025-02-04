@@ -12,8 +12,8 @@ export function useStorage<T = undefined>(
 ): [T, SetState<T>];
 
 export function useStorage<T>(itemKey: string, defaultValue: T) {
-  const { tabID, sessionStorage } = useInitData();
-  const key = `t-${tabID}`;
+  const { tabId, sessionStorage } = useInitData();
+  const key = `t-${tabId}`;
   const [state, setState] = useState(
     sessionStorage[itemKey] === undefined
       ? defaultValue

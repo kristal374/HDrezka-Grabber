@@ -4,7 +4,7 @@ import { useInitData } from '../providers/InitialDataProvider';
 import { useStorage } from './useStorage';
 
 export function useEpisodes() {
-  const { tabID, pageType } = useInitData();
+  const { tabId, pageType } = useInitData();
   const [seasons, setSeasons] = useStorage<Seasons | null>('seasons', null);
 
   useEffect(() => {
@@ -12,7 +12,7 @@ export function useEpisodes() {
 
     browser.scripting
       .executeScript({
-        target: { tabId: tabID },
+        target: { tabId },
         func: extractSeasons,
       })
       .then((response) => {

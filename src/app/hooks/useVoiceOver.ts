@@ -4,7 +4,7 @@ import { useInitData } from '../providers/InitialDataProvider';
 import { useStorage } from './useStorage';
 
 export function useVoiceOver() {
-  const { tabID } = useInitData();
+  const { tabId } = useInitData();
   const [voiceOversList, setVoiceOversList] = useStorage<
     VoiceOverInfo[] | null
   >('voiceOversList', null);
@@ -12,7 +12,7 @@ export function useVoiceOver() {
   useEffect(() => {
     browser.scripting
       .executeScript({
-        target: { tabId: tabID },
+        target: { tabId },
         func: extractVoiceOversList,
       })
       .then((response) => {

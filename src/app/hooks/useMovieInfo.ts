@@ -4,7 +4,7 @@ import { useInitData } from '../providers/InitialDataProvider';
 import { useStorage } from './useStorage';
 
 export function useMovieInfo() {
-  const { tabID } = useInitData();
+  const { tabId } = useInitData();
   const [movieInfo, setMovieInfo] = useStorage<MovieInfo | null>(
     'movieInfo',
     null,
@@ -16,7 +16,7 @@ export function useMovieInfo() {
     );
     browser.scripting
       .executeScript({
-        target: { tabId: tabID },
+        target: { tabId },
         func: getMovieInfo,
         args: [pathToInjectScript],
       })
