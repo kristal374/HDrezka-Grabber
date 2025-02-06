@@ -1,48 +1,42 @@
-import { Ref, useEffect, useImperativeHandle } from 'react';
+import { useEffect } from 'react';
 import { Combobox } from '../../../components/Combobox';
-import { decodeVideoURL } from '../../../lib/link-processing';
-import type { QualityItem, QualityRef } from '../../../lib/types';
-import { QualitiesList } from '../../../lib/types';
-import { useQualitySize } from '../../hooks/useQualitySize';
-import { useStorage } from '../../hooks/useStorage';
+import {
+  Message,
+  QualitiesList,
+  QualityItem,
+  URLsContainer,
+} from '../../../lib/types';
+import { useAppDispatch, useAppSelector } from '../../../store';
+import {
+  selectCurrentQuality,
+  selectQualitiesList,
+  selectQualitiesSizes,
+  setCurrentQualityAction,
+} from './QualitySelector.slice';
 
-type Props = {
-  qualityRef: Ref<QualityRef>;
-};
+async function getQualitiesSizes(qualitiesList: QualitiesList) {
+  return await browser.runtime
+    .sendMessage<Message<QualitiesList>>({
+      type: 'getFileSize',
+      message: qualitiesList,
+    })
+    .then((response) => {
+      return response as URLsContainer | null;
+    });
+}
 
-export function QualitySelector({ qualityRef }: Props) {
-  const [streams, setStreams] = useStorage<string | undefined>(
-    'streams',
-    undefined,
-  );
-  const [quality, setQuality] = useStorage<QualityItem>('quality', '360p');
-  const [qualitiesList, setQualitiesList] = useStorage<QualitiesList | null>(
-    'qualitiesList',
-    null,
-  );
-  // const [sizes, setSizes] = useQualitySize(qualitiesList); // TODO: вернуть в проде
-  const [sizes, setSizes] = useQualitySize(null);
+export function QualitySelector() {
+  const dispatch = useAppDispatch();
+  const quality = useAppSelector((state) => selectCurrentQuality(state));
+  const qualitiesList = useAppSelector((state) => selectQualitiesList(state));
+  const qualitiesSizes = useAppSelector((state) => selectQualitiesSizes(state));
 
   useEffect(() => {
-    if (!streams) return;
-    const response = decodeVideoURL(streams) as QualitiesList;
-    setQualitiesList(response);
-    const qualities = Object.keys(response) as QualityItem[];
-    setQuality(qualities.at(-1) || '360p');
-  }, [streams]);
-
-  useImperativeHandle(
-    qualityRef,
-    () => ({
-      quality: quality,
-      setStreams: (stream) => {
-        setSizes(null);
-        logger.debug('Set new streams value:', { value: stream });
-        setStreams(stream);
-      },
-    }),
-    [quality],
-  );
+    // if (!qualitiesList || qualitiesSizes !== null) return;
+    // getQualitiesSizes(qualitiesList).then((result) => {
+    //   dispatch(setQualitiesSizesAction({ qualitiesSizes: result }));
+    // }); // TODO: Вернуть в проде
+  }, [qualitiesList]);
 
   if (!qualitiesList) return null;
   logger.info('New render QualitySelector component.');
@@ -54,15 +48,19 @@ export function QualitySelector({ qualityRef }: Props) {
       </label>
       <Combobox
         id='qualities'
-        value={quality}
-        onValueChange={(v) => setQuality(v as QualityItem)}
+        value={quality || Object.keys(qualitiesList).at(-1)}
+        onValueChange={(v) =>
+          dispatch(setCurrentQualityAction({ quality: v as QualityItem }))
+        }
         data={Object.keys(qualitiesList).map((q) => ({
           value: q,
           label: (
             <>
               {q}
-              {/* @ts-ignore */}
-              {sizes && <span className='ml-auto'>{sizes[q].stringSize}</span>}
+              {qualitiesSizes && (
+                // @ts-ignore
+                <span className='ml-auto'>{qualitiesSizes[q].stringSize}</span>
+              )}
             </>
           ),
         }))}

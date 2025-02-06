@@ -1,75 +1,37 @@
-import { Ref, useEffect, useImperativeHandle } from 'react';
 import { Checkbox } from '../../../components/Checkbox';
 import { Combobox } from '../../../components/Combobox';
+import { Subtitle } from '../../../lib/types';
+import { useAppDispatch, useAppSelector } from '../../../store';
 import {
-  decodeSubtitleURL,
-  getTargetSubtitle,
-} from '../../../lib/link-processing';
-import { Subtitle, SubtitleInfo, SubtitleRef } from '../../../lib/types';
-import { useStorage } from '../../hooks/useStorage';
+  selectCurrentSubtitle,
+  selectDownloadSubtitle,
+  selectSubtitleList,
+  setCurrentSubtitleAction,
+  setDownloadSubtitleAction,
+} from './SubtitleSelector.slice';
 
-type Props = {
-  subtitleRef: Ref<SubtitleRef>;
-};
-
-export function SubtitleSelector({ subtitleRef }: Props) {
-  const [subtitlesInfo, setSubtitlesInfo] = useStorage<SubtitleInfo | null>(
-    'subtitlesInfo',
-    null,
-  );
-  const [subtitlesList, setSubtitleList] = useStorage<Subtitle[] | null>(
-    'subtitlesList',
-    null,
-  );
-  const [subtitleLang, setSubtitleLang] = useStorage<Subtitle | null>(
-    'subtitleLang',
-    null,
-  );
-  const [downloadSubtitle, setDownloadSubtitle] = useStorage(
-    'downloadSubtitle',
-    false,
+export function SubtitleSelector() {
+  const dispatch = useAppDispatch();
+  const subtitleLang = useAppSelector((state) => selectCurrentSubtitle(state));
+  const subtitlesList = useAppSelector((state) => selectSubtitleList(state));
+  const downloadSubtitle = useAppSelector((state) =>
+    selectDownloadSubtitle(state),
   );
 
-  useEffect(() => {
-    if (!subtitlesInfo?.subtitle) {
-      setDownloadSubtitle(false);
-      setSubtitleList(null);
-      setSubtitleLang(null);
-      return;
-    }
+  if (subtitlesList === null) return null;
 
-    const subtitleArray = decodeSubtitleURL(subtitlesInfo) as Subtitle[];
-    setSubtitleList(subtitleArray);
-
-    const targetSubtitleItem = getTargetSubtitle(
-      subtitleArray,
-      subtitlesInfo.subtitle_def as string,
-    );
-    setSubtitleLang(targetSubtitleItem);
-  }, [subtitlesInfo]);
-
-  useImperativeHandle(
-    subtitleRef,
-    () => ({
-      subtitleLang: subtitleLang,
-      setSubtitles: (s) => {
-        logger.debug('Set new subtitle:', s);
-        setSubtitlesInfo(s);
-      },
-    }),
-    [subtitleLang],
-  );
-
-  if (subtitlesList === null || subtitleLang === null) return null;
   logger.info('New render SubtitleSelector component.');
-
   return (
     <>
       <div className='flex items-center gap-2.5'>
         <Checkbox
           id='downloadSubtitle'
           checked={downloadSubtitle}
-          onCheckedChange={(value) => setDownloadSubtitle(value as boolean)}
+          onCheckedChange={(value) =>
+            dispatch(
+              setDownloadSubtitleAction({ downloadSubtitle: value as boolean }),
+            )
+          }
         />
         <label htmlFor='downloadSubtitle' className='text-base font-bold'>
           {browser.i18n.getMessage('popup_loadSubtitle')}
@@ -84,7 +46,13 @@ export function SubtitleSelector({ subtitleRef }: Props) {
           <Combobox
             id='subtitles'
             value={JSON.stringify(subtitleLang)}
-            onValueChange={(v, _l) => setSubtitleLang(JSON.parse(v))}
+            onValueChange={(v, _l) =>
+              dispatch(
+                setCurrentSubtitleAction({
+                  subtitle: JSON.parse(v) as Subtitle,
+                }),
+              )
+            }
             data={subtitlesList.map((subtitle) => ({
               value: JSON.stringify(subtitle),
               label: subtitle.lang,

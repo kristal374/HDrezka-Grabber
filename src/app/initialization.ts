@@ -1,17 +1,23 @@
+import { getPageType } from '../extraction-scripts/extractPageType';
 import {
   createDefaultSettings,
   getFromStorage,
   loadSessionStorageSave,
 } from '../lib/storage';
-import { PageType } from '../lib/types';
 
 export async function init() {
   await setDarkMode();
-  const tabId = await getCurrentTabID();
-  if (!tabId) return {};
+  const currentTab = await getCurrentTab();
+
+  if (!currentTab) return {};
+  const tabId = currentTab.id;
+  const siteUrl = currentTab.url?.split('#')[0];
+
+  if (!tabId || !siteUrl) return {};
   const pageType = await getPageType(tabId);
   const sessionStorage = await loadSessionStorageSave(tabId);
-  return { tabId, pageType, sessionStorage };
+
+  return { tabId, siteUrl, pageType, sessionStorage };
 }
 
 async function setDarkMode() {
@@ -26,58 +32,7 @@ async function setDarkMode() {
   }
 }
 
-async function getCurrentTabID() {
+async function getCurrentTab() {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-  const tabId = tabs && tabs.length > 0 ? tabs[0].id : undefined;
-  logger.debug(`Current tab id: ${tabId}`);
-  return tabId;
-}
-
-async function getPageType(tabId: number) {
-  return await browser.scripting
-    .executeScript({
-      target: { tabId },
-      func: extractPageType,
-    })
-    .then((response) => {
-      return response[0].result as PageType;
-    })
-    .catch((error) => {
-      logger.error(`TypeError: ${error.name}. Message: ${error.message}`);
-      return 'ERROR' as PageType;
-    });
-}
-
-async function extractPageType(): Promise<PageType> {
-  const playerConfig = document.documentElement.outerHTML.match(
-    /sof\.tv\.(.*?)\((\d+), (\d+), (\d+), (\d+), (\d+|false|true), '(.*?)', (false|true), ({".*?":.*?})\);/,
-  );
-
-  if (playerConfig === null) {
-    const initFunc =
-      document.documentElement.outerHTML.match(/sof\.tv\.(.*?)\(/);
-    const trailerURL = document
-      .getElementById('videoplayer')
-      ?.children[0].getAttribute('src');
-
-    if (!!trailerURL) return 'TRAILER';
-    if (
-      initFunc !== null &&
-      (initFunc[1] === 'initWatchingEvents' || initFunc[1] === 'initEvents')
-    )
-      return 'UNAVAILABLE';
-    return 'DEFAULT';
-  }
-  const playerInfo = JSON.parse(playerConfig[9]);
-  const argsIsFalse: boolean = Object.values(playerInfo).every(
-    (value) => value === false,
-  );
-
-  if (playerConfig[1] === 'initCDNMoviesEvents' && argsIsFalse)
-    return 'LOCATION_FILM';
-  if (playerConfig[1] === 'initCDNSeriesEvents' && argsIsFalse)
-    return 'LOCATION_SERIAL';
-  if (playerConfig[1] === 'initCDNMoviesEvents') return 'FILM';
-  if (playerConfig[1] === 'initCDNSeriesEvents') return 'SERIAL';
-  return 'ERROR';
+  return tabs && tabs.length > 0 ? tabs[0] : undefined;
 }

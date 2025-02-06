@@ -1,24 +1,22 @@
-import { useStorage } from '../../hooks/useStorage';
+import { useAppDispatch, useAppSelector } from '../../../store';
+import {
+  selectNotification,
+  setNotificationAction,
+} from './NotificationField.slice';
 
-type Props = {
-  notificationString: string | null;
-};
-
-export function NotificationField({ notificationString }: Props) {
-  const [notification, setNotification] = useStorage<string | null>(
-    'notification',
-    notificationString,
-  );
+export function NotificationField() {
+  const dispatch = useAppDispatch();
+  const notification = useAppSelector((state) => selectNotification(state));
 
   if (!notification) return null;
-  logger.info('New render NotificationField component.');
 
+  logger.info('New render NotificationField component.');
   return (
     <div className='relative flex items-center rounded bg-error px-1.5 py-1 text-white'>
       <p className='flex-grow break-all pr-6 text-sm'>{notification}</p>
       <button
         className='absolute right-3 text-sm font-bold text-white'
-        onClick={() => setNotification(null)}
+        onClick={() => dispatch(setNotificationAction({ notification: null }))}
       >
         ✕
       </button>

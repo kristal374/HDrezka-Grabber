@@ -1,8 +1,8 @@
+import commonjs from '@rollup/plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import copy from 'rollup-plugin-copy';
-import commonjs from '@rollup/plugin-commonjs';
 
 export default [
   {
@@ -22,7 +22,7 @@ export default [
             src: [
               'node_modules/webextension-polyfill/dist/browser-polyfill.min.js',
               'node_modules/webextension-polyfill/dist/browser-polyfill.min.js.map',
-              'src/app/hooks/InjectionScripts/',
+              'src/extraction-scripts/InjectionScripts/',
             ],
             dest: 'dist/build/HDrezka-Grabber.build/src/js/',
           },

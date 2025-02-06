@@ -15,6 +15,32 @@ function clearTrash(data: string) {
   return atob(data);
 }
 
+function sortQualitiesList(urlsContainer: QualitiesList): QualitiesList {
+  const qualityArr: QualityItem[] = [
+    '360p',
+    '480p',
+    '720p',
+    '1080p',
+    '1080p Ultra',
+    '2K',
+    '4K',
+  ];
+  const sortedUrlsContainer: QualitiesList = {};
+  qualityArr.forEach((quality) => {
+    if (urlsContainer[quality]) {
+      sortedUrlsContainer[quality] = urlsContainer[quality];
+    }
+  });
+
+  (Object.keys(urlsContainer) as QualityItem[]).forEach((quality) => {
+    if (!sortedUrlsContainer.hasOwnProperty(quality)) {
+      sortedUrlsContainer[quality] = urlsContainer[quality];
+    }
+  });
+
+  return sortedUrlsContainer;
+}
+
 export function decodeVideoURL(stream: string | false): QualitiesList | null {
   if (!stream) return null;
 
@@ -29,7 +55,7 @@ export function decodeVideoURL(stream: string | false): QualitiesList | null {
         .filter((item) => /https?:\/\/.*mp4$/.test(item));
     });
 
-  return urlsContainer;
+  return sortQualitiesList(urlsContainer);
 }
 
 export function decodeSubtitleURL(subtitles: SubtitleInfo | null) {

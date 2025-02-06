@@ -27,3 +27,11 @@ export async function loadSessionStorageSave(tabId: number) {
   const sessionStorage = await browser.storage.session.get(key);
   return (sessionStorage[key] || {}) as Record<string, any>;
 }
+
+export async function saveSessionStorage(
+  tabId: number,
+  data: Record<string, any>,
+) {
+  const key = `t-${tabId}`;
+  await browser.storage.session.set({ [key]: data });
+}

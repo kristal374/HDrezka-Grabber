@@ -7,46 +7,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../components/Select';
-import { PageType, SetState, VoiceOverInfo } from '../../../lib/types';
-import { useVoiceOver } from '../../hooks/useVoiceOver';
+import { getVoiceOverList } from '../../../extraction-scripts/extractVoiceOverList';
+import { useAppDispatch, useAppSelector } from '../../../store';
+import { useInitData } from '../../providers/InitialDataProvider';
+import {
+  selectCurrentVoiceOver,
+  selectVoiceOverList,
+  setVoiceOverAction,
+  setVoiceOverListAction,
+} from './VoiceOverSelector.slice';
 
 type Props = {
-  pageType: PageType;
   defaultVoiceOverId: string;
   is_camrip?: string;
   is_director?: string;
   is_ads?: string;
-  voiceOver: VoiceOverInfo | null;
-  setVoiceOver: SetState<VoiceOverInfo | null>;
 };
 
 export function VoiceOverSelector({
-  pageType,
   defaultVoiceOverId,
   is_camrip,
   is_director,
   is_ads,
-  voiceOver,
-  setVoiceOver,
 }: Props) {
-  const voiceOverList = useVoiceOver();
+  const dispatch = useAppDispatch();
+  const { tabId, pageType } = useInitData();
+  const voiceOverList = useAppSelector((state) => selectVoiceOverList(state));
+  const voiceOver = useAppSelector((state) => selectCurrentVoiceOver(state));
 
   useEffect(() => {
-    if (!voiceOverList) return;
-    logger.debug('Set voiceOverList:', voiceOverList);
-    const targetVoiceOver =
-      voiceOverList.find((voiceOver) =>
-        pageType === 'SERIAL'
-          ? voiceOver.id === defaultVoiceOverId
-          : voiceOver.id === defaultVoiceOverId &&
-            voiceOver.is_camrip === is_camrip &&
-            voiceOver.is_director === is_director &&
-            voiceOver.is_ads === is_ads,
-      ) || null;
-    setVoiceOver(targetVoiceOver);
+    if (voiceOverList !== null) return;
+    getVoiceOverList(tabId).then((result) => {
+      dispatch(setVoiceOverListAction({ voiceOverList: result }));
+      const targetVoiceOver =
+        result?.find((voiceOver) =>
+          pageType === 'SERIAL'
+            ? voiceOver.id === defaultVoiceOverId
+            : voiceOver.id === defaultVoiceOverId &&
+              voiceOver.is_camrip === is_camrip &&
+              voiceOver.is_director === is_director &&
+              voiceOver.is_ads === is_ads,
+        ) || null;
+      dispatch(setVoiceOverAction({ voiceOver: targetVoiceOver }));
+    });
   }, [voiceOverList]);
 
   if (!voiceOverList) return null;
+
   logger.info('New render VoiceOverSelector component.');
   return (
     <div className='flex items-center gap-2.5'>
@@ -55,7 +62,9 @@ export function VoiceOverSelector({
       </label>
       <Select
         value={JSON.stringify(voiceOver)}
-        onValueChange={(v) => setVoiceOver(JSON.parse(v))}
+        onValueChange={(v) =>
+          dispatch(setVoiceOverAction({ voiceOver: JSON.parse(v) }))
+        }
       >
         <SelectTrigger id='voiceOver' className='w-[225px] py-1.5'>
           <SelectValue />

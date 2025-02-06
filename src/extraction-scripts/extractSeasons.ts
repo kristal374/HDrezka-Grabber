@@ -1,28 +1,15 @@
-import { useEffect } from 'react';
-import { Seasons } from '../../lib/types';
-import { useInitData } from '../providers/InitialDataProvider';
-import { useStorage } from './useStorage';
+import { PageType, Seasons } from '../lib/types';
 
-export function useEpisodes() {
-  const { tabId, pageType } = useInitData();
-  const [seasons, setSeasons] = useStorage<Seasons | null>('seasons', null);
-
-  useEffect(() => {
-    if (pageType !== 'SERIAL') return;
-
-    browser.scripting
-      .executeScript({
-        target: { tabId },
-        func: extractSeasons,
-      })
-      .then((response) => {
-        const result = response[0].result as Seasons;
-        // logger.debug(result);
-        setSeasons(result);
-      });
-  }, []);
-
-  return [seasons, setSeasons] as const;
+export async function getSeasons(tabId: number, pageType: PageType) {
+  if (pageType !== 'SERIAL') return null;
+  return await browser.scripting
+    .executeScript({
+      target: { tabId },
+      func: extractSeasons,
+    })
+    .then((response) => {
+      return response[0].result as Seasons;
+    });
 }
 
 async function extractSeasons() {

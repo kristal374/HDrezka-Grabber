@@ -1,58 +1,57 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { DividingLine } from '../../../components/DividingLine';
 import { Menu } from '../../../components/Menu';
+import { getMovieInfo } from '../../../extraction-scripts/extractMovieInfo';
 import type {
   ActualVideoData,
+  CurrentEpisode,
   DataForUpdate,
   Fields,
   FilmData,
   Message,
-  QualityRef,
-  Seasons,
   SerialData,
   SerialFields,
-  SubtitleRef,
-  VoiceOverInfo,
 } from '../../../lib/types';
-import { SeasonsRef } from '../../../lib/types';
-import { useMovieInfo } from '../../hooks/useMovieInfo';
-import { useStorage } from '../../hooks/useStorage';
+import { normalizeJSON } from '../../../lib/utils';
+import { useAppDispatch, useAppSelector } from '../../../store';
 import { useInitData } from '../../providers/InitialDataProvider';
 import { ProcessingScreen } from '../ProcessingScreen';
+import {
+  selectCurrentEpisode,
+  selectMovieInfo,
+  setCurrentEpisodeAction,
+  setMovieInfoAction,
+} from './DownloadScreen.slice';
 import { EpisodeRangeSelector } from './EpisodeRangeSelector';
+import { selectRange, setSeasonsAction } from './EpisodeRangeSelector.slice';
 import { LoadButton } from './LoadButton';
 import { NotificationField } from './NotificationField';
+import { selectNotification } from './NotificationField.slice';
 import { QualitySelector } from './QualitySelector';
+import {
+  setCurrentQualityAction,
+  setQualitiesListAction,
+} from './QualitySelector.slice';
 import { SubtitleSelector } from './SubtitleSelector';
+import {
+  selectCurrentSubtitle,
+  setSubtitleListAction,
+} from './SubtitleSelector.slice';
 import { VoiceOverSelector } from './VoiceOverSelector';
-
-type CurrentEpisode = {
-  seasonID: string;
-  episodeID: string;
-};
+import { selectCurrentVoiceOver } from './VoiceOverSelector.slice';
 
 export function DownloadScreen() {
-  const { pageType } = useInitData();
-  const notificationString = null;
-  const movieInfo = useMovieInfo();
-  const [voiceOver, setVoiceOver] = useStorage<VoiceOverInfo | null>(
-    'voiceOver',
-    null,
-  );
+  const dispatch = useAppDispatch();
+  const { tabId, pageType } = useInitData();
+
+  const movieInfo = useAppSelector((state) => selectMovieInfo(state));
+  const range = useAppSelector((state) => selectRange(state));
+  const voiceOver = useAppSelector((state) => selectCurrentVoiceOver(state));
+  const notification = useAppSelector((state) => selectNotification(state));
+  const subtitleLang = useAppSelector((state) => selectCurrentSubtitle(state));
+  const currentEpisode = useAppSelector((state) => selectCurrentEpisode(state));
+
   const [isFirstLoad, setIsFirstLoad] = useState(true);
-
-  const [downloadSerial, setDownloadSerial] = useStorage(
-    'downloadSerial',
-    false,
-  );
-  const seasonsRef = useRef<SeasonsRef | null>(null);
-  const [range, setRange] = useStorage<Seasons | null>('range', null);
-
-  const qualityRef = useRef<QualityRef | null>(null);
-  const subtitleRef = useRef<SubtitleRef | null>(null);
-
-  const [currentEpisode, setCurrentEpisode] = useState<CurrentEpisode | null>(
-    null,
-  );
 
   useEffect(() => {
     // При обновлении озвучки мы должны обновить список эпизодов(если есть),
@@ -97,14 +96,18 @@ export function DownloadScreen() {
         const result = response as ActualVideoData;
         logger.debug('Set new popup data:', result);
 
-        subtitleRef.current?.setSubtitles(result.subtitle);
-        qualityRef.current?.setStreams(result.streams);
+        dispatch(setSubtitleListAction({ subtitlesInfo: result.subtitle }));
+        dispatch(setQualitiesListAction({ stream: result.streams }));
 
         if (result.seasons) {
-          seasonsRef.current?.setSeasonsList(result.seasons);
+          dispatch(setSeasonsAction({ seasons: result.seasons }));
           const seasonID = Object.keys(result.seasons)[0];
           const episodeID = result.seasons[seasonID].episodes[0].id;
-          setCurrentEpisode({ seasonID, episodeID });
+          dispatch(
+            setCurrentEpisodeAction({
+              currentEpisode: { seasonID, episodeID },
+            }),
+          );
         }
       });
   }, [voiceOver]);
@@ -131,11 +134,12 @@ export function DownloadScreen() {
       : range[seasonID].episodes[0].id;
 
     const newCurrentEpisode: CurrentEpisode = { seasonID, episodeID };
-    if (JSON.stringify(currentEpisode) === JSON.stringify(newCurrentEpisode))
+    if (
+      normalizeJSON(currentEpisode ?? {}) === normalizeJSON(newCurrentEpisode)
+    )
       return;
 
-    logger.debug('Set new current episode:', newCurrentEpisode);
-    setCurrentEpisode(newCurrentEpisode);
+    dispatch(setCurrentEpisodeAction({ currentEpisode: newCurrentEpisode }));
 
     if (isFirstUpdate) return;
 
@@ -158,17 +162,21 @@ export function DownloadScreen() {
       .then((response) => {
         const result = response as ActualVideoData;
         logger.debug('Set new episodes info:', result);
-        subtitleRef.current?.setSubtitles(result.subtitle);
-        qualityRef.current?.setStreams(result.streams);
+        dispatch(setSubtitleListAction({ subtitlesInfo: result.subtitle }));
+        dispatch(setQualitiesListAction({ stream: result.streams }));
       });
   }, [range]);
 
   useEffect(() => {
-    logger.info('Attempt to update movieInfo');
-    if (!movieInfo) return;
-    logger.debug('Update movieInfo', movieInfo);
-    qualityRef.current?.setStreams(movieInfo.streams);
-    subtitleRef.current?.setSubtitles(movieInfo.subtitle);
+    if (movieInfo !== null) return;
+    logger.info('Getting movieInfo...');
+    getMovieInfo(tabId).then((result) => {
+      dispatch(setMovieInfoAction({ movieInfo: result }));
+      if (result === null) return;
+      dispatch(setSubtitleListAction({ subtitlesInfo: result.subtitle }));
+      dispatch(setQualitiesListAction({ stream: result.streams }));
+      dispatch(setCurrentQualityAction({ quality: result.quality }));
+    });
   }, [movieInfo]);
 
   if (movieInfo === null || !movieInfo.success) {
@@ -180,64 +188,29 @@ export function DownloadScreen() {
   return (
     <div className='flex size-full flex-col gap-5'>
       <div className='relative flex items-center justify-center'>
-        <button
-          className='flex size-[120px] cursor-pointer items-center justify-center rounded-full bg-popup-border text-white hover:bg-input'
-          onClick={() => {
-            browser.runtime
-              .sendMessage<Message<Initiator>>({
-                type: 'trigger',
-                message: {
-                  query_data: movieInfo!.data,
-                  site_url: movieInfo!.url!,
-                  range: range,
-                  film_name: {
-                    localized: movieInfo!.filename.local,
-                    original: movieInfo!.filename.origin,
-                  },
-                  voice_over: voiceOver!,
-                  quality: qualityRef.current!.quality,
-                  subtitle: subtitleRef.current!.subtitleLang?.lang!,
-                  timestamp: new Date(),
-                },
-              })
-              .then();
-          }}
-        >
-          <DownloadIcon />
-        </button>
+        <LoadButton />
         <Menu />
       </div>
       <div className='flex w-full flex-col gap-3'>
-        <NotificationField notificationString={notificationString} />
+        <NotificationField />
 
         <EpisodeRangeSelector
-          seasonsRef={seasonsRef}
           defaultSeasonStart={(movieInfo?.data as SerialData).season}
           defaultEpisodeStart={(movieInfo?.data as SerialData).episode}
-          downloadSerial={downloadSerial}
-          setDownloadSerial={setDownloadSerial}
-          setRange={setRange}
         />
 
-        <SubtitleSelector subtitleRef={subtitleRef} />
-        {/*TODO: скрывать разделитель после закрытия ошибки если нет других элементов*/}
-        {/*Добавляем разделитель если это сериал или есть субтитры, или ошибка*/}
-        {(pageType === 'SERIAL' ||
-          movieInfo?.subtitle?.subtitle ||
-          notificationString) && (
-          <hr className='w-full border-b border-popup-border' />
+        <SubtitleSelector />
+        {(pageType === 'SERIAL' || subtitleLang || notification) && (
+          <DividingLine />
         )}
 
         <VoiceOverSelector
-          pageType={pageType}
           defaultVoiceOverId={movieInfo!.data.translator_id}
           is_camrip={(movieInfo?.data as FilmData)?.is_camrip}
           is_director={(movieInfo?.data as FilmData)?.is_director}
           is_ads={(movieInfo?.data as FilmData)?.is_ads}
-          voiceOver={voiceOver}
-          setVoiceOver={setVoiceOver}
         />
-        <QualitySelector qualityRef={qualityRef} />
+        <QualitySelector />
       </div>
     </div>
   );

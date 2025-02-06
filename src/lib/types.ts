@@ -46,6 +46,7 @@ export type PageType =
   | 'UNAVAILABLE'
   | 'ERROR';
 
+export type ButtonState = 'DEFAULT' | 'PROCESSING' | 'LOADING';
 export type MovieInfo = {
   success: boolean;
   data: FilmData | SerialData;
@@ -81,8 +82,6 @@ export type Seasons = Record<string, { title: string; episodes: Episode[] }>;
 
 export type SimpleSeason = Episode;
 
-export type TargetTab = { tabId: number };
-
 export type QualityItem =
   | '360p'
   | '480p'
@@ -99,20 +98,6 @@ export type Subtitle = {
 };
 
 export type QualitiesList = Partial<Record<QualityItem, string[]>>;
-
-export type QualityRef = {
-  quality: QualityItem;
-  setStreams: (stream: string) => void;
-};
-
-export type SubtitleRef = {
-  subtitleLang: Subtitle | null;
-  setSubtitles: (subtitles: SubtitleInfo | null) => void;
-};
-
-export type SeasonsRef = {
-  setSeasonsList: (seasonsList: Seasons) => void;
-};
 
 export type URLItem = { url: string; stringSize: string; rawSize: number };
 
@@ -226,4 +211,9 @@ export type ActualVideoData = {
   seasons: Seasons | null;
   subtitle: SubtitleInfo;
   streams: string;
+};
+
+export type CurrentEpisode = {
+  seasonID: string;
+  episodeID: string;
 };

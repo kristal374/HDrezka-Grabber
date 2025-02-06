@@ -16,5 +16,5 @@
     "skipLibCheck": true
   },
   "include": ["src", "platform/*/make.js", "global.d.ts"],
-  "exclude": ["src/lib/polyfill-init.js"]
+  "exclude": ["src/html/polyfill-init.js"]
 }

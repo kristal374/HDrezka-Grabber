@@ -1,5 +1,5 @@
-import messages from './src/_locales/ru/messages.json';
 import Browser from 'webextension-polyfill';
+import messages from './src/_locales/ru/messages.json';
 import { Logger } from './src/lib/logger';
 
 type OverrideBrowser = typeof Browser & {

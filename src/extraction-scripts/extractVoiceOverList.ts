@@ -1,28 +1,14 @@
-import { useEffect } from 'react';
-import { VoiceOverInfo } from '../../lib/types';
-import { useInitData } from '../providers/InitialDataProvider';
-import { useStorage } from './useStorage';
+import { VoiceOverInfo } from '../lib/types';
 
-export function useVoiceOver() {
-  const { tabId } = useInitData();
-  const [voiceOversList, setVoiceOversList] = useStorage<
-    VoiceOverInfo[] | null
-  >('voiceOversList', null);
-
-  useEffect(() => {
-    browser.scripting
-      .executeScript({
-        target: { tabId },
-        func: extractVoiceOversList,
-      })
-      .then((response) => {
-        const result = response[0].result as VoiceOverInfo[] | null;
-
-        setVoiceOversList(result);
-      });
-  }, []);
-
-  return voiceOversList;
+export async function getVoiceOverList(tabId: number) {
+  return await browser.scripting
+    .executeScript({
+      target: { tabId },
+      func: extractVoiceOversList,
+    })
+    .then((response) => {
+      return response[0].result as VoiceOverInfo[] | null;
+    });
 }
 
 async function extractVoiceOversList(): Promise<VoiceOverInfo[] | null> {

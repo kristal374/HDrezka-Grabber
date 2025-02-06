@@ -18,6 +18,8 @@
     "@radix-ui/react-select": "^2.1.1",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-typescript": "^11.1.6",
+    "@reduxjs/toolkit": "^2.2.5",
+    "react-redux": "^9.1.2",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "lucide-react": "^0.438.0",

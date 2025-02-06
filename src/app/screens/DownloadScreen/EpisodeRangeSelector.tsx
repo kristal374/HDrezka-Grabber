@@ -1,4 +1,4 @@
-import { Ref, useEffect, useImperativeHandle } from 'react';
+import { useEffect } from 'react';
 import { Checkbox } from '../../../components/Checkbox';
 import {
   Select,
@@ -7,45 +7,51 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../components/Select';
-import type { Seasons, SetState } from '../../../lib/types';
-import { SeasonsRef } from '../../../lib/types';
+import { getSeasons } from '../../../extraction-scripts/extractSeasons';
 import { cn, sliceSeasons } from '../../../lib/utils';
-import { useEpisodes } from '../../hooks/useEpisodes';
-import { useStorage } from '../../hooks/useStorage';
+import { useAppDispatch, useAppSelector } from '../../../store';
+import { useInitData } from '../../providers/InitialDataProvider';
+import {
+  selectDownloadSerial,
+  selectEpisodeFrom,
+  selectEpisodeTo,
+  selectSeasonFrom,
+  selectSeasons,
+  selectSeasonTo,
+  setDefaultSeasonsAction,
+  setDownloadSerialAction,
+  setEpisodeFromAction,
+  setEpisodeToAction,
+  setRangeAction,
+  setSeasonFromAction,
+  setSeasonToAction,
+} from './EpisodeRangeSelector.slice';
 
 type Props = {
-  seasonsRef: Ref<SeasonsRef>;
   defaultSeasonStart: string;
   defaultEpisodeStart: string;
-  downloadSerial: boolean;
-  setDownloadSerial: SetState<boolean>;
-  setRange: SetState<Seasons | null>;
 };
 
 export function EpisodeRangeSelector({
-  seasonsRef,
   defaultSeasonStart,
   defaultEpisodeStart,
-  downloadSerial,
-  setDownloadSerial,
-  setRange,
 }: Props) {
-  const [seasons, setSeasons] = useEpisodes();
-  const [seasonFrom, setSeasonFrom] = useStorage(
-    'seasonFrom',
-    defaultSeasonStart,
-  );
-  const [episodeFrom, setEpisodeFrom] = useStorage(
-    'episodeFrom',
-    defaultEpisodeStart,
-  );
-  const [seasonTo, setSeasonTo] = useStorage('seasonTo', '-2');
-  const [episodeTo, setEpisodeTo] = useStorage('episodeTo', '');
+  const dispatch = useAppDispatch();
+  const { tabId, pageType } = useInitData();
+
+  const downloadSerial = useAppSelector((state) => selectDownloadSerial(state));
+  const seasons = useAppSelector((state) => selectSeasons(state));
+
+  const seasonFrom = useAppSelector((state) => selectSeasonFrom(state));
+  const episodeFrom = useAppSelector((state) => selectEpisodeFrom(state));
+  const seasonTo = useAppSelector((state) => selectSeasonTo(state));
+  const episodeTo = useAppSelector((state) => selectEpisodeTo(state));
+
   const downloadToEnd = Number(seasonTo) < 0;
 
   useEffect(() => {
-    logger.info('Attempt change range episodes.');
-    if (!seasons) return;
+    if (seasons === null) return;
+
     const newRange = sliceSeasons(
       seasons,
       downloadSerial ? seasonFrom : defaultSeasonStart,
@@ -53,46 +59,37 @@ export function EpisodeRangeSelector({
       downloadSerial ? seasonTo : defaultSeasonStart,
       downloadSerial ? episodeTo : defaultEpisodeStart,
     );
-    logger.debug('New range episodes:', newRange);
-    setRange(newRange);
+
+    dispatch(setRangeAction({ range: newRange }));
   }, [seasons, downloadSerial, seasonFrom, episodeFrom, seasonTo, episodeTo]);
 
-  useImperativeHandle(
-    seasonsRef,
-    () => ({
-      setSeasonsList: (seasonsList: Seasons) => {
-        logger.info('Trying to update new seasons list.');
-        const startSeason = Object.keys(seasonsList)[0];
-        const startEpisode = seasonsList[startSeason].episodes[0].id;
-        setSeasonFrom(startSeason);
-        setEpisodeFrom(startEpisode);
-        if (seasonTo === '-2' || seasonTo === '-1') {
-        } else if (
-          !(
-            seasonTo in seasonsList &&
-            seasonsList[seasonTo].episodes.map((e) => e.id).includes(episodeTo)
-          )
-        ) {
-          setSeasonTo('-2');
-          setEpisodeTo('');
-        }
-        logger.debug('Set new seasons list:', seasonsList);
-        setSeasons(seasonsList);
-      },
-    }),
-    [downloadSerial, seasonFrom, episodeFrom, seasonTo, episodeTo],
-  );
+  useEffect(() => {
+    if (seasons !== null) return;
+    getSeasons(tabId, pageType).then((result) => {
+      dispatch(
+        setDefaultSeasonsAction({
+          seasons: result,
+          defaultSeason: defaultSeasonStart,
+          defaultEpisode: defaultEpisodeStart,
+        }),
+      );
+    });
+  }, []);
 
   if (!seasons) return null;
-  logger.info('New render EpisodeRangeSelector component.');
 
+  logger.info('New render EpisodeRangeSelector component.');
   return (
     <>
       <div className='flex items-center gap-2.5'>
         <Checkbox
           id='downloadSerial'
           checked={downloadSerial}
-          onCheckedChange={(value) => setDownloadSerial(value as boolean)}
+          onCheckedChange={(value) =>
+            dispatch(
+              setDownloadSerialAction({ downloadSerial: value as boolean }),
+            )
+          }
         />
         <label htmlFor='downloadSerial' className='text-base font-bold'>
           {browser.i18n.getMessage('popup_loadSerial')}
@@ -108,12 +105,7 @@ export function EpisodeRangeSelector({
             <Select
               value={seasonFrom}
               onValueChange={(value) => {
-                setSeasonFrom(value);
-                setEpisodeFrom(seasons![value].episodes[0].id);
-                if (!downloadToEnd && Number(seasonTo) < Number(value)) {
-                  setSeasonTo(value);
-                  setEpisodeTo(seasons![value].episodes[0].id);
-                }
+                dispatch(setSeasonFromAction({ value: value }));
               }}
             >
               <SelectTrigger id='seasonFrom' className='w-[82px] py-0.5'>
@@ -137,13 +129,7 @@ export function EpisodeRangeSelector({
             <Select
               value={episodeFrom}
               onValueChange={(value) => {
-                setEpisodeFrom(value);
-                if (
-                  seasonTo === seasonFrom &&
-                  Number(episodeTo) < Number(value)
-                ) {
-                  setEpisodeTo(value);
-                }
+                dispatch(setEpisodeFromAction({ value: value }));
               }}
             >
               <SelectTrigger id='episodeFrom' className='w-[115px] py-0.5'>
@@ -169,14 +155,7 @@ export function EpisodeRangeSelector({
             <Select
               value={seasonTo}
               onValueChange={(value) => {
-                setSeasonTo(value);
-                setEpisodeTo(
-                  Number(value) < 0
-                    ? ''
-                    : value === seasonFrom
-                      ? episodeFrom
-                      : seasons![value].episodes[0].id,
-                );
+                dispatch(setSeasonToAction({ value: value }));
               }}
             >
               <SelectTrigger
@@ -217,7 +196,9 @@ export function EpisodeRangeSelector({
 
                 <Select
                   value={episodeTo}
-                  onValueChange={(value) => setEpisodeTo(value)}
+                  onValueChange={(value) =>
+                    dispatch(setEpisodeToAction({ value: value }))
+                  }
                 >
                   <SelectTrigger id='episodeTo' className='w-[115px] py-0.5'>
                     <SelectValue />

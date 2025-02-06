@@ -1,4 +1,4 @@
-import { clsx, type ClassValue } from 'clsx';
+import { type ClassValue, clsx } from 'clsx';
 import type { Seasons } from './types';
 
 export function cn(...inputs: ClassValue[]) {
@@ -34,7 +34,7 @@ export function sliceSeasons(
     }
 
     const { title, episodes } = seasons[seasonKey];
-    let slicedEpisodes = episodes.sort(
+    let slicedEpisodes = [...episodes].sort(
       (a, b) => parseInt(a.id) - parseInt(b.id),
     );
 
@@ -62,5 +62,16 @@ export function hashCode(s: string): number {
       a = (a << 5) - a + b.charCodeAt(0);
       return a & a;
     }, 0) >>> 0
+  );
+}
+
+export function normalizeJSON(obj: Record<string, any>): string {
+  return JSON.stringify(
+    Object.keys(obj)
+      .sort()
+      .reduce((acc: Record<string, any>, key: string) => {
+        acc[key] = obj[key];
+        return acc;
+      }, {}),
   );
 }
