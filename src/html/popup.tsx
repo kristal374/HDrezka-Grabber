@@ -5,7 +5,7 @@ import { Router } from '../app/Router';
 import { Logger } from '../lib/logger';
 import { store } from '../store';
 
-globalThis.logger = new Logger('/src/js/popup.js.map');
+globalThis.logger = new Logger();
 
 logger.info('Popup open.');
 

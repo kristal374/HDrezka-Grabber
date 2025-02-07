@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import { Logger } from '../lib/logger';
 
-globalThis.logger = new Logger('/src/js/settings.js.map');
+globalThis.logger = new Logger();
 
 const element = document.querySelector('body')!;
 const root = createRoot(element);

@@ -15,10 +15,10 @@ export type MessageType =
   | 'updateVideoInfo';
 
 export type LogMessage = {
-  timestamp: string;
+  timestamp: number;
   level: LogLevel;
   context: string;
-  content: any[];
+  message: any[];
   location: string;
 };
 

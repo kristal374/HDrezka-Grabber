@@ -2,7 +2,7 @@ import browser from 'webextension-polyfill';
 import { Logger, printLog } from '../lib/logger';
 import { LogMessage } from '../lib/types';
 
-const logger = new Logger('/src/js/background.js.map');
+const logger = new Logger();
 
 let id: number = 0;
 browser.storage.session.get(['id']).then((result) => {
@@ -18,13 +18,13 @@ globalThis.addEventListener('logCreate', async (event) => {
 });
 
 export async function logCreate(message: LogMessage) {
+  printLog(message);
   browser.storage.session
     .set({
       id: ++id,
-      [id]: message,
+      [`l-${id}`]: message,
     })
     .then();
-  printLog(message);
   return true;
 }
 

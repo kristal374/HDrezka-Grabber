@@ -3,8 +3,8 @@
   "version": "1.0.0 alpha",
   "type": "module",
   "scripts": {
-    "build:popup": "vite -c vite.config.ts build ./src/html/ --outDir ../../dist/build/HDrezka-Grabber.build --logLevel error --sourcemap",
-    "build:background": "rollup -c rollup.config.js --sourcemap",
+    "build:popup": "vite -c vite.config.ts build ./src/html/ --outDir ../../dist/build/HDrezka-Grabber.build --logLevel error",
+    "build:background": "rollup -c rollup.config.js ",
     "build": "npm run build:popup && npm run build:background",
     "build:chromium": "node run-build.js -b chromium",
     "build:firefox": "node run-build.js -b firefox",

@@ -21,7 +21,6 @@ export default [
           {
             src: [
               'node_modules/webextension-polyfill/dist/browser-polyfill.min.js',
-              'node_modules/webextension-polyfill/dist/browser-polyfill.min.js.map',
               'src/extraction-scripts/InjectionScripts/',
             ],
             dest: 'dist/build/HDrezka-Grabber.build/src/js/',

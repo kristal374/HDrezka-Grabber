@@ -1,8 +1,10 @@
 import browser from 'webextension-polyfill';
-import { LogLevel, LogMessage, Message, SourceMap } from './types';
 import { getFromStorage } from './storage';
+import { LogLevel, LogMessage, Message, SourceMap } from './types';
 
+const extensionDomain = browser.runtime.getURL('');
 let debugFlag: boolean = false;
+let lastCallTime: number = 0;
 
 getFromStorage<boolean>('debugFlag').then((storage) => (debugFlag = storage));
 
@@ -12,17 +14,51 @@ browser.storage.onChanged.addListener((changes, area) => {
   }
 });
 
+function toFormatTime(time: number): string {
+  // Подготавливает строку времени в удобочитаемый формат -
+  // количество времени прошедшего с момента последнего вызова
+  const pad = (value: number, length: number): string =>
+    value.toString().padStart(length, '0');
+
+  const diff = lastCallTime ? time - lastCallTime : null;
+  lastCallTime = time;
+
+  if (diff === null || diff < 0 || diff >= 60 * 1000) {
+    const hour = Math.floor(time / (60 * 60 * 1000)) % 24;
+    const minute = Math.floor(time / (60 * 1000)) % 60;
+    const second = Math.floor(time / 1000) % 60;
+    const millisecond = time % 1000;
+
+    return `${pad(hour, 2)}:${pad(minute, 2)}:${pad(second, 2)}:${pad(millisecond, 3)}`;
+  }
+  const minutes = Math.floor(diff / (60 * 1000));
+  const seconds = Math.floor((diff % (60 * 1000)) / 1000);
+  const milliseconds = diff % 1000;
+
+  return `+${pad(minutes, 2)}:${pad(seconds, 2)}:${pad(milliseconds, 3)}`.padStart(
+    12,
+    ' ',
+  );
+}
+
 export function printLog(message: LogMessage) {
-  message.timestamp = new Date(message.timestamp).toLocaleString();
+  // Вывод цветное сообщения в консоль
+  const timestamp = toFormatTime(message.timestamp);
+  const location = `${extensionDomain}${message.location}`;
 
   if (typeof browser.runtime.getBrowserInfo === 'function') {
-    printLogForFirefox(message);
+    printLogForFirefox(message, timestamp, location);
   } else {
-    printLogForChrome(message);
+    printLogForChrome(message, timestamp, location);
   }
 }
 
-function printLogForChrome(message: LogMessage) {
+function printLogForChrome(
+  message: LogMessage,
+  timestamp: string,
+  location: string,
+) {
+  // Специфическая функция вывода в консоль для Chrome. Разукрашивает сообщение
   const colorReset = '\x1b[0m';
   const colorTime = '\x1b[32m';
   let colorLevel = '';
@@ -45,12 +81,17 @@ function printLogForChrome(message: LogMessage) {
       break;
   }
   console.log(
-    `${colorTime}${message.timestamp}${colorReset} | ${colorLevel}${message.level.padEnd(8)}${colorReset} | ${message.location} -`,
-    ...message.content,
+    `${colorTime}${timestamp}${colorReset} | ${colorLevel}${message.level.padEnd(8)}${colorReset} | ${location} -`,
+    ...message.message,
   );
 }
 
-function printLogForFirefox(message: LogMessage) {
+function printLogForFirefox(
+  message: LogMessage,
+  timestamp: string,
+  location: string,
+) {
+  // Специфическая функция вывода в консоль для Firefox. Разукрашивает сообщение
   const colorReset = 'color: inherit;';
   const colorTime = 'color: green;';
   const colorLink = 'color: #007bff; text-decoration: underline';
@@ -73,122 +114,107 @@ function printLogForFirefox(message: LogMessage) {
       break;
   }
   console.log(
-    `%c${message.timestamp}%c | %c${message.level.padEnd(8)}%c | %c${message.location}%c - `,
+    `%c${timestamp}%c | %c${message.level.padEnd(8)}%c | %c${location}%c - `,
     colorTime,
     colorReset,
     colorLevel,
     colorReset,
     colorLink,
     colorReset,
-    ...message.content,
+    ...message.message,
   );
 }
 
-function checkingDebugFlag(
-  _target: any,
-  _key: string | symbol,
-  descriptor: PropertyDescriptor,
-): any {
-  const originalMethod = descriptor.value;
-
-  descriptor.value = function (...args: any[]): undefined {
-    if (debugFlag) {
-      return originalMethod.apply(this, args);
-    } else return undefined;
-  };
-
-  return descriptor;
-}
-
 export class Logger {
-  private readonly fileUrl!: string;
-  private readonly context!: string;
-  private sourcemap!: SourceMapParser;
-  private sourcemapInitialized: boolean = false;
+  private sourcemap: Record<string, Promise<SourceMapParser | null>> = {};
 
-  constructor(url?: string) {
-    if (typeof url !== 'string')
-      throw new Error('There is no URL to the minified file for logging');
-    this.fileUrl = browser.runtime.getURL(url);
-    this.context = this.fileUrl.split('/').at(-1)?.split('.')[0]!;
+  private async initializeSourceMapParser(url: string) {
+    // Определяем необходимый файл с картой исходного кода для текущего URL
+    // после чего пробуем вернуть соответствующий парсер, если он уже был создан
+    // в противном случае создаем его перед этим
+    const regexFindURL = /((?:chrome|moz)-extension:\/(?:\/.*?)+\.js):\d+:\d+/;
+    const urlSourceMap = `${url.match(regexFindURL)![1]}.map`;
+
+    if (!this.sourcemap[urlSourceMap])
+      this.sourcemap[urlSourceMap] = this.getSourceMapParser(urlSourceMap);
+    return await this.sourcemap[urlSourceMap];
   }
 
-  private async initSourcemap() {
-    if (this.sourcemapInitialized) return;
-    this.sourcemapInitialized = true;
-
-    const response = await fetch(this.fileUrl);
-    const file = await response.json();
-    this.sourcemap = new SourceMapParser(file);
-  }
-
-  private emit(level: LogLevel, message: any[]) {
-    const timestamp = new Date().toString();
-    this.initSourcemap().then();
+  private async getSourceMapParser(targetUrl: string) {
+    // Создаёт парсер исходной карты кода
     try {
-      this.getCallerInfo().then((location) => {
-        const log: LogMessage = {
-          timestamp: timestamp,
-          level: level,
-          context: this.context,
-          content: message,
-          location: location,
-        };
-        const messageToSend: Message<LogMessage> = {
-          type: 'logCreate',
-          message: log,
-        };
-        const event: CustomEventInit = {
-          detail: log,
-        };
-        browser.runtime.sendMessage(messageToSend).catch(() => {});
-        globalThis.dispatchEvent(new CustomEvent('logCreate', event));
-      });
+      const response = await fetch(targetUrl);
+      const sourceMap: SourceMap = await response.json();
+      return new SourceMapParser(sourceMap);
     } catch (e) {
+      return null;
+    }
+  }
+
+  private async emit(level: LogLevel, message: any[]) {
+    // Основная функция логирования, создаёт сообщение и отправляет его
+    // в остальные части расширения, включая текущий контекст
+    if (!debugFlag) return;
+
+    try {
+      const timestamp = new Date().getTime();
+      const [context, location] = await this.getCallerInfo();
+      const log: LogMessage = { timestamp, level, context, message, location };
+      const messageToSend: Message<LogMessage> = {
+        type: 'logCreate',
+        message: log,
+      };
+      const event: CustomEventInit = {
+        detail: log,
+      };
+      browser.runtime.sendMessage(messageToSend).catch(() => {});
+      // browser.runtime.sendMessage не отправляет сообщения в контекст
+      // из которого вызывается и если мы хотим так же получать сообщения
+      // в этом контексте мы должны отправить сообщение другим способом,
+      // в данном случае это CustomEvent
+      globalThis.dispatchEvent(new CustomEvent('logCreate', event));
+    } catch (e) {
+      // Любые ошибки в логировании не должны влиять на работу расширения
       console.error(e);
     }
   }
 
-  @checkingDebugFlag
   critical(...message: any[]) {
     this.emit(LogLevel.CRITICAL, message);
   }
 
-  @checkingDebugFlag
   error(...message: any[]) {
     this.emit(LogLevel.ERROR, message);
   }
 
-  @checkingDebugFlag
   warning(...message: any[]) {
     this.emit(LogLevel.WARNING, message);
   }
 
-  @checkingDebugFlag
   debug(...message: any[]) {
     this.emit(LogLevel.DEBUG, message);
   }
 
-  @checkingDebugFlag
   info(...message: any[]) {
     this.emit(LogLevel.INFO, message);
   }
 
-  private getCallerInfo(): Promise<string> {
-    return new Promise((resolve) => {
-      const exception = new Error();
-      const regexFindURL =
-        /((?:chrome|moz)-extension:\/(?:\/.*?)+\.js:(\d+):(\d+))/g;
-      const urlStackTrace = exception.stack!.match(regexFindURL);
-      const callerURL = urlStackTrace![5];
+  private async getCallerInfo() {
+    // Возвращает информацию о конкретном месте вызова функции логирования
+    const exception = new Error();
+    const urlStackTrace = exception.stack!.match(
+      /((?:chrome|moz)-extension:\/(?:\/.*?)+\.js:(\d+):(\d+))/g,
+    )!;
 
-      const intervalId = setInterval(() => {
-        if (!!this.sourcemap) {
-          clearInterval(intervalId);
-          resolve(this.sourcemap.getOriginalURL(callerURL));
-        }
-      }, 5);
-    });
+    // Число 3 здесь потому что перед этим было ровно 3 вызова других функций
+    // от места вызова функции логирования
+    const callerURL = urlStackTrace[3];
+
+    const context = callerURL.split('/').at(-1)!.split('.')[0];
+    const sourcemap = await this.initializeSourceMapParser(callerURL);
+    const location =
+      sourcemap === null ? callerURL : sourcemap.getOriginalURL(callerURL);
+    return [context, location.replace(extensionDomain, '')];
   }
 }
 

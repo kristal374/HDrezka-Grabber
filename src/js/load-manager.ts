@@ -435,8 +435,8 @@ export class LoadManager {
         nextLoadObj.file.downloadId,
       );
       return nextLoadObj.uid;
-    } catch (e) {
-      logger.error('Download failed:', e);
+    } catch (error: any) {
+      logger.error('Download failed:', error.message);
       return this.removeItemFromActiveDownloads(nextLoadObj);
     } finally {
       this.startNextLoad().then();
@@ -708,8 +708,8 @@ export class LoadManager {
       try {
         logger.debug('Update keys in storage:', Object.keys(snapshot));
         await browser.storage.local.set(snapshot);
-      } catch (error) {
-        logger.error('Error saving data:', error);
+      } catch (error: any) {
+        logger.error('Error saving data:', error.message);
       } finally {
         this.debounceTimer = null;
       }
