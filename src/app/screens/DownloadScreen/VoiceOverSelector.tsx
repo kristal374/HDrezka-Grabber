@@ -1,12 +1,5 @@
 import { useEffect } from 'react';
-import { PremiumIcon } from '../../../components/Icons';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../../../components/Select';
+import { Combobox } from '../../../components/Combobox';
 import { getVoiceOverList } from '../../../extraction-scripts/extractVoiceOverList';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import { useInitData } from '../../providers/InitialDataProvider';
@@ -33,7 +26,9 @@ export function VoiceOverSelector({
   const dispatch = useAppDispatch();
   const { tabId, pageType } = useInitData();
   const voiceOverList = useAppSelector((state) => selectVoiceOverList(state));
-  const voiceOver = useAppSelector((state) => selectCurrentVoiceOver(state));
+  const currentVoiceOver = useAppSelector((state) =>
+    selectCurrentVoiceOver(state),
+  );
 
   useEffect(() => {
     if (voiceOverList !== null) return;
@@ -60,32 +55,23 @@ export function VoiceOverSelector({
       <label htmlFor='voiceOver' className='ml-auto text-sm'>
         {browser.i18n.getMessage('popup_translate')}
       </label>
-      <Select
-        value={JSON.stringify(voiceOver)}
-        onValueChange={(v) =>
-          dispatch(setVoiceOverAction({ voiceOver: JSON.parse(v) }))
+      <Combobox
+        id='voiceOver'
+        data={voiceOverList.map((voiceOver) => ({
+          value: voiceOver.id,
+          label: voiceOver.title,
+        }))}
+        value={currentVoiceOver?.id || ''}
+        onValueChange={(value) =>
+          dispatch(
+            setVoiceOverAction({
+              voiceOver: voiceOverList.find(
+                (voiceOver) => voiceOver.id === value,
+              )!,
+            }),
+          )
         }
-      >
-        <SelectTrigger id='voiceOver' className='w-[225px] py-1.5'>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {voiceOverList.map((voiceOverInfo) => {
-            return (
-              <SelectItem
-                value={JSON.stringify(voiceOverInfo)}
-                key={JSON.stringify(voiceOverInfo)}
-              >
-                {voiceOverInfo.title}
-                {voiceOverInfo.flag_country && (
-                  <span>({voiceOverInfo.flag_country.toUpperCase()})</span>
-                )}
-                {voiceOverInfo.prem_content && <PremiumIcon />}
-              </SelectItem>
-            );
-          })}
-        </SelectContent>
-      </Select>
+      />
     </div>
   );
 }
