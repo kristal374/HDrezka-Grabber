@@ -98,6 +98,7 @@ export function Combobox({
           filter={(value, search) =>
             dataLookup[value]?.search.includes(search) ? 1 : 0
           }
+          loop
         >
           {data.length > 12 && (
             <CommandInput
