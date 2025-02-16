@@ -39,6 +39,12 @@
     @apply bg-background text-foreground;
     font-family: Arial, Helvetica, sans-serif;
   }
+  @supports (-moz-animation: none) {
+    .scroll-container {
+      scrollbar-width: thin;
+      scrollbar-color: var(--check-box) transparent;
+    }
+  }
   .scroll-container::-webkit-scrollbar {
     width: 8px;
   }
