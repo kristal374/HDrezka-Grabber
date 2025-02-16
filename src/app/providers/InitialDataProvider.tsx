@@ -1,21 +1,20 @@
 import { createContext, use, useLayoutEffect, useState } from 'react';
 import { saveSessionStorage } from '../../lib/storage';
 import { resetAction, store, useAppDispatch } from '../../store';
-import { init } from '../initialization';
+import { init, type InitData } from '../initialization';
 
-export const InitialDataContext = createContext<
-  Required<Awaited<ReturnType<typeof init>>>
->(null!);
+export const InitialDataContext = createContext<InitData>(null!);
 
-type Props = {
+interface InitialDataProviderProps extends React.PropsWithChildren {
   initPromise: ReturnType<typeof init>;
-} & React.PropsWithChildren;
+}
 
-export function InitialDataProvider({ initPromise, children }: Props) {
+export function InitialDataProvider({
+  initPromise,
+  children,
+}: InitialDataProviderProps) {
   const dispatch = useAppDispatch();
-  const [initData, setInitData] = useState<
-    Required<Awaited<ReturnType<typeof init>>>
-  >(null!);
+  const [initData, setInitData] = useState<InitData>(null!);
 
   useLayoutEffect(() => {
     initPromise.then((result) => {
