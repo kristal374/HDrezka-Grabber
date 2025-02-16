@@ -70,16 +70,18 @@ export function EpisodeRangeSelector({
     });
   }, []);
 
-  if (!seasons) return null;
-
   const seasonValues = useMemo(
     () =>
-      Object.entries(seasons).map(([id, season]) => ({
-        value: id,
-        label: season.title,
-      })),
+      seasons
+        ? Object.entries(seasons).map(([id, season]) => ({
+            value: id,
+            label: season.title,
+          }))
+        : [],
     [seasons],
   );
+
+  if (!seasons) return null;
 
   logger.info('New render EpisodeRangeSelector component.');
   return (

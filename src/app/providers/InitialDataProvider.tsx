@@ -1,4 +1,4 @@
-import { createContext, use } from 'react';
+import { createContext, use, useLayoutEffect, useState } from 'react';
 import { saveSessionStorage } from '../../lib/storage';
 import { resetAction, store, useAppDispatch } from '../../store';
 import { init } from '../initialization';
@@ -13,19 +13,29 @@ type Props = {
 
 export function InitialDataProvider({ initPromise, children }: Props) {
   const dispatch = useAppDispatch();
-  const initData = use(initPromise);
-  if (!initData.tabId) throw new Error('Tab ID is undefined');
+  const [initData, setInitData] = useState<
+    Required<Awaited<ReturnType<typeof init>>>
+  >(null!);
 
-  if (
-    Object.keys(initData.sessionStorage).length > 0 &&
-    initData.sessionStorage?.mainComponentReducer?.movieInfo?.url ===
-      initData.siteUrl
-  )
-    dispatch(resetAction({ data: initData.sessionStorage }));
+  useLayoutEffect(() => {
+    initPromise.then((result) => {
+      if (!result.tabId) throw new Error('Tab ID is undefined');
+      setInitData(result);
+      if (
+        Object.keys(result.sessionStorage).length > 0 &&
+        result.sessionStorage?.mainComponentReducer?.movieInfo?.url ===
+          result.siteUrl
+      ) {
+        dispatch(resetAction({ data: result.sessionStorage }));
+      }
 
-  store.subscribe(() => {
-    saveSessionStorage(initData.tabId, store.getState());
-  });
+      store.subscribe(() => {
+        saveSessionStorage(result.tabId, store.getState());
+      });
+    });
+  }, []);
+
+  if (!initData) return null;
 
   return (
     <InitialDataContext.Provider value={initData}>

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Combobox } from '../../../components/Combobox';
 import { FlagKZ, FlagUA, PremiumIcon } from '../../../components/Icons';
 import { getVoiceOverList } from '../../../extraction-scripts/extractVoiceOverList';
+import type { VoiceOverInfo } from '../../../lib/types';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import { useInitData } from '../../providers/InitialDataProvider';
 import {
@@ -49,7 +50,6 @@ export function VoiceOverSelector({
   }, [voiceOverList]);
 
   if (!voiceOverList) return null;
-  console.log(pageType);
 
   logger.info('New render VoiceOverSelector component.');
   return (
@@ -61,7 +61,7 @@ export function VoiceOverSelector({
         id='voiceOver'
         height={pageType === 'FILM' ? 155 : undefined}
         data={voiceOverList.map((voiceOver) => ({
-          value: voiceOver.id,
+          value: JSON.stringify(voiceOver),
           label: voiceOver.title,
           labelComponent({ children }) {
             return (
@@ -80,13 +80,11 @@ export function VoiceOverSelector({
             );
           },
         }))}
-        value={currentVoiceOver?.id || ''}
+        value={JSON.stringify(currentVoiceOver) || ''}
         onValueChange={(value) =>
           dispatch(
             setVoiceOverAction({
-              voiceOver: voiceOverList.find(
-                (voiceOver) => voiceOver.id === value,
-              )!,
+              voiceOver: JSON.parse(value) as VoiceOverInfo,
             }),
           )
         }
