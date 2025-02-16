@@ -50,6 +50,15 @@
   "popup_translate": {
     "message": "Translate"
   },
+  "combobox_placeholder": {
+    "message": "Select value"
+  },
+  "combobox_search": {
+    "message": "Search..."
+  },
+  "combobox_empty": {
+    "message": "No results found"
+  },
   "message_noDataVideo": {
     "message": "Failed to retrieve video data. Check your internet connection or use a VPN."
   },

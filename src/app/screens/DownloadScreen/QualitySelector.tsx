@@ -54,15 +54,20 @@ export function QualitySelector() {
         }
         data={Object.keys(qualitiesList).map((q) => ({
           value: q,
-          label: (
-            <>
-              {q}
-              {qualitiesSizes && (
-                // @ts-ignore
-                <span className='ml-auto'>{qualitiesSizes[q].stringSize}</span>
-              )}
-            </>
-          ),
+          label: q,
+          labelComponent({ children }) {
+            return (
+              <>
+                {children}
+                {qualitiesSizes && (
+                  <span className='ml-auto'>
+                    {/* @ts-ignore */}
+                    {qualitiesSizes[q].stringSize}
+                  </span>
+                )}
+              </>
+            );
+          },
         }))}
       />
     </div>

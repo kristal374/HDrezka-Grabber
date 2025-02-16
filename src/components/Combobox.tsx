@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { type JSX, useCallback, useEffect, useMemo, useState } from 'react';
 import { cn } from '../lib/utils';
 import {
   Command,
@@ -14,18 +14,27 @@ interface ComboboxProps {
   id?: string;
   className?: string;
   /**
-   * Width in pixels
+   * Width of button and min width of combobox content in pixels
    */
   width?: number;
-  data: Array<{ value: string; label: React.ReactNode }>;
+  /**
+   * Max heigth of combobox content in pixels
+   */
+  height?: number;
+  data: Array<{
+    value: string;
+    label: string;
+    labelComponent?: (props: React.PropsWithChildren) => JSX.Element;
+  }>;
   value?: string;
-  onValueChange?: (value: string, label: string) => void;
+  onValueChange?: (value: string) => void;
 }
 
 export function Combobox({
   id,
   className,
   width = 225,
+  height = 185,
   data,
   value: defaultValue = '',
   onValueChange,
@@ -41,11 +50,19 @@ export function Combobox({
         item.value,
         {
           ...item,
-          search: (item.label || item.value).toString().toLowerCase(),
+          search: (item.label || item.labelComponent || item.value)
+            .toString()
+            .toLowerCase(),
         },
       ]),
     );
   }, [data]);
+  const labelRender = useCallback(
+    (lookup: string, children: React.ReactNode) => {
+      return dataLookup[lookup]?.labelComponent?.({ children }) ?? children;
+    },
+    [],
+  );
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -54,21 +71,28 @@ export function Combobox({
           role='combobox'
           aria-expanded={open}
           className={cn(
-            'hover:border-input-active border-input bg-background hover:bg-input',
-            'flex items-center justify-between rounded-md border-2 px-2 py-1.5 text-sm [&>span]:line-clamp-1',
+            'border-input bg-background hover:border-input-active hover:bg-input',
+            'flex items-center rounded-md border-2 px-2 py-1.5 text-sm',
             'placeholder:text-foreground-disabled disabled:cursor-not-allowed disabled:opacity-50',
             'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-link-color focus-visible:ring-offset-2',
             className,
           )}
           style={{ width }}
         >
-          {value ? dataLookup[value]?.label : 'Select value...'}
-          {/* <ChevronDown className='ml-2 size-4 shrink-0 opacity-50' /> */}
+          {value
+            ? labelRender(
+                value,
+                <span className='line-clamp-1 text-left'>
+                  {dataLookup[value]?.label}
+                </span>,
+              )
+            : browser.i18n.getMessage('combobox_placeholder')}
+          {/* <ChevronDown className='ml-auto size-4 shrink-0 opacity-50' /> */}
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className='max-h-[185px] overflow-y-auto'
-        style={{ minWidth: width }}
+        className='overflow-y-auto'
+        style={{ minWidth: width, maxHeight: height }}
       >
         <Command
           filter={(value, search) =>
@@ -77,12 +101,15 @@ export function Combobox({
         >
           {data.length > 12 && (
             <CommandInput
-              placeholder='Search...'
-              style={{ width: width - 8 }}
+              placeholder={browser.i18n.getMessage('combobox_search')}
+              // 8 - scollbar, 16 - search icon, 10 - left margin, 8 - right margin
+              style={{ width: width - 8 - 16 - 10 - 8 }}
             />
           )}
           <CommandList>
-            <CommandEmpty>No results found</CommandEmpty>
+            <CommandEmpty>
+              {browser.i18n.getMessage('combobox_empty')}
+            </CommandEmpty>
             <CommandGroup>
               {data.map((item) => (
                 <CommandItem
@@ -91,7 +118,7 @@ export function Combobox({
                   onSelect={(currentValue) => {
                     setValue(currentValue);
                     setOpen(false);
-                    onValueChange?.(currentValue, item.label as string);
+                    onValueChange?.(currentValue);
                   }}
                   className={cn(value === item.value && 'bg-input-active')}
                 >
@@ -101,7 +128,7 @@ export function Combobox({
                       value !== item.value && 'invisible',
                     )}
                   /> */}
-                  {item.label}
+                  {labelRender(item.value, item.label)}
                 </CommandItem>
               ))}
             </CommandGroup>

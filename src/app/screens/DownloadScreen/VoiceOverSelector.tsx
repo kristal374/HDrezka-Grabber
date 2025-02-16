@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Combobox } from '../../../components/Combobox';
+import { FlagKZ, FlagUA, PremiumIcon } from '../../../components/Icons';
 import { getVoiceOverList } from '../../../extraction-scripts/extractVoiceOverList';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import { useInitData } from '../../providers/InitialDataProvider';
@@ -10,19 +11,19 @@ import {
   setVoiceOverListAction,
 } from './VoiceOverSelector.slice';
 
-type Props = {
+interface VoiceOverSelectorProps {
   defaultVoiceOverId: string;
   is_camrip?: string;
   is_director?: string;
   is_ads?: string;
-};
+}
 
 export function VoiceOverSelector({
   defaultVoiceOverId,
   is_camrip,
   is_director,
   is_ads,
-}: Props) {
+}: VoiceOverSelectorProps) {
   const dispatch = useAppDispatch();
   const { tabId, pageType } = useInitData();
   const voiceOverList = useAppSelector((state) => selectVoiceOverList(state));
@@ -48,6 +49,7 @@ export function VoiceOverSelector({
   }, [voiceOverList]);
 
   if (!voiceOverList) return null;
+  console.log(pageType);
 
   logger.info('New render VoiceOverSelector component.');
   return (
@@ -57,9 +59,26 @@ export function VoiceOverSelector({
       </label>
       <Combobox
         id='voiceOver'
+        height={pageType === 'FILM' ? 155 : undefined}
         data={voiceOverList.map((voiceOver) => ({
           value: voiceOver.id,
           label: voiceOver.title,
+          labelComponent({ children }) {
+            return (
+              <>
+                {children}
+                {voiceOver.flag_country && (
+                  <FlagIcon
+                    country={voiceOver.flag_country}
+                    className='ml-2 shrink-0'
+                  />
+                )}
+                {voiceOver.prem_content && (
+                  <PremiumIcon className='ml-2 shrink-0' />
+                )}
+              </>
+            );
+          },
         }))}
         value={currentVoiceOver?.id || ''}
         onValueChange={(value) =>
@@ -74,4 +93,21 @@ export function VoiceOverSelector({
       />
     </div>
   );
+}
+
+function FlagIcon({
+  country,
+  className,
+}: {
+  country: string;
+  className?: string;
+}) {
+  switch (country) {
+    case 'ua':
+      return <FlagUA className={className} />;
+    case 'kz':
+      return <FlagKZ className={className} />;
+    default:
+      return null;
+  }
 }
