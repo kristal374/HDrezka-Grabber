@@ -11,6 +11,7 @@ import { notificationReducer } from './app/screens/DownloadScreen/NotificationFi
 import { qualityReducer } from './app/screens/DownloadScreen/QualitySelector.slice';
 import { subtitleReducer } from './app/screens/DownloadScreen/SubtitleSelector.slice';
 import { voiceOverReducer } from './app/screens/DownloadScreen/VoiceOverSelector.slice';
+import { loadButtonReducer } from './app/screens/DownloadScreen/LoadButton.slice';
 
 export const resetAction = createAction<{
   data: Record<string, any>;
@@ -24,6 +25,7 @@ const rootReducer = (state: any, action: any) => {
     qualityReducer,
     subtitleReducer,
     notificationReducer,
+    loadButtonReducer,
   });
   if (action.type === resetAction.type) {
     return action.payload.data as ReturnType<typeof mainReducer>;

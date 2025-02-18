@@ -46,7 +46,13 @@ export type PageType =
   | 'UNAVAILABLE'
   | 'ERROR';
 
-export type ButtonState = 'DEFAULT' | 'PROCESSING' | 'LOADING';
+export type ButtonState =
+  | 'DEFAULT'
+  | 'PROCESSING'
+  | 'LOADING'
+  | 'CANCELLED'
+  | 'COMPLETED';
+
 export type MovieInfo = {
   success: boolean;
   data: FilmData | SerialData;
@@ -216,4 +222,10 @@ export type ActualVideoData = {
 export type CurrentEpisode = {
   seasonID: string;
   episodeID: string;
+};
+
+export type Progress = {
+  completed: number | null;
+  total: number | null;
+  current: number | null;
 };
