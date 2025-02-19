@@ -6,7 +6,9 @@ const extensionDomain = browser.runtime.getURL('');
 let debugFlag: boolean = false;
 let lastCallTime: number = 0;
 
-getFromStorage<boolean>('debugFlag').then((storage) => (debugFlag = storage));
+getFromStorage<boolean>('debugFlag').then(
+  (storage) => (debugFlag = storage ?? true),
+);
 
 browser.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && typeof changes.debugFlag?.newValue === 'boolean') {

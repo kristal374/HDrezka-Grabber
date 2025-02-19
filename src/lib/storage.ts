@@ -1,8 +1,8 @@
 import browser from 'webextension-polyfill';
 
-export async function getFromStorage<T>(key: string): Promise<T> {
+export async function getFromStorage<T>(key: string): Promise<T | undefined> {
   const storage = await browser.storage.local.get([key]);
-  return storage[key] as T;
+  return storage[key] as T | undefined;
 }
 
 export async function setToStorage<T>(key: string, value: T) {
@@ -35,3 +35,4 @@ export async function saveSessionStorage(
   const key = `t-${tabId}`;
   await browser.storage.session.set({ [key]: data });
 }
+// TODO: Переработать модуль

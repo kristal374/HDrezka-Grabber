@@ -52,18 +52,22 @@ export function QualitySelector() {
         onValueChange={(v) =>
           dispatch(setCurrentQualityAction({ quality: v as QualityItem }))
         }
-        data={Object.keys(qualitiesList).map((q) => ({
-          value: q,
-          label: (
-            <>
-              {q}
-              {qualitiesSizes && (
-                // @ts-ignore
-                <span className='ml-auto'>{qualitiesSizes[q].stringSize}</span>
-              )}
-            </>
-          ),
-        }))}
+        data={Object.keys(qualitiesList).map((q) => {
+          const key = q as keyof typeof qualitiesList;
+          return {
+            value: key,
+            label: (
+              <>
+                {key}
+                {qualitiesSizes && (
+                  <span className='ml-auto'>
+                    {qualitiesSizes[key]?.stringSize}
+                  </span>
+                )}
+              </>
+            ),
+          };
+        })}
       />
     </div>
   );

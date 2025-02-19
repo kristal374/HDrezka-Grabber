@@ -22,7 +22,9 @@ function ToggleDebugMode() {
   const [debugMode, setDebugMode] = useState(true);
 
   useEffect(() => {
-    getFromStorage<boolean>('debugFlag').then(setDebugMode);
+    getFromStorage<boolean>('debugFlag').then((result) =>
+      setDebugMode(result ?? true),
+    );
   }, []);
 
   return (
