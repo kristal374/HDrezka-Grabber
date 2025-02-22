@@ -13,6 +13,7 @@ import {
   selectQualitiesSizes,
   setCurrentQualityAction,
 } from './QualitySelector.slice';
+import { sortQualityItem } from '../../../lib/link-processing';
 
 async function getQualitiesSizes(qualitiesList: QualitiesList) {
   return await browser.runtime
@@ -52,7 +53,7 @@ export function QualitySelector() {
         onValueChange={(v) =>
           dispatch(setCurrentQualityAction({ quality: v as QualityItem }))
         }
-        data={Object.keys(qualitiesList).map((q) => {
+        data={Object.keys(sortQualityItem(qualitiesList)).map((q) => {
           const key = q as keyof typeof qualitiesList;
           return {
             value: key,

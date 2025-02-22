@@ -15,17 +15,19 @@ function clearTrash(data: string) {
   return atob(data);
 }
 
-function sortQualitiesList(urlsContainer: QualitiesList): QualitiesList {
+export function sortQualityItem<T extends Partial<Record<QualityItem, any>>>(
+  urlsContainer: T,
+): T {
   const qualityArr: QualityItem[] = [
-    '360p',
-    '480p',
-    '720p',
-    '1080p',
-    '1080p Ultra',
-    '2K',
     '4K',
+    '2K',
+    '1080p Ultra',
+    '1080p',
+    '720p',
+    '480p',
+    '360p',
   ];
-  const sortedUrlsContainer: QualitiesList = {};
+  const sortedUrlsContainer = {} as T;
   qualityArr.forEach((quality) => {
     if (urlsContainer[quality]) {
       sortedUrlsContainer[quality] = urlsContainer[quality];
@@ -55,7 +57,7 @@ export function decodeVideoURL(stream: string | false): QualitiesList | null {
         .filter((item) => /https?:\/\/.*mp4$/.test(item));
     });
 
-  return sortQualitiesList(urlsContainer);
+  return sortQualityItem(urlsContainer);
 }
 
 export function decodeSubtitleURL(subtitles: SubtitleInfo | null) {
