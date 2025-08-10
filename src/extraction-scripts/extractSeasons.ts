@@ -18,10 +18,14 @@ async function extractSeasons() {
   const episodeTabs = document.getElementById('simple-episodes-tabs');
   if (!episodeTabs) return null;
 
-  const seasonList: HTMLCollection = episodeTabs.getElementsByTagName('ul');
+  const seasonList: HTMLCollection = episodeTabs.getElementsByClassName(
+    'b-simple_episodes__list',
+  );
 
   for (let i = 0; i < seasonList.length; i++) {
-    const episodeItems = seasonList[i].getElementsByTagName('li');
+    const episodeItems = seasonList[i].getElementsByClassName(
+      'b-simple_episode__item',
+    );
     for (let j = 0; j < episodeItems.length; j++) {
       const episodeID = episodeItems[j].getAttribute('data-episode_id');
       const seasonID = episodeItems[j].getAttribute('data-season_id');
