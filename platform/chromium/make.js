@@ -1,10 +1,10 @@
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import yargs from 'yargs';
-import zipper from 'zip-local';
-import { hideBin } from 'yargs/helpers';
-import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+import zipper from 'zip-local';
 
 const PACKAGE_NAME = `HDrezka-Grabber.chromium`;
 const CURRENT_DIR = path.dirname(fileURLToPath(import.meta.url));

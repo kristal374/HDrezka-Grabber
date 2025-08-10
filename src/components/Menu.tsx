@@ -1,6 +1,6 @@
 import { SlidersHorizontal, SquareKanban, SquareTerminal } from 'lucide-react';
-import { MenuButton } from './MenuButton';
 import { cn } from '../lib/utils';
+import { MenuButton } from './MenuButton';
 
 type Props = {
   className?: string;

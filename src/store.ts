@@ -7,11 +7,11 @@ import {
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import { mainComponentReducer } from './app/screens/DownloadScreen/DownloadScreen.slice';
 import { serialReducer } from './app/screens/DownloadScreen/EpisodeRangeSelector.slice';
+import { loadButtonReducer } from './app/screens/DownloadScreen/LoadButton.slice';
 import { notificationReducer } from './app/screens/DownloadScreen/NotificationField.slice';
 import { qualityReducer } from './app/screens/DownloadScreen/QualitySelector.slice';
 import { subtitleReducer } from './app/screens/DownloadScreen/SubtitleSelector.slice';
 import { voiceOverReducer } from './app/screens/DownloadScreen/VoiceOverSelector.slice';
-import { loadButtonReducer } from './app/screens/DownloadScreen/LoadButton.slice';
 
 export const resetAction = createAction<{
   data: Record<string, any>;

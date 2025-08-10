@@ -20,7 +20,10 @@ import { selectMovieInfo } from './DownloadScreen.slice';
 import { selectRange } from './EpisodeRangeSelector.slice';
 import { selectLoadConfig, setLoadConfigIdAction } from './LoadButton.slice';
 import { selectCurrentQuality } from './QualitySelector.slice';
-import { selectCurrentSubtitle } from './SubtitleSelector.slice';
+import {
+  selectCurrentSubtitle,
+  selectDownloadSubtitle,
+} from './SubtitleSelector.slice';
 import { selectCurrentVoiceOver } from './VoiceOverSelector.slice';
 import StorageChange = Storage.StorageChange;
 
@@ -44,6 +47,10 @@ export function LoadButton() {
   const range = useAppSelector(selectRange);
   const voiceOver = useAppSelector(selectCurrentVoiceOver)!;
   const subtitleLang = useAppSelector(selectCurrentSubtitle);
+  const downloadSubtitle = useAppSelector((state) =>
+    selectDownloadSubtitle(state),
+  );
+
   const quality = useAppSelector(selectCurrentQuality)!;
 
   const loadConfig = useAppSelector(selectLoadConfig);

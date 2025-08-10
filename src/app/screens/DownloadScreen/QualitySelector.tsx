@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Combobox } from '../../../components/Combobox';
+import { sortQualityItem } from '../../../lib/link-processing';
 import {
   Message,
   QualitiesList,
@@ -13,7 +14,6 @@ import {
   selectQualitiesSizes,
   setCurrentQualityAction,
 } from './QualitySelector.slice';
-import { sortQualityItem } from '../../../lib/link-processing';
 
 async function getQualitiesSizes(qualitiesList: QualitiesList) {
   return await browser.runtime
