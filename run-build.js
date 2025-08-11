@@ -1,9 +1,9 @@
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import yargs from 'yargs';
 import { fileURLToPath } from 'url';
+import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { execSync } from 'child_process';
 
 const BASE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const BUILD_DIR = path.join(BASE_DIR, 'dist', 'build');

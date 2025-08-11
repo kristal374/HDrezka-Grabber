@@ -1,6 +1,6 @@
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 const argv = yargs(hideBin(process.argv))
   .version(false)

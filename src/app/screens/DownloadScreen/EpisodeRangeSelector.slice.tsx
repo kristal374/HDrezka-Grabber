@@ -1,5 +1,5 @@
 import { createAction, createReducer } from '@reduxjs/toolkit';
-import { Seasons } from '../../../lib/types';
+import { SeasonsWithEpisodesList } from '../../../lib/types';
 import { AppState } from '../../../store';
 
 export const setDownloadSerialAction = createAction<{
@@ -7,17 +7,17 @@ export const setDownloadSerialAction = createAction<{
 }>('serial/setDownloadSerial');
 
 export const setDefaultSeasonsAction = createAction<{
-  seasons: Seasons | null;
+  seasons: SeasonsWithEpisodesList | null;
   defaultSeason: string;
   defaultEpisode: string;
 }>('serial/setDefaultSeasons');
 
 export const setSeasonsAction = createAction<{
-  seasons: Seasons | null;
+  seasons: SeasonsWithEpisodesList | null;
 }>('serial/setSeasons');
 
 export const setRangeAction = createAction<{
-  range: Seasons | null;
+  range: SeasonsWithEpisodesList | null;
 }>('serial/setRange');
 
 export const setSeasonFromAction = createAction<{
@@ -38,8 +38,8 @@ export const setEpisodeToAction = createAction<{
 
 const initialSerial: {
   downloadSerial: boolean;
-  seasons: Seasons | null;
-  range: Seasons | null;
+  seasons: SeasonsWithEpisodesList | null;
+  range: SeasonsWithEpisodesList | null;
   seasonFrom: string;
   episodeFrom: string;
   seasonTo: string;

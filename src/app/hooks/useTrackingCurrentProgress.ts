@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
 import browser from 'webextension-polyfill';
+
+import { useEffect, useRef, useState } from 'react';
 import { getFromStorage } from '../../lib/storage';
 import { LoadItem } from '../../lib/types';
 

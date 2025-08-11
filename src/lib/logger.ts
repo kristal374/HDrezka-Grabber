@@ -1,20 +1,11 @@
-import browser from 'webextension-polyfill';
+import browser, { Storage } from 'webextension-polyfill';
+
 import { getFromStorage } from './storage';
 import { LogLevel, LogMessage, Message, SourceMap } from './types';
+import StorageChange = Storage.StorageChange;
 
-const extensionDomain = browser.runtime.getURL('');
-let debugFlag: boolean = false;
 let lastCallTime: number = 0;
-
-getFromStorage<boolean>('debugFlag').then(
-  (storage) => (debugFlag = storage ?? true),
-);
-
-browser.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && typeof changes.debugFlag?.newValue === 'boolean') {
-    debugFlag = changes.debugFlag?.newValue || false;
-  }
-});
+const extensionDomain = browser.runtime.getURL('');
 
 function toFormatTime(time: number): string {
   // Подготавливает строку времени в удобочитаемый формат -
@@ -31,13 +22,13 @@ function toFormatTime(time: number): string {
     const second = Math.floor(time / 1000) % 60;
     const millisecond = time % 1000;
 
-    return `${pad(hour, 2)}:${pad(minute, 2)}:${pad(second, 2)}:${pad(millisecond, 3)}`;
+    return `${pad(hour, 2)}:${pad(minute, 2)}:${pad(second, 2)}.${pad(millisecond, 3)}`;
   }
   const minutes = Math.floor(diff / (60 * 1000));
   const seconds = Math.floor((diff % (60 * 1000)) / 1000);
   const milliseconds = diff % 1000;
 
-  return `+${pad(minutes, 2)}:${pad(seconds, 2)}:${pad(milliseconds, 3)}`.padStart(
+  return `+${pad(minutes, 2)}:${pad(seconds, 2)}.${pad(milliseconds, 3)}`.padStart(
     12,
     ' ',
   );
@@ -83,7 +74,7 @@ function printLogForChrome(
       break;
   }
   console.log(
-    `${colorTime}${timestamp}${colorReset} | ${colorLevel}${message.level.padEnd(8)}${colorReset} | ${location} -`,
+    `${colorTime}${timestamp}${colorReset} | ${colorLevel}${LogLevel[message.level].padEnd(8)}${colorReset} | ${location} -`,
     ...message.message,
   );
 }
@@ -116,7 +107,7 @@ function printLogForFirefox(
       break;
   }
   console.log(
-    `%c${timestamp}%c | %c${message.level.padEnd(8)}%c | %c${location}%c - `,
+    `%c${timestamp}%c | %c${LogLevel[message.level].padEnd(8)}%c | %c${location}%c - `,
     colorTime,
     colorReset,
     colorLevel,
@@ -127,8 +118,21 @@ function printLogForFirefox(
   );
 }
 
-export class Logger {
+class Logger {
   private sourcemap: Record<string, Promise<SourceMapParser | null>> = {};
+  private debugFlag: boolean | undefined = undefined;
+  private readonly debugFlagInitialized: Promise<void>;
+
+  constructor() {
+    this.debugFlagInitialized = getFromStorage<boolean>('debugFlag').then(
+      (result) => {
+        this.debugFlag = result ?? true;
+      },
+    );
+    browser.storage.onChanged.addListener(
+      this.handlerDebugFlagChanges.bind(this),
+    );
+  }
 
   private async initializeSourceMapParser(url: string) {
     // Определяем необходимый файл с картой исходного кода для текущего URL
@@ -156,29 +160,50 @@ export class Logger {
   private async emit(level: LogLevel, message: any[]) {
     // Основная функция логирования, создаёт сообщение и отправляет его
     // в остальные части расширения, включая текущий контекст
-    if (!debugFlag) return;
-
     try {
+      // Для обеспечения корректности времени вызова функции логирования
+      // мы должны получать время до момента начала работы остальной логики
       const timestamp = new Date().getTime();
-      const [context, location] = await this.getCallerInfo();
+
+      let [context, location] = ['', ''];
+      if (this.debugFlag === undefined) {
+        // Поскольку невозможно корректно дождаться завершения инициализации
+        // переменной debugFlag, не сломав при этом stackTrace, необходимо
+        // получить данные о месте вызова до вызова ожидания инициализации
+        [context, location] = await this.getCallerInfo();
+        await this.debugFlagInitialized;
+      }
+
+      if (!this.debugFlag) return;
+
+      [context, location] =
+        !context && !location
+          ? await this.getCallerInfo()
+          : [context, location];
+
       const log: LogMessage = { timestamp, level, context, message, location };
-      const messageToSend: Message<LogMessage> = {
-        type: 'logCreate',
-        message: log,
-      };
-      const event: CustomEventInit = {
-        detail: log,
-      };
-      browser.runtime.sendMessage(messageToSend).catch(() => {});
-      // browser.runtime.sendMessage не отправляет сообщения в контекст
-      // из которого вызывается и если мы хотим так же получать сообщения
-      // в этом контексте мы должны отправить сообщение другим способом,
-      // в данном случае это CustomEvent
-      globalThis.dispatchEvent(new CustomEvent('logCreate', event));
+      this.sendLogMessage(log);
     } catch (e) {
       // Любые ошибки в логировании не должны влиять на работу расширения
       console.error(e);
     }
+  }
+
+  private sendLogMessage(detail: LogMessage) {
+    const messageToSend: Message<LogMessage> = {
+      type: 'logCreate',
+      message: detail,
+    };
+
+    // catch необходим на случай если не существует других контекстов которые
+    // могли бы слушать сообщения, для отлова ошибок об отсутствие ответа
+    browser.runtime.sendMessage(messageToSend).catch(() => {});
+
+    // browser.runtime.sendMessage не отправляет сообщения в контекст
+    // из которого вызывается и если мы хотим так же получать сообщения
+    // в этом контексте мы должны отправить сообщение другим способом,
+    // в данном случае это CustomEvent
+    globalThis.dispatchEvent(new CustomEvent(messageToSend.type, { detail }));
   }
 
   critical(...message: any[]) {
@@ -207,7 +232,6 @@ export class Logger {
     const urlStackTrace = exception.stack!.match(
       /((?:chrome|moz)-extension:\/(?:\/.*?)+\.js:(\d+):(\d+))/g,
     )!;
-
     // Число 3 здесь потому что перед этим было ровно 3 вызова других функций
     // от места вызова функции логирования
     const callerURL = urlStackTrace[3];
@@ -216,7 +240,19 @@ export class Logger {
     const sourcemap = await this.initializeSourceMapParser(callerURL);
     const location =
       sourcemap === null ? callerURL : sourcemap.getOriginalURL(callerURL);
-    return [context, location.replace(extensionDomain, '')];
+    return [context, location.replace(extensionDomain, '')] as const;
+  }
+
+  private handlerDebugFlagChanges(
+    changes: Record<string, StorageChange>,
+    areaName: string,
+  ) {
+    if (
+      areaName === 'local' &&
+      typeof changes.debugFlag?.newValue === 'boolean'
+    ) {
+      this.debugFlag = changes.debugFlag?.newValue || false;
+    }
   }
 }
 
@@ -224,7 +260,7 @@ class SourceMapParser {
   private readonly mappings: number[][][];
   private readonly sources: string[];
   private readonly names: string[];
-  private readonly cash: {
+  private readonly cache: {
     [key: string]: {
       source: string;
       line: number;
@@ -234,7 +270,7 @@ class SourceMapParser {
   };
 
   constructor(sourceMap: SourceMap) {
-    this.cash = {};
+    this.cache = {};
     this.sources = sourceMap.sources;
     this.names = sourceMap.names;
     this.mappings = this.parseMappings(sourceMap.mappings);
@@ -344,8 +380,8 @@ class SourceMapParser {
     name?: string;
   } | null {
     const cashIndex = `${line}:${column}`;
-    if (this.cash[cashIndex]) {
-      return this.cash[cashIndex];
+    if (this.cache[cashIndex]) {
+      return this.cache[cashIndex];
     }
     if (line - 1 >= this.mappings.length) {
       return null;
@@ -370,7 +406,7 @@ class SourceMapParser {
               ? this.names[nameIndex]
               : undefined,
         };
-        this.cash[cashIndex] = result;
+        this.cache[cashIndex] = result;
         return result;
       }
     }
@@ -399,4 +435,19 @@ class SourceMapParser {
       browser.runtime.getURL(path.replaceAll('../', '')) + `:${line}:${column}`
     );
   }
+
+  public normalizeStackTrace(stacktrace: string): string {
+    const allUrl = stacktrace.matchAll(
+      /(?:chrome|moz)-extension:\/(?:\/.*?)+\.js:(\d+):(\d+)/g,
+    );
+    for (const url of allUrl) {
+      stacktrace = stacktrace.replace(url[0], this.getOriginalURL(url[0]));
+    }
+    return stacktrace;
+  }
 }
+
+// TODO: Пересмотреть решение
+const logger = new Logger();
+globalThis.logger = logger;
+export default logger;

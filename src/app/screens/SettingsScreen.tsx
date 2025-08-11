@@ -1,5 +1,5 @@
-import { ToggleDarkMode } from '../../components/ToggleDarkMode';
 import { useEffect, useState } from 'react';
+import { ToggleDarkMode } from '../../components/ToggleDarkMode';
 import { getFromStorage, setToStorage } from '../../lib/storage';
 
 export function SettingsScreen() {

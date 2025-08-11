@@ -10,14 +10,14 @@ export async function getPageType(tabId: number) {
       return response[0].result as PageType;
     })
     .catch((error) => {
-      logger.error(`TypeError: ${error.name}. Message: ${error.message}`);
+      logger.error(error.toString());
       return 'ERROR' as PageType;
     });
 }
 
 async function extractPageType(): Promise<PageType> {
   const playerConfig = document.documentElement.outerHTML.match(
-    /sof\.tv\.(.*?)\((\d+), (\d+), (\d+), (\d+), (\d+|false|true), '(.*?)', (false|true), ({".*?":.*?})\);/,
+    /sof\.tv\.(.*?)\((\d+), (\d+), (\d+), (\d+), (\d+|false|true), '(.*?)', (false|true), (false|true), ({".*?":.*?})\);/,
   );
 
   if (playerConfig === null) {
@@ -35,7 +35,7 @@ async function extractPageType(): Promise<PageType> {
       return 'UNAVAILABLE';
     return 'DEFAULT';
   }
-  const playerInfo = JSON.parse(playerConfig[9]);
+  const playerInfo = JSON.parse(playerConfig[10]);
   const argsIsFalse: boolean = Object.values(playerInfo).every(
     (value) => value === false,
   );

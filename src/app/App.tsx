@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Layout } from '../components/Layout';
 import { ErrorFallback } from '../components/ErrorFallback';
+import { Layout } from '../components/Layout';
 import { init } from './initialization';
 import { InitialDataProvider } from './providers/InitialDataProvider';
 import { ProcessingScreen } from './screens/ProcessingScreen';

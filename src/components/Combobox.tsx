@@ -1,5 +1,5 @@
+import { ChevronDown } from 'lucide-react';
 import * as React from 'react';
-import { Check, ChevronDown } from 'lucide-react';
 
 import { cn } from '../lib/utils';
 import { Command, CommandGroup, CommandItem, CommandList } from './Command';

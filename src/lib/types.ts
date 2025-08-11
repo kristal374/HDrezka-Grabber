@@ -1,11 +1,15 @@
+import { Downloads } from 'webextension-polyfill';
+import DownloadItem = Downloads.DownloadItem;
+import OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
+
 export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
 export enum LogLevel {
-  CRITICAL = 'CRITICAL',
-  ERROR = 'ERROR',
-  WARNING = 'WARNING',
-  INFO = 'INFO',
-  DEBUG = 'DEBUG',
+  CRITICAL,
+  ERROR,
+  WARNING,
+  INFO,
+  DEBUG,
 }
 
 export type MessageType =
@@ -66,11 +70,17 @@ export type MovieInfo = {
   url: string;
 };
 
-export type SubtitleInfo = {
-  subtitle: false | string;
-  subtitle_def: false | string;
-  subtitle_lns: false | Record<string, string>;
-};
+export type SubtitleInfo =
+  | {
+      subtitle: false;
+      subtitle_def: false;
+      subtitle_lns: false;
+    }
+  | {
+      subtitle: string;
+      subtitle_def: string;
+      subtitle_lns: Record<string, string>;
+    };
 
 export type VoiceOverInfo = {
   id: string;
@@ -83,10 +93,12 @@ export type VoiceOverInfo = {
 };
 
 export type Episode = { title: string; id: string };
+export type Season = { title: string; id: string };
 
-export type Seasons = Record<string, { title: string; episodes: Episode[] }>;
-
-export type SimpleSeason = Episode;
+export type SeasonsWithEpisodesList = Record<
+  string,
+  { title: string; episodes: Episode[] }
+>;
 
 export type QualityItem =
   | '360p'
@@ -135,7 +147,6 @@ export type UpdateTranslateFields = { action: 'get_episodes' };
 export type FilmData = Fields & FilmsFields;
 export type SerialData = Fields & SerialFields;
 export type UpdateTranslateData = Fields & UpdateTranslateFields;
-export type QueryData = FilmData | SerialData | UpdateTranslateData;
 
 export type ResponseVideoData = {
   success: boolean;
@@ -145,67 +156,25 @@ export type ResponseVideoData = {
   episodes?: string;
   url: string;
   quality: QualityItem;
-  subtitle: string | false;
-  subtitle_lns: Record<string, string> | false;
-  subtitle_def: string | false;
   thumbnails: string;
-};
-
-export type LoadStatus =
-  | 'LoadCandidate'
-  | 'InitiatingDownload'
-  | 'InitiationError'
-  | 'Loading'
-  | 'DownloadPaused'
-  | 'DownloadFailed'
-  | 'DownloadSuccess'
-  | 'StoppedByUser';
-
-export type FileInfo = {
-  downloadId: number | null;
-  fileName: string | null;
-  realQuality: QualityItem | null;
-  absolutePath: string | null; // Путь к загружаемому файлу
-  urlItem: URLItem | null;
-  saveAs: boolean;
-};
-
-export type LoadItem = {
-  uid: number;
-  urlHash: number;
-  queryData: FilmData | SerialData;
-  season: SimpleSeason | null;
-  episode: Episode | null;
-  file: FileInfo;
-  retryAttempts: number;
-  status: LoadStatus;
-};
-
-export type LoadConfig = {
-  siteUrl: string;
-  filmTitle: {
-    localized: string;
-    original: string | null;
-  };
-  subtitle: string | null;
-  voiceOver: VoiceOverInfo;
-  quality: QualityItem;
-  loadItems: number[];
-  createdAt: string;
-};
+} & SubtitleInfo;
 
 export type Initiator = {
-  query_data: FilmData | SerialData;
+  movieId: string;
   site_url: string;
-  range: Seasons | null;
   film_name: {
     localized: string;
     original: string | null;
   };
+  range: SeasonsWithEpisodesList | null;
   voice_over: VoiceOverInfo;
   quality: QualityItem;
-  subtitle: string | null;
-  timestamp: Date | string;
+  subtitle: {
+    lang: string;
+    code: string;
+  } | null;
+  favs: string;
+  timestamp: string;
 };
 
 export type DataForUpdate = {
@@ -214,7 +183,7 @@ export type DataForUpdate = {
 };
 
 export type ActualVideoData = {
-  seasons: Seasons | null;
+  seasons: SeasonsWithEpisodesList | null;
   subtitle: SubtitleInfo;
   streams: string;
 };
@@ -228,4 +197,116 @@ export type Progress = {
   completed: number | null;
   total: number | null;
   current: number | null;
+};
+
+export type URL = string;
+
+export type SubtitleLang = string;
+
+export enum LoadStatus {
+  DownloadCandidate = 'DownloadCandidate',
+  InitiatingDownload = 'InitiatingDownload',
+  InitiationError = 'InitiationError',
+  Downloading = 'Downloading',
+  DownloadPaused = 'DownloadPaused',
+  DownloadFailed = 'DownloadFailed',
+  DownloadSuccess = 'DownloadSuccess',
+  StoppedByUser = 'StoppedByUser',
+}
+
+export enum ContentType {
+  'video',
+  'subtitle',
+  'both',
+}
+
+export type FileType = 'video' | 'subtitle';
+
+export type FileItem = {
+  id: number;
+  fileType: FileType;
+  relatedLoadItemId: number;
+  dependentFileItemId: number | null;
+  downloadId: number | null;
+  fileName: string;
+  url: URL | null;
+  saveAs: boolean;
+  retryAttempts: number;
+  status: LoadStatus;
+  createdAt: number;
+};
+
+export type LoadItem = {
+  id: number;
+  siteType: 'hdrezka';
+  movieId: number;
+  season: Season | null;
+  episode: Episode | null;
+  content: ContentType;
+  availableQualities: QualityItem[] | null;
+  availableSubtitles: SubtitleLang[] | null;
+  status: LoadStatus;
+};
+
+export type LoadConfig = {
+  voiceOver: VoiceOverInfo;
+  quality: QualityItem;
+  subtitle: {
+    lang: SubtitleLang;
+    code: string;
+  } | null;
+  favs: string;
+  loadItemIds: number[];
+  createdAt: number;
+};
+
+export type UrlDetails = {
+  movieId: number;
+  siteUrl: string;
+  filmTitle: {
+    localized: string;
+    original: string | null;
+  };
+  loadRegistry: number[];
+};
+
+export type FilmQueryData = {
+  id: string;
+  translator_id: string;
+  is_camrip: string;
+  is_ads: string;
+  is_director: string;
+  favs: string;
+  action: 'get_movie';
+};
+
+export type SerialQueryData = {
+  id: string;
+  translator_id: string;
+  season: string;
+  episode: string;
+  favs: string;
+  action: 'get_stream';
+};
+
+export type QueryData = FilmQueryData | SerialQueryData | UpdateTranslateData;
+
+export enum EventType {
+  Created = 'Created',
+  DownloadEvent = 'DownloadEvent',
+}
+
+export type EventMessage =
+  | {
+      type: EventType.Created;
+      data: DownloadItem;
+    }
+  | {
+      type: EventType.DownloadEvent;
+      data: OnChangedDownloadDeltaType;
+    };
+
+export type DownloadAPIEvents = {
+  [EventType.Created]: DownloadItem;
+  [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
 };
