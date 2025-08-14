@@ -50,6 +50,15 @@
   "popup_translate": {
     "message": "Озвучення"
   },
+  "combobox_placeholder": {
+    "message": "Оберіть значення"
+  },
+  "combobox_search": {
+    "message": "Пошук..."
+  },
+  "combobox_empty": {
+    "message": "Нічого не знайдено"
+  },
   "message_noDataVideo": {
     "message": "Неможливо отримати дані відео. Перевірте інтернет-з'єднання або застосуйте VPN."
   },

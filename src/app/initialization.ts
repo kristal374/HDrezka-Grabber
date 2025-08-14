@@ -20,6 +20,8 @@ export async function init() {
   return { tabId, siteUrl, pageType, sessionStorage };
 }
 
+export type InitData = Required<Awaited<ReturnType<typeof init>>>;
+
 async function setDarkMode() {
   let darkMode = await getFromStorage<boolean | undefined>('darkMode');
   if (darkMode === undefined) {

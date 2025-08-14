@@ -50,6 +50,15 @@
   "popup_quality": {
     "message": "Качество"
   },
+  "combobox_placeholder": {
+    "message": "Выберите значение"
+  },
+  "combobox_search": {
+    "message": "Поиск..."
+  },
+  "combobox_empty": {
+    "message": "Ничего не найдено"
+  },
   "message_noDataVideo": {
     "message": "Не удалось получить данные видео. Проверьте интернет соеденение или используйте VPN."
   },
