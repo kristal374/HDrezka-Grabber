@@ -32,7 +32,6 @@ export function LoadButton() {
   const progress = useTrackingTotalProgressForMovie(
     parseInt(movieInfo.data.id),
   );
-  console.log(progress);
 
   const handleClick = useCallback(() => {
     setButtonState((prevState) => {

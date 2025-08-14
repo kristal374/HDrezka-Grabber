@@ -24,8 +24,6 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
   const inProgressLoads = loadStatuses?.in_progress.length ?? 0;
   const totalLoads = completedLoads + inProgressLoads;
 
-  console.log('loadItem', loadItem);
-
   const progress: MovieProgress | null =
     totalLoads > 0
       ? { videoProgressInPercents, completedLoads, totalLoads }
