@@ -7,6 +7,7 @@ import {
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import { mainComponentReducer } from './app/screens/DownloadScreen/DownloadScreen.slice';
 import { serialReducer } from './app/screens/DownloadScreen/EpisodeRangeSelector.slice';
+import { loadButtonReducer } from './app/screens/DownloadScreen/LoadButton.slice';
 import { notificationReducer } from './app/screens/DownloadScreen/NotificationField.slice';
 import { qualityReducer } from './app/screens/DownloadScreen/QualitySelector.slice';
 import { subtitleReducer } from './app/screens/DownloadScreen/SubtitleSelector.slice';
@@ -24,6 +25,7 @@ const rootReducer = (state: any, action: any) => {
     qualityReducer,
     subtitleReducer,
     notificationReducer,
+    loadButtonReducer,
   });
   if (action.type === resetAction.type) {
     return action.payload.data as ReturnType<typeof mainReducer>;

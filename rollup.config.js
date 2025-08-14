@@ -6,7 +6,7 @@ import copy from 'rollup-plugin-copy';
 
 export default [
   {
-    input: 'src/js/background.ts',
+    input: 'src/service-worker/background.ts',
     output: {
       file: 'dist/build/HDrezka-Grabber.build/src/js/background.js',
       sourcemap: true,

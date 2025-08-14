@@ -45,11 +45,11 @@ async function extractVoiceOversList(): Promise<VoiceOverInfo[] | null> {
     const elements = Array.from(trTagList || []).filter(
       (element) => element.cells[0].textContent === 'В переводе:',
     );
-    // @ts-ignore
+
     const [_, initiator, _movieID, translatorID, param_1, param_2, param_3] =
       document.documentElement.outerHTML.match(
         /sof\.tv\.(.*?)\((\d+), (\d+), (\d+), (\d+), (\d+|false|true),/,
-      );
+      )!;
     const translatorName =
       elements.length !== 0
         ? elements[0].children[1].textContent!.trim()

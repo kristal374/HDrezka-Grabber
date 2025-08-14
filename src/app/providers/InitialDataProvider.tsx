@@ -15,6 +15,7 @@ export function InitialDataProvider({
 }: InitialDataProviderProps) {
   const dispatch = useAppDispatch();
   const [initData, setInitData] = useState<InitData>(null!);
+  // TODO: добавить обработку ошибки
 
   useLayoutEffect(() => {
     initPromise.then((result) => {

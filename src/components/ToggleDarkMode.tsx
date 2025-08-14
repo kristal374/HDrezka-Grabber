@@ -4,7 +4,9 @@ import { getFromStorage, setToStorage } from '../lib/storage';
 export function ToggleDarkMode() {
   const [darkMode, setDarkMode] = useState(true);
   useEffect(() => {
-    getFromStorage<boolean>('darkMode').then(setDarkMode);
+    getFromStorage<boolean>('darkMode').then((result) =>
+      setDarkMode(result ?? true),
+    );
   }, []);
   return (
     <button

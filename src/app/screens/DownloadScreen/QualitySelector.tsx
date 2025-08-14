@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Combobox } from '../../../components/Combobox';
+import { sortQualityItem } from '../../../lib/link-processing';
 import {
   Message,
   QualitiesList,
@@ -52,7 +53,7 @@ export function QualitySelector() {
         onValueChange={(v) =>
           dispatch(setCurrentQualityAction({ quality: v as QualityItem }))
         }
-        data={Object.keys(qualitiesList).map((q) => ({
+        data={Object.keys(sortQualityItem(qualitiesList)).map((q) => ({
           value: q,
           label: q,
           labelComponent({ children }) {

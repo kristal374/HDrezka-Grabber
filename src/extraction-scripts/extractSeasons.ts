@@ -1,4 +1,4 @@
-import { PageType, Seasons } from '../lib/types';
+import { PageType, SeasonsWithEpisodesList } from '../lib/types';
 
 export async function getSeasons(tabId: number, pageType: PageType) {
   if (pageType !== 'SERIAL') return null;
@@ -8,20 +8,24 @@ export async function getSeasons(tabId: number, pageType: PageType) {
       func: extractSeasons,
     })
     .then((response) => {
-      return response[0].result as Seasons;
+      return response[0].result as SeasonsWithEpisodesList;
     });
 }
 
 async function extractSeasons() {
-  const seasons: Seasons = {};
+  const seasons: SeasonsWithEpisodesList = {};
 
   const episodeTabs = document.getElementById('simple-episodes-tabs');
   if (!episodeTabs) return null;
 
-  const seasonList: HTMLCollection = episodeTabs.getElementsByTagName('ul');
+  const seasonList: HTMLCollection = episodeTabs.getElementsByClassName(
+    'b-simple_episodes__list',
+  );
 
   for (let i = 0; i < seasonList.length; i++) {
-    const episodeItems = seasonList[i].getElementsByTagName('li');
+    const episodeItems = seasonList[i].getElementsByClassName(
+      'b-simple_episode__item',
+    );
     for (let j = 0; j < episodeItems.length; j++) {
       const episodeID = episodeItems[j].getAttribute('data-episode_id');
       const seasonID = episodeItems[j].getAttribute('data-season_id');

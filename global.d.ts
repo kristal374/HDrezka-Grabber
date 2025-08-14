@@ -1,5 +1,7 @@
+import { IDBPDatabase } from 'idb';
 import Browser from 'webextension-polyfill';
 import messages from './src/_locales/ru/messages.json';
+import { HDrezkaGrabberDB } from './src/lib/idb-storage';
 import { Logger } from './src/lib/logger';
 
 type OverrideBrowser = typeof Browser & {
@@ -14,4 +16,6 @@ type OverrideBrowser = typeof Browser & {
 declare global {
   const browser: OverrideBrowser;
   var logger: Logger;
+  var debugFlag: boolean;
+  var indexedDBObject: IDBPDatabase<HDrezkaGrabberDB>;
 }

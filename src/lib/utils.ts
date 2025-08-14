@@ -1,18 +1,18 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { Seasons } from './types';
+import type { SeasonsWithEpisodesList } from './types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 export function sliceSeasons(
-  seasons: Seasons,
+  seasons: SeasonsWithEpisodesList,
   seasonFrom: string,
   episodeFrom: string,
   seasonTo: string | '-1' | '-2',
   episodeTo: string | '',
-): Seasons {
+): SeasonsWithEpisodesList {
   const sortedSeasonKeys = Object.keys(seasons).sort(
     (a, b) => parseInt(a) - parseInt(b),
   );
@@ -24,7 +24,7 @@ export function sliceSeasons(
     episodeTo = '';
   }
 
-  const result: Seasons = {};
+  const result: SeasonsWithEpisodesList = {};
 
   for (const seasonKey of sortedSeasonKeys) {
     if (

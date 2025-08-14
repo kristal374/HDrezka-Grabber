@@ -1,5 +1,5 @@
-import { ToggleDarkMode } from '../../components/ToggleDarkMode';
 import { useEffect, useState } from 'react';
+import { ToggleDarkMode } from '../../components/ToggleDarkMode';
 import { getFromStorage, setToStorage } from '../../lib/storage';
 
 export function SettingsScreen() {
@@ -22,7 +22,9 @@ function ToggleDebugMode() {
   const [debugMode, setDebugMode] = useState(true);
 
   useEffect(() => {
-    getFromStorage<boolean>('debugFlag').then(setDebugMode);
+    getFromStorage<boolean>('debugFlag').then((result) =>
+      setDebugMode(result ?? true),
+    );
   }, []);
 
   return (

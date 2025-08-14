@@ -15,30 +15,35 @@ function clearTrash(data: string) {
   return atob(data);
 }
 
-function sortQualitiesList(urlsContainer: QualitiesList): QualitiesList {
-  const qualityArr: QualityItem[] = [
-    '360p',
-    '480p',
-    '720p',
-    '1080p',
-    '1080p Ultra',
-    '2K',
-    '4K',
-  ];
-  const sortedUrlsContainer: QualitiesList = {};
-  qualityArr.forEach((quality) => {
-    if (urlsContainer[quality]) {
-      sortedUrlsContainer[quality] = urlsContainer[quality];
-    }
+export function getQualityWeight(quality: QualityItem): number {
+  const match = quality.match(/^(\d+)([pK])/i);
+  if (!match) return 0;
+  const value = parseInt(match[1], 10);
+  const unit = match[2].toLowerCase();
+
+  // 630 This is the arithmetic mean to obtain an approximate value
+  // of height in pixels (p) when multiplying by "K" value.
+  let rank = unit === 'k' ? value * 630 : value;
+  if (quality.toLowerCase().includes('ultra')) rank++;
+  return rank;
+}
+
+export function sortQualityItem<T extends Partial<Record<QualityItem, any>>>(
+  urlsContainer: T,
+): T {
+  const qualityWeight: Partial<Record<QualityItem, number>> = {};
+  Object.keys(urlsContainer).forEach((key) => {
+    const quality = key as QualityItem;
+    qualityWeight[quality] = getQualityWeight(quality);
   });
 
-  (Object.keys(urlsContainer) as QualityItem[]).forEach((quality) => {
-    if (!sortedUrlsContainer.hasOwnProperty(quality)) {
-      sortedUrlsContainer[quality] = urlsContainer[quality];
-    }
-  });
-
-  return sortedUrlsContainer;
+  return Object.entries(qualityWeight)
+    .sort((a, b) => b[1] - a[1])
+    .reduce((acc, [key, _weight]) => {
+      const quality = key as QualityItem;
+      acc[quality] = urlsContainer[quality];
+      return acc;
+    }, {} as T);
 }
 
 export function decodeVideoURL(stream: string | false): QualitiesList | null {
@@ -55,7 +60,7 @@ export function decodeVideoURL(stream: string | false): QualitiesList | null {
         .filter((item) => /https?:\/\/.*mp4$/.test(item));
     });
 
-  return sortQualitiesList(urlsContainer);
+  return sortQualityItem(urlsContainer);
 }
 
 export function decodeSubtitleURL(subtitles: SubtitleInfo | null) {

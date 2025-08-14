@@ -95,9 +95,9 @@ async function extractCurrentEpisode() {
 async function extractInitialParameters() {
   const initialParameters = {};
   const playerConfig = document.documentElement.outerHTML.match(
-    /sof\.tv\.(.*?)\((\d+), (\d+), (\d+), (\d+), (\d+|false|true), '(.*?)', (false|true), ({".*?":.*?})\);/,
+    /sof\.tv\.(.*?)\((\d+), (\d+), (\d+), (\d+), (\d+|false|true), '(.*?)', (false|true), (false|true), ({".*?":.*?})\);/,
   );
-  const playerInfo = JSON.parse(playerConfig[9]);
+  const playerInfo = JSON.parse(playerConfig[10]);
   const favs = document.getElementById('ctrl_favs')?.value || null;
 
   if (!playerConfig) return null;
