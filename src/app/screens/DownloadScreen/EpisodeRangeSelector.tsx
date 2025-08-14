@@ -1,14 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Checkbox } from '../../../components/Checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../../../components/Select';
+import { Combobox } from '../../../components/Combobox';
 import { getSeasons } from '../../../extraction-scripts/extractSeasons';
-import { cn, sliceSeasons } from '../../../lib/utils';
+import { sliceSeasons } from '../../../lib/utils';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import { useInitData } from '../../providers/InitialDataProvider';
 import {
@@ -27,15 +21,15 @@ import {
   setSeasonToAction,
 } from './EpisodeRangeSelector.slice';
 
-type Props = {
+interface EpisodeRangeSelectorProps {
   defaultSeasonStart: string;
   defaultEpisodeStart: string;
-};
+}
 
 export function EpisodeRangeSelector({
   defaultSeasonStart,
   defaultEpisodeStart,
-}: Props) {
+}: EpisodeRangeSelectorProps) {
   const dispatch = useAppDispatch();
   const { tabId, pageType } = useInitData();
 
@@ -76,6 +70,17 @@ export function EpisodeRangeSelector({
     });
   }, []);
 
+  const seasonValues = useMemo(
+    () =>
+      seasons
+        ? Object.entries(seasons).map(([id, season]) => ({
+            value: id,
+            label: season.title,
+          }))
+        : [],
+    [seasons],
+  );
+
   if (!seasons) return null;
 
   logger.info('New render EpisodeRangeSelector component.');
@@ -102,49 +107,35 @@ export function EpisodeRangeSelector({
             <label htmlFor='seasonFrom' className='ml-auto text-base font-bold'>
               {browser.i18n.getMessage('popup_textFrom')}
             </label>
-            <Select
+
+            <Combobox
+              id='seasonFrom'
+              className='py-0.5'
+              width={82}
+              data={seasonValues}
               value={seasonFrom}
               onValueChange={(value) => {
-                dispatch(setSeasonFromAction({ value: value }));
+                dispatch(setSeasonFromAction({ value }));
               }}
-            >
-              <SelectTrigger id='seasonFrom' className='w-[82px] py-0.5'>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(seasons).map(([id, season]) => {
-                  return (
-                    <SelectItem value={id} key={id}>
-                      {season.title}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+            />
 
             <label htmlFor='episodeFrom' className='text-sm'>
               {'>'}
             </label>
 
-            <Select
+            <Combobox
+              id='episodeFrom'
+              className='py-0.5'
+              width={115}
+              data={seasons[seasonFrom].episodes.map((episode) => ({
+                value: episode.id,
+                label: episode.title,
+              }))}
               value={episodeFrom}
               onValueChange={(value) => {
-                dispatch(setEpisodeFromAction({ value: value }));
+                dispatch(setEpisodeFromAction({ value }));
               }}
-            >
-              <SelectTrigger id='episodeFrom' className='w-[115px] py-0.5'>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {seasons[seasonFrom].episodes.map((episode) => {
-                  return (
-                    <SelectItem value={episode.id} key={episode.id}>
-                      {episode.title}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+            />
           </div>
 
           <div className='flex items-center gap-2.5'>
@@ -152,41 +143,34 @@ export function EpisodeRangeSelector({
             <label htmlFor='seasonTo' className='ml-auto text-base font-bold'>
               {browser.i18n.getMessage('popup_textTo')}
             </label>
-            <Select
+
+            <Combobox
+              id='seasonTo'
+              className='py-0.5'
+              width={downloadToEnd ? undefined : 82}
+              data={[
+                {
+                  value: '-2',
+                  label: browser.i18n.getMessage('popup_textEndSeasons'),
+                },
+                ...(seasonValues.length > 1 &&
+                seasonFrom !== seasonValues.at(-1)?.value
+                  ? [
+                      {
+                        value: '-1',
+                        label: browser.i18n.getMessage('popup_textEndEpisodes'),
+                      },
+                    ]
+                  : []),
+                ...seasonValues.filter(
+                  (season) => Number(season.value) >= Number(seasonFrom),
+                ),
+              ]}
               value={seasonTo}
               onValueChange={(value) => {
-                dispatch(setSeasonToAction({ value: value }));
+                dispatch(setSeasonToAction({ value }));
               }}
-            >
-              <SelectTrigger
-                id='seasonTo'
-                className={cn(
-                  downloadToEnd ? 'w-[225px]' : 'w-[82px]',
-                  'py-0.5',
-                )}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={'-2'} key={'-2'}>
-                  {browser.i18n.getMessage('popup_textEndSeasons')}
-                </SelectItem>
-                {Object.keys(seasons).length > 1 &&
-                  seasonFrom !== Object.keys(seasons).at(-1) && (
-                    <SelectItem value={'-1'} key={'-1'}>
-                      {browser.i18n.getMessage('popup_textEndEpisodes')}
-                    </SelectItem>
-                  )}
-                {Object.entries(seasons).map(([id, season]) => {
-                  if (Number(id) < Number(seasonFrom)) return null;
-                  return (
-                    <SelectItem value={id} key={id}>
-                      {season.title}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+            />
 
             {!downloadToEnd && (
               <>
@@ -194,31 +178,26 @@ export function EpisodeRangeSelector({
                   {'>'}
                 </label>
 
-                <Select
-                  value={episodeTo}
-                  onValueChange={(value) =>
-                    dispatch(setEpisodeToAction({ value: value }))
-                  }
-                >
-                  <SelectTrigger id='episodeTo' className='w-[115px] py-0.5'>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {seasons[seasonTo].episodes.map((episode) => {
-                      if (
+                <Combobox
+                  id='episodeTo'
+                  className='py-0.5'
+                  width={115}
+                  data={seasons[seasonTo].episodes
+                    .filter((episode) => {
+                      return !(
                         seasonTo === seasonFrom &&
                         Number(episode.id) < Number(episodeFrom)
-                      ) {
-                        return null;
-                      }
-                      return (
-                        <SelectItem value={episode.id} key={episode.id}>
-                          {episode.title}
-                        </SelectItem>
                       );
-                    })}
-                  </SelectContent>
-                </Select>
+                    })
+                    .map((episode) => ({
+                      value: episode.id,
+                      label: episode.title,
+                    }))}
+                  value={episodeTo}
+                  onValueChange={(value) => {
+                    dispatch(setEpisodeToAction({ value }));
+                  }}
+                />
               </>
             )}
           </div>

@@ -1,13 +1,8 @@
 import { useEffect } from 'react';
-import { PremiumIcon } from '../../../components/Icons';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../../../components/Select';
+import { Combobox } from '../../../components/Combobox';
+import { FlagKZ, FlagUA, PremiumIcon } from '../../../components/Icons';
 import { getVoiceOverList } from '../../../extraction-scripts/extractVoiceOverList';
+import type { VoiceOverInfo } from '../../../lib/types';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import { useInitData } from '../../providers/InitialDataProvider';
 import {
@@ -17,23 +12,25 @@ import {
   setVoiceOverListAction,
 } from './VoiceOverSelector.slice';
 
-type Props = {
+interface VoiceOverSelectorProps {
   defaultVoiceOverId: string;
   is_camrip?: string;
   is_director?: string;
   is_ads?: string;
-};
+}
 
 export function VoiceOverSelector({
   defaultVoiceOverId,
   is_camrip,
   is_director,
   is_ads,
-}: Props) {
+}: VoiceOverSelectorProps) {
   const dispatch = useAppDispatch();
   const { tabId, pageType } = useInitData();
   const voiceOverList = useAppSelector((state) => selectVoiceOverList(state));
-  const voiceOver = useAppSelector((state) => selectCurrentVoiceOver(state));
+  const currentVoiceOver = useAppSelector((state) =>
+    selectCurrentVoiceOver(state),
+  );
 
   useEffect(() => {
     if (voiceOverList !== null) return;
@@ -60,32 +57,55 @@ export function VoiceOverSelector({
       <label htmlFor='voiceOver' className='ml-auto text-sm'>
         {browser.i18n.getMessage('popup_translate')}
       </label>
-      <Select
-        value={JSON.stringify(voiceOver)}
-        onValueChange={(v) =>
-          dispatch(setVoiceOverAction({ voiceOver: JSON.parse(v) }))
-        }
-      >
-        <SelectTrigger id='voiceOver' className='w-[225px] py-1.5'>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {voiceOverList.map((voiceOverInfo) => {
+      <Combobox
+        id='voiceOver'
+        height={pageType === 'FILM' ? 155 : undefined}
+        data={voiceOverList.map((voiceOver) => ({
+          value: JSON.stringify(voiceOver),
+          label: voiceOver.title,
+          labelComponent({ children }) {
             return (
-              <SelectItem
-                value={JSON.stringify(voiceOverInfo)}
-                key={JSON.stringify(voiceOverInfo)}
-              >
-                {voiceOverInfo.title}
-                {voiceOverInfo.flag_country && (
-                  <span>({voiceOverInfo.flag_country.toUpperCase()})</span>
+              <>
+                {children}
+                {voiceOver.flag_country && (
+                  <FlagIcon
+                    country={voiceOver.flag_country}
+                    className='ml-2 shrink-0'
+                  />
                 )}
-                {voiceOverInfo.prem_content && <PremiumIcon />}
-              </SelectItem>
+                {voiceOver.prem_content && (
+                  <PremiumIcon className='ml-2 shrink-0' />
+                )}
+              </>
             );
-          })}
-        </SelectContent>
-      </Select>
+          },
+        }))}
+        value={JSON.stringify(currentVoiceOver) || ''}
+        onValueChange={(value) =>
+          dispatch(
+            setVoiceOverAction({
+              voiceOver: JSON.parse(value) as VoiceOverInfo,
+            }),
+          )
+        }
+      />
     </div>
   );
+}
+
+function FlagIcon({
+  country,
+  className,
+}: {
+  country: string;
+  className?: string;
+}) {
+  switch (country) {
+    case 'ua':
+      return <FlagUA className={className} />;
+    case 'kz':
+      return <FlagKZ className={className} />;
+    default:
+      return null;
+  }
 }

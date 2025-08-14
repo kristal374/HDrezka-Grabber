@@ -40,23 +40,23 @@ export function SubtitleSelector() {
 
       {downloadSubtitle && (
         <div className='flex items-center gap-2.5'>
-          <label htmlFor='downloadSubtitle' className='ml-auto text-sm'>
+          <label htmlFor='subtitles' className='ml-auto text-sm'>
             {browser.i18n.getMessage('popup_subtitleLang')}
           </label>
           <Combobox
             id='subtitles'
-            value={JSON.stringify(subtitleLang)}
-            onValueChange={(v, _l) =>
-              dispatch(
-                setCurrentSubtitleAction({
-                  subtitle: JSON.parse(v) as Subtitle,
-                }),
-              )
-            }
             data={subtitlesList.map((subtitle) => ({
               value: JSON.stringify(subtitle),
               label: subtitle.lang,
             }))}
+            value={JSON.stringify(subtitleLang)}
+            onValueChange={(value) =>
+              dispatch(
+                setCurrentSubtitleAction({
+                  subtitle: JSON.parse(value) as Subtitle,
+                }),
+              )
+            }
           />
         </div>
       )}
