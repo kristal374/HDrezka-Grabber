@@ -52,7 +52,7 @@ export function DownloadScreen() {
   const currentEpisode = useAppSelector((state) => selectCurrentEpisode(state));
 
   const [isFirstLoad, setIsFirstLoad] = useState(true);
-
+  // TODO: убрать хуки отсюда
   useEffect(() => {
     // При обновлении озвучки мы должны обновить список эпизодов(если есть),
     // после, мы должны установить стартовый сезон и эпизод. Вследствие чего

@@ -5,7 +5,7 @@ import {
   LoadItem,
   LogMessage,
   UrlDetails,
-} from '../lib/types';
+} from './types';
 
 export interface HDrezkaGrabberDB extends DBSchema {
   urlDetail: {

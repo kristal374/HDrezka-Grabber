@@ -14,9 +14,9 @@ import {
 } from '../lib/types';
 import { logCreate } from './background-logger';
 
-import { getQualityFileSize, updateVideoData } from './handler';
-import { doDatabaseStuff } from './idb-storage';
 import mitt from 'mitt';
+import { doDatabaseStuff } from '../lib/idb-storage';
+import { getQualityFileSize, updateVideoData } from './handler';
 import { DownloadManager } from './load-manager/core';
 import MessageSender = Runtime.MessageSender;
 

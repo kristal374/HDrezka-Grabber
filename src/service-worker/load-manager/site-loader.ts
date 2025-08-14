@@ -243,9 +243,10 @@ export class HDrezkaLoader implements SiteLoader {
       ).toString(),
       '%movie_id%': this.downloadItem.movieId.toString(),
       '%title%': this.urlDetails.filmTitle.localized,
-      '%orig_title%':
+      '%orig_title%': (
         this.urlDetails.filmTitle.original ??
-        this.urlDetails.filmTitle.localized,
+        this.urlDetails.filmTitle.localized
+      ).split(' / ')[0],
       '%translate%': this.loadConfig.voiceOver.title,
       '%id_translate%': this.loadConfig.voiceOver.id,
       '%episode%': this.downloadItem.episode?.title,

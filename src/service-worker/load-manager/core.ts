@@ -164,7 +164,6 @@ export class DownloadManager {
 
   handlerCreated(downloadItem: DownloadItem) {
     // Обработчик успешной инициализации загрузки браузером
-    console.log('Download has been created:', downloadItem);
     logger.debug('Download has been created:', downloadItem);
 
     this.mutex.runExclusive(
@@ -178,7 +177,6 @@ export class DownloadManager {
 
   handlerDownloadEvent(downloadDelta: OnChangedDownloadDeltaType) {
     // Отслеживает события загрузок и принимает решения на их основе
-    console.log('An event occurred:', downloadDelta);
     logger.debug('An event occurred:', downloadDelta);
 
     this.mutex.runExclusive(
@@ -284,6 +282,17 @@ export class DownloadManager {
       fileItem.status = LoadStatus.Downloading;
       fileItem.url = downloadItem.url;
       await indexedDBObject.put('fileStorage', fileItem);
+
+      const loadItem = (await indexedDBObject.getFromIndex(
+        'loadStorage',
+        'load_id',
+        fileItem.relatedLoadItemId,
+      )) as LoadItem;
+
+      if (loadItem.status !== LoadStatus.Downloading) {
+        loadItem.status = LoadStatus.Downloading;
+        await indexedDBObject.put('loadStorage', loadItem);
+      }
 
       logger.info(
         'Status "Loading" was successfully established for:',
