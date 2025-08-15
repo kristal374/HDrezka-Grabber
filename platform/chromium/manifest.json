@@ -31,7 +31,7 @@
     }
   ],
   "options_ui": {
-    "open_in_tab": false,
+    "open_in_tab": true,
     "page": "settings.html"
   },
   "author": "mail.aleks.for.work@gmail.com",
