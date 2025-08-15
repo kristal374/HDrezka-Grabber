@@ -10,7 +10,7 @@ export function DefaultScreen({ vpnNotice, className, children }: Props) {
   return (
     <div
       className={cn(
-        'relative flex min-h-[116px] grow flex-col items-center justify-center gap-1 text-balance px-12 py-6',
+        'relative flex grow flex-col items-center justify-center gap-1 text-balance px-12 py-6',
         className,
       )}
     >
