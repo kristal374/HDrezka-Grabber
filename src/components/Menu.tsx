@@ -17,7 +17,7 @@ export function Menu({ className }: MenuProps) {
       <MenuButton href='/loadManager'>
         <SquareKanban size={32} strokeWidth={1.5} className='rotate-[270deg]' />
       </MenuButton>
-      <MenuButton href='/logger'>
+      <MenuButton href='/loadManager'>
         <SquareTerminal size={32} strokeWidth={1.5} />
       </MenuButton>
     </div>

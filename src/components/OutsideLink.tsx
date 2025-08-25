@@ -1,7 +1,7 @@
-export function OutsideLink({ text }: { text: string }) {
+export function OutsideLink({ url, text }: { url: string; text: string }) {
   return (
     <a
-      href='https://hdrezka.ag'
+      href={url}
       target='_blank'
       className='font-bold text-link-color underline underline-offset-4'
     >

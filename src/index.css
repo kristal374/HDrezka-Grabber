@@ -15,6 +15,12 @@
     --popup-border: #021823;
     --error: #562828;
 
+    --settings-panel: #222d33;
+    --settings-panel-border: #6b6c72;
+    --settings-background: #021823;
+    --settings-foreground: #52525b;
+    --panel-shadow: none;
+
     /*default colors*/
     --light-color: #ffffff;
     --link-color: #2472dd;
@@ -31,6 +37,13 @@
     --background: #ffffff;
     --popup-border: #313131;
     --error: #cc3340;
+
+    --settings-panel: #f5f5f5;
+    --settings-panel-border: #6b6c72;
+    --settings-background: #ffffff;
+    --settings-foreground: #52525b;
+    --panel-shadow: 0px 3px 5px -1px rgba(0, 0, 0, 0.2),
+      0px 5px 8px 0px rgba(0, 0, 0, 0.14), 0px 1px 14px 0px rgba(0, 0, 0, 0.12);
   }
 }
 
@@ -61,4 +74,15 @@
   .scroll-container::-webkit-scrollbar-thumb:active {
     background-color: var(--text-secondary);
   }
+
+  .text-muted-foreground {
+    color: var(--settings-foreground);
+  }
+  .bg-secondary {
+    background-color: #d4d4d8;
+  }
+  .text-secondary-foreground {
+    color: #27272a;
+  }
 }
+/*TODO: добавить color-, для использования как переменной*/

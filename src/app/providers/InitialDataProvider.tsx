@@ -1,9 +1,9 @@
 import { createContext, use, useLayoutEffect, useState } from 'react';
+import { OutsideLink } from '../../components/OutsideLink';
 import { saveSessionStorage } from '../../lib/storage';
 import { resetAction, store, useAppDispatch } from '../../store';
 import { init, type InitData } from '../initialization';
 import { DefaultScreen } from '../screens/DefaultScreen';
-import { OutsideLink } from '../../components/OutsideLink';
 
 export const InitialDataContext = createContext<InitData>(null!);
 
@@ -45,7 +45,7 @@ export function InitialDataProvider({
     return (
       <DefaultScreen vpnNotice={false}>
         {browser.i18n.getMessage('popup_stub_default')}{' '}
-        <OutsideLink text={'HDrezka.ag'} />!
+        <OutsideLink url={'https://hdrezka.ag'} text={'HDrezka.ag'} />!
       </DefaultScreen>
     );
 

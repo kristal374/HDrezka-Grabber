@@ -1,42 +1,51 @@
-import { useEffect, useState } from 'react';
-import { ToggleDarkMode } from '../../components/ToggleDarkMode';
-import { getFromStorage, setToStorage } from '../../lib/storage';
+import { useState } from 'react';
+import { SimpleTabs } from '../../components/SimpleTabs';
+import { AboutTab } from './SettingsScreen/AboutTab';
+import { ChangeLogTab } from './SettingsScreen/ChangeLogTab';
+import { FAQTab } from './SettingsScreen/FAQTab';
+import { SettingsTab } from './SettingsScreen/SettingsTab';
+
+const TAB_LIST = {
+  settings: {
+    label: 'Настройки',
+    icon: undefined,
+    content: <SettingsTab />,
+  },
+  faq: {
+    label: 'FAQ',
+    icon: undefined,
+    content: <FAQTab />,
+  },
+  changelog: {
+    label: 'История изменений',
+    icon: undefined,
+    content: <ChangeLogTab />,
+  },
+  about: {
+    label: 'О расширении',
+    icon: undefined,
+    content: <AboutTab />,
+  },
+} as const;
 
 export function SettingsScreen() {
+  const [active, setActive] = useState<keyof typeof TAB_LIST>('settings');
+
   return (
-    <div className='flex size-full flex-col gap-3'>
-      <h1>Settings</h1>
-      <ToggleDebugMode />
-      <ToggleDarkMode />
-      <button
-        className='rounded-lg bg-red-700 p-2 text-white'
-        onClick={async () => await browser.storage.local.clear()}
-      >
-        Clear storage
-      </button>
+    <div className='mt-6 flex w-full flex-col items-center'>
+      <SimpleTabs
+        tabsList={Object.entries(TAB_LIST).map(([key, value]) => ({
+          id: key as keyof typeof TAB_LIST,
+          label: value.label,
+          icon: value.icon,
+        }))}
+        activeTabId={active}
+        onValueChange={setActive}
+      />
+
+      <div className='my-10 w-full text-center'>
+        {TAB_LIST[active]!.content}
+      </div>
     </div>
-  );
-}
-
-function ToggleDebugMode() {
-  const [debugMode, setDebugMode] = useState(true);
-
-  useEffect(() => {
-    getFromStorage<boolean>('debugFlag').then((result) =>
-      setDebugMode(result ?? true),
-    );
-  }, []);
-
-  return (
-    <button
-      className='rounded-lg bg-red-700 p-2 text-white'
-      onClick={async () => {
-        const state = !debugMode;
-        setDebugMode(state);
-        await setToStorage('debugFlag', state);
-      }}
-    >
-      Debug mode: {String(debugMode)}
-    </button>
   );
 }
