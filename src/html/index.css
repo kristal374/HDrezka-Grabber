@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@source '../../src/**/*.tsx';
 
 @layer base {
   :root {
@@ -47,9 +46,29 @@
   }
 }
 
+@theme inline {
+  --color-foreground: var(--text-primary);
+  --color-foreground-secondary: var(--text-secondary);
+  --color-foreground-disabled: var(--text-disabled);
+  --color-check-box: var(--check-box);
+  --color-check-box-active: var(--check-box-active);
+  --color-input: var(--input);
+  --color-input-active: var(--input-active);
+  --color-background: var(--background);
+  --color-popup-border: var(--border);
+  --color-error: var(--error);
+
+  --color-light-color: var(--light-color);
+  --color-link-color: var(--link-color);
+
+  --color-muted-foreground: var(--settings-foreground);
+  --color-secondary: #d4d4d8;
+  --color-secondary-foreground: #27272a;
+}
+
 @layer base {
   body {
-    @apply bg-background text-foreground;
+    /* @apply bg-background text-foreground; */
     font-family: Arial, Helvetica, sans-serif;
   }
   @supports (-moz-animation: none) {
@@ -73,16 +92,6 @@
   }
   .scroll-container::-webkit-scrollbar-thumb:active {
     background-color: var(--text-secondary);
-  }
-
-  .text-muted-foreground {
-    color: var(--settings-foreground);
-  }
-  .bg-secondary {
-    background-color: #d4d4d8;
-  }
-  .text-secondary-foreground {
-    color: #27272a;
   }
 }
 /*TODO: добавить color-, для использования как переменной*/
