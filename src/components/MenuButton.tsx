@@ -14,7 +14,7 @@ export function MenuButton({
 }: MenuButtonProps) {
   return (
     <button
-      className='rounded-md p-1 transition-colors hover:bg-input'
+      className='hover:bg-input rounded-md p-1 transition-colors'
       onClick={() => {
         openInNewTab
           ? window.open(browser.runtime.getURL(`${href}.html`))

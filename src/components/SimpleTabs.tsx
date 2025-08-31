@@ -87,7 +87,7 @@ export function SimpleTabs<ID extends string>({
                 }}
                 onClick={() => handleTabClick(tab.id)}
                 className={cn(
-                  'relative py-3 text-xl leading-none outline-none transition-opacity',
+                  'relative py-3 text-xl leading-none transition-opacity outline-none',
                   isActive ? 'font-extrabold' : 'font-bold',
                   'hover:opacity-90 focus-visible:ring-2 focus-visible:ring-violet-400/60',
                 )}
@@ -95,12 +95,12 @@ export function SimpleTabs<ID extends string>({
                 aria-selected={isActive}
                 tabIndex={isActive ? 0 : -1}
               >
-                <span className='inline-flex items-center gap-2'>
+                <span className='text-settings-text-primary inline-flex items-center gap-2'>
                   {tab.icon && (
                     <span className='flex-shrink-0'>{tab.icon}</span>
                   )}
                   <span className='grid'>
-                    <span className='pointer-events-none col-start-1 row-start-1 select-none font-semibold opacity-0'>
+                    <span className='pointer-events-none col-start-1 row-start-1 font-semibold opacity-0 select-none'>
                       {tab.label}
                     </span>
                     <span
@@ -118,7 +118,7 @@ export function SimpleTabs<ID extends string>({
           })}
         </div>
 
-        <div className='pointer-events-none absolute bottom-0 left-0 right-0 h-[2px] bg-zinc-500/30' />
+        <div className='pointer-events-none absolute right-0 bottom-0 left-0 h-[2px] bg-zinc-500/30' />
 
         <div
           className='pointer-events-none absolute bottom-0 h-[3px] rounded-full bg-violet-500 transition-[width,transform] duration-300 ease-out'
