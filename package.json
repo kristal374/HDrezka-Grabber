@@ -10,7 +10,7 @@
     "build:firefox": "node run-build.js -b firefox",
     "build:dev": "node run-build.js -b all -s false",
     "build:prod": "node run-build.js -b all -p",
-    "format": "prettier --write --cache . --log-level silent",
+    "format": "prettier --write --cache .",
     "settings:dev": "vite -c vite.config.dev.ts"
   },
   "dependencies": {
@@ -44,7 +44,7 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@types/webextension-polyfill": "^0.12.0",
-    "prettier": "^3.3.3",
+    "prettier": "^3.6.2",
     "prettier-plugin-organize-imports": "^4.1.0",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "rollup-plugin-copy": "^3.5.0",

@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Исправлены все ошибки старой версии, для того чтоб было место для новых в новом релизе!
 
-## [[0.3-beta](https://github.com/kristal374/HDrezka-Grabber/releases/tag/v0.3)] - 2023-09-29
+## [[0.3-beta](https://github.com/kristal374/HDrezka-Grabber/releases/tag/v0.3)] - 2024-02-14
 
 Патч с исправлениями.
 

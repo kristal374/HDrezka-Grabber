@@ -1,13 +1,17 @@
 import {
-  Code,
   Coffee,
+  Copy,
+  CopyCheck,
   DollarSign,
   ExternalLink,
   Github,
   Heart,
   Mail,
   Scale,
+  UserCircle2,
 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Panel } from '../../../components/Panel';
 
 type StoreLink = {
   name: string;
@@ -15,13 +19,70 @@ type StoreLink = {
   icon: string;
 };
 
-interface Props {
+type Card = {
+  cardTitle: string;
+  cardIcon: React.ReactNode;
+  cardContent: string;
+  cardUrl?: string;
+  needCopyButton?: boolean;
+};
+
+type DonationPlatform = {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  link: string;
+};
+
+type Helper = {
+  name: string;
+  url?: string;
+  description: string;
+};
+
+interface AboutTabProps {
   extensionName?: string;
   extensionVersion?: string;
   extensionShortDescription?: string;
   extensionLongDescription?: string;
   githubLink?: string;
   storeLinks?: StoreLink[];
+  infoCards?: Card[];
+  donations?: DonationPlatform[];
+  helpers?: Helper[];
+}
+
+function CopyButton({ content }: { content: string }) {
+  const [isCopied, setIsCopied] = useState(false);
+  const resetTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setIsCopied(true);
+
+      if (resetTimeout.current) clearTimeout(resetTimeout.current);
+      resetTimeout.current = setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy content:', content, err);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className='hover:bg-settings-background-tertiary rounded p-1 transition-all duration-200'
+      title={browser.i18n.getMessage('settings_CopyTitle')}
+    >
+      <div className='transition-all duration-200'>
+        {isCopied ? (
+          <CopyCheck className='h-4 w-4 animate-pulse text-green-500' />
+        ) : (
+          <Copy className='text-settings-text-tertiary hover:text-settings-text-accent h-4 w-4 transition-all duration-200 hover:scale-110' />
+        )}
+      </div>
+    </button>
+  );
 }
 
 function ExtensionStoreLink({ name, url, icon }: StoreLink) {
@@ -30,283 +91,382 @@ function ExtensionStoreLink({ name, url, icon }: StoreLink) {
       href={url}
       target='_blank'
       rel='noopener noreferrer'
-      className='hover:bg-muted inline-flex items-center gap-2 rounded-lg border bg-background px-3 py-2 transition-colors'
+      title={name}
+      aria-label={name}
+      className='border-settings-border-primary group bg-settings-background-primary hover:bg-settings-background-tertiary inline-flex h-10 items-center gap-2 rounded-lg border px-3 py-2 transition-transform duration-200 hover:scale-105 focus:outline-none focus-visible:ring-2'
     >
-      <img src={icon} className='h-5 w-5' alt={`${name} icon`} />
-      <span className='text-sm font-medium'>{name}</span>
+      <img
+        src={icon}
+        alt={`${name} icon`}
+        width={20}
+        height={20}
+        loading='lazy'
+        className='h-5 w-5 flex-shrink-0 rounded-sm transition-transform duration-200 group-hover:scale-110'
+      />
+      <span className='text-sm leading-none font-bold whitespace-nowrap'>
+        {name}
+      </span>
     </a>
   );
 }
 
 function InfoCard({
+  children,
   title,
   icon,
-  content,
 }: {
+  children?: React.ReactNode;
   title: string;
   icon: React.ReactNode;
-  content: string;
 }) {
   return (
-    <div className='rounded-lg border border-slate-200 bg-slate-50/50 shadow-sm'>
+    <div className='border-settings-border-secondary bg-settings-background-tertiary/50 hover:bg-settings-background-tertiary/70 rounded-lg border shadow-sm transition-all duration-300 hover:shadow-md'>
       <div className='p-4'>
-        <div className='mb-2 flex items-center gap-3'>
-          {icon}
-          <span className='font-medium'>{title}</span>
+        <div className='mb-3 flex items-center gap-3'>
+          <div className='transition-transform duration-300 hover:scale-110'>
+            {icon}
+          </div>
+          <span className='text-settings-text-secondary text-base font-medium'>
+            {title}
+          </span>
         </div>
-        <span className='inline-flex items-center rounded border border-slate-200 px-2.5 py-0.5 text-xs font-semibold text-slate-900'>
-          {content}
-        </span>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function DonationCard({ donation }: { donation: DonationPlatform }) {
+  return (
+    <div className='group border-settings-border-secondary bg-settings-background-tertiary/50 hover:bg-settings-background-tertiary/80 rounded-lg border shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-lg'>
+      <div className='p-4 text-center'>
+        <div className='mb-3 transition-transform duration-300 group-hover:scale-110'>
+          {donation.icon}
+        </div>
+        <div className='text-settings-text-secondary group-hover:text-settings-text-primary mb-2 text-xl font-bold transition-colors duration-300'>
+          {donation.title}
+        </div>
+        <div className='text-settings-text-tertiary mb-3 text-sm'>
+          {donation.subtitle}
+        </div>
+        <a
+          href={donation.link}
+          target='_blank'
+          rel='noopener noreferrer'
+          className='text-link-color hover:text-link-color/80 inline-flex items-center gap-1 text-sm transition-all duration-300 hover:scale-105 hover:underline'
+        >
+          <span>{browser.i18n.getMessage('settings_SupportButton')}</span>
+          <ExternalLink className='h-3 w-3' />
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function HelperCard({ helper }: { helper: Helper }) {
+  return (
+    <div className='bg-settings-background-tertiary/30 hover:bg-settings-background-tertiary/50 flex items-start gap-3 rounded-lg p-3 transition-all duration-300'>
+      <UserCircle2 className='text-settings-text-tertiary mt-0.5 h-5 w-5 flex-shrink-0' />
+      <div className='text-settings-text-secondary'>
+        <div className='mb-1 text-lg font-medium'>
+          {helper.url ? (
+            <a
+              href={helper.url}
+              target='_blank'
+              rel='noreferrer'
+              className='hover:text-link-color/80 inline-flex items-center gap-2 transition-all duration-300 hover:underline'
+            >
+              {helper.name}
+              <ExternalLink className='h-3 w-3 transition-transform duration-300' />
+            </a>
+          ) : (
+            helper.name
+          )}
+        </div>
+        <div className='text-settings-text-tertiary text-base'>
+          {helper.description}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProjectDescription({
+  extensionLongDescription,
+  infoCards,
+}: {
+  extensionLongDescription: string;
+  infoCards?: Card[];
+}) {
+  return (
+    <section className='animate-fade-in'>
+      <h2 className='text-settings-text-primary mb-4 text-2xl font-medium'>
+        {browser.i18n.getMessage('settings_AboutTitle')}
+      </h2>
+      <p className='text-settings-text-accent mb-6 text-base leading-relaxed'>
+        {extensionLongDescription}
+      </p>
+
+      {infoCards && (
+        <div className='grid gap-4 md:grid-cols-2'>
+          {infoCards.map((card, index) => (
+            <InfoCard key={index} title={card.cardTitle} icon={card.cardIcon}>
+              <div className='flex items-center gap-2'>
+                <span className='border-settings-border-secondary text-settings-text-accent bg-settings-background-primary/50 inline-flex items-center rounded border px-2.5 py-0.5 text-sm font-semibold'>
+                  {card.cardUrl ? (
+                    <a
+                      href={card.cardUrl}
+                      className='text-settings-text-accent hover:text-link-color transition-colors duration-300'
+                    >
+                      {card.cardContent}
+                    </a>
+                  ) : (
+                    card.cardContent
+                  )}
+                </span>
+                {card.needCopyButton && (
+                  <CopyButton content={card.cardContent} />
+                )}
+              </div>
+            </InfoCard>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function SupportSection({
+  extensionName,
+  donations,
+}: {
+  extensionName: string;
+  donations?: DonationPlatform[];
+}) {
+  return (
+    <section className='border-settings-border-secondary border-t pt-8'>
+      <div className='mb-6 text-center'>
+        <div className='mb-2 flex items-center justify-center gap-2'>
+          <Heart className='h-6 w-6 animate-pulse fill-current text-red-500' />
+          <h2 className='text-settings-text-primary text-2xl font-medium'>
+            {browser.i18n.getMessage('settings_SupportTitle')}
+          </h2>
+        </div>
+        <p className='text-settings-text-tertiary mx-auto max-w-2xl text-base'>
+          {browser.i18n.getMessage(
+            'settings_SupportDescription',
+            extensionName,
+          )}
+        </p>
+      </div>
+
+      {donations && (
+        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+          {donations.map((donation, index) => (
+            <DonationCard key={index} donation={donation} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function HelpersSection({ helpers }: { helpers?: Helper[] }) {
+  if (!helpers || helpers.length === 0) return null;
+
+  return (
+    <section>
+      <div className='border-settings-border-tertiary bg-settings-background-accent/50 rounded-lg border shadow-sm'>
+        <div className='p-6'>
+          <h3 className='text-settings-text-primary mb-4 text-center text-2xl font-medium'>
+            {browser.i18n.getMessage('settings_DevelopersTitle')}
+          </h3>
+          <div className='grid gap-3'>
+            {helpers.map((helper, index) => (
+              <HelperCard key={index} helper={helper} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ExtensionHeader({
+  extensionName,
+  extensionVersion,
+  extensionShortDescription,
+  githubLink,
+  storeLinks,
+}: {
+  extensionName: string;
+  extensionVersion: string;
+  extensionShortDescription: string;
+  githubLink: string;
+  storeLinks: StoreLink[];
+}) {
+  return (
+    <div className='border-settings-border-primary flex flex-col space-y-1.5 border-b p-6'>
+      <div className='flex flex-col items-start gap-4'>
+        <div className='flex w-full items-center justify-between'>
+          <div className='flex-1'>
+            <h1 className='text-settings-text-primary text-3xl font-bold'>
+              {extensionName}
+            </h1>
+          </div>
+          <div className='bg-settings-background-primary border-settings-border-primary text-settings-text-primary hover:bg-settings-background-tertiary inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-semibold transition-all duration-300 hover:scale-105'>
+            <span>{extensionVersion}</span>
+          </div>
+        </div>
+
+        <div className='w-full'>
+          <p className='text-settings-text-tertiary mb-4 text-lg leading-relaxed'>
+            {extensionShortDescription}
+          </p>
+
+          <div className='mb-4 flex items-center gap-3'>
+            <a
+              href={githubLink}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='hover:text-link-color group text-settings-text-secondary inline-flex items-center gap-2 text-sm'
+            >
+              <Github className='h-4 w-4 transition-transform' />
+              <span>{browser.i18n.getMessage('settings_SourceCode')}</span>
+              <ExternalLink className='h-3 w-3 transition-transform' />
+            </a>
+          </div>
+
+          <div className='space-y-3'>
+            <div className='text-settings-text-secondary text-sm font-medium'>
+              {browser.i18n.getMessage('settings_DownloadExtension')}:
+            </div>
+            <div className='flex flex-wrap gap-3'>
+              {storeLinks.map((link, index) => (
+                <ExtensionStoreLink key={index} {...link} />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
 export function AboutTab({
-  extensionName = 'ReactExt Pro',
-  extensionVersion = 'v1.2.4',
-  extensionShortDescription = 'Мощное React расширение для улучшения разработки и отладки приложений',
-  extensionLongDescription = 'ReactExt Pro — это open source браузерное расширение, разработанное для упрощения и ускорения разработки React приложений. Наша цель — предоставить разработчикам инструменты для более эффективной отладки, анализа производительности и оптимизации React компонентов.',
-  githubLink = 'https://github.com/yourname/react-ext-pro',
+  extensionName = browser.runtime.getManifest().name,
+  extensionVersion = `v${
+    browser.runtime.getManifest().version_name ??
+    browser.runtime.getManifest().version
+  }`,
+  extensionShortDescription = browser.i18n.getMessage(
+    'settings_ShortDescription',
+  ),
+  extensionLongDescription = browser.i18n.getMessage(
+    'settings_LongDescription',
+  ),
+  githubLink = browser.runtime.getManifest().homepage_url!,
+  // TODO: добавить ссылки на магазины расширений
   storeLinks = [
     {
       name: 'Chrome Web Store',
-      url: 'https://chrome.google.com/webstore/detail/your-extension-id',
+      url: 'https://chromewebstore.google.com/detail/hdrezka-grabber/aamnmboocelpaiagegjicbefiinkcoal',
       icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/64px-Google_Chrome_icon_%28February_2022%29.svg.png',
     },
-    {
-      name: 'Firefox Add-ons',
-      url: 'https://addons.mozilla.org/en-US/firefox/addon/your-addon',
-      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/64px-Firefox_logo%2C_2019.svg.png',
-    },
+    // {
+    //   name: 'Firefox Add-ons',
+    //   url: 'https://addons.mozilla.org/en-US/firefox/addon/your-addon',
+    //   icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/64px-Firefox_logo%2C_2019.svg.png',
+    // },
     {
       name: 'Opera Add-ons',
-      url: 'https://addons.opera.com/en/extensions/details/your-extension',
+      url: 'https://addons.opera.com/ru/extensions/details/hdrezka-grabber/',
       icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Opera_2015_icon.svg/64px-Opera_2015_icon.svg.png',
     },
+    // {
+    //   name: 'Microsoft Edge',
+    //   url: 'https://microsoftedge.microsoft.com/addons/detail/your-extension-id',
+    //   icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Microsoft_Edge_logo_%282019%29.svg/64px-Microsoft_Edge_logo_%282019%29.svg.png',
+    // },
+  ],
+  infoCards = [
     {
-      name: 'Microsoft Edge',
-      url: 'https://microsoftedge.microsoft.com/addons/detail/your-extension-id',
-      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Microsoft_Edge_logo_%282019%29.svg/64px-Microsoft_Edge_logo_%282019%29.svg.png',
+      cardTitle: browser.i18n.getMessage('settings_LicenseTitle'),
+      cardIcon: <Scale className='text-settings-text-tertiary h-5 w-5' />,
+      cardContent: 'GPL-3.0',
+    },
+    {
+      cardTitle: browser.i18n.getMessage('settings_ContactsTitle'),
+      cardIcon: <Mail className='text-settings-text-tertiary h-5 w-5' />,
+      cardContent: browser.runtime.getManifest().author!,
+      cardUrl: 'mailto:' + browser.runtime.getManifest().author!,
+      needCopyButton: true,
     },
   ],
-}: Props) {
+  // TODO: добавить ссылки на платёжные сервисы
+  donations = [
+    {
+      title: 'Patreon',
+      subtitle: browser.i18n.getMessage('settings_patreonSubtitle'),
+      icon: <Coffee className='mx-auto h-8 w-8 text-orange-500' />,
+      link: 'https://patreon.com/reactextpro',
+    },
+    {
+      title: 'PayPal',
+      subtitle: browser.i18n.getMessage('settings_PayPalSubtitle'),
+      icon: <DollarSign className='mx-auto h-8 w-8 text-blue-500' />,
+      link: 'https://paypal.me/reactextpro',
+    },
+    {
+      title: 'Monero',
+      subtitle: browser.i18n.getMessage('settings_MoneroSubtitle'),
+      icon: (
+        <div className='mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white'>
+          XMR
+        </div>
+      ),
+      link: 'monero:',
+    },
+    {
+      title: 'GitHub Sponsors',
+      subtitle: browser.i18n.getMessage('settings_GitHubSubtitle'),
+      icon: <Heart className='mx-auto h-8 w-8 text-red-500' />,
+      link: 'https://github.com/sponsors/yourname',
+    },
+  ],
+  helpers = [
+    {
+      name: 'kristal374',
+      url: 'https://github.com/kristal374/',
+      description: browser.i18n.getMessage('settings_AuthorDescription'),
+    },
+    {
+      name: 'lr0pb',
+      url: 'https://github.com/lr0pb/',
+      description: browser.i18n.getMessage('settings_SecondPilotDescription'),
+    },
+  ],
+}: AboutTabProps) {
   return (
-    <div className='mx-auto max-w-4xl px-4 text-justify'>
-      <div className='rounded-lg border bg-background text-foreground shadow-lg'>
-        <div className='flex flex-col space-y-1.5 border-b p-6 pb-6'>
-          <div className='flex flex-col items-start gap-4'>
-            <div className='flex w-full items-center justify-between'>
-              <div className='flex-1'>
-                <h1 className='text-primary text-3xl font-bold'>
-                  {extensionName}
-                </h1>
-              </div>
-              <div className='bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex items-center rounded-sm border px-2.5 py-0.5 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2'>
-                <span>{extensionVersion}</span>
-              </div>
-            </div>
+    <Panel className='p-0'>
+      <ExtensionHeader
+        extensionName={extensionName}
+        extensionVersion={extensionVersion}
+        extensionShortDescription={extensionShortDescription}
+        githubLink={githubLink}
+        storeLinks={storeLinks}
+      />
 
-            <div className='w-full'>
-              <p className='text-muted-foreground mb-4 text-lg'>
-                <span>{extensionShortDescription}</span>
-              </p>
+      <div className='space-y-8 p-8'>
+        <ProjectDescription
+          extensionLongDescription={extensionLongDescription}
+          infoCards={infoCards}
+        />
 
-              <div className='mb-4 flex items-center gap-3'>
-                <a
-                  href={githubLink}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='hover:text-primary inline-flex items-center gap-2 text-sm text-foreground transition-colors'
-                >
-                  <Github className='h-4 w-4' />
-                  <span>Исходный код на GitHub</span>
-                  <ExternalLink className='h-3 w-3' />
-                </a>
-              </div>
+        <SupportSection extensionName={extensionName} donations={donations} />
 
-              <div className='space-y-3'>
-                <div className='text-muted-foreground text-sm font-medium'>
-                  Скачать расширение:
-                </div>
-                <div className='flex flex-wrap gap-3'>
-                  {storeLinks.map((data) => (
-                    <ExtensionStoreLink {...data} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='space-y-8 p-8'>
-          <section>
-            <h2 className='mb-4 text-2xl font-medium'>О проекте</h2>
-            <p className='mb-6 leading-relaxed text-slate-900'>
-              {extensionLongDescription}
-            </p>
-
-            <div className='grid gap-4 md:grid-cols-2'>
-              <InfoCard
-                title={'Лицензия'}
-                icon={<Scale className='h-5 w-5 text-slate-500' />}
-                content={'MIT License'}
-              />
-              <InfoCard
-                title={'Контакты'}
-                icon={<Mail className='h-5 w-5 text-slate-500' />}
-                content={'contact@reactext.dev'}
-              />
-            </div>
-          </section>
-
-          <section>
-            <h2 className='mb-4 text-2xl font-medium'>Основные возможности</h2>
-            <div className='grid gap-3'>
-              {[
-                {
-                  title: 'Анализ компонентов',
-                  description:
-                    'Глубокий анализ структуры и производительности React компонентов',
-                },
-                {
-                  title: 'Отладка состояний',
-                  description:
-                    'Визуализация и отслеживание изменений состояний в реальном времени',
-                },
-                {
-                  title: 'Профилирование',
-                  description:
-                    'Детальное профилирование рендеринга для оптимизации производительности',
-                },
-                {
-                  title: 'Интеграция с DevTools',
-                  description: 'Seamless интеграция с React Developer Tools',
-                },
-              ].map((feature, index) => (
-                <div
-                  key={index}
-                  className='flex items-start gap-3 rounded-lg bg-slate-50/30 p-3'
-                >
-                  <Code className='mt-0.5 h-5 w-5 text-slate-500' />
-                  <div>
-                    <div className='mb-1 font-medium'>{feature.title}</div>
-                    <div className='text-sm text-slate-600'>
-                      {feature.description}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h2 className='mb-4 text-2xl font-medium'>Статистика проекта</h2>
-            <div className='grid gap-4 md:grid-cols-3'>
-              {[
-                { value: '15k+', label: 'Активных пользователей' },
-                { value: '250+', label: 'GitHub звёзд' },
-                { value: '12', label: 'Участников' },
-              ].map((stat, index) => (
-                <div
-                  key={index}
-                  className='rounded-lg border border-slate-200 bg-slate-50/50 text-center shadow-sm'
-                >
-                  <div className='p-4'>
-                    <div className='mb-1 text-2xl font-bold text-black'>
-                      {stat.value}
-                    </div>
-                    <div className='text-sm text-slate-600'>{stat.label}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Support Section */}
-          <section className='border-t border-slate-200 pt-8'>
-            <div className='mb-6 text-center'>
-              <div className='mb-2 flex items-center justify-center gap-2'>
-                <Heart className='h-6 w-6 text-red-500' />
-                <h2 className='text-2xl font-medium'>Поддержать проект</h2>
-              </div>
-              <p className='mx-auto max-w-2xl text-slate-600'>
-                Ваша поддержка помогает нам продолжать разработку и улучшение
-                расширения. Мы благодарны за любую помощь в развитии open source
-                сообщества!
-              </p>
-            </div>
-
-            <div className='mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-              {[
-                {
-                  icon: <Coffee className='mx-auto h-8 w-8 text-orange-500' />,
-                  title: 'Patreon',
-                  subtitle: 'Ежемесячная поддержка',
-                  link: 'https://patreon.com/reactextpro',
-                },
-                {
-                  icon: (
-                    <DollarSign className='mx-auto h-8 w-8 text-blue-500' />
-                  ),
-                  title: 'PayPal',
-                  subtitle: 'Разовое пожертвование',
-                  link: 'https://paypal.me/reactextpro',
-                },
-                {
-                  icon: (
-                    <div className='mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white'>
-                      XMR
-                    </div>
-                  ),
-                  title: 'Monero',
-                  subtitle: 'Криптовалютная поддержка',
-                  link: 'monero:86RqzukEyoYLt4Q4wnRJJNL5yDdEMvZ7GYfVJWcUhQc7234567890',
-                },
-                {
-                  icon: <Heart className='mx-auto h-8 w-8 text-red-500' />,
-                  title: 'GitHub Sponsors',
-                  subtitle: 'Спонсорство через GitHub',
-                  link: 'https://github.com/sponsors/yourname',
-                },
-              ].map((support, index) => (
-                <div
-                  key={index}
-                  className='rounded-lg border border-slate-200 bg-slate-50/50 shadow-sm transition-colors hover:bg-slate-50/80'
-                >
-                  <div className='p-4 text-center'>
-                    <div className='mb-3'>{support.icon}</div>
-                    <div className='mb-2 font-medium'>{support.title}</div>
-                    <div className='mb-3 text-sm text-slate-600'>
-                      {support.subtitle}
-                    </div>
-                    <a
-                      href={support.link}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='inline-flex items-center gap-1 text-sm text-blue-600 transition-colors hover:text-blue-500'
-                    >
-                      <span>Поддержать</span>
-                      <ExternalLink className='h-3 w-3' />
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className='rounded-lg border border-blue-200 bg-blue-50/50 shadow-sm'>
-              <div className='p-6 text-center'>
-                <h3 className='mb-2 text-lg font-medium'>
-                  Спасибо нашим спонсорам!
-                </h3>
-                <p className='text-slate-600'>
-                  Благодаря вашей поддержке мы можем продолжать развивать проект
-                  и делать его лучше для всего сообщества разработчиков.
-                </p>
-              </div>
-            </div>
-          </section>
-        </div>
+        <HelpersSection helpers={helpers} />
       </div>
-    </div>
+    </Panel>
   );
 }

@@ -85,7 +85,7 @@ export function LoadButton() {
   // logger.info('New render LoadButton component.');
   return (
     <button
-      className='relative flex size-[120px] cursor-pointer items-center justify-center rounded-full bg-popup-border text-white hover:bg-input'
+      className='bg-popup-border hover:bg-input relative flex size-[120px] cursor-pointer items-center justify-center rounded-full text-white'
       onClick={handleClick}
     >
       {/*<DownloadIcon />*/}

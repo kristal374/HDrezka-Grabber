@@ -23,11 +23,11 @@
     "declarativeNetRequestFeedback",
     "downloads"
   ],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": ["http://*/*", "https://*/*"],
   "web_accessible_resources": [
     {
       "resources": ["src/js/*"],
-      "matches": ["<all_urls>"]
+      "matches": ["http://*/*", "https://*/*"]
     }
   ],
   "options_ui": {

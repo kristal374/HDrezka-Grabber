@@ -161,3 +161,5 @@ const handleError = async (originalError: Error) => {
 main().catch(handleError);
 // TODO: добаввить кэш
 // TODO: пофиксить выбор озвучки
+// TODO: Добавить глобальный отлов ошибок из обработчиков
+// TODO: Добавить буферизацию сообщений из попапа

@@ -1,6 +1,15 @@
+import {
+  AlertCircle,
+  Calendar,
+  Edit3,
+  ExternalLink,
+  Package,
+  Plus,
+  RefreshCw,
+  Wrench,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { OutsideLink } from '../../../components/OutsideLink';
-import Panel from './SettingsTab';
+import { Panel } from '../../../components/Panel';
 
 type ContentChapter = 'Added' | 'Fixed' | 'Changed';
 
@@ -12,75 +21,231 @@ interface Release {
   content: Record<ContentChapter, string[]>;
 }
 
-export function ChangeLogTab() {
-  const [changelogContent, setChangelogContent] = useState<Release[] | null>(
-    null,
-  );
+interface ChangeLogTabProps {
+  changelogUrl?: string;
+}
 
-  useEffect(() => {
-    const changelogUrl = browser.runtime.getURL('CHANGELOG.md');
-    fetch(changelogUrl)
-      .then((response) => {
-        response
-          .text()
-          .then((text) => setChangelogContent(parseChangelog(text)));
-      })
-      .catch(() => setChangelogContent(null));
-  }, []);
-
-  if (!changelogContent || changelogContent.length === 0) return null;
-
+function OutsideLink({ url, text }: { url: string; text: string }) {
   return (
-    <div className='space-y-4'>
-      {changelogContent.map((r) => (
-        <ReleaseElement release={r} />
-      ))}
+    <a
+      href={url}
+      target='_blank'
+      rel='noopener noreferrer'
+      className='group text-link-color hover:text-link-color/80 inline-flex items-center gap-2 transition-all duration-300 hover:underline'
+    >
+      <span>{text}</span>
+      <ExternalLink className='h-4 w-4 transition-transform' />
+    </a>
+  );
+}
+
+function ChangeTypeIcon({ type }: { type: ContentChapter }) {
+  const iconProps = {
+    className:
+      'h-5 w-5 transition-transform duration-300 group-hover:scale-110',
+  };
+
+  switch (type) {
+    case 'Added':
+      return (
+        <Plus
+          {...iconProps}
+          className={`${iconProps.className} text-green-500`}
+        />
+      );
+    case 'Fixed':
+      return (
+        <Wrench
+          {...iconProps}
+          className={`${iconProps.className} text-orange-500`}
+        />
+      );
+    case 'Changed':
+      return (
+        <Edit3
+          {...iconProps}
+          className={`${iconProps.className} text-blue-500`}
+        />
+      );
+    default:
+      return (
+        <AlertCircle
+          {...iconProps}
+          className={`${iconProps.className} text-settings-text-tertiary`}
+        />
+      );
+  }
+}
+
+function ReleaseHeader({ release }: { release: Release }) {
+  return (
+    <div className='flex items-baseline justify-between gap-4'>
+      <h1 className='text-settings-text-primary flex items-center gap-3 text-2xl font-bold'>
+        <Package className='text-settings-text-tertiary h-6 w-6' />
+        {release.url ? (
+          <OutsideLink url={release.url} text={release.version} />
+        ) : (
+          <span className='hover:text-settings-text-accent transition-colors duration-300'>
+            {release.version}
+          </span>
+        )}
+      </h1>
+      {release.date && (
+        <div className='text-settings-text-tertiary flex items-center gap-2 text-lg'>
+          <Calendar className='h-4 w-4' />
+          <span className='font-medium'>{release.date}</span>
+        </div>
+      )}
     </div>
   );
 }
 
-const ReleaseElement: React.FC<{ release: Release }> = ({ release }) => {
+function ReleaseDescription({ description }: { description: string }) {
+  return (
+    <div className='bg-settings-background-tertiary/30 mt-4'>
+      <p className='text-settings-text-accent text-xl leading-relaxed'>
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function ChangeSection({
+  type,
+  items,
+}: {
+  type: ContentChapter;
+  items: string[];
+}) {
+  if (!items || items.length === 0) return null;
+
+  return (
+    <section className='mt-8'>
+      <h2 className='text-settings-text-accent mb-2 flex items-center gap-2 text-xl font-semibold'>
+        <ChangeTypeIcon type={type} />
+        {type}
+      </h2>
+      <ul className='mt-2 ml-6 list-outside list-disc space-y-1 pl-6'>
+        {items.map((itm) => (
+          <li className='text-settings-text-tertiary pt-0.5 text-base'>
+            {itm}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function ReleaseElement({ release }: { release: Release }) {
   const content = release.content ?? {};
-  const hasAnySections = Object.values(content).some((i) => i.length);
+  const hasAnySections = Object.values(content).some(
+    (items) => items && items.length > 0,
+  );
 
   return (
     <Panel>
-      <div className='flex items-baseline justify-between gap-4 text-2xl font-bold'>
-        <h1>
-          {release.url ? (
-            <OutsideLink url={release.url} text={release.version} />
-          ) : (
-            <span>{release.version}</span>
-          )}
-        </h1>
-        {release.date ? <span className='text-lg'>{release.date}</span> : null}
-      </div>
+      <ReleaseHeader release={release} />
 
-      {release.description ? (
-        <div className='mt-4 text-xl leading-relaxed'>
-          <p>{release.description}</p>
-        </div>
-      ) : null}
+      {release.description && (
+        <ReleaseDescription description={release.description} />
+      )}
 
-      {hasAnySections ? (
+      {hasAnySections && (
         <>
-          <div className='mt-2 border-t-2 border-[#959595] pt-4' />
-
-          {Object.entries(content).map(([key, value]) => (
-            <section className='mt-8'>
-              <h2 className='mb-2 text-xl font-semibold md:text-base'>{key}</h2>
-              <ul className='ml-6 mt-2 list-outside list-disc space-y-1'>
-                {value.map((itm) => (
-                  <li className='pt-0.5 text-base'>{itm}</li>
-                ))}
-              </ul>
-            </section>
-          ))}
+          <hr className='border-settings-border-secondary mt-2 border-t-2' />
+          <div className='space-y-8'>
+            {Object.entries(content).map(([type, items]) => (
+              <ChangeSection
+                key={type}
+                type={type as ContentChapter}
+                items={items}
+              />
+            ))}
+          </div>
         </>
-      ) : null}
+      )}
     </Panel>
   );
-};
+}
+
+function LoadingState() {
+  return (
+    <div className='border-settings-border-secondary bg-settings-background-primary border-y p-8 text-center'>
+      <div className='text-settings-text-primary mb-2 flex items-center justify-center gap-3'>
+        <RefreshCw className='h-6 w-6 animate-spin' />
+        <span className='text-lg'>Загрузка данных...</span>
+      </div>
+    </div>
+  );
+}
+
+function ErrorState() {
+  return (
+    <div className='border-settings-border-secondary bg-settings-background-primary border-y p-8 text-center'>
+      <div className='text-settings-text-primary mb-2 flex items-center justify-center gap-3'>
+        <AlertCircle className='h-6 w-6' />
+        <span className='text-xl font-medium'>Ошибка загрузки</span>
+      </div>
+      <p className='text-settings-text-tertiary'>
+        Не удалось загрузить список изменений.
+      </p>
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className='border-settings-border-secondary bg-settings-background-primary border-y p-8 text-center'>
+      <div className='text-settings-text-primary mb-2 flex items-center justify-center gap-3'>
+        <Package className='h-8 w-8' />
+        <span className='text-xl font-medium'>Нет данных</span>
+      </div>
+      <p className='text-settings-text-tertiary'>
+        Список изменений пуст или недоступен.
+      </p>
+    </div>
+  );
+}
+
+export function ChangeLogTab({
+  changelogUrl = 'CHANGELOG.md',
+}: ChangeLogTabProps) {
+  const [changelogContent, setChangelogContent] = useState<Release[] | null>(
+    null,
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    const loadChangelog = async () => {
+      try {
+        setIsLoading(true);
+        setHasError(false);
+
+        const fullChangelogUrl = browser.runtime.getURL(changelogUrl);
+        const response = await fetch(fullChangelogUrl);
+        const content = await response.text();
+        setChangelogContent(parseChangelog(content));
+      } catch (error) {
+        console.error('Failed to load changelog:', error);
+        setHasError(true);
+        setChangelogContent(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadChangelog();
+  }, [changelogUrl]);
+
+  if (isLoading) return <LoadingState />;
+  if (hasError) return <ErrorState />;
+  if (!changelogContent || changelogContent.length === 0) return <EmptyState />;
+
+  return changelogContent.map((release, index) => (
+    <ReleaseElement key={index} release={release} />
+  ));
+}
 
 function parseChangelog(changelog: string): Release[] {
   const releases: Release[] = [];

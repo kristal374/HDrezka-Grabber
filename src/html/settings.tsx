@@ -5,6 +5,6 @@ import '../lib/logger';
 const element = document.querySelector('body')!;
 const root = createRoot(element);
 
-document.documentElement.classList.add('light');
-element.style.backgroundColor = 'var(--settings-background)';
+document.documentElement.classList.add('dark');
+element.classList.add('bg-settings-background-primary', 'overflow-y-scroll');
 root.render(<SettingsScreen />);

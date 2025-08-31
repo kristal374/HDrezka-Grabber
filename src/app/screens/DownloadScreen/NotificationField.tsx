@@ -12,8 +12,8 @@ export function NotificationField() {
 
   logger.info('New render NotificationField component.');
   return (
-    <div className='relative flex items-center rounded bg-error px-1.5 py-1 text-white'>
-      <p className='flex-grow break-all pr-6 text-sm'>{notification}</p>
+    <div className='bg-error relative flex items-center rounded px-1.5 py-1 text-white'>
+      <p className='flex-grow pr-6 text-sm break-all'>{notification}</p>
       <button
         className='absolute right-3 text-sm font-bold text-white'
         onClick={() => dispatch(setNotificationAction({ notification: null }))}
