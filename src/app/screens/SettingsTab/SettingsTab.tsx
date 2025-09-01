@@ -1,160 +1,16 @@
 import { Bell, Database, Download, Monitor, Shield, User } from 'lucide-react';
-import React, { memo, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { Input } from '../../../components/Input';
 import { Panel } from '../../../components/Panel';
-import { cn } from '../../../lib/utils';
-
-const Toggle = memo(function Toggle({
-  checked,
-  onChange,
-  disabled = false,
-}: {
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type='button'
-      className={cn(
-        'focus:ring-link-color relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none',
-        checked ? 'bg-link-color' : 'bg-settings-border-secondary',
-        disabled && 'cursor-not-allowed opacity-50',
-      )}
-      role='switch'
-      aria-checked={checked}
-      onClick={() => !disabled && onChange(!checked)}
-      disabled={disabled}
-    >
-      <span
-        className={cn(
-          'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-          checked ? 'translate-x-5' : 'translate-x-0',
-        )}
-      />
-    </button>
-  );
-});
-
-const Select = memo(function Select({
-  value,
-  onChange,
-  options,
-  disabled = false,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-  disabled?: boolean;
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
-      className={cn(
-        'border-settings-border-secondary bg-settings-background-primary text-settings-text-secondary focus:border-link-color focus:ring-link-color block w-full rounded-md border px-3 py-2 shadow-sm focus:ring-1 focus:outline-none sm:text-sm',
-        disabled && 'cursor-not-allowed opacity-50',
-      )}
-    >
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  );
-});
-
-const Input = memo(function Input({
-  type = 'text',
-  value,
-  onChange,
-  placeholder,
-  disabled = false,
-  min,
-  max,
-}: {
-  type?: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
-  min?: string;
-  max?: string;
-}) {
-  return (
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      disabled={disabled}
-      min={min}
-      max={max}
-      className={cn(
-        'border-settings-border-secondary bg-settings-background-primary text-settings-text-secondary placeholder-settings-text-tertiary focus:border-link-color focus:ring-link-color block w-full rounded-md border px-3 py-2 shadow-sm focus:ring-1 focus:outline-none sm:text-sm',
-        disabled && 'cursor-not-allowed opacity-50',
-      )}
-    />
-  );
-});
-
-const SettingItem = memo(function SettingItem({
-  title,
-  description,
-  children,
-  className,
-}: {
-  title: string;
-  description?: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={cn('flex items-center justify-between py-3', className)}>
-      <div className='flex-1 pr-4'>
-        <h4 className='text-settings-text-secondary text-base font-medium'>
-          {title}
-        </h4>
-        {description && (
-          <p className='text-settings-text-tertiary mt-1 text-sm'>
-            {description}
-          </p>
-        )}
-      </div>
-      <div className='flex-shrink-0'>{children}</div>
-    </div>
-  );
-});
-
-function SettingsSection({
-  title,
-  icon: Icon,
-  children,
-}: {
-  title: string;
-  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className='mb-8 last:mb-0'>
-      <div className='mb-4 flex items-center'>
-        {Icon && <Icon className='text-settings-text-tertiary mr-2 h-5 w-5' />}
-        <h3 className='text-settings-text-primary text-lg font-semibold'>
-          {title}
-        </h3>
-      </div>
-      <div className='divide-settings-border-secondary space-y-0 divide-y'>
-        {children}
-      </div>
-    </div>
-  );
-}
+import { Select } from '../../../components/Select';
+import { Toggle } from '../../../components/Toggle';
+import { SettingItem, SettingsSection } from './SettingsComponets';
 
 type SettingItemProps<T> = {
   value: T;
   setValue: (value: T) => void;
 };
+
 function DarkMode({ value, setValue }: SettingItemProps<boolean>) {
   return (
     <SettingItem
@@ -166,18 +22,75 @@ function DarkMode({ value, setValue }: SettingItemProps<boolean>) {
   );
 }
 
+function EnableLogger({ value, setValue }: SettingItemProps<boolean>) {
+  return (
+    <SettingItem
+      title='Включить логирование'
+      description='Включить логирование в консоль'
+    >
+      <Toggle checked={value} onChange={setValue} />
+    </SettingItem>
+  );
+}
+
+function FilenameTemplate({ value, setValue }: SettingItemProps<string>) {
+  return (
+    <SettingItem
+      title='Шаблон имени файла'
+      description='Шаблон имени файла при сохранении файла'
+      className='flex-col items-start'
+    >
+      <div className='flex gap-3'>
+        <div className='flex flex-col gap-3'>
+          <Input value={value} onChange={setValue} placeholder='Имя файла' />
+          <p>Preview: {value.replace('{title}', 'Тестовый фильм')}</p>
+        </div>
+        <p>
+          Шаблон может содержать следующие переменные:
+          <br />
+          <code>{'{title}'}</code> - название фильма или сериала
+          <br />
+          <code>{'{year}'}</code> - год выпуска
+          <br />
+          <code>{'{season}'}</code> - название сезона
+          <br />
+          <code>{'{episode}'}</code> - номер серии
+        </p>
+      </div>
+    </SettingItem>
+  );
+}
+
 export function SettingsTab() {
-  const [darkMode, setDarkMode] = useState(false);
-
-  const settings = {
-    darkMode: darkMode,
-  };
-
+  const [settings, setSettings] = useState({
+    darkMode: true,
+    enableLogger: false,
+    filenameTemplate: '{title}',
+  });
+  console.log(settings);
+  const updateSetting = useCallback(function <T>(key: string) {
+    return (value: T) => setSettings((prev) => ({ ...prev, [key]: value }));
+  }, []);
   return (
     <Panel>
-      <div className='space-y-8'>
+      <div className='flex flex-col gap-8'>
         <SettingsSection title='Настройки интерфейса' icon={Monitor}>
-          <DarkMode value={settings.darkMode} setValue={setDarkMode} />
+          <DarkMode
+            value={settings.darkMode}
+            setValue={updateSetting('darkMode')}
+          />
+          <EnableLogger
+            value={settings.enableLogger}
+            setValue={updateSetting('enableLogger')}
+          />
+          {settings.enableLogger && (
+            <>
+              <FilenameTemplate
+                value={settings.filenameTemplate}
+                setValue={updateSetting('filenameTemplate')}
+              />
+            </>
+          )}
         </SettingsSection>
       </div>
     </Panel>
@@ -246,26 +159,6 @@ export function SettingsTab2() {
     <Panel>
       <div className='space-y-8'>
         <SettingsSection title='Настройки интерфейса' icon={Monitor}>
-          <SettingItem
-            title='Темная тема'
-            description='Использовать темное оформление интерфейса'
-          >
-            <Toggle checked={darkMode} onChange={setDarkMode} />
-          </SettingItem>
-
-          <SettingItem
-            title='Язык интерфейса'
-            description='Выберите предпочитаемый язык'
-          >
-            <div className='w-32'>
-              <Select
-                value={language}
-                onChange={setLanguage}
-                options={languageOptions}
-              />
-            </div>
-          </SettingItem>
-
           <SettingItem
             title='Размер шрифта'
             description='Настройка размера текста в интерфейсе'

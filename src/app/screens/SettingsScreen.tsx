@@ -1,7 +1,7 @@
 // import { AboutTab } from './SettingsScreen/AboutTab';
 // import { ChangeLogTab } from './SettingsScreen/ChangeLogTab';
 // import { FAQTab } from './SettingsScreen/FAQTab';
-import { SettingsTab } from './SettingsScreen/SettingsTab';
+import { SettingsTab } from './SettingsTab/SettingsTab';
 
 // const TAB_LIST = {
 //   settings: {
