@@ -50,6 +50,9 @@
   "popup_translate": {
     "message": "Translate"
   },
+  "popup_DownloadCancel": {
+    "message": "Cancel download"
+  },
   "combobox_placeholder": {
     "message": "Select value"
   },
@@ -143,7 +146,7 @@
     "message": "How to choose where to download files?"
   },
   "settings_FaqAnswer_1": {
-    "message": "Unfortunately, the extension cannot affect this. The only real option is to manually change the download folder, which is extremely impractical. This is because the extension uses the browser downloads API, which does not allow specifying paths outside the standard \"Downloads\" folder — this is done for security reasons, as you wouldn’t want anyone to be able to download files of unknown content anywhere on your computer."
+    "message": "The extension cannot affect this in any way. The browser does not allow extensions to specify paths outside the standard \"Downloads\" folder. The only option is to manually change the default download folder in the browser settings."
   },
   "settings_FaqQuestion_2": {
     "message": "When choosing 1080p/1080p-Ultra quality, the video is downloaded at 720p"

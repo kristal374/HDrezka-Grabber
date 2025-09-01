@@ -118,4 +118,13 @@
   .scroll-container::-webkit-scrollbar-thumb:active {
     background-color: var(--text-secondary);
   }
+
+  @keyframes checkmark-draw {
+    0% {
+      stroke-dashoffset: 24;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
 }

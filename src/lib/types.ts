@@ -50,13 +50,6 @@ export type PageType =
   | 'UNAVAILABLE'
   | 'ERROR';
 
-export type ButtonState =
-  | 'DEFAULT'
-  | 'PROCESSING'
-  | 'LOADING'
-  | 'CANCELLED'
-  | 'COMPLETED';
-
 export type MovieInfo = {
   success: boolean;
   data: FilmData | SerialData;
