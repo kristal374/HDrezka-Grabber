@@ -29,6 +29,8 @@ type SiteLoaderAsyncParams = {
 
 export interface SiteLoader {
   downloadItem: LoadItem;
+  loadConfig: LoadConfig;
+  urlDetails: UrlDetails;
 
   getQueryData(): QueryData;
 

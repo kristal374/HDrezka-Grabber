@@ -23,10 +23,10 @@ type LoadManagerAsyncParams = {
 export class DownloadManager {
   private mutex = new Mutex();
 
-  private queueController: QueueController;
+  private readonly queueController: QueueController;
   private siteLoaderFactory: Record<
     string,
-    new (...args: any[]) => SiteLoader
+    { build: (...args: any[]) => Promise<SiteLoader> }
   > = {
     hdrezka: HDrezkaLoader,
   };
@@ -58,7 +58,12 @@ export class DownloadManager {
     // Отвечает за добавление фильмов/сериалов в очередь на загрузку
     logger.debug('Trigger new load:', initiator);
 
-    await this.queueController.initializeNewDownload(initiator);
+    await this.mutex.runExclusive(
+      this.queueController.initializeNewDownload.bind(
+        this.queueController,
+        initiator,
+      ),
+    );
     this.mutex.runExclusive(this.startNextDownload.bind(this)).then();
   }
 
