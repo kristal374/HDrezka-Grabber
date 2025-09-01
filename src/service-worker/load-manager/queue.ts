@@ -292,10 +292,6 @@ export class QueueController {
   async successLoad(fileItem: FileItem) {
     // Находит и удаляет объект из активных загрузок
     // и помечает его как успешно загружен
-    this.activeDownloads.splice(
-      this.activeDownloads.indexOf(fileItem.relatedLoadItemId),
-      1,
-    );
     const loadItem = (await indexedDBObject.getFromIndex(
       'loadStorage',
       'load_id',
@@ -304,6 +300,11 @@ export class QueueController {
     loadItem.status = LoadStatus.DownloadSuccess;
     await indexedDBObject.put('loadStorage', loadItem);
 
+    this.activeDownloads.splice(
+      this.activeDownloads.indexOf(fileItem.relatedLoadItemId),
+      1,
+    );
+
     logger.info('Load was successful:', loadItem);
   }
 
@@ -311,15 +312,15 @@ export class QueueController {
     // Находит и удаляет объект из активных загрузок
     // и помечает его как сбой загрузки.
     // В зависимости от настроек пользователя определяет реакцию на сбой
-
     const loadItem = (await indexedDBObject.getFromIndex(
       'loadStorage',
       'load_id',
       fileItem.relatedLoadItemId,
     )) as LoadItem;
-    this.activeDownloads.splice(this.activeDownloads.indexOf(loadItem.id), 1);
     loadItem.status = cause;
     await indexedDBObject.put('loadStorage', loadItem);
+
+    this.activeDownloads.splice(this.activeDownloads.indexOf(loadItem.id), 1);
 
     logger.info('Load was failed:', loadItem);
     // TODO: настроить реакцию по настройкам пользователя
