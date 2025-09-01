@@ -47,11 +47,11 @@ function generateCommonFiles(distDir) {
   const buildDir = path.resolve(distDir, '..', 'HDrezka-Grabber.build');
   fs.cpSync(buildDir, distDir, { recursive: true });
 
-  const requirements = ['img', '_locales'];
+  const requirements = [['src', 'img'], ['src', '_locales'], ['CHANGELOG.md']];
   requirements.forEach((reqPath) => {
     fs.cpSync(
-      path.join(BASE_DIR, 'src', reqPath),
-      path.join(distDir, reqPath),
+      path.join(BASE_DIR, ...reqPath),
+      path.join(distDir, reqPath.at(-1)),
       { recursive: true },
     );
   });

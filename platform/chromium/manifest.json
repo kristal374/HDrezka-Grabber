@@ -23,15 +23,15 @@
     "declarativeNetRequestFeedback",
     "downloads"
   ],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": ["http://*/*", "https://*/*"],
   "web_accessible_resources": [
     {
       "resources": ["src/js/*"],
-      "matches": ["<all_urls>"]
+      "matches": ["http://*/*", "https://*/*"]
     }
   ],
   "options_ui": {
-    "open_in_tab": false,
+    "open_in_tab": true,
     "page": "settings.html"
   },
   "author": "mail.aleks.for.work@gmail.com",

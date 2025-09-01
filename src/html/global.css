@@ -1,0 +1,121 @@
+@import 'tailwindcss';
+@source '../../src/**/*.tsx';
+
+@layer base {
+  :root {
+    --text-primary: #ffffff;
+    --text-secondary: #dddddd;
+    --text-disabled: #1e1e1e;
+    --check-box: #6b6c72;
+    --check-box-active: #81828d;
+    --input: #2d3c45;
+    --input-active: #3c4c5a;
+    --background: #222d33;
+    --popup-border: #021823;
+    --error: #562828;
+
+    --settings-background-primary: #021823;
+    --settings-background-secondary: #021823;
+    --settings-background-tertiary: #021823;
+    --settings-background-accent: #021823;
+
+    --settings-text-primary: #ffffff;
+    --settings-text-secondary: #ffffff;
+    --settings-text-tertiary: #8b9ba5;
+    --settings-text-accent: #e8f4f8;
+
+    --settings-border-primary: #2a3640;
+    --settings-border-secondary: #2a3640;
+    --settings-border-tertiary: #2a3640;
+
+    /*default colors*/
+    --light-color: #ffffff;
+    --link-color: #2472dd;
+  }
+
+  :root.light {
+    --text-primary: #000000;
+    --text-secondary: #222222;
+    --text-disabled: #676e78;
+    --check-box: #393943;
+    --check-box-active: #4c4c5a;
+    --input: #d2c2ba;
+    --input-active: #e5d9d2;
+    --background: #ffffff;
+    --popup-border: #313131;
+    --error: #cc3340;
+
+    --settings-background-primary: #fafafa;
+    --settings-background-secondary: #ffffff;
+    --settings-background-tertiary: rgba(248, 250, 252, 0.5);
+    --settings-background-accent: rgba(248, 250, 252, 0.3);
+
+    --settings-text-primary: #000000;
+    --settings-text-secondary: #26262b;
+    --settings-text-tertiary: #45556c;
+    --settings-text-accent: #0f172b;
+
+    --settings-border-primary: #d4d4d8;
+    --settings-border-secondary: #e2e8f0;
+    --settings-border-tertiary: #bedbff;
+  }
+}
+
+@theme inline {
+  --color-foreground: var(--text-primary);
+  --color-foreground-secondary: var(--text-secondary);
+  --color-foreground-disabled: var(--text-disabled);
+  --color-check-box: var(--check-box);
+  --color-check-box-active: var(--check-box-active);
+  --color-input: var(--input);
+  --color-input-active: var(--input-active);
+  --color-background: var(--background);
+  --color-popup-border: var(--popup-border);
+  --color-error: var(--error);
+
+  --color-settings-background-primary: var(--settings-background-primary);
+  --color-settings-background-secondary: var(--settings-background-secondary);
+  --color-settings-background-tertiary: var(--settings-background-tertiary);
+  --color-settings-background-accent: var(--settings-background-accent);
+
+  --color-settings-text-primary: var(--settings-text-primary);
+  --color-settings-text-secondary: var(--settings-text-secondary);
+  --color-settings-text-tertiary: var(--settings-text-tertiary);
+  --color-settings-text-accent: var(--settings-text-accent);
+
+  --color-settings-border-primary: var(--settings-border-primary);
+  --color-settings-border-secondary: var(--settings-border-secondary);
+  --color-settings-border-tertiary: var(--settings-border-tertiary);
+
+  --color-light-color: var(--light-color);
+  --color-link-color: var(--link-color);
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  @supports (-moz-animation: none) {
+    .scroll-container {
+      scrollbar-width: thin;
+      scrollbar-color: var(--check-box) transparent;
+    }
+  }
+  .scroll-container::-webkit-scrollbar {
+    width: 8px;
+  }
+  .scroll-container::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+  .scroll-container::-webkit-scrollbar-thumb {
+    background-color: var(--check-box);
+    border-radius: 4px;
+  }
+  .scroll-container::-webkit-scrollbar-thumb:hover {
+    background-color: var(--check-box-active);
+  }
+  .scroll-container::-webkit-scrollbar-thumb:active {
+    background-color: var(--text-secondary);
+  }
+}

@@ -1,3 +1,3 @@
 export function DividingLine() {
-  return <hr className='w-full border-b border-popup-border' />;
+  return <hr className='border-popup-border w-full border-b' />;
 }

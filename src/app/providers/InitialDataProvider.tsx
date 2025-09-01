@@ -1,7 +1,9 @@
 import { createContext, use, useLayoutEffect, useState } from 'react';
+import { OutsideLink } from '../../components/OutsideLink';
 import { saveSessionStorage } from '../../lib/storage';
 import { resetAction, store, useAppDispatch } from '../../store';
 import { init, type InitData } from '../initialization';
+import { DefaultScreen } from '../screens/DefaultScreen';
 
 export const InitialDataContext = createContext<InitData>(null!);
 
@@ -14,12 +16,16 @@ export function InitialDataProvider({
   children,
 }: InitialDataProviderProps) {
   const dispatch = useAppDispatch();
-  const [initData, setInitData] = useState<InitData>(null!);
-  // TODO: добавить обработку ошибки
+  const [initData, setInitData] = useState<InitData | null>(null);
+  const [hasTabId, setHasTabId] = useState(true);
 
   useLayoutEffect(() => {
     initPromise.then((result) => {
-      if (!result.tabId) throw new Error('Tab ID is undefined');
+      if (!result.tabId) {
+        setHasTabId(false);
+        return;
+      }
+
       setInitData(result);
       if (
         Object.keys(result.sessionStorage).length > 0 &&
@@ -34,6 +40,14 @@ export function InitialDataProvider({
       });
     });
   }, []);
+
+  if (!hasTabId)
+    return (
+      <DefaultScreen vpnNotice={false}>
+        {browser.i18n.getMessage('popup_stub_default')}{' '}
+        <OutsideLink url={'https://hdrezka.ag'} text={'HDrezka.ag'} />!
+      </DefaultScreen>
+    );
 
   if (!initData) return null;
 

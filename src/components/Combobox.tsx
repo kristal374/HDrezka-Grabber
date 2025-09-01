@@ -74,7 +74,7 @@ export function Combobox({
             'border-input bg-background hover:border-input-active hover:bg-input',
             'flex items-center rounded-md border-2 px-2 py-1.5 text-sm',
             'placeholder:text-foreground-disabled disabled:cursor-not-allowed disabled:opacity-50',
-            'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-link-color focus-visible:ring-offset-2',
+            'ring-offset-background focus-visible:ring-link-color focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
             className,
           )}
           style={{ width }}

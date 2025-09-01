@@ -23,7 +23,7 @@ export function Router() {
     DEFAULT: (
       <>
         {browser.i18n.getMessage('popup_stub_default')}{' '}
-        <OutsideLink text={'HDrezka.ag'} />!
+        <OutsideLink url={'https://hdrezka.ag'} text={'HDrezka.ag'} />!
       </>
     ),
   } satisfies Record<
