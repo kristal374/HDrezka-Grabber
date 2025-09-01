@@ -6,7 +6,6 @@ import { doDatabaseStuff } from '../lib/idb-storage';
 import '../lib/logger';
 import { store } from '../store';
 
-console.log('bro');
 logger.info('Popup open.');
 // TODO: Пересмотреть место открытия БД
 doDatabaseStuff().then((db) => {
