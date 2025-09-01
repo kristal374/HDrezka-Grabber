@@ -151,7 +151,40 @@ function SettingsSection({
   );
 }
 
+type SettingItemProps<T> = {
+  value: T;
+  setValue: (value: T) => void;
+};
+function DarkMode({ value, setValue }: SettingItemProps<boolean>) {
+  return (
+    <SettingItem
+      title='Темная тема'
+      description='Использовать темное оформление интерфейса'
+    >
+      <Toggle checked={value} onChange={setValue} />
+    </SettingItem>
+  );
+}
+
 export function SettingsTab() {
+  const [darkMode, setDarkMode] = useState(false);
+
+  const settings = {
+    darkMode: darkMode,
+  };
+
+  return (
+    <Panel>
+      <div className='space-y-8'>
+        <SettingsSection title='Настройки интерфейса' icon={Monitor}>
+          <DarkMode value={settings.darkMode} setValue={setDarkMode} />
+        </SettingsSection>
+      </div>
+    </Panel>
+  );
+}
+
+export function SettingsTab2() {
   const [darkMode, setDarkMode] = useState(true);
   const [language, setLanguage] = useState('ru');
   const [fontSize, setFontSize] = useState('medium');

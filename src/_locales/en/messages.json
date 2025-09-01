@@ -12,7 +12,7 @@
     "message": "Sorry, but the movie is not available from your location :("
   },
   "popup_stub_locationSerial": {
-    "message": "Sorry, but the serial is not available from your location :("
+    "message": "Sorry, but the series is not available from your location :("
   },
   "popup_stub_vpn": {
     "message": "Try using a VPN."
@@ -24,7 +24,7 @@
     "message": "Oops! Something went wrong..."
   },
   "popup_loadSerial": {
-    "message": "Load serial"
+    "message": "Load series"
   },
   "popup_loadSubtitle": {
     "message": "Load subtitle"
@@ -39,7 +39,7 @@
     "message": "the end of the season"
   },
   "popup_textEndSeasons": {
-    "message": "the end of the serial"
+    "message": "the end of the series"
   },
   "popup_subtitleLang": {
     "message": "Lang"

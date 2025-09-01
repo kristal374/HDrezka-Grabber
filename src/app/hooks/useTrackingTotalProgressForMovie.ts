@@ -42,6 +42,16 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
   }, [movieId]);
 
   useEffect(() => {
+    if (!loadStatuses || totalLoads === 0 || completedLoads !== totalLoads)
+      return;
+    setTimeout(() => {
+      setLoadItem(null);
+      setLoadItemIds(null);
+      setLoadStatuses(null);
+    }, 3000);
+  }, [loadStatuses]);
+
+  useEffect(() => {
     const handler = async (changes: StorageEventPayload) => {
       for (const [key, value] of Object.entries(changes)) {
         switch (key) {
@@ -65,7 +75,7 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
 
     eventBus.on('StorageEvent', handler);
     return () => eventBus.off('StorageEvent', handler);
-  }, [eventBus, loadItem]);
+  }, [eventBus, loadItem, loadItemIds, loadStatuses]);
 
   const handleActiveDownloadsChange = async (
     oldValue: number[] | undefined,

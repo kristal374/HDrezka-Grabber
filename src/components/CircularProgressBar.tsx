@@ -16,7 +16,7 @@ export function CircularProgressBar({ progress }: Props) {
       ? !!progress.videoProgressInPercents || progress.completedLoads > 1
       : false,
   );
-  const isWaiting = progress.videoProgressInPercents === null;
+  const isWaiting = !progress.videoProgressInPercents;
   const percent = Math.min(
     Math.max(progress.videoProgressInPercents ?? 0, 0),
     100,

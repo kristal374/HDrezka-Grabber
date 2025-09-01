@@ -138,27 +138,25 @@ function InfoCard({
 
 function DonationCard({ donation }: { donation: DonationPlatform }) {
   return (
-    <div className='group border-settings-border-secondary bg-settings-background-tertiary/50 hover:bg-settings-background-tertiary/80 rounded-lg border shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-lg'>
-      <div className='p-4 text-center'>
-        <div className='mb-3 transition-transform duration-300 group-hover:scale-110'>
-          {donation.icon}
-        </div>
-        <div className='text-settings-text-secondary group-hover:text-settings-text-primary mb-2 text-xl font-bold transition-colors duration-300'>
-          {donation.title}
-        </div>
-        <div className='text-settings-text-tertiary mb-3 text-sm'>
-          {donation.subtitle}
-        </div>
-        <a
-          href={donation.link}
-          target='_blank'
-          rel='noopener noreferrer'
-          className='text-link-color hover:text-link-color/80 inline-flex items-center gap-1 text-sm transition-all duration-300 hover:scale-105 hover:underline'
-        >
-          <span>{browser.i18n.getMessage('settings_SupportButton')}</span>
-          <ExternalLink className='h-3 w-3' />
-        </a>
+    <div className='group border-settings-border-secondary bg-settings-background-tertiary/50 hover:bg-settings-background-tertiary/80 flex flex-col items-center rounded-lg border px-3 py-4 text-center shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-lg'>
+      <div className='mb-3 transition-transform duration-300 group-hover:scale-110'>
+        {donation.icon}
       </div>
+      <div className='text-settings-text-secondary group-hover:text-settings-text-primary mb-2 text-xl font-bold transition-colors duration-300'>
+        {donation.title}
+      </div>
+      <div className='text-settings-text-tertiary mb-3 text-sm text-balance'>
+        {donation.subtitle}
+      </div>
+      <a
+        href={donation.link}
+        target='_blank'
+        rel='noopener noreferrer'
+        className='text-link-color hover:text-link-color/80 mt-auto inline-flex items-center gap-1 text-sm transition-all duration-300 hover:scale-105 hover:underline'
+      >
+        <span>{browser.i18n.getMessage('settings_SupportButton')}</span>
+        <ExternalLink className='h-3 w-3' />
+      </a>
     </div>
   );
 }
