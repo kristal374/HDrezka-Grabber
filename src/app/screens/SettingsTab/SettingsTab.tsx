@@ -4,6 +4,7 @@ import { Input } from '../../../components/Input';
 import { Panel } from '../../../components/Panel';
 import { Select } from '../../../components/Select';
 import { Toggle } from '../../../components/Toggle';
+import { FilenameTemplateBuilder } from './FilenameTemplateBuilder';
 import { SettingItem, SettingsSection } from './SettingsComponets';
 
 type SettingItemProps<T> = {
@@ -75,6 +76,7 @@ export function SettingsTab() {
     <Panel>
       <div className='flex flex-col gap-8'>
         <SettingsSection title='Настройки интерфейса' icon={Monitor}>
+          <FilenameTemplateBuilder />
           <DarkMode
             value={settings.darkMode}
             setValue={updateSetting('darkMode')}
