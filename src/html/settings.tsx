@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { SettingsScreen } from '../app/screens/SettingsScreen';
+import { SettingsScreen } from '../app/screens/SettingsScreen/SettingsScreen';
 import '../lib/logger';
 
 const element = document.querySelector('body')!;

@@ -1,13 +1,13 @@
 import { Bell, Database, Download, Monitor, Shield, User } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { Input } from '../../../components/Input';
-import { Panel } from '../../../components/Panel';
-import { Select } from '../../../components/Select';
-import { Toggle } from '../../../components/Toggle';
+import { Input } from '../../../../components/Input';
+import { Panel } from '../../../../components/Panel';
+import { Select } from '../../../../components/Select';
+import { Toggle } from '../../../../components/Toggle';
 import { FilenameTemplateBuilder } from './FilenameTemplateBuilder';
 import { SettingItem, SettingsSection } from './SettingsComponets';
 
-type SettingItemProps<T> = {
+export type SettingItemProps<T> = {
   value: T;
   setValue: (value: T) => void;
 };
@@ -34,49 +34,54 @@ function EnableLogger({ value, setValue }: SettingItemProps<boolean>) {
   );
 }
 
-function FilenameTemplate({ value, setValue }: SettingItemProps<string>) {
-  return (
-    <SettingItem
-      title='Шаблон имени файла'
-      description='Шаблон имени файла при сохранении файла'
-      className='flex-col items-start'
-    >
-      <div className='flex gap-3'>
-        <div className='flex flex-col gap-3'>
-          <Input value={value} onChange={setValue} placeholder='Имя файла' />
-          <p>Preview: {value.replace('{title}', 'Тестовый фильм')}</p>
-        </div>
-        <p>
-          Шаблон может содержать следующие переменные:
-          <br />
-          <code>{'{title}'}</code> - название фильма или сериала
-          <br />
-          <code>{'{year}'}</code> - год выпуска
-          <br />
-          <code>{'{season}'}</code> - название сезона
-          <br />
-          <code>{'{episode}'}</code> - номер серии
-        </p>
-      </div>
-    </SettingItem>
-  );
-}
-
 export function SettingsTab() {
   const [settings, setSettings] = useState({
     darkMode: true,
     enableLogger: false,
-    filenameTemplate: '{title}',
+    filenameTemplate: [
+      '%orig_title%',
+      '(',
+      '%translate%',
+      ')_S-',
+      '%season_id%',
+      '_E-',
+      '%episode_id%',
+      '_[',
+      '%quality%',
+      ']',
+    ],
   });
-  console.log(settings);
   const updateSetting = useCallback(function <T>(key: string) {
-    return (value: T) => setSettings((prev) => ({ ...prev, [key]: value }));
+    return (value: T) =>
+      setSettings((prev) => {
+        return { ...prev, [key]: value };
+      });
   }, []);
   return (
     <Panel>
       <div className='flex flex-col gap-8'>
         <SettingsSection title='Настройки интерфейса' icon={Monitor}>
-          <FilenameTemplateBuilder />
+          <FilenameTemplateBuilder
+            value={settings.filenameTemplate}
+            setValue={updateSetting('filenameTemplate')}
+            placeholders={[
+              { id: '%n%', display: 'Номер файла' },
+              { id: '%movie_id%', display: 'ID фильма' },
+              { id: '%title%', display: 'Название фильма' },
+              { id: '%orig_title%', display: 'Оригинальное название фильма' },
+              { id: '%translate%', display: 'Озвучка' },
+              { id: '%translate_id%', display: 'ID озвучки' },
+              { id: '%episode%', display: 'Эпизод' },
+              { id: '%episode_id%', display: 'ID эпизода' },
+              { id: '%season%', display: 'Сезон' },
+              { id: '%season_id%', display: 'ID сезона' },
+              { id: '%quality%', display: 'Качество видео' },
+              { id: '%subtitle_code%', display: 'Код субтитров' },
+              { id: '%subtitle_lang%', display: 'Язык субтитров' },
+              { id: '%data%', display: 'Дата' },
+              { id: '%time%', display: 'Время' },
+            ]}
+          />
           <DarkMode
             value={settings.darkMode}
             setValue={updateSetting('darkMode')}
@@ -85,14 +90,7 @@ export function SettingsTab() {
             value={settings.enableLogger}
             setValue={updateSetting('enableLogger')}
           />
-          {settings.enableLogger && (
-            <>
-              <FilenameTemplate
-                value={settings.filenameTemplate}
-                setValue={updateSetting('filenameTemplate')}
-              />
-            </>
-          )}
+          {settings.enableLogger && <></>}
         </SettingsSection>
       </div>
     </Panel>
