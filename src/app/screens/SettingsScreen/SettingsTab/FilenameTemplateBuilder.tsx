@@ -1,238 +1,163 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Mention,
-  MentionsInput,
-  OnChangeHandlerFunc,
-  SuggestionFunc,
-} from 'react-mentions';
-import { SettingItemProps } from './SettingsTab';
-import { useInputCopyAndPasteHandlers } from './hooks/useInputCopyAndPasteHandlers';
-import { useInputDragHandlers } from './hooks/useInputDragHandlers';
-import { useUndoRedoHandlers } from './hooks/useUndoRedoHandlers';
+import { ChevronDown } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { FilenameTemplateInput, Placeholder } from './FilenameTemplateInput';
+import { PreviewItem, SettingItemProps } from './SettingsTab';
 
-export const MARKUP = '\\[__display__\\](__id__)';
-export const REGEXP_PLACEHOLDER_TEMPLATE = /(\\\[([A-я\s]+)\\]\((%[a-z_]+%)\))/;
-
-export const INVALID_CHARACTERS = /[\n\\\/:*?"<>|]/g;
-
-export type Placeholder = {
-  id: string;
-  display: string;
-};
-
-type FilenameTemplateBuilderProps = SettingItemProps<string[]> & {
+type FilenameTemplateProps = SettingItemProps<string[]> & {
   placeholders: Placeholder[];
+  readyTemplates: string[][];
+  previews: PreviewItem<string>[];
 };
 
-export const format = (str: string, args: Record<string, string>): string => {
-  return str.replace(
-    /__\w+__/g,
-    (match) => args[match.slice(2, match.length - 2)] ?? match,
-  );
-};
-
-const isPlaceholder = (str: string, placeholders: Placeholder[]): boolean =>
-  placeholders.some((placeholder) => placeholder.id === str);
-
-const findTargetPlaceholder = (
-  str: string,
-  placeholders: Placeholder[],
-): Placeholder | undefined =>
-  placeholders.find((placeholder) => placeholder.id === str);
-
-const placeholderIdToValue = (
-  item: string,
-  placeholders: Placeholder[],
-): string => {
-  return isPlaceholder(item, placeholders)
-    ? format(MARKUP, findTargetPlaceholder(item, placeholders)!)
-    : item;
-};
-
-const splitStringAlongPlaceholderBorder = (str: string): string[] => {
-  // Условие "v && i % 4 < 2" пропускает лишние группы после разбивки регулярным выражением.
-  // Когда первый элемент является плейсхолдером, то в начало массива будет добавлена пустая строка
-  // А поскольку условие "v && i % 4 < 2" берёт по два элемента и пропускает пустые строки,
-  // будет взят только плейсхолдер, при этом следующие две группы будут пропущены.
-  // Если первым элементом будет текст, то за ним гарантированно следует плейсхолдер.
-  // Поскольку пустой строки в начале массива не будет, то фильтр возьмёт первые два элемента.
-  // Следовательно, это будет текст и плейсхолдер, следующие группы до текста вновь будут пропущены.
-  return str
-    .split(REGEXP_PLACEHOLDER_TEMPLATE)
-    .filter((v, i) => v && i % 4 < 2);
-};
-
-export const mapSelectionToTemplate = (
-  templateString: string,
-  selectionStart: number,
-  selectionEnd: number,
-): { start: number; end: number } => {
-  const prepareStrings = splitStringAlongPlaceholderBorder(templateString);
-  const realIndexes = { start: -1, end: -1 };
-
-  let fictiveLineIndex = 0;
-  let realLineIndex = 0;
-  prepareStrings.forEach((item) => {
-    const match = item.match(REGEXP_PLACEHOLDER_TEMPLATE);
-    fictiveLineIndex += match ? match[2].length : item.length;
-    realLineIndex += item.length;
-
-    if (realIndexes.start === -1 && fictiveLineIndex >= selectionStart) {
-      realIndexes.start = !match
-        ? realLineIndex - (fictiveLineIndex - selectionStart)
-        : match && fictiveLineIndex !== selectionStart
-          ? realLineIndex - match[1].length
-          : realLineIndex;
-    }
-    if (realIndexes.end === -1 && fictiveLineIndex >= selectionEnd) {
-      realIndexes.end = !match
-        ? realLineIndex - (fictiveLineIndex - selectionEnd)
-        : realLineIndex;
-    }
-  });
-
-  return realIndexes;
-};
-
-export function FilenameTemplateBuilder({
+export function FilenameTemplateMovie({
   value,
   setValue,
   placeholders,
-}: FilenameTemplateBuilderProps) {
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [rawUserTemplate, setRawUserTemplate] = useState(
-    value.map((item) => placeholderIdToValue(item, placeholders)).join(''),
-  );
-
-  useInputDragHandlers(
-    inputRef,
-    rawUserTemplate,
-    setRawUserTemplate,
-    placeholders,
-  );
-  useInputCopyAndPasteHandlers(
-    inputRef,
-    rawUserTemplate,
-    setRawUserTemplate,
-    placeholders,
-  );
-  useUndoRedoHandlers(rawUserTemplate, setRawUserTemplate, inputRef);
+  readyTemplates,
+  previews,
+}: FilenameTemplateProps) {
+  const [showAllPreviews, setShowAllPreviews] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
-    const newUserTemplate = splitStringAlongPlaceholderBorder(
-      rawUserTemplate,
-    ).map((item) =>
-      REGEXP_PLACEHOLDER_TEMPLATE.test(item)
-        ? item.match(REGEXP_PLACEHOLDER_TEMPLATE)![3]
-        : item,
-    );
-    setValue(newUserTemplate);
-  }, [rawUserTemplate]);
+    const handleClickOutside = (event: MouseEvent) => {
+      setShowDropdown(false);
+    };
 
-  const handleChange: OnChangeHandlerFunc = useCallback(
-    (event) => {
-      const rawValue = event.target.value;
-      const cleanedNewValue = splitStringAlongPlaceholderBorder(rawValue)
-        .map((item) =>
-          !REGEXP_PLACEHOLDER_TEMPLATE.test(item)
-            ? item.replaceAll(INVALID_CHARACTERS, '')
-            : item,
-        )
-        .join('');
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
 
-      if (rawValue !== cleanedNewValue) {
-        // TODO: Добавить уведомление о запрещённом символе
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowDropdown(false);
       }
-      if (cleanedNewValue !== rawUserTemplate) {
-        setRawUserTemplate(cleanedNewValue);
-      }
-    },
-    [rawUserTemplate],
+    };
+
+    if (showDropdown) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showDropdown]);
+
+  const displayedPreviews = useMemo(
+    () => (showAllPreviews ? previews : previews.slice(0, 1)),
+    [showAllPreviews, previews],
   );
 
-  const customSuggestionsContainer = useCallback(
-    (children: React.ReactNode) => (
-      <div style={{ border: '1px solid #ccc', borderRadius: '4px' }}>
-        <div style={{ maxHeight: '150px', overflowY: 'auto' }}>{children}</div>
-      </div>
-    ),
-    [],
-  );
+  const handleTemplateSelect = (template: string[]) => {
+    setValue(template);
+    setShowDropdown(false);
+  };
 
-  const renderPlaceholderSuggestion = useCallback<SuggestionFunc>(
-    (suggestion, _search, _highlightedDisplay, index, _focused) => {
-      if (!placeholders[index]) return suggestion.display;
-      return (
-        <span className='flex w-full items-center justify-between gap-2 px-2 py-1 text-left text-xs'>
-          {suggestion.display}
-        </span>
-      );
-    },
-    [placeholders],
-  );
+  const toggleDropdown = () => {
+    setShowDropdown((prev) => !prev);
+  };
 
-  const displayTransformHandler = useCallback(
-    (_id: string, display: string) => display,
-    [],
-  );
+  const togglePreviewsVisibility = () => {
+    setShowAllPreviews((prev) => !prev);
+  };
 
   return (
-    <div>
-      <MentionsInput
-        inputRef={inputRef}
-        value={rawUserTemplate}
-        onChange={handleChange}
-        // customSuggestionsContainer={customSuggestionsContainer}
-        className='settings-background-primary text-settings-text-primary text-sm font-normal'
-        // classNames={{
-        //   'mentions__control': 'font-mono min-h-[63px] ',
-        //   'mentions__highlighter': 'p-[9px] border border-transparent',
-        //   'mentions__input': 'p-[9px] border border-silver outline-none',
-        //   'mentions__suggestions': 'bg-settings-background-primary border border-black/15 text-sm',
-        //   'mentions__suggestions__list': 'bg-settings-background-primary border border-black/15 text-sm',
-        //   'mentions__suggestions__item': 'px-4 py-2 border-b border-black/15',
-        //   'mentions__suggestions__item--focused': 'bg-link-color',
-        // }}
-        style={{
-          '&multiLine': {
-            control: {
-              fontFamily: 'monospace',
-              minHeight: 63,
-            },
-            highlighter: {
-              padding: 9,
-              border: '1px solid transparent',
-            },
-            input: {
-              padding: 9,
-              border: '1px solid silver',
-            },
-          },
-          suggestions: {
-            list: {
-              backgroundColor: 'var(--settings-background-primary)',
-              border: '1px solid rgba(0,0,0,0.15)',
-              fontSize: 14,
-            },
-            item: {
-              padding: '5px 15px',
-              borderBottom: '1px solid rgba(0,0,0,0.15)',
-              '&focused': {
-                backgroundColor: 'var(--link-color)',
-              },
-            },
-          },
-        }}
-      >
-        <Mention
-          trigger={/(%(?!\s)([^%]*))$/}
-          markup={MARKUP}
-          data={placeholders}
-          renderSuggestion={renderPlaceholderSuggestion}
-          className='bg-settings-border-tertiary text-settings-text-primary rounded'
-          displayTransform={displayTransformHandler}
+    <>
+      <div className='relative'>
+        <FilenameTemplateInput
+          value={value}
+          setValue={setValue}
+          className='border-settings-border-primary rounded-xl border'
+          placeholders={placeholders}
         />
-      </MentionsInput>
-    </div>
+
+        <button
+          onClick={toggleDropdown}
+          className='hover:bg-settings-border-primary focus:bg-settings-border-primary absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 transition-colors focus:outline-none'
+          type='button'
+          title='Выбрать шаблон'
+          aria-label='Выбрать шаблон'
+          aria-expanded={showDropdown}
+          aria-haspopup='listbox'
+        >
+          <ChevronDown
+            className={`text-settings-text-secondary h-4 w-4 transition-transform duration-200 ${
+              showDropdown ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+
+        {showDropdown && (
+          <div className='border-settings-border-tertiary bg-settings-background-primary absolute z-10 mt-1 w-full rounded-lg border shadow-lg'>
+            <ul
+              className='max-h-48 overflow-y-auto text-sm'
+              role='listbox'
+              aria-label='Список готовых шаблонов'
+            >
+              {readyTemplates.map((template, index) => (
+                <li key={index} role='option'>
+                  <button
+                    onClick={() => handleTemplateSelect(template)}
+                    className='hover:bg-link-color focus:bg-link-color text-settings-text-primary w-full px-3 py-2 text-left transition-colors focus:outline-none'
+                    type='button'
+                    tabIndex={-1}
+                  >
+                    {Array.isArray(template) ? template.join('') : template}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <p className='text-settings-text-tertiary mt-2 text-xs'>
+        Введите % чтобы добавить переменную
+      </p>
+
+      <div className='mt-5'>
+        <div className='mb-2 flex items-center justify-between'>
+          <h3 className='text-settings-text-primary text-sm font-medium'>
+            Предпросмотр результата
+          </h3>
+          {previews.length > 1 && (
+            <button
+              className='text-settings-text-tertiary hover:text-settings-text-secondary text-xs transition-colors hover:underline focus:underline focus:outline-none'
+              onClick={togglePreviewsVisibility}
+              type='button'
+              aria-label={
+                showAllPreviews
+                  ? 'Скрыть дополнительные превью'
+                  : 'Показать все превью'
+              }
+            >
+              {showAllPreviews ? 'Скрыть' : 'Показать все'}
+            </button>
+          )}
+        </div>
+
+        <div className='space-y-2'>
+          {displayedPreviews.map((preview, index) => (
+            <div
+              key={index}
+              className='bg-settings-background-secondary border-settings-border-primary rounded-lg border p-3 transition-colors'
+            >
+              <div className='text-settings-text-tertiary mb-2 text-xs font-medium'>
+                {preview.label}
+              </div>
+              <div className='text-settings-text-primary font-mono text-sm break-all'>
+                {preview.value}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
   );
 }

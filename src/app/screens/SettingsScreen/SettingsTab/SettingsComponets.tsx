@@ -35,22 +35,32 @@ export function SettingsSection({
   title,
   icon: Icon,
   children,
+  className,
 }: {
   title: string;
   icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className='mb-8 last:mb-0'>
-      <div className='mb-4 flex items-center'>
-        {Icon && <Icon className='text-settings-text-tertiary mr-2 h-5 w-5' />}
+    <div
+      className={cn(
+        'border-settings-border-primary bg-settings-background-secondary relative rounded-lg border p-6',
+        className,
+      )}
+    >
+      <div
+        className='text-settings-text-primary absolute -top-4 left-4 flex items-center gap-2.5 px-2 text-base font-medium'
+        style={{
+          backgroundImage: `linear-gradient(to bottom, var(--settings-background-primary), var(--settings-background-primary) 48%, var(--settings-background-secondary) 64%, var(--settings-background-secondary))`,
+        }}
+      >
+        {Icon && <Icon className='text-settings-text-tertiary size-5' />}
         <h3 className='text-settings-text-primary text-lg font-semibold'>
           {title}
         </h3>
       </div>
-      <div className='divide-settings-border-secondary space-y-0 divide-y'>
-        {children}
-      </div>
+      {children}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import {
   MARKUP,
   Placeholder,
   REGEXP_PLACEHOLDER_TEMPLATE,
-} from '../FilenameTemplateBuilder';
+} from '../FilenameTemplateInput';
 
 export function useInputDragHandlers(
   inputRef: React.RefObject<HTMLTextAreaElement | null>,
@@ -64,7 +64,7 @@ export function useInputDragHandlers(
 
       if (!dragDataRef.current) return;
 
-      // TODO: fix it
+      // Немного коряво работает на Firefox, стоит как-то дополнительно обрабатывать ось "у"
       const dropPosition = document.caretPositionFromPoint(
         e.clientX,
         e.clientY,

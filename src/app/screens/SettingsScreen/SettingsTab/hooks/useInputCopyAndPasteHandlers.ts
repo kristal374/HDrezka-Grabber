@@ -5,7 +5,7 @@ import {
   MARKUP,
   Placeholder,
   REGEXP_PLACEHOLDER_TEMPLATE,
-} from '../FilenameTemplateBuilder';
+} from '../FilenameTemplateInput';
 
 export function useInputCopyAndPasteHandlers(
   inputRef: React.RefObject<HTMLTextAreaElement | null>,

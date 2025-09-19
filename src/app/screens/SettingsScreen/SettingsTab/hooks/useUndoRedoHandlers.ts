@@ -46,7 +46,11 @@ class HistoryManager {
   public addNewChange(newContent: string, cursorPosition: Position): void {
     const previousChange = this.history[this.currentIndex];
 
-    if (previousChange?.content === newContent) return;
+    if (
+      previousChange?.content === newContent ||
+      (!previousChange && !newContent)
+    )
+      return;
     const newChange: Change = {
       type: this.getChangeType(previousChange?.content, newContent),
       position: cursorPosition,
@@ -124,11 +128,9 @@ export function useUndoRedoHandlers(
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey) {
-        const key = event.key.toLowerCase();
-
-        // TODO: поддержка других раскладок
-        const isUndo = key === 'z' && !event.shiftKey;
-        const isRedo = (key === 'z' && event.shiftKey) || key === 'y';
+        const isUndo = event.code === 'KeyZ' && !event.shiftKey;
+        const isRedo =
+          (event.code === 'KeyZ' && event.shiftKey) || event.code === 'KeyY';
         const typeEvent = isUndo ? 'undo' : isRedo ? 'redo' : null;
 
         if (!typeEvent) return;
