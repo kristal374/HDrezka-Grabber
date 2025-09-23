@@ -1,5 +1,4 @@
 import browser, { Downloads } from 'webextension-polyfill';
-import logger from '../../lib/logger';
 
 import { Mutex } from 'async-mutex';
 import { getFromStorage } from '../../lib/storage';

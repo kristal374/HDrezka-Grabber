@@ -35,7 +35,7 @@ function toFormatTime(time: number): string {
 }
 
 export function printLog(message: LogMessage) {
-  // Вывод цветное сообщения в консоль
+  // Вывод цветного сообщения в консоль
   const timestamp = toFormatTime(message.timestamp);
   const location = `${extensionDomain}${message.location}`;
 
@@ -118,7 +118,7 @@ function printLogForFirefox(
   );
 }
 
-class Logger {
+export class Logger {
   private sourcemap: Record<string, Promise<SourceMapParser | null>> = {};
   private debugFlag: boolean | undefined = undefined;
   private readonly debugFlagInitialized: Promise<void>;
@@ -135,7 +135,7 @@ class Logger {
   }
 
   private async initializeSourceMapParser(url: string) {
-    // Определяем необходимый файл с картой исходного кода для текущего URL
+    // Определяем необходимый файл с картой исходного кода для текущего URL,
     // после чего пробуем вернуть соответствующий парсер, если он уже был создан
     // в противном случае создаем его перед этим
     const regexFindURL = /((?:chrome|moz)-extension:\/(?:\/.*?)+\.js):\d+:\d+/;
@@ -195,13 +195,13 @@ class Logger {
       message: detail,
     };
 
-    // catch необходим на случай если не существует других контекстов которые
+    // catch необходим на случай, если не существует других контекстов, которые
     // могли бы слушать сообщения, для отлова ошибок об отсутствие ответа
     browser.runtime.sendMessage(messageToSend).catch(() => {});
 
-    // browser.runtime.sendMessage не отправляет сообщения в контекст
-    // из которого вызывается и если мы хотим так же получать сообщения
-    // в этом контексте мы должны отправить сообщение другим способом,
+    // browser.runtime.sendMessage не отправляет сообщения в контекст,
+    // из которого вызывается, и если мы хотим так же получать сообщения
+    // в этом контексте, мы должны отправить сообщение другим способом,
     // в данном случае это CustomEvent
     globalThis.dispatchEvent(new CustomEvent(messageToSend.type, { detail }));
   }
@@ -232,7 +232,7 @@ class Logger {
     const urlStackTrace = exception.stack!.match(
       /((?:chrome|moz)-extension:\/(?:\/.*?)+\.js:(\d+):(\d+))/g,
     )!;
-    // Число 3 здесь потому что перед этим было ровно 3 вызова других функций
+    // Число 3 здесь, потому что перед этим было ровно 3 вызова других функций
     // от места вызова функции логирования
     const callerURL = urlStackTrace[3];
 
@@ -446,8 +446,3 @@ class SourceMapParser {
     return stacktrace;
   }
 }
-
-// TODO: Пересмотреть решение
-const logger = new Logger();
-globalThis.logger = logger;
-export default logger;

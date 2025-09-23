@@ -1,5 +1,3 @@
-import '../../lib/logger';
-
 import {
   decodeSubtitleURL,
   decodeVideoURL,

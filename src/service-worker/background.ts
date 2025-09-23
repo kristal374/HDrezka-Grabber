@@ -1,5 +1,4 @@
 import browser, { Runtime } from 'webextension-polyfill';
-import '../lib/logger';
 
 import {
   ActualVideoData,
