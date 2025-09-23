@@ -14,7 +14,7 @@ type OverrideBrowser = typeof Browser & {
 };
 
 declare global {
-  const browser: OverrideBrowser;
+  var browser: OverrideBrowser;
   var logger: Logger;
   var debugFlag: boolean;
   var indexedDBObject: IDBPDatabase<HDrezkaGrabberDB>;

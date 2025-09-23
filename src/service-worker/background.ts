@@ -1,4 +1,5 @@
-import browser, { Runtime } from 'webextension-polyfill';
+import '../lib/global-scope-init';
+import { Runtime } from 'webextension-polyfill';
 
 import {
   ActualVideoData,
