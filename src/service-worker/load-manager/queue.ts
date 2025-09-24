@@ -1,4 +1,3 @@
-import browser from 'webextension-polyfill';
 import { createProxy, getFromStorage, saveInStorage } from '../../lib/storage';
 import {
   ContentType,

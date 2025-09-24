@@ -1,11 +1,8 @@
 import '../lib/global-scope-init';
-import { Runtime } from 'webextension-polyfill';
 
 import {
   ActualVideoData,
   DataForUpdate,
-  DownloadAPIEvents,
-  EventMessage,
   EventType,
   Message,
   ResponseVideoData,
@@ -14,68 +11,43 @@ import {
 } from '../lib/types';
 import { logCreate } from './background-logger';
 
-import mitt from 'mitt';
 import { doDatabaseStuff } from '../lib/idb-storage';
 import { getQualityFileSize, updateVideoData } from './handler';
 import { DownloadManager } from './load-manager/core';
-import MessageSender = Runtime.MessageSender;
+import type { Runtime } from 'webextension-polyfill';
+type MessageSender = Runtime.MessageSender;
 
 let downloadManager: DownloadManager;
 
 async function main() {
   logger.info('Service worker starts...');
 
-  const emitter = mitt<DownloadAPIEvents>();
-  const queue: EventMessage[] = [];
+  eventBus.addMessageSource(EventType.NewMessageReceived, browser.runtime.onMessage)
 
-  browser.downloads.onCreated.addListener((event) => {
-    if (typeof downloadManager !== 'undefined') {
-      emitter.emit(EventType.Created, event);
-    } else {
-      queue.push({ type: EventType.Created, data: event });
-    }
-  });
-
-  browser.downloads.onChanged.addListener((event) => {
-    if (typeof downloadManager !== 'undefined') {
-      emitter.emit(EventType.DownloadEvent, event);
-    } else {
-      queue.push({ type: EventType.DownloadEvent, data: event });
-    }
-  });
+  eventBus.addMessageSource(EventType.BrowserStartup, browser.runtime.onStartup)
+  eventBus.addMessageSource(EventType.DownloadEvent, browser.downloads.onChanged)
+  eventBus.addMessageSource(EventType.DownloadCreated, browser.downloads.onCreated)
 
   globalThis.indexedDBObject = await doDatabaseStuff();
   downloadManager = await DownloadManager.build();
 
-  browser.runtime.onMessage.addListener(messageHandler);
+  eventBus.on(EventType.NewMessageReceived, messageHandler)
 
-  browser.runtime.onStartup.addListener(
-    // При непредвиденном прерывании работы браузера(например отключение электричества),
-    // может быть нарушена логика работы расширения, а данные потеряют актуальность.
-    // Поэтому при старте браузера проводим аудит данных и в случае необходимости
-    // восстанавливаем работоспособность расширения.
-    downloadManager.stabilizeInsideState.bind(downloadManager),
-  );
-
-  emitter.on(
-    EventType.Created,
-    downloadManager.handlerCreated.bind(downloadManager),
-  );
-  emitter.on(
-    EventType.DownloadEvent,
-    downloadManager.handlerDownloadEvent.bind(downloadManager),
-  );
+  eventBus.on(EventType.BrowserStartup, downloadManager.stabilizeInsideState.bind(downloadManager))
+  eventBus.on(EventType.DownloadEvent, downloadManager.handlerDownloadEvent.bind(downloadManager))
+  eventBus.on(EventType.DownloadCreated, downloadManager.handlerCreated.bind(downloadManager))
 
   // @ts-ignore
-  browser.downloads.onDeterminingFilename.addListener(
+  browser.downloads.onDeterminingFilename?.addListener(
     // Когда начинается загрузка "рекомендует" имя для загружаемого файла.
     // Актуально только для chrome и реализовано исключительно во избежание
-    // конфликтов с другими расширениями которые могут назначать имена файлов.
-    downloadManager.handlerDeterminingFilename.bind(downloadManager),
-  );
+    // конфликтов с другими расширениями, которые могут назначать имена файлов.
+    downloadManager.handlerDeterminingFilename.bind(downloadManager)
+  )
 
-  queue.forEach((e) => emitter.emit(e.type, e.data));
   logger.info('Service worker is ready.');
+
+  eventBus.setReady()
 }
 
 async function messageHandler(
@@ -159,7 +131,8 @@ const handleError = async (originalError: Error) => {
 };
 
 main().catch(handleError);
-// TODO: добаввить кэш
+self.addEventListener("unhandledrejection", (e) => handleError(e.reason));
+
+// TODO: добавить кэш
 // TODO: пофиксить выбор озвучки
-// TODO: Добавить глобальный отлов ошибок из обработчиков
-// TODO: Добавить буферизацию сообщений из попапа
+

@@ -1,5 +1,3 @@
-import browser, { Downloads } from 'webextension-polyfill';
-
 import { Mutex } from 'async-mutex';
 import { getFromStorage } from '../../lib/storage';
 import {
@@ -12,8 +10,10 @@ import {
 } from '../../lib/types';
 import { QueueController } from './queue';
 import { HDrezkaLoader, SiteLoader } from './site-loader';
-import OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
-import DownloadItem = Downloads.DownloadItem;
+import type { Downloads } from 'webextension-polyfill';
+
+type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
+type DownloadItem = Downloads.DownloadItem;
 
 type LoadManagerAsyncParams = {
   controller: QueueController;
@@ -50,6 +50,10 @@ export class DownloadManager {
   }
 
   async stabilizeInsideState() {
+    // При непредвиденном прерывании работы браузера (например отключение электричества),
+    // может быть нарушена логика работы расширения, а данные потеряют актуальность.
+    // Поэтому при старте браузера проводим аудит данных и в случае необходимости
+    // восстанавливаем работоспособность расширения.
     // TODO: реализовать
   }
 
@@ -173,7 +177,7 @@ export class DownloadManager {
     this.mutex.runExclusive(
       async () =>
         await this.eventOrchestrator({
-          type: EventType.Created,
+          type: EventType.DownloadCreated,
           data: downloadItem,
         }),
     );
@@ -245,7 +249,7 @@ export class DownloadManager {
       return;
     }
 
-    if (event.type === EventType.Created) {
+    if (event.type === EventType.DownloadCreated) {
       const downloadItem: DownloadItem = event.data;
 
       await this.createDownload(file, downloadItem);

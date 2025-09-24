@@ -1,6 +1,8 @@
-import { Downloads } from 'webextension-polyfill';
-import DownloadItem = Downloads.DownloadItem;
-import OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
+import type { Downloads, Runtime } from 'webextension-polyfill';
+
+type DownloadItem = Downloads.DownloadItem;
+type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
+type MessageSender = Runtime.MessageSender;
 
 export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -285,13 +287,15 @@ export type SerialQueryData = {
 export type QueryData = FilmQueryData | SerialQueryData | UpdateTranslateData;
 
 export enum EventType {
-  Created = 'Created',
+  NewMessageReceived = 'MessageReceived',
+  DownloadCreated = 'DownloadCreated',
   DownloadEvent = 'DownloadEvent',
+  BrowserStartup = 'BrowserStartup',
 }
 
 export type EventMessage =
   | {
-      type: EventType.Created;
+      type: EventType.DownloadCreated;
       data: DownloadItem;
     }
   | {
@@ -299,7 +303,9 @@ export type EventMessage =
       data: OnChangedDownloadDeltaType;
     };
 
-export type DownloadAPIEvents = {
-  [EventType.Created]: DownloadItem;
+export type EventBusTypes = {
+  [EventType.NewMessageReceived]: [unknown,  MessageSender,  (message: unknown) => void];
+  [EventType.DownloadCreated]: DownloadItem;
   [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
+  [EventType.BrowserStartup]: void;
 };
