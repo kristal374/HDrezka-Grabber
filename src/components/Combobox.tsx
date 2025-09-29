@@ -1,3 +1,4 @@
+import { ChevronDownIcon } from 'lucide-react';
 import { type JSX, useCallback, useEffect, useMemo, useState } from 'react';
 import { cn } from '../lib/utils';
 import {
@@ -28,6 +29,8 @@ interface ComboboxProps {
   }>;
   value?: string;
   onValueChange?: (value: string) => void;
+  needSearch?: boolean;
+  showChevron?: boolean;
 }
 
 export function Combobox({
@@ -38,6 +41,8 @@ export function Combobox({
   data,
   value: defaultValue = '',
   onValueChange,
+  needSearch = true,
+  showChevron,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(defaultValue);
@@ -87,7 +92,9 @@ export function Combobox({
                 </span>,
               )
             : browser.i18n.getMessage('combobox_placeholder')}
-          {/* <ChevronDown className='ml-auto size-4 shrink-0 opacity-50' /> */}
+          {showChevron && (
+            <ChevronDownIcon className='ml-auto size-4 shrink-0 opacity-50' />
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -100,7 +107,7 @@ export function Combobox({
           }
           loop
         >
-          {data.length > 12 && (
+          {data.length > 12 && needSearch && (
             <CommandInput
               placeholder={browser.i18n.getMessage('combobox_search')}
               // 8 - scrollbar, 16 - search icon, 10 - left margin, 8 - right margin

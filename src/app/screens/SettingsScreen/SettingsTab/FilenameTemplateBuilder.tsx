@@ -6,7 +6,7 @@ import { PreviewItem, SettingItemProps } from './SettingsTab';
 type FilenameTemplateProps = SettingItemProps<string[]> & {
   placeholders: Placeholder[];
   readyTemplates: string[][];
-  previews: PreviewItem<string>[];
+  previews: PreviewItem[];
 };
 
 export function FilenameTemplateMovie({
@@ -20,7 +20,7 @@ export function FilenameTemplateMovie({
   const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (_event: MouseEvent) => {
       setShowDropdown(false);
     };
 
@@ -124,7 +124,7 @@ export function FilenameTemplateMovie({
       <div className='mt-5'>
         <div className='mb-2 flex items-center justify-between'>
           <h3 className='text-settings-text-primary text-sm font-medium'>
-            Предпросмотр результата
+            Предпросмотр результата:
           </h3>
           {previews.length > 1 && (
             <button

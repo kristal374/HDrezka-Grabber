@@ -6,8 +6,8 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import { Combobox } from '../../../../components/Combobox';
 import { Panel } from '../../../../components/Panel';
-import { Select } from '../../../../components/Select';
 import { Toggle } from '../../../../components/Toggle';
 import { LogLevel } from '../../../../lib/types';
 import { FilenameTemplateMovie } from './FilenameTemplateBuilder';
@@ -18,25 +18,34 @@ export type SettingItemProps<T> = {
   setValue: (value: T) => void;
 };
 
-export type PreviewItem<T> = {
-  value: T;
+export type PreviewItem = {
+  value: string;
   label: string;
 };
 
-function SettingsItemSelect<T extends string | number>({
+function SettingsItemSelect({
   title,
   description,
   value,
   setValue,
   options,
-}: SettingItemProps<T> & {
+  width,
+}: SettingItemProps<string> & {
   title: string;
   description: string;
-  options: PreviewItem<T>[];
+  options: PreviewItem[];
+  width?: number;
 }) {
   return (
     <SettingItem title={title} description={description}>
-      <Select<T> value={value} onChange={setValue} options={options} />
+      <Combobox
+        value={value}
+        onValueChange={setValue}
+        data={options}
+        width={width}
+        needSearch={false}
+        showChevron={true}
+      />
     </SettingItem>
   );
 }
@@ -85,19 +94,16 @@ export function SettingsTab() {
 
     actionOnNoQuality: 'reduce_quality',
     actionOnNoSubtitles: 'ignore',
-    actionOnLoadError: 'scip',
+    actionOnLoadError: 'skip',
   });
 
-  const updateSetting = useCallback(function <T>(key: string) {
+  const updateSetting = useCallback(function <T>(key: string, type?: 'number') {
     return (value: T) =>
       setSettings((prev) => {
-        return { ...prev, [key]: value };
+        return { ...prev, [key]: type === 'number' ? Number(value) : value };
       });
   }, []);
 
-  if (settings.maxParallelDownloadsEpisodes > settings.maxParallelDownloads) {
-    settings.maxParallelDownloadsEpisodes = settings.maxParallelDownloads;
-  }
   return (
     <Panel className='bg-settings-background-primary border-0 p-0 shadow-none'>
       <div className='flex flex-col gap-12'>
@@ -128,37 +134,52 @@ export function SettingsTab() {
           <SettingsItemSelect
             title='Максимальное количество одновременных загрузок'
             description='Сколько файлов может загружаться одновременно'
-            value={settings.maxParallelDownloads}
-            setValue={updateSetting('maxParallelDownloads')}
+            value={String(settings.maxParallelDownloads)}
+            setValue={(value) => {
+              const newValue = Number(value);
+              if (settings.maxParallelDownloadsEpisodes > newValue) {
+                setSettings((prev) => ({
+                  ...prev,
+                  maxParallelDownloadsEpisodes: newValue,
+                }));
+              }
+              setSettings((prev) => ({
+                ...prev,
+                maxParallelDownloads: newValue,
+              }));
+            }}
             options={Array.from({ length: 32 }, (_, i) => ({
-              value: i + 1,
-              label: `${i + 1}`,
+              value: String(i + 1),
+              label: String(i + 1),
             }))}
+            width={80}
           />
 
           <SettingsItemSelect
             title='Максимальное количество одновременно загружаемых серий одного сериала'
             description='Сколько серий одного сериала сможет загружаться одновременно, позволяет загружать одновременно несколько сериалов'
-            value={settings.maxParallelDownloadsEpisodes}
-            setValue={updateSetting('maxParallelDownloadsEpisodes')}
+            value={String(settings.maxParallelDownloadsEpisodes)}
+            setValue={updateSetting('maxParallelDownloadsEpisodes', 'number')}
             options={Array.from(
               { length: settings.maxParallelDownloads },
               (_, i) => ({
-                value: i + 1,
-                label: `${i + 1}`,
+                value: String(i + 1),
+                label: String(i + 1),
               }),
             )}
+            width={80}
           />
 
           <SettingsItemSelect
             title='Максимальное количество попыток загрузки файла'
             description='Максимальное количество попыток загрузки файла перед тем как загрузка будет считаться неудачной'
-            value={settings.maxFallbackAttempts}
-            setValue={updateSetting('maxFallbackAttempts')}
+            value={String(settings.maxFallbackAttempts)}
+            setValue={updateSetting('maxFallbackAttempts', 'number')}
             options={Array.from({ length: 10 }, (_, i) => ({
-              value: i + 1,
-              label: `${i + 1}`,
+              value: String(i + 1),
+              label: String(i + 1),
             }))}
+            width={80}
           />
         </SettingsSection>
 
@@ -170,7 +191,7 @@ export function SettingsTab() {
             setValue={updateSetting('actionOnNoQuality')}
             options={[
               { value: 'skip', label: 'Пропустить серию' },
-              { value: 'reduce_quality', label: 'Понизить качество' },
+              { value: 'reduce_quality', label: 'Понизить качество серии' },
               { value: 'stop', label: 'Остановить загрузку сериала' },
             ]}
           />
@@ -216,7 +237,7 @@ export function SettingsTab() {
           />
 
           <SettingsItemToggle
-            title='Заменять все пробелы на нижние подчёркивания'
+            title='Заменять все пробелы на нижние подчёркивания (рекомендуется)'
             description='Все пробелы в имени файла будут заменены на нижние подчёркивания'
             value={settings.replaceAllSpaces}
             setValue={updateSetting('replaceAllSpaces')}
@@ -301,11 +322,12 @@ export function SettingsTab() {
             <SettingsItemSelect
               title='Уровень отладки'
               description='Уровень отладки расширения'
-              value={settings.debugLevel}
+              value={String(settings.debugLevel)}
               setValue={updateSetting('debugLevel')}
               options={Object.keys(LogLevel)
                 .filter((k) => isNaN(Number(k)))
-                .map((level, i) => ({ value: i, label: level }))}
+                .map((level, i) => ({ value: String(i), label: level }))}
+              width={125}
             />
           )}
         </SettingsSection>
