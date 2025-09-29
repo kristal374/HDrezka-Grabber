@@ -18,7 +18,7 @@ interface ComboboxProps {
    */
   width?: number;
   /**
-   * Max heigth of combobox content in pixels
+   * Max height of combobox content in pixels
    */
   height?: number;
   data: Array<{
@@ -103,7 +103,7 @@ export function Combobox({
           {data.length > 12 && (
             <CommandInput
               placeholder={browser.i18n.getMessage('combobox_search')}
-              // 8 - scollbar, 16 - search icon, 10 - left margin, 8 - right margin
+              // 8 - scrollbar, 16 - search icon, 10 - left margin, 8 - right margin
               style={{ width: width - 8 - 16 - 10 - 8 }}
             />
           )}

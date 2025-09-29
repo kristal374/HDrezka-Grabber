@@ -1,4 +1,5 @@
 import { Mutex } from 'async-mutex';
+import type { Downloads } from 'webextension-polyfill';
 import { getFromStorage } from '../../lib/storage';
 import {
   EventMessage,
@@ -10,7 +11,6 @@ import {
 } from '../../lib/types';
 import { QueueController } from './queue';
 import { HDrezkaLoader, SiteLoader } from './site-loader';
-import type { Downloads } from 'webextension-polyfill';
 
 type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
 type DownloadItem = Downloads.DownloadItem;

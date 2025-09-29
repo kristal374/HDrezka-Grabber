@@ -304,7 +304,11 @@ export type EventMessage =
     };
 
 export type EventBusTypes = {
-  [EventType.NewMessageReceived]: [unknown,  MessageSender,  (message: unknown) => void];
+  [EventType.NewMessageReceived]: [
+    unknown,
+    MessageSender,
+    (message: unknown) => void,
+  ];
   [EventType.DownloadCreated]: DownloadItem;
   [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
   [EventType.BrowserStartup]: void;

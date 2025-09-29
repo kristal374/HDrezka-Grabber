@@ -11,10 +11,10 @@ import {
 } from '../lib/types';
 import { logCreate } from './background-logger';
 
+import type { Runtime } from 'webextension-polyfill';
 import { doDatabaseStuff } from '../lib/idb-storage';
 import { getQualityFileSize, updateVideoData } from './handler';
 import { DownloadManager } from './load-manager/core';
-import type { Runtime } from 'webextension-polyfill';
 type MessageSender = Runtime.MessageSender;
 
 let downloadManager: DownloadManager;
@@ -22,32 +22,53 @@ let downloadManager: DownloadManager;
 async function main() {
   logger.info('Service worker starts...');
 
-  eventBus.addMessageSource(EventType.NewMessageReceived, browser.runtime.onMessage)
+  eventBus.addMessageSource(
+    EventType.NewMessageReceived,
+    browser.runtime.onMessage,
+  );
 
-  eventBus.addMessageSource(EventType.BrowserStartup, browser.runtime.onStartup)
-  eventBus.addMessageSource(EventType.DownloadEvent, browser.downloads.onChanged)
-  eventBus.addMessageSource(EventType.DownloadCreated, browser.downloads.onCreated)
+  eventBus.addMessageSource(
+    EventType.BrowserStartup,
+    browser.runtime.onStartup,
+  );
+  eventBus.addMessageSource(
+    EventType.DownloadEvent,
+    browser.downloads.onChanged,
+  );
+  eventBus.addMessageSource(
+    EventType.DownloadCreated,
+    browser.downloads.onCreated,
+  );
 
   globalThis.indexedDBObject = await doDatabaseStuff();
   downloadManager = await DownloadManager.build();
 
-  eventBus.on(EventType.NewMessageReceived, messageHandler)
+  eventBus.on(EventType.NewMessageReceived, messageHandler);
 
-  eventBus.on(EventType.BrowserStartup, downloadManager.stabilizeInsideState.bind(downloadManager))
-  eventBus.on(EventType.DownloadEvent, downloadManager.handlerDownloadEvent.bind(downloadManager))
-  eventBus.on(EventType.DownloadCreated, downloadManager.handlerCreated.bind(downloadManager))
+  eventBus.on(
+    EventType.BrowserStartup,
+    downloadManager.stabilizeInsideState.bind(downloadManager),
+  );
+  eventBus.on(
+    EventType.DownloadEvent,
+    downloadManager.handlerDownloadEvent.bind(downloadManager),
+  );
+  eventBus.on(
+    EventType.DownloadCreated,
+    downloadManager.handlerCreated.bind(downloadManager),
+  );
 
   // @ts-ignore
   browser.downloads.onDeterminingFilename?.addListener(
     // Когда начинается загрузка "рекомендует" имя для загружаемого файла.
     // Актуально только для chrome и реализовано исключительно во избежание
     // конфликтов с другими расширениями, которые могут назначать имена файлов.
-    downloadManager.handlerDeterminingFilename.bind(downloadManager)
-  )
+    downloadManager.handlerDeterminingFilename.bind(downloadManager),
+  );
 
   logger.info('Service worker is ready.');
 
-  eventBus.setReady()
+  eventBus.setReady();
 }
 
 async function messageHandler(
@@ -131,8 +152,7 @@ const handleError = async (originalError: Error) => {
 };
 
 main().catch(handleError);
-self.addEventListener("unhandledrejection", (e) => handleError(e.reason));
+self.addEventListener('unhandledrejection', (e) => handleError(e.reason));
 
 // TODO: добавить кэш
 // TODO: пофиксить выбор озвучки
-

@@ -16,7 +16,7 @@ export async function logCreate(message: LogMessage) {
 }
 
 async function addNewLogMessage(message: LogMessage) {
-  // Ждём пока indexedDBObject появится если его ещё нет
+  // Ждём пока indexedDBObject появится, если его ещё нет
   while (typeof indexedDBObject === 'undefined') {
     await new Promise((res) => setTimeout(res, 10));
   }

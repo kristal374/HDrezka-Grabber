@@ -1,23 +1,34 @@
 import mitt, { Handler } from 'mitt';
 
 /** Нормализуем форму аргументов события в кортеж */
-type NormalizeArgs<T> =
-  T extends undefined | void
-    ? []
-    : T extends any[]
-      ? T
-      : [T];
+type NormalizeArgs<T> = T extends undefined | void
+  ? []
+  : T extends any[]
+    ? T
+    : [T];
 
 /** Проверка на "тождество" типов-кортежей */
-type TupleEqual<A, B> =
-  [A] extends [B]
-    ? ([B] extends [A] ? true : false)
-    : false;
+type TupleEqual<A, B> = [A] extends [B]
+  ? [B] extends [A]
+    ? true
+    : false
+  : false;
 
 /** Пояснительный тип, дающий полезную ошибку в случае несовместимости */
-type EnsureParamsMatch<EventArgs extends unknown[], SourceParams extends unknown[]> =
-  TupleEqual<EventArgs, SourceParams> extends true ? {} :
-    { __INCOMPATIBLE__: ['Event expects', EventArgs, 'but source listener has', SourceParams] };
+type EnsureParamsMatch<
+  EventArgs extends unknown[],
+  SourceParams extends unknown[],
+> =
+  TupleEqual<EventArgs, SourceParams> extends true
+    ? {}
+    : {
+        __INCOMPATIBLE__: [
+          'Event expects',
+          EventArgs,
+          'but source listener has',
+          SourceParams,
+        ];
+      };
 
 /** Конкретные интерфейсы источников */
 type ListenerSource<P extends unknown[]> = {
@@ -35,37 +46,39 @@ export class BufferedEventBus<T extends Record<string, unknown>> {
   private queue: Array<{ type: keyof T; args: NormalizeArgs<T[keyof T]> }> = [];
   private isReady = false;
 
-  public on<K extends keyof T, H extends (...args: NormalizeArgs<T[K]>) => unknown>(
-    eventName: K,
-    handler: H,
-  ) {
+  public on<
+    K extends keyof T,
+    H extends (...args: NormalizeArgs<T[K]>) => unknown,
+  >(eventName: K, handler: H) {
     const wrapper: Handler<NormalizeArgs<T[K]>> = (tuple) => handler(...tuple);
     this.emitter.on(eventName, wrapper);
     this.emitAll(eventName);
   }
 
-  public off<K extends keyof T, H extends (...args: NormalizeArgs<T[K]>) => unknown>(
-    eventName: K,
-    handler: H,
-  ) {
+  public off<
+    K extends keyof T,
+    H extends (...args: NormalizeArgs<T[K]>) => unknown,
+  >(eventName: K, handler: H) {
     const wrapper: Handler<NormalizeArgs<T[K]>> = (tuple) => handler(...tuple);
     this.emitter.off(eventName, wrapper);
   }
 
   public addMessageSource<K extends keyof T, P extends unknown[]>(
     eventName: K,
-    source: ListenerSource<P> & EnsureParamsMatch<NormalizeArgs<T[K]>, P>
+    source: ListenerSource<P> & EnsureParamsMatch<NormalizeArgs<T[K]>, P>,
   ): void;
   public addMessageSource<K extends keyof T, P extends unknown[]>(
     eventName: K,
-    source: EventTargetSource<P> & EnsureParamsMatch<NormalizeArgs<T[K]>, P>
+    source: EventTargetSource<P> & EnsureParamsMatch<NormalizeArgs<T[K]>, P>,
   ): void;
   public addMessageSource<K extends keyof T>(
     eventName: K,
-    source: ListenerSource<any> | EventTargetSource<any>
+    source: ListenerSource<any> | EventTargetSource<any>,
   ): void {
     if (!source || typeof source !== 'object') {
-      throw new Error('Argument "source" must be an object with addListener or addEventListener');
+      throw new Error(
+        'Argument "source" must be an object with addListener or addEventListener',
+      );
     }
 
     const handler = this.modifyHandler(eventName);
@@ -74,21 +87,23 @@ export class BufferedEventBus<T extends Record<string, unknown>> {
     } else if ('addEventListener' in source) {
       source.addEventListener(eventName as string, handler);
     } else {
-      throw new Error('Unsupported message source (no addListener / addEventListener)');
+      throw new Error(
+        'Unsupported message source (no addListener / addEventListener)',
+      );
     }
   }
 
   public removeMessageSource<K extends keyof T, P extends unknown[]>(
     eventName: K,
-    source: ListenerSource<P> & EnsureParamsMatch<NormalizeArgs<T[K]>, P>
+    source: ListenerSource<P> & EnsureParamsMatch<NormalizeArgs<T[K]>, P>,
   ): void;
   public removeMessageSource<K extends keyof T, P extends unknown[]>(
     eventName: K,
-    source: EventTargetSource<P> & EnsureParamsMatch<NormalizeArgs<T[K]>, P>
+    source: EventTargetSource<P> & EnsureParamsMatch<NormalizeArgs<T[K]>, P>,
   ): void;
   public removeMessageSource<K extends keyof T>(
     eventName: K,
-    source: ListenerSource<any> | EventTargetSource<any>
+    source: ListenerSource<any> | EventTargetSource<any>,
   ): void {
     if (!source || typeof source !== 'object') return;
 
