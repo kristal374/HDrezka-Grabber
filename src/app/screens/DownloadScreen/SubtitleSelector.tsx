@@ -45,6 +45,7 @@ export function SubtitleSelector() {
           </label>
           <Combobox
             id='subtitles'
+            width={229.588}
             data={subtitlesList.map((subtitle) => ({
               value: JSON.stringify(subtitle),
               label: subtitle.lang,

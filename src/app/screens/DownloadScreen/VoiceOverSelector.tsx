@@ -60,6 +60,7 @@ export function VoiceOverSelector({
       </label>
       <Combobox
         id='voiceOver'
+        width={229.588}
         height={pageType === 'FILM' ? 155 : undefined}
         data={voiceOverList.map((voiceOver) => ({
           value: JSON.stringify(voiceOver),

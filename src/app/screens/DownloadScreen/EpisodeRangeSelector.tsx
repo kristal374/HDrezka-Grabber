@@ -103,7 +103,7 @@ export function EpisodeRangeSelector({
       {downloadSerial && seasons && (
         <>
           <div className='flex items-center gap-2.5'>
-            {/* Components width in pixels: [82] ">" [115] */}
+            {/* Components width in pixels: [85] ">" [115] */}
             <label htmlFor='seasonFrom' className='ml-auto text-base font-bold'>
               {browser.i18n.getMessage('popup_textFrom')}
             </label>
@@ -111,7 +111,7 @@ export function EpisodeRangeSelector({
             <Combobox
               id='seasonFrom'
               className='py-0.5'
-              width={82}
+              width={85}
               data={seasonValues}
               value={seasonFrom}
               onValueChange={(value) => {
@@ -120,6 +120,7 @@ export function EpisodeRangeSelector({
             />
 
             <label htmlFor='episodeFrom' className='text-sm'>
+              {/* Components width in pixels: [9.588] */}
               {'>'}
             </label>
 
@@ -139,7 +140,7 @@ export function EpisodeRangeSelector({
           </div>
 
           <div className='flex items-center gap-2.5'>
-            {/* Components width in pixels: [82] ">" [115] */}
+            {/* Components width in pixels: [85] ">" [115] */}
             <label htmlFor='seasonTo' className='ml-auto text-base font-bold'>
               {browser.i18n.getMessage('popup_textTo')}
             </label>
@@ -147,7 +148,7 @@ export function EpisodeRangeSelector({
             <Combobox
               id='seasonTo'
               className='py-0.5'
-              width={downloadToEnd ? undefined : 82}
+              width={downloadToEnd ? 229.588 : 85}
               data={[
                 {
                   value: '-2',
@@ -175,6 +176,7 @@ export function EpisodeRangeSelector({
             {!downloadToEnd && (
               <>
                 <label htmlFor='episodeTo' className='text-sm'>
+                  {/* Components width in pixels: [9.588] */}
                   {'>'}
                 </label>
 

@@ -49,6 +49,7 @@ export function QualitySelector() {
       </label>
       <Combobox
         id='qualities'
+        width={229.588}
         value={quality || Object.keys(qualitiesList).at(-1)}
         onValueChange={(v) =>
           dispatch(setCurrentQualityAction({ quality: v as QualityItem }))
