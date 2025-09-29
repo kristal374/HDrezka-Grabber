@@ -1,8 +1,9 @@
-import type { Downloads, Runtime } from 'webextension-polyfill';
+import type { Downloads, Runtime, Storage } from 'webextension-polyfill';
 
 type DownloadItem = Downloads.DownloadItem;
 type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
 type MessageSender = Runtime.MessageSender;
+type StorageChange = Storage.StorageChange;
 
 export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -291,6 +292,7 @@ export enum EventType {
   DownloadCreated = 'DownloadCreated',
   DownloadEvent = 'DownloadEvent',
   BrowserStartup = 'BrowserStartup',
+  StorageChanged = 'StorageChanged',
 }
 
 export type EventMessage =
@@ -312,4 +314,5 @@ export type EventBusTypes = {
   [EventType.DownloadCreated]: DownloadItem;
   [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
   [EventType.BrowserStartup]: void;
+  [EventType.StorageChanged]: [Record<string, StorageChange>, string];
 };

@@ -27,7 +27,6 @@
     "cmdk": "^1.0.0",
     "idb": "^8.0.3",
     "lucide-react": "^0.438.0",
-    "mitt": "^3.0.1",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "react-error-boundary": "^5.0.0",

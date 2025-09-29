@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
+import browser from 'webextension-polyfill';
 import { getFromStorage } from '../../lib/storage';
-import { LoadItem, LoadStatus, MovieProgress } from '../../lib/types';
-import { StorageEventPayload, useBufferedEvents } from './useBufferedEvents';
+import {
+  EventType,
+  LoadItem,
+  LoadStatus,
+  MovieProgress,
+} from '../../lib/types';
 import { useTrackingCurrentProgress } from './useTrackingCurrentProgress';
 
 type MovieLoadStatuses = {
@@ -10,15 +15,12 @@ type MovieLoadStatuses = {
 };
 
 export function useTrackingTotalProgressForMovie(movieId: number) {
-  const [isReady, setIsReady] = useState(false);
   const [loadItem, setLoadItem] = useState<LoadItem | null>(null);
   const [loadItemIds, setLoadItemIds] = useState<number[] | null>(null);
   const [loadStatuses, setLoadStatuses] = useState<MovieLoadStatuses | null>(
     null,
   );
   const videoProgressInPercents = useTrackingCurrentProgress(loadItem);
-
-  const eventBus = useBufferedEvents(isReady);
 
   const completedLoads = loadStatuses?.completed.length ?? 0;
   const inProgressLoads = loadStatuses?.in_progress.length ?? 0;
@@ -37,7 +39,7 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
         setLoadItemIds(result.loadItemIds);
         setLoadStatuses(result.movieLoadStatuses);
       }
-      setIsReady(true);
+      eventBus.setReady();
     });
   }, [movieId]);
 
@@ -52,7 +54,12 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
   }, [loadStatuses]);
 
   useEffect(() => {
-    const handler = async (changes: StorageEventPayload) => {
+    const handleLocalStorageChange = async (
+      changes: Record<string, browser.Storage.StorageChange>,
+      areaName: string,
+    ) => {
+      if (areaName !== 'local') return;
+
       for (const [key, value] of Object.entries(changes)) {
         switch (key) {
           case 'activeDownloads':
@@ -73,9 +80,20 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
       }
     };
 
-    eventBus.on('StorageEvent', handler);
-    return () => eventBus.off('StorageEvent', handler);
-  }, [eventBus, loadItem, loadItemIds, loadStatuses]);
+    eventBus.addMessageSource(
+      EventType.StorageChanged,
+      browser.storage.onChanged,
+    );
+    eventBus.on(EventType.StorageChanged, handleLocalStorageChange);
+
+    return () => {
+      eventBus.removeMessageSource(
+        EventType.StorageChanged,
+        browser.storage.onChanged,
+      );
+      eventBus.off(EventType.StorageChanged, handleLocalStorageChange);
+    };
+  }, [loadItem, loadItemIds, loadStatuses]);
 
   const handleActiveDownloadsChange = async (
     oldValue: number[] | undefined,
@@ -83,7 +101,7 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
   ) => {
     if (!loadItemIds || !loadStatuses) return;
 
-    // Определяем удалённые id, т.к. это означает что загрузка для этих элементов была завершена
+    // Определяем удалённые id, т.к. это означает, что загрузка для этих элементов была завершена
     const newSet = new Set(newValue ?? []);
     const removedIds = [...(oldValue ?? [])].filter((i) => !newSet.has(i));
 
