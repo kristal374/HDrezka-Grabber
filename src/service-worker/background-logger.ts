@@ -20,7 +20,10 @@ async function addNewLogMessage(message: LogMessage) {
   while (typeof indexedDBObject === 'undefined') {
     await new Promise((res) => setTimeout(res, 10));
   }
-  await indexedDBObject.put('logStorage', message);
+  await indexedDBObject.put('logStorage', message).catch(
+    // Если БД закрыта, нет смысла поднимать ошибку, просто выводим в консоль
+    (e) => console.error(e)
+  );
 }
 
 async function deleteOldLogMessage(TTLInMs: number = 2 * 60 * 60 * 1000) {

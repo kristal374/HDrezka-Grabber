@@ -94,7 +94,7 @@ export async function doDatabaseStuff(): Promise<
       }
     },
     terminated() {
-      logger.critical('Database was terminated.');
+      console.error('Database was terminated.');
     },
   });
 }
