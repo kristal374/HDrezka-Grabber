@@ -128,6 +128,7 @@ async function modifiedFetch(
 }
 
 function combineSignals(...signals: AbortSignal[]): AbortSignal {
+  if (signals.length === 1) return signals[0];
   const mainController = new AbortController();
 
   const abortHandler = (event: Event) => {
