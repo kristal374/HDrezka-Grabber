@@ -22,7 +22,7 @@ async function addNewLogMessage(message: LogMessage) {
   }
   await indexedDBObject.put('logStorage', message).catch(
     // Если БД закрыта, нет смысла поднимать ошибку, просто выводим в консоль
-    (e) => console.error(e)
+    (e) => console.error(e),
   );
 }
 

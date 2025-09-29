@@ -89,7 +89,7 @@ async function messageHandler(
       return await downloadManager.initNewDownload(data.message);
     default:
       logger.warning(message);
-      return true;
+      return false;
   }
 }
 

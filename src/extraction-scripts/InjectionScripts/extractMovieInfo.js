@@ -1,7 +1,10 @@
 (async () => {
   const thisScript = document.currentScript;
 
-  const initialParameters = await extractInitialParameters();
+  const initialParameters = await extractInitialParameters().catch((err) => {
+    console.error(err);
+    return null;
+  });
 
   if (initialParameters === null) {
     thisScript.dataset.result = JSON.stringify({ success: false });

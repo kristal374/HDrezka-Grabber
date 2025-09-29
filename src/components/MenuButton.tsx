@@ -1,7 +1,7 @@
 interface MenuButtonProps
   extends Omit<React.ComponentProps<'button'>, 'onClick' | 'className'> {
   /**
-   * Path to html file without .html extension
+   * Path to an HTML file without .html extension
    */
   href: `/${string}`;
   openInNewTab?: boolean;
