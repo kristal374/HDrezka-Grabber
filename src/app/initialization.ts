@@ -9,11 +9,10 @@ export async function init() {
   await setDarkMode();
   const currentTab = await getCurrentTab();
 
-  if (!currentTab) return {};
-  const tabId = currentTab.id;
-  const siteUrl = currentTab.url?.split('#')[0];
+  const tabId = currentTab?.id;
+  const siteUrl = currentTab?.url?.split('#')[0];
 
-  if (!tabId || !siteUrl) return {};
+  if (!tabId || !siteUrl) return null;
   const pageType = await getPageType(tabId);
   const sessionStorage = await loadSessionStorageSave(tabId);
 

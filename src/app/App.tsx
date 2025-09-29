@@ -1,17 +1,22 @@
 import { ErrorBoundary } from 'react-error-boundary';
 import { ErrorFallback } from '../components/ErrorFallback';
-import { Layout } from '../components/Layout';
-import { init } from './initialization';
-import { InitialDataProvider } from './providers/InitialDataProvider';
+import { AsyncContextProvider } from './providers/AsyncContextProvider';
 
-export function App({ children }: React.PropsWithChildren) {
+type AppProps<T> = {
+  asyncInitFunction: Promise<T>;
+  Context: React.Context<T>;
+  children: React.ReactNode;
+};
+
+export function App<T>({ asyncInitFunction, Context, children }: AppProps<T>) {
   return (
-    <Layout>
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <InitialDataProvider initPromise={init()}>
-          {children}
-        </InitialDataProvider>
-      </ErrorBoundary>
-    </Layout>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <AsyncContextProvider
+        asyncInitFunction={asyncInitFunction}
+        Context={Context}
+      >
+        {children}
+      </AsyncContextProvider>
+    </ErrorBoundary>
   );
 }

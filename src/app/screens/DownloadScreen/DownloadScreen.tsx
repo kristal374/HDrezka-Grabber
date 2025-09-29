@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { DividingLine } from '../../../components/DividingLine';
 import { Menu } from '../../../components/Menu';
 import { getMovieInfo } from '../../../extraction-scripts/extractMovieInfo';
+import { InitialDataContext } from '../../../html/popup';
 import type {
   ActualVideoData,
   CurrentEpisode,
@@ -14,7 +15,6 @@ import type {
 } from '../../../lib/types';
 import { normalizeJSON } from '../../../lib/utils';
 import { useAppDispatch, useAppSelector } from '../../../store';
-import { useInitData } from '../../providers/InitialDataProvider';
 import { ProcessingScreen } from '../ProcessingScreen';
 import {
   selectCurrentEpisode,
@@ -42,7 +42,7 @@ import { selectCurrentVoiceOver } from './VoiceOverSelector.slice';
 
 export function DownloadScreen() {
   const dispatch = useAppDispatch();
-  const { tabId, pageType } = useInitData();
+  const { tabId, pageType } = useContext(InitialDataContext)!;
 
   const movieInfo = useAppSelector((state) => selectMovieInfo(state));
   const range = useAppSelector((state) => selectRange(state));

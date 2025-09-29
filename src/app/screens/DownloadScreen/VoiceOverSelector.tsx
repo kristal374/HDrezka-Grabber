@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { Combobox } from '../../../components/Combobox';
 import { FlagKZ, FlagUA, PremiumIcon } from '../../../components/Icons';
 import { getVoiceOverList } from '../../../extraction-scripts/extractVoiceOverList';
+import { InitialDataContext } from '../../../html/popup';
 import type { VoiceOverInfo } from '../../../lib/types';
 import { useAppDispatch, useAppSelector } from '../../../store';
-import { useInitData } from '../../providers/InitialDataProvider';
 import {
   selectCurrentVoiceOver,
   selectVoiceOverList,
@@ -26,7 +26,8 @@ export function VoiceOverSelector({
   is_ads,
 }: VoiceOverSelectorProps) {
   const dispatch = useAppDispatch();
-  const { tabId, pageType } = useInitData();
+  const { tabId, pageType } = useContext(InitialDataContext)!;
+
   const voiceOverList = useAppSelector((state) => selectVoiceOverList(state));
   const currentVoiceOver = useAppSelector((state) =>
     selectCurrentVoiceOver(state),

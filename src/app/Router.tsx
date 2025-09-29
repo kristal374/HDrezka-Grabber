@@ -1,11 +1,22 @@
+import { useContext } from 'react';
 import { OutsideLink } from '../components/OutsideLink';
+import { InitialDataContext } from '../html/popup';
 import { PageType } from '../lib/types';
-import { useInitData } from './providers/InitialDataProvider';
 import { DefaultScreen } from './screens/DefaultScreen';
 import { DownloadScreen } from './screens/DownloadScreen/DownloadScreen';
 
 export function Router() {
-  const { pageType } = useInitData();
+  const initData = useContext(InitialDataContext);
+
+  if (!initData) {
+    return (
+      <DefaultScreen vpnNotice={false}>
+        {browser.i18n.getMessage('popup_stub_default')}{' '}
+        <OutsideLink url={'https://hdrezka.ag'} text={'HDrezka.ag'} />!
+      </DefaultScreen>
+    );
+  }
+  const { pageType } = initData;
 
   logger.debug('Page type defined:', pageType);
   if (pageType === 'FILM' || pageType === 'SERIAL') {

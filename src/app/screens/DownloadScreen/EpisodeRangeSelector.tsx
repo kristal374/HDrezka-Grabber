@@ -1,10 +1,10 @@
-import { useEffect, useMemo } from 'react';
+import { useContext, useEffect, useMemo } from 'react';
 import { Checkbox } from '../../../components/Checkbox';
 import { Combobox } from '../../../components/Combobox';
 import { getSeasons } from '../../../extraction-scripts/extractSeasons';
+import { InitialDataContext } from '../../../html/popup';
 import { sliceSeasons } from '../../../lib/utils';
 import { useAppDispatch, useAppSelector } from '../../../store';
-import { useInitData } from '../../providers/InitialDataProvider';
 import {
   selectDownloadSerial,
   selectEpisodeFrom,
@@ -31,7 +31,7 @@ export function EpisodeRangeSelector({
   defaultEpisodeStart,
 }: EpisodeRangeSelectorProps) {
   const dispatch = useAppDispatch();
-  const { tabId, pageType } = useInitData();
+  const { tabId, pageType } = useContext(InitialDataContext)!;
 
   const downloadSerial = useAppSelector((state) => selectDownloadSerial(state));
   const seasons = useAppSelector((state) => selectSeasons(state));
