@@ -295,6 +295,28 @@ export enum EventType {
   StorageChanged = 'StorageChanged',
 }
 
+export type Settings = {
+  darkMode: boolean,
+  displayQualitySize: boolean,
+  getRealQuality: boolean,
+
+  maxParallelDownloads: number,
+  maxParallelDownloadsEpisodes: number,
+  maxFallbackAttempts: number,
+
+  actionOnNoQuality: 'skip' | 'reduce_quality' | 'stop',
+  actionOnNoSubtitles: 'skip' | 'ignore' | 'stop',
+  actionOnLoadError:  'skip' | 'stop',
+
+  createExtensionFolders: boolean,
+  createSeriesFolders: boolean,
+  replaceAllSpaces: boolean,
+  filenameTemplate: string[],
+
+  enableLogger: boolean,
+  debugLevel: LogLevel,
+}
+
 export type EventMessage =
   | {
       type: EventType.DownloadCreated;

@@ -1,4 +1,5 @@
 import browser from 'webextension-polyfill';
+import { LogLevel, Settings } from './types';
 
 export async function getFromStorage<T>(key: string): Promise<T | undefined> {
   const storage = await browser.storage.local.get([key]);
@@ -12,14 +13,29 @@ export async function setToStorage<T>(key: string, value: T) {
 }
 
 export async function createDefaultSettings() {
-  await setToStorage('debugFlag', true);
-  await setToStorage('darkMode', true);
+  const DEFAULT_SETTINGS: Settings = {
+    darkMode: true,
+    displayQualitySize: true,
+    getRealQuality: true,
 
-  await setToStorage('maxDownloads', 5);
-  await setToStorage('maxEpisodeDownloads', 2);
-  await setToStorage('activeDownloads', []);
-  await setToStorage('queue', []);
-  await setToStorage('lastUId', 0);
+    maxParallelDownloads: 5,
+    maxParallelDownloadsEpisodes: 2,
+    maxFallbackAttempts: 3,
+
+    actionOnNoQuality: 'reduce_quality',
+    actionOnNoSubtitles: 'ignore',
+    actionOnLoadError: 'skip',
+
+    createExtensionFolders: true,
+    createSeriesFolders: true,
+    replaceAllSpaces: true,
+    filenameTemplate: ['%orig_title%', '(', '%translate%', ')_S-', '%season_id%', '_E-', '%episode_id%', '_[', '%quality%', ']'],
+
+    enableLogger: true,
+    debugLevel: LogLevel.DEBUG,
+  }
+  await setToStorage('settings', DEFAULT_SETTINGS);
+  return DEFAULT_SETTINGS;
 }
 
 export async function loadSessionStorageSave(tabId: number) {
@@ -69,9 +85,9 @@ export function createProxy<T extends object>(
   saveInStorage: (objName: string, data: any) => Promise<void>,
   realTarget?: any,
 ): T {
-  // Создаёт объект прокси связывающий js объект с хранилищем
+  // Создаёт объект прокси, связывающий js объект с хранилищем
   // расширения, что позволяет синхронизировать изменения между
-  // двумя объектами не заботясь о ручном обновлении данных.
+  // двумя объектами, не заботясь о ручном обновлении данных.
   // Так же позволяет избежать теоретического состояния гонки т.к.
   // все изменения проходят через один объект.
   const proxiesCache = new WeakMap<object, any>();

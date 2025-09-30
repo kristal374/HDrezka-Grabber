@@ -13,7 +13,6 @@ const root = createRoot(element);
 
 document.documentElement.classList.add('dark');
 element.classList.add('bg-settings-background-primary', 'overflow-y-scroll');
-// TODO: Тему на тостах инвертировать от глобальной
 
 export const SettingsInitialDataContext =
   createContext<SettingsInitData | null>(null);
@@ -24,8 +23,8 @@ root.render(
       position='bottom-right'
       expand={true}
       richColors
-      duration={10000}
-      theme='light'
+      duration={10_000} // ms
+      theme='light' // TODO: Тему на тостах инвертировать от глобальной
     />
     <Settings />
   </App>,

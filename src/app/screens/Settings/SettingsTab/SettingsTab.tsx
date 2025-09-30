@@ -5,13 +5,15 @@ import {
   Monitor,
   ShieldAlert,
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { Combobox } from '../../../../components/Combobox';
 import { Panel } from '../../../../components/Panel';
 import { Toggle } from '../../../../components/Toggle';
 import { LogLevel } from '../../../../lib/types';
 import { FilenameTemplateMovie } from './FilenameTemplateBuilder';
 import { SettingItem, SettingsSection } from './SettingsComponets';
+import { SettingsInitialDataContext } from '../../../../html/settings';
+import { saveInStorage } from '../../../../lib/storage';
 
 export type SettingItemProps<T> = {
   value: T;
@@ -67,40 +69,15 @@ function SettingsItemToggle({
 }
 
 export function SettingsTab() {
-  const [settings, setSettings] = useState({
-    darkMode: true,
-    displayQualitySize: true,
-    getRealQuality: true,
-    enableLogger: true,
-    debugLevel: LogLevel.DEBUG,
-    maxParallelDownloads: 5,
-    maxParallelDownloadsEpisodes: 2,
-    maxFallbackAttempts: 3,
-    createExtensionFolders: true,
-    createSeriesFolders: true,
-    replaceAllSpaces: true,
-    filenameTemplate: [
-      '%orig_title%',
-      '(',
-      '%translate%',
-      ')_S-',
-      '%season_id%',
-      '_E-',
-      '%episode_id%',
-      '_[',
-      '%quality%',
-      ']',
-    ],
-
-    actionOnNoQuality: 'reduce_quality',
-    actionOnNoSubtitles: 'ignore',
-    actionOnLoadError: 'skip',
-  });
+  const {settings: settingsData } = useContext(SettingsInitialDataContext)!;
+  const [settings, setSettings] = useState(settingsData);
 
   const updateSetting = useCallback(function <T>(key: string, type?: 'number') {
     return (value: T) =>
       setSettings((prev) => {
-        return { ...prev, [key]: type === 'number' ? Number(value) : value };
+        const newValue = { ...prev, [key]: type === 'number' ? Number(value) : value };
+        saveInStorage('settings', newValue)
+        return newValue;
       });
   }, []);
 
