@@ -13,9 +13,9 @@ import { logCreate } from './background-logger';
 
 import type { Runtime } from 'webextension-polyfill';
 import { doDatabaseStuff } from '../lib/idb-storage';
-import { getQualityFileSize, updateVideoData } from './handler';
-import { DownloadManager } from './load-manager/core';
 import { getSettings } from '../lib/storage';
+import { fetchUrlSizes, updateVideoData } from './handler';
+import { DownloadManager } from './load-manager/core';
 type MessageSender = Runtime.MessageSender;
 
 let downloadManager: DownloadManager;
@@ -27,10 +27,7 @@ async function main() {
     EventType.NewMessageReceived,
     browser.runtime.onMessage,
   );
-  eventBus.addMessageSource(
-    EventType.LogCreate,
-    globalThis
-  )
+  eventBus.addMessageSource(EventType.LogCreate, globalThis);
   eventBus.addMessageSource(
     EventType.BrowserStartup,
     browser.runtime.onStartup,
@@ -62,12 +59,11 @@ async function main() {
     EventType.DownloadCreated,
     downloadManager.handlerCreated.bind(downloadManager),
   );
-  eventBus.on(
-    EventType.LogCreate,
-    async (message) => {
-      await logCreate(JSON.parse(JSON.stringify((message as CustomEvent).detail)));
-    }
-  )
+  eventBus.on(EventType.LogCreate, async (message) => {
+    await logCreate(
+      JSON.parse(JSON.stringify((message as CustomEvent).detail)),
+    );
+  });
 
   // @ts-ignore
   browser.downloads.onDeterminingFilename?.addListener(
@@ -93,7 +89,7 @@ async function messageHandler(
     case 'logCreate':
       return await logCreate(data.message);
     case 'getFileSize':
-      return await getQualityFileSize(data.message);
+      return await fetchUrlSizes(data.message);
     case 'updateVideoInfo':
       return await updateVideoInfo(data.message);
     case 'trigger':

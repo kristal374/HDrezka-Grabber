@@ -1,49 +1,47 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Combobox } from '../../../../components/Combobox';
 import { sortQualityItem } from '../../../../lib/link-processing';
+import { Message, QualityItem, URLItem } from '../../../../lib/types';
 import {
-  Message,
-  QualitiesList,
-  QualityItem,
-  URLsContainer,
-} from '../../../../lib/types';
-import {
+  addQualityInfoAction,
   selectCurrentQuality,
   selectQualitiesList,
-  selectQualitiesSizes,
+  selectQualityInfo,
   setCurrentQualityAction,
-  setQualitiesSizesAction,
 } from './store/QualitySelector.slice';
 import { useAppDispatch, useAppSelector } from './store/store';
-
-async function getQualitiesSizes(qualitiesList: QualitiesList) {
-  return await browser.runtime
-    .sendMessage<Message<QualitiesList>>({
-      type: 'getFileSize',
-      message: qualitiesList,
-    })
-    .then((response) => {
-      return response as URLsContainer | null;
-    });
-}
 
 export function QualitySelector() {
   const dispatch = useAppDispatch();
   const quality = useAppSelector((state) => selectCurrentQuality(state));
   const qualitiesList = useAppSelector((state) => selectQualitiesList(state));
-  const qualitiesSizes = useAppSelector((state) => selectQualitiesSizes(state));
+  const qualitiesInfo = useAppSelector((state) => selectQualityInfo(state));
+
+  const getQualitySize = useCallback(async (urls: string[]) => {
+    return (await browser.runtime.sendMessage<Message<string[]>>({
+      type: 'getFileSize',
+      message: urls,
+    })) as URLItem;
+  }, []);
 
   useEffect(() => {
-    if (
-      !qualitiesList ||
-      qualitiesSizes !== null ||
-      !settings.displayQualitySize
-    )
-      return;
-    logger.info('Attempt get qualitiesSizes.')
-    getQualitiesSizes(qualitiesList).then((result) => {
-      dispatch(setQualitiesSizesAction({ qualitiesSizes: result }));
-    });
+    if (!qualitiesList || !settings.displayQualitySize) return;
+
+    let ignore = false;
+    for (const [key, value] of Object.entries(qualitiesList)) {
+      getQualitySize(value).then((response) => {
+        if (!ignore) {
+          dispatch(
+            addQualityInfoAction({
+              qualityInfo: { [key as QualityItem]: response },
+            }),
+          );
+        }
+      });
+    }
+    return () => {
+      ignore = true;
+    };
   }, [qualitiesList]);
 
   if (!qualitiesList) return null;
@@ -65,15 +63,17 @@ export function QualitySelector() {
           value: q,
           label: q,
           labelComponent({ children }) {
+            const targetQuality = q as QualityItem;
             return (
               <>
                 {children}
-                {qualitiesSizes && settings.displayQualitySize && (
-                  <span className='ml-auto'>
-                    {/* @ts-ignore */}
-                    {qualitiesSizes[q].stringSize}
-                  </span>
-                )}
+                {qualitiesInfo &&
+                  qualitiesInfo[targetQuality] &&
+                  settings.displayQualitySize && (
+                    <span className='ml-auto'>
+                      {qualitiesInfo[targetQuality].stringSize}
+                    </span>
+                  )}
               </>
             );
           },

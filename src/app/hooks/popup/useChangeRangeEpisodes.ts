@@ -101,8 +101,10 @@ export function useChangeRangeEpisodes() {
     }
 
     logger.info('Start update episodes info.');
+    let ignore = false;
     updateCurrentEpisode(newCurrentEpisode)
       .then((response) => {
+        if (ignore) return;
         logger.debug('Set new episodes info:', response);
 
         dispatch(
@@ -113,6 +115,7 @@ export function useChangeRangeEpisodes() {
         setPreviewRange(range);
       })
       .catch(() => {
+        if (ignore) return;
         const seasonIds = Object.keys(previewRange);
         const startEpisode = previewRange[seasonIds[0]].episodes[0].id;
         const endEpisode = previewRange[seasonIds.at(-1)!].episodes.at(-1)!.id;
@@ -143,5 +146,8 @@ export function useChangeRangeEpisodes() {
           }),
         );
       });
+    return () => {
+      ignore = true;
+    };
   }, [range]);
 }

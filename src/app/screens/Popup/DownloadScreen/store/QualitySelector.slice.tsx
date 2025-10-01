@@ -16,18 +16,18 @@ export const setCurrentQualityAction = createAction<{
   quality: QualityItem | null;
 }>('quality/setCurrentQuality');
 
-export const setQualitiesSizesAction = createAction<{
-  qualitiesSizes: URLsContainer | null;
-}>('quality/setQualitiesSizes');
+export const addQualityInfoAction = createAction<{
+  qualityInfo: URLsContainer | null;
+}>('quality/addQualityInfo');
 
 const initialQualities: {
   quality: QualityItem | null;
   qualitiesList: QualitiesList | null;
-  qualitiesSizes: URLsContainer | null;
+  qualityInfo: URLsContainer | null;
 } = {
   quality: null,
   qualitiesList: null,
-  qualitiesSizes: null,
+  qualityInfo: null,
 };
 
 export const qualityReducer = createReducer(initialQualities, (builder) => {
@@ -42,15 +42,18 @@ export const qualityReducer = createReducer(initialQualities, (builder) => {
         state.quality = qualities.at(-1) as QualityItem;
     }
     state.qualitiesList = qualitiesList;
-    state.qualitiesSizes = null;
+    state.qualityInfo = {};
   });
   builder.addCase(setCurrentQualityAction, (state, action) => {
     logger.debug('Set new quality:', action.payload.quality);
     state.quality = action.payload.quality;
   });
-  builder.addCase(setQualitiesSizesAction, (state, action) => {
-    logger.debug('Set qualitiesSizes:', action.payload.qualitiesSizes);
-    state.qualitiesSizes = action.payload.qualitiesSizes;
+  builder.addCase(addQualityInfoAction, (state, action) => {
+    logger.debug('Add qualityInfo item(s):', action.payload.qualityInfo);
+    state.qualityInfo = {
+      ...state.qualityInfo,
+      ...action.payload.qualityInfo,
+    };
   });
 });
 
@@ -58,5 +61,5 @@ export const selectQualitiesList = (state: AppState) =>
   state.qualityReducer.qualitiesList;
 export const selectCurrentQuality = (state: AppState) =>
   state.qualityReducer.quality;
-export const selectQualitiesSizes = (state: AppState) =>
-  state.qualityReducer.qualitiesSizes;
+export const selectQualityInfo = (state: AppState) =>
+  state.qualityReducer.qualityInfo;

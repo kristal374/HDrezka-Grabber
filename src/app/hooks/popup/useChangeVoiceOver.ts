@@ -79,8 +79,10 @@ export function useChangeVoiceOver() {
     }
 
     logger.info('Start update voice over.');
+    let ignore = false;
     updateVoiceOver()
       .then((response) => {
+        if (ignore) return;
         logger.debug('Set new popup data:', response);
 
         dispatch(setSubtitleListAction({ subtitlesInfo: response.subtitle }));
@@ -99,6 +101,7 @@ export function useChangeVoiceOver() {
         setPreviewVoiceOver(voiceOver);
       })
       .catch(() => {
+        if (ignore) return;
         dispatch(setVoiceOverAction({ voiceOver: previewVoiceOver }));
         dispatch(
           setNotificationAction({
@@ -107,5 +110,8 @@ export function useChangeVoiceOver() {
         );
         //TODO: use i18n
       });
+    return () => {
+      ignore = true;
+    };
   }, [voiceOver]);
 }
