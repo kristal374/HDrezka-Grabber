@@ -7,14 +7,9 @@ import { popupInit, PopupInitData } from '../app/screens/Popup/initialization';
 import { RestorePopupState } from '../app/screens/Popup/RestorePopupState';
 import { Router } from '../app/screens/Popup/Router';
 import { Layout } from '../components/Layout';
-import { doDatabaseStuff } from '../lib/idb-storage';
+import { EventType } from '../lib/types';
 
 logger.info('Popup open.');
-// TODO: Пересмотреть место открытия БД
-doDatabaseStuff().then((db) => {
-  globalThis.indexedDBObject = db;
-  logger.info('Database open.');
-});
 
 const element = document.querySelector('body')!;
 const root = createRoot(element);
@@ -23,10 +18,12 @@ export const PopupInitialDataContext = createContext<PopupInitData | null>(
   null,
 );
 
+eventBus.addMessageSource(EventType.StorageChanged, browser.storage.onChanged);
+
 root.render(
   <Provider store={store}>
     <Layout>
-      <App asyncInitFunction={popupInit()} Context={PopupInitialDataContext}>
+      <App asyncInitFunction={popupInit} Context={PopupInitialDataContext}>
         <RestorePopupState>
           <Router />
         </RestorePopupState>

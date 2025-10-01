@@ -1,4 +1,5 @@
 import { createAction, createReducer } from '@reduxjs/toolkit';
+import equal from 'fast-deep-equal/es6';
 import { decodeVideoURL } from '../../../../../lib/link-processing';
 import {
   QualitiesList,
@@ -32,6 +33,8 @@ const initialQualities: {
 export const qualityReducer = createReducer(initialQualities, (builder) => {
   builder.addCase(setQualitiesListAction, (state, action) => {
     const qualitiesList = decodeVideoURL(action.payload.stream);
+
+    if (equal(state.qualitiesList, qualitiesList)) return;
     logger.debug('Set QualitiesList:', qualitiesList);
     if (qualitiesList !== null) {
       const qualities = Object.keys(qualitiesList) as QualityItem[];

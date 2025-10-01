@@ -1,32 +1,22 @@
 import { printLog } from '../lib/logger';
 import { LogMessage } from '../lib/types';
 
-globalThis.addEventListener('logCreate', async (event) => {
-  const message = event as CustomEvent;
-  await logCreate(JSON.parse(JSON.stringify(message.detail)));
-});
-
 export async function logCreate(message: LogMessage) {
-  // if (message.context === 'popup') return;
   printLog(message);
-  await addNewLogMessage(message);
-  // TODO: Вернуть позже
-  // await deleteOldLogMessage();
-  return true;
-}
 
-async function addNewLogMessage(message: LogMessage) {
-  // Ждём пока indexedDBObject появится, если его ещё нет
-  while (typeof indexedDBObject === 'undefined') {
-    await new Promise((res) => setTimeout(res, 10));
-  }
   await indexedDBObject.put('logStorage', message).catch(
     // Если БД закрыта, нет смысла поднимать ошибку, просто выводим в консоль
     (e) => console.error(e),
   );
+
+  // TODO: Вернуть в проде
+  // await deleteOldLogMessage();
+  return true;
 }
 
-async function deleteOldLogMessage(TTLInMs: number = 2 * 60 * 60 * 1000) {
+async function deleteOldLogMessage(
+  TTLInMs: number = 2 * 60 * 60 * 1000 // 2 hours
+) {
   const cutoff = Date.now() - TTLInMs;
 
   const tx = indexedDBObject.transaction('logStorage', 'readwrite');

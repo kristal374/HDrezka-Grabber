@@ -244,7 +244,7 @@ export class QueueController {
   }
 
   public async getNextObjectIdForDownload(): Promise<number | null> {
-    // Отвечает за получение объекта на основе которого будет производиться загрузка
+    // Отвечает за получение объекта, на основе которого будет производиться загрузка
     logger.info('Attempt to get next object for download.');
 
     const maxDownloads = (await getFromStorage<number>('maxDownloads')) ?? 5;

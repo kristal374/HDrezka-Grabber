@@ -12,6 +12,7 @@ import {
   selectQualitiesList,
   selectQualitiesSizes,
   setCurrentQualityAction,
+  setQualitiesSizesAction,
 } from './store/QualitySelector.slice';
 import { useAppDispatch, useAppSelector } from './store/store';
 
@@ -33,10 +34,16 @@ export function QualitySelector() {
   const qualitiesSizes = useAppSelector((state) => selectQualitiesSizes(state));
 
   useEffect(() => {
-    // if (!qualitiesList || qualitiesSizes !== null) return;
-    // getQualitiesSizes(qualitiesList).then((result) => {
-    //   dispatch(setQualitiesSizesAction({ qualitiesSizes: result }));
-    // }); // TODO: Вернуть в проде
+    if (
+      !qualitiesList ||
+      qualitiesSizes !== null ||
+      !settings.displayQualitySize
+    )
+      return;
+    logger.info('Attempt get qualitiesSizes.')
+    getQualitiesSizes(qualitiesList).then((result) => {
+      dispatch(setQualitiesSizesAction({ qualitiesSizes: result }));
+    });
   }, [qualitiesList]);
 
   if (!qualitiesList) return null;
@@ -61,7 +68,7 @@ export function QualitySelector() {
             return (
               <>
                 {children}
-                {qualitiesSizes && (
+                {qualitiesSizes && settings.displayQualitySize && (
                   <span className='ml-auto'>
                     {/* @ts-ignore */}
                     {qualitiesSizes[q].stringSize}

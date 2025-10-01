@@ -74,6 +74,8 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
               value.newValue as QueueItem[],
             );
             break;
+          case 'settings':
+            break;
           default:
             logger.warning('Unknown event type:', key);
         }

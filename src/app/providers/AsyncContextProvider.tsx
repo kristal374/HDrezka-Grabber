@@ -1,7 +1,9 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 
 type AsyncContextProviderProps<T> = {
-  asyncInitFunction: Promise<T>;
+  asyncInitFunction: (
+    setInitData: React.Dispatch<React.SetStateAction<T | undefined>>,
+  ) => Promise<T>;
   Context: React.Context<T>;
   children: ReactNode;
 };
@@ -14,7 +16,7 @@ export function AsyncContextProvider<T>({
   const [initData, setInitData] = useState<T | undefined>(undefined);
 
   useEffect(() => {
-    asyncInitFunction.then(setInitData);
+    asyncInitFunction(setInitData).then(setInitData);
   }, []);
 
   if (typeof initData === 'undefined') return null;

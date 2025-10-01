@@ -5,15 +5,18 @@ import {
   Monitor,
   ShieldAlert,
 } from 'lucide-react';
-import { useCallback, useContext, useState } from 'react';
+import { useCallback } from 'react';
 import { Combobox } from '../../../../components/Combobox';
 import { Panel } from '../../../../components/Panel';
 import { Toggle } from '../../../../components/Toggle';
-import { LogLevel } from '../../../../lib/types';
+import { saveInStorage } from '../../../../lib/storage';
+import { LogLevel, Settings } from '../../../../lib/types';
 import { FilenameTemplateMovie } from './FilenameTemplateBuilder';
 import { SettingItem, SettingsSection } from './SettingsComponets';
-import { SettingsInitialDataContext } from '../../../../html/settings';
-import { saveInStorage } from '../../../../lib/storage';
+
+type SettingsTabProps = {
+  settings: Settings;
+};
 
 export type SettingItemProps<T> = {
   value: T;
@@ -68,17 +71,15 @@ function SettingsItemToggle({
   );
 }
 
-export function SettingsTab() {
-  const {settings: settingsData } = useContext(SettingsInitialDataContext)!;
-  const [settings, setSettings] = useState(settingsData);
-
+export function SettingsTab({ settings }: SettingsTabProps) {
   const updateSetting = useCallback(function <T>(key: string, type?: 'number') {
-    return (value: T) =>
-      setSettings((prev) => {
-        const newValue = { ...prev, [key]: type === 'number' ? Number(value) : value };
-        saveInStorage('settings', newValue)
-        return newValue;
-      });
+    return (value: T) => {
+      const newValue = {
+        ...settings,
+        [key]: type === 'number' ? Number(value) : value,
+      };
+      saveInStorage('settings', newValue);
+    };
   }, []);
 
   return (
@@ -115,15 +116,17 @@ export function SettingsTab() {
             setValue={(value) => {
               const newValue = Number(value);
               if (settings.maxParallelDownloadsEpisodes > newValue) {
-                setSettings((prev) => ({
-                  ...prev,
+                saveInStorage('settings', {
+                  ...settings,
                   maxParallelDownloadsEpisodes: newValue,
-                }));
+                  maxParallelDownloads: newValue,
+                });
+              } else {
+                saveInStorage('settings', {
+                  ...settings,
+                  maxParallelDownloads: newValue,
+                });
               }
-              setSettings((prev) => ({
-                ...prev,
-                maxParallelDownloads: newValue,
-              }));
             }}
             options={Array.from({ length: 32 }, (_, i) => ({
               value: String(i + 1),

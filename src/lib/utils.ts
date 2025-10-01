@@ -65,14 +65,3 @@ export function hashCode(s: string): number {
     }, 0) >>> 0
   );
 }
-
-export function normalizeJSON(obj: Record<string, any>): string {
-  return JSON.stringify(
-    Object.keys(obj)
-      .sort()
-      .reduce((acc: Record<string, any>, key: string) => {
-        acc[key] = obj[key];
-        return acc;
-      }, {}),
-  );
-}

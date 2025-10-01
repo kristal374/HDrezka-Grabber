@@ -15,6 +15,7 @@ import type { Runtime } from 'webextension-polyfill';
 import { doDatabaseStuff } from '../lib/idb-storage';
 import { getQualityFileSize, updateVideoData } from './handler';
 import { DownloadManager } from './load-manager/core';
+import { getSettings } from '../lib/storage';
 type MessageSender = Runtime.MessageSender;
 
 let downloadManager: DownloadManager;
@@ -26,7 +27,10 @@ async function main() {
     EventType.NewMessageReceived,
     browser.runtime.onMessage,
   );
-
+  eventBus.addMessageSource(
+    EventType.LogCreate,
+    globalThis
+  )
   eventBus.addMessageSource(
     EventType.BrowserStartup,
     browser.runtime.onStartup,
@@ -41,6 +45,7 @@ async function main() {
   );
 
   globalThis.indexedDBObject = await doDatabaseStuff();
+  globalThis.settings = await getSettings();
   downloadManager = await DownloadManager.build();
 
   eventBus.on(EventType.NewMessageReceived, messageHandler);
@@ -57,6 +62,12 @@ async function main() {
     EventType.DownloadCreated,
     downloadManager.handlerCreated.bind(downloadManager),
   );
+  eventBus.on(
+    EventType.LogCreate,
+    async (message) => {
+      await logCreate(JSON.parse(JSON.stringify((message as CustomEvent).detail)));
+    }
+  )
 
   // @ts-ignore
   browser.downloads.onDeterminingFilename?.addListener(

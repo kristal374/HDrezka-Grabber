@@ -34,5 +34,7 @@ export function RestorePopupState({ children }: RestorePopupStateProps) {
   // Мы должны дождаться пока завершится попытка восстановления состояния попапа,
   // иначе поведение будет непредсказуемым.
   if (!isReady) return null;
+
+  document.documentElement.className = settings.darkMode ? 'dark' : 'light';
   return children;
 }

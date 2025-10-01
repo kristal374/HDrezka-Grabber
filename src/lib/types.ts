@@ -287,34 +287,35 @@ export type SerialQueryData = {
 
 export type QueryData = FilmQueryData | SerialQueryData | UpdateTranslateData;
 
+export type Settings = {
+  darkMode: boolean;
+  displayQualitySize: boolean;
+  getRealQuality: boolean;
+
+  maxParallelDownloads: number;
+  maxParallelDownloadsEpisodes: number;
+  maxFallbackAttempts: number;
+
+  actionOnNoQuality: 'skip' | 'reduce_quality' | 'stop';
+  actionOnNoSubtitles: 'skip' | 'ignore' | 'stop';
+  actionOnLoadError: 'skip' | 'stop';
+
+  createExtensionFolders: boolean;
+  createSeriesFolders: boolean;
+  replaceAllSpaces: boolean;
+  filenameTemplate: string[];
+
+  enableLogger: boolean;
+  debugLevel: LogLevel;
+};
+
 export enum EventType {
   NewMessageReceived = 'MessageReceived',
   DownloadCreated = 'DownloadCreated',
   DownloadEvent = 'DownloadEvent',
   BrowserStartup = 'BrowserStartup',
   StorageChanged = 'StorageChanged',
-}
-
-export type Settings = {
-  darkMode: boolean,
-  displayQualitySize: boolean,
-  getRealQuality: boolean,
-
-  maxParallelDownloads: number,
-  maxParallelDownloadsEpisodes: number,
-  maxFallbackAttempts: number,
-
-  actionOnNoQuality: 'skip' | 'reduce_quality' | 'stop',
-  actionOnNoSubtitles: 'skip' | 'ignore' | 'stop',
-  actionOnLoadError:  'skip' | 'stop',
-
-  createExtensionFolders: boolean,
-  createSeriesFolders: boolean,
-  replaceAllSpaces: boolean,
-  filenameTemplate: string[],
-
-  enableLogger: boolean,
-  debugLevel: LogLevel,
+  LogCreate = 'logCreate'
 }
 
 export type EventMessage =
@@ -337,4 +338,5 @@ export type EventBusTypes = {
   [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
   [EventType.BrowserStartup]: void;
   [EventType.StorageChanged]: [Record<string, StorageChange>, string];
+  [EventType.LogCreate]: Event
 };

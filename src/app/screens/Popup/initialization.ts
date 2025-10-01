@@ -1,39 +1,54 @@
 import { getPageType } from '../../../extraction-scripts/extractPageType';
-import {
-  createDefaultSettings,
-  getFromStorage,
-  loadSessionStorageSave,
-} from '../../../lib/storage';
+import { doDatabaseStuff } from '../../../lib/idb-storage';
+import { getSettings, loadSessionStorageSave } from '../../../lib/storage';
+import { EventType, Settings } from '../../../lib/types';
 
-export async function popupInit() {
-  await setDarkMode();
+export type PopupInitData = Required<Awaited<ReturnType<typeof popupInit>>>;
+
+export async function popupInit(
+  setInitData: React.Dispatch<React.SetStateAction<any>>,
+) {
+  globalThis.settings = await getSettings();
+
   const currentTab = await getCurrentTab();
 
   const tabId = currentTab?.id;
   const siteUrl = currentTab?.url?.split('#')[0];
 
+  eventBus.on(EventType.StorageChanged, async (changes, areaName) => {
+    if (areaName !== 'local') return;
+
+    for (const [key, value] of Object.entries(changes)) {
+      if (key === 'settings') {
+        globalThis.settings = value.newValue as Settings;
+        const newSessionStorage = tabId
+          ? { sessionStorage: await loadSessionStorageSave(tabId) }
+          : {};
+
+        setInitData((prev: PopupInitData) => ({
+          ...prev,
+          ...newSessionStorage,
+        }));
+      }
+    }
+  });
+  eventBus.setReady();
+
   if (!tabId || !siteUrl) return null;
+
+  await openDB();
   const pageType = await getPageType(tabId);
   const sessionStorage = await loadSessionStorageSave(tabId);
 
   return { tabId, siteUrl, pageType, sessionStorage };
 }
 
-export type PopupInitData = Required<Awaited<ReturnType<typeof popupInit>>>;
-
-async function setDarkMode() {
-  let darkMode = await getFromStorage<boolean | undefined>('darkMode');
-  if (darkMode === undefined) {
-    await createDefaultSettings();
-    darkMode = await getFromStorage<boolean>('darkMode');
-  }
-  logger.debug('darkMode:', darkMode);
-  if (!darkMode) {
-    document.documentElement.classList.add('light');
-  }
-}
-
 async function getCurrentTab() {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
   return tabs && tabs.length > 0 ? tabs[0] : undefined;
+}
+
+async function openDB() {
+  globalThis.indexedDBObject = await doDatabaseStuff();
+  logger.info('Database open.');
 }

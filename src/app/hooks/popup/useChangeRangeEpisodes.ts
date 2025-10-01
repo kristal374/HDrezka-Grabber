@@ -1,0 +1,147 @@
+import equal from 'fast-deep-equal/es6';
+import { useCallback, useEffect, useState } from 'react';
+import type {
+  ActualVideoData,
+  CurrentEpisode,
+  DataForUpdate,
+  Fields,
+  Message,
+  SerialData,
+  SerialFields,
+} from '../../../lib/types';
+import {
+  selectCurrentEpisode,
+  selectMovieInfo,
+  setCurrentEpisodeAction,
+} from '../../screens/Popup/DownloadScreen/store/DownloadScreen.slice';
+import {
+  selectRange,
+  selectSeasons,
+  setEpisodeFromAction,
+  setEpisodeToAction,
+  setSeasonFromAction,
+  setSeasonToAction,
+} from '../../screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
+import { setNotificationAction } from '../../screens/Popup/DownloadScreen/store/NotificationField.slice';
+import { setQualitiesListAction } from '../../screens/Popup/DownloadScreen/store/QualitySelector.slice';
+import {
+  useAppDispatch,
+  useAppSelector,
+} from '../../screens/Popup/DownloadScreen/store/store';
+import { setSubtitleListAction } from '../../screens/Popup/DownloadScreen/store/SubtitleSelector.slice';
+import { selectCurrentVoiceOver } from '../../screens/Popup/DownloadScreen/store/VoiceOverSelector.slice';
+
+export function useChangeRangeEpisodes() {
+  const dispatch = useAppDispatch();
+
+  const movieInfo = useAppSelector((state) => selectMovieInfo(state));
+  const range = useAppSelector((state) => selectRange(state));
+  const seasons = useAppSelector((state) => selectSeasons(state));
+  const voiceOver = useAppSelector((state) => selectCurrentVoiceOver(state));
+  const currentEpisode = useAppSelector((state) => selectCurrentEpisode(state));
+  const [previewRange, setPreviewRange] = useState(range);
+
+  const updateCurrentEpisode = useCallback(
+    async (newCurrentEpisode: CurrentEpisode) => {
+      if (!movieInfo || !voiceOver || !currentEpisode) {
+        throw new Error('Absent movieInfo, voiceOver or currentEpisode.');
+      }
+
+      return (await browser.runtime.sendMessage<Message<DataForUpdate>>({
+        type: 'updateVideoInfo',
+        message: {
+          siteURL: movieInfo.url,
+          movieData: {
+            id: movieInfo.data.id,
+            translator_id: voiceOver.id,
+            season: newCurrentEpisode.seasonID,
+            episode: newCurrentEpisode.episodeID,
+            favs: movieInfo.data.favs,
+            action: 'get_stream',
+          } satisfies Fields & SerialFields,
+        },
+      })) as ActualVideoData;
+    },
+    [movieInfo, voiceOver],
+  );
+
+  useEffect(() => {
+    // При обновлении range-а мы должны отслеживать только самый первый эпизод
+    // в списке. При обновлении данных эпизода мы должны обновить списки
+    // доступного качества и субтитров.
+    //
+    // Первое обновление данных должно игнорироваться т.к. данные мы
+    // подтягиваем со страницы фильма и они уже являются актуальными.
+
+    logger.info('Attempt to update current episode.');
+
+    if (!range || equal(range, previewRange)) return;
+    logger.debug('Range episodes:', range);
+
+    const isFirstUpdate = currentEpisode === null;
+
+    const seasonID = isFirstUpdate
+      ? (movieInfo?.data as SerialData).season
+      : Object.keys(range).sort((a, b) => Number(a) - Number(b))[0];
+
+    const episodeID = isFirstUpdate
+      ? (movieInfo?.data as SerialData).episode
+      : range[seasonID].episodes[0].id;
+
+    const newCurrentEpisode: CurrentEpisode = { seasonID, episodeID };
+
+    if (equal(currentEpisode ?? {}, newCurrentEpisode)) {
+      setPreviewRange(range);
+      return;
+    }
+    if (!previewRange) {
+      dispatch(setCurrentEpisodeAction({ currentEpisode: newCurrentEpisode }));
+      setPreviewRange(range);
+      return;
+    }
+
+    logger.info('Start update episodes info.');
+    updateCurrentEpisode(newCurrentEpisode)
+      .then((response) => {
+        logger.debug('Set new episodes info:', response);
+
+        dispatch(
+          setCurrentEpisodeAction({ currentEpisode: newCurrentEpisode }),
+        );
+        dispatch(setSubtitleListAction({ subtitlesInfo: response.subtitle }));
+        dispatch(setQualitiesListAction({ stream: response.streams }));
+        setPreviewRange(range);
+      })
+      .catch(() => {
+        const seasonIds = Object.keys(previewRange);
+        const startEpisode = previewRange[seasonIds[0]].episodes[0].id;
+        const endEpisode = previewRange[seasonIds.at(-1)!].episodes.at(-1)!.id;
+
+        dispatch(setSeasonFromAction({ value: seasonIds[0] }));
+        dispatch(setEpisodeFromAction({ value: startEpisode }));
+        if (
+          Object.keys(seasons!).at(-1) === seasonIds.at(-1)! &&
+          seasons![seasonIds.at(-1)!].episodes.at(-1)!.id === endEpisode
+        ) {
+          dispatch(setSeasonToAction({ value: '-2' }));
+          dispatch(setEpisodeToAction({ value: '' }));
+        } else if (
+          seasonIds.at(-1) === seasonIds[0] &&
+          seasons![seasonIds.at(-1)!].episodes.at(-1)!.id === endEpisode
+        ) {
+          dispatch(setSeasonToAction({ value: '-1' }));
+          dispatch(setEpisodeToAction({ value: '' }));
+        } else {
+          dispatch(setSeasonToAction({ value: seasonIds.at(-1)! }));
+          dispatch(setEpisodeToAction({ value: endEpisode }));
+        }
+        // TODO: use i18n
+        dispatch(
+          setNotificationAction({
+            notification:
+              'Ошибка при попытке изменить серию, попробуйте снова.',
+          }),
+        );
+      });
+  }, [range]);
+}

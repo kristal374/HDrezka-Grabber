@@ -29,13 +29,30 @@ export async function createDefaultSettings() {
     createExtensionFolders: true,
     createSeriesFolders: true,
     replaceAllSpaces: true,
-    filenameTemplate: ['%orig_title%', '(', '%translate%', ')_S-', '%season_id%', '_E-', '%episode_id%', '_[', '%quality%', ']'],
+    filenameTemplate: [
+      '%orig_title%',
+      '(',
+      '%translate%',
+      ')_S-',
+      '%season_id%',
+      '_E-',
+      '%episode_id%',
+      '_[',
+      '%quality%',
+      ']',
+    ],
 
     enableLogger: true,
     debugLevel: LogLevel.DEBUG,
-  }
+  };
   await setToStorage('settings', DEFAULT_SETTINGS);
   return DEFAULT_SETTINGS;
+}
+
+export async function getSettings() {
+  const settings = await getFromStorage<Settings>('settings');
+  if (!settings) return await createDefaultSettings();
+  return settings;
 }
 
 export async function loadSessionStorageSave(tabId: number) {

@@ -1,8 +1,5 @@
-import browser, { Storage } from 'webextension-polyfill';
-
-import { getFromStorage } from './storage';
+import browser from 'webextension-polyfill';
 import { LogLevel, LogMessage, Message, SourceMap } from './types';
-import StorageChange = Storage.StorageChange;
 
 let lastCallTime: number = 0;
 const extensionDomain = browser.runtime.getURL('');
@@ -120,19 +117,6 @@ function printLogForFirefox(
 
 export class Logger {
   private sourcemap: Record<string, Promise<SourceMapParser | null>> = {};
-  private debugFlag: boolean | undefined = undefined;
-  private readonly debugFlagInitialized: Promise<void>;
-
-  constructor() {
-    this.debugFlagInitialized = getFromStorage<boolean>('debugFlag').then(
-      (result) => {
-        this.debugFlag = result ?? true;
-      },
-    );
-    browser.storage.onChanged.addListener(
-      this.handlerDebugFlagChanges.bind(this),
-    );
-  }
 
   private async initializeSourceMapParser(url: string) {
     // Определяем необходимый файл с картой исходного кода для текущего URL,
@@ -166,16 +150,19 @@ export class Logger {
       const timestamp = new Date().getTime();
 
       let [context, location] = ['', ''];
-      if (this.debugFlag === undefined) {
+      if (typeof settings === 'undefined') {
         // Поскольку невозможно корректно дождаться завершения инициализации
-        // переменной debugFlag, не сломав при этом stackTrace, необходимо
+        // переменной enableLogger, не сломав при этом stackTrace, необходимо
         // получить данные о месте вызова до вызова ожидания инициализации
         [context, location] = await this.getCallerInfo();
-        await this.debugFlagInitialized;
+
+        // Ждём пока settings появится, если его ещё нет
+        while (typeof settings === 'undefined') {
+          await new Promise((res) => setTimeout(res, 0));
+        }
       }
 
-      if (!this.debugFlag) return;
-
+      if (!settings.enableLogger || settings.debugLevel < level) return;
       [context, location] =
         !context && !location
           ? await this.getCallerInfo()
@@ -241,18 +228,6 @@ export class Logger {
     const location =
       sourcemap === null ? callerURL : sourcemap.getOriginalURL(callerURL);
     return [context, location.replace(extensionDomain, '')] as const;
-  }
-
-  private handlerDebugFlagChanges(
-    changes: Record<string, StorageChange>,
-    areaName: string,
-  ) {
-    if (
-      areaName === 'local' &&
-      typeof changes.debugFlag?.newValue === 'boolean'
-    ) {
-      this.debugFlag = changes.debugFlag?.newValue || false;
-    }
   }
 }
 

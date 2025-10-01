@@ -1,4 +1,5 @@
 import { createAction, createReducer } from '@reduxjs/toolkit';
+import equal from 'fast-deep-equal/es6';
 import { SeasonsWithEpisodesList } from '../../../../../lib/types';
 import { AppState } from './store';
 
@@ -88,6 +89,8 @@ export const serialReducer = createReducer(initialSerial, (builder) => {
     state.seasons = seasonsList;
   });
   builder.addCase(setRangeAction, (state, action) => {
+    if (equal(state.range, action.payload.range)) return;
+
     logger.debug('Set new Range:', action.payload.range);
     state.range = action.payload.range;
   });

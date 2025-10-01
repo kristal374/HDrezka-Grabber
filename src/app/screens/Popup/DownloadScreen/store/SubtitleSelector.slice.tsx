@@ -1,10 +1,10 @@
 import { createAction, createReducer } from '@reduxjs/toolkit';
+import equal from 'fast-deep-equal/es6';
 import {
   decodeSubtitleURL,
   getTargetSubtitle,
 } from '../../../../../lib/link-processing';
 import { Subtitle, SubtitleInfo } from '../../../../../lib/types';
-import { normalizeJSON } from '../../../../../lib/utils';
 import { AppState } from './store';
 
 export const setSubtitleListAction = createAction<{
@@ -38,10 +38,8 @@ export const subtitleReducer = createReducer(initialSubtitle, (builder) => {
       state.downloadSubtitle = false;
     } else if (
       state.subtitle !== null &&
-      subtitleArray.filter(
-        (subtitle) =>
-          normalizeJSON(subtitle) === normalizeJSON(state.subtitle ?? {}),
-      ).length === 0
+      subtitleArray.filter((subtitle) => equal(subtitle, state.subtitle ?? {}))
+        .length === 0
     ) {
       const targetSubtitleItem = getTargetSubtitle(
         subtitleArray,

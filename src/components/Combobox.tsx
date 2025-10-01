@@ -66,7 +66,7 @@ export function Combobox({
     (lookup: string, children: React.ReactNode) => {
       return dataLookup[lookup]?.labelComponent?.({ children }) ?? children;
     },
-    [],
+    [data],
   );
   return (
     <Popover open={open} onOpenChange={setOpen}>

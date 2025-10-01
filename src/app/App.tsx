@@ -3,7 +3,9 @@ import { ErrorFallback } from '../components/ErrorFallback';
 import { AsyncContextProvider } from './providers/AsyncContextProvider';
 
 type AppProps<T> = {
-  asyncInitFunction: Promise<T>;
+  asyncInitFunction: (
+    setInitData: React.Dispatch<React.SetStateAction<T | undefined>>,
+  ) => Promise<T>;
   Context: React.Context<T>;
   children: React.ReactNode;
 };
