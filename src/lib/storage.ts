@@ -18,6 +18,7 @@ export async function createDefaultSettings() {
     displayQualitySize: true,
     getRealQuality: true,
 
+    fileTypePriority: 'video',
     maxParallelDownloads: 5,
     maxParallelDownloadsEpisodes: 2,
     maxFallbackAttempts: 3,
@@ -44,6 +45,8 @@ export async function createDefaultSettings() {
 
     enableLogger: true,
     debugLevel: LogLevel.DEBUG,
+    logMessageLifetime: 172800000, // ms, equals 2 days
+    trackEventsOnDeterminingFilename: true,
   };
   await setToStorage('settings', DEFAULT_SETTINGS);
   return DEFAULT_SETTINGS;

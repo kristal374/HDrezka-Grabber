@@ -292,6 +292,7 @@ export type Settings = {
   displayQualitySize: boolean;
   getRealQuality: boolean;
 
+  fileTypePriority: 'video' | 'subtitle';
   maxParallelDownloads: number;
   maxParallelDownloadsEpisodes: number;
   maxFallbackAttempts: number;
@@ -307,6 +308,8 @@ export type Settings = {
 
   enableLogger: boolean;
   debugLevel: LogLevel;
+  logMessageLifetime: number;
+  trackEventsOnDeterminingFilename: boolean;
 };
 
 export enum EventType {
@@ -315,7 +318,7 @@ export enum EventType {
   DownloadEvent = 'DownloadEvent',
   BrowserStartup = 'BrowserStartup',
   StorageChanged = 'StorageChanged',
-  LogCreate = 'logCreate'
+  LogCreate = 'logCreate',
 }
 
 export type EventMessage =
@@ -338,5 +341,5 @@ export type EventBusTypes = {
   [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
   [EventType.BrowserStartup]: void;
   [EventType.StorageChanged]: [Record<string, StorageChange>, string];
-  [EventType.LogCreate]: Event
+  [EventType.LogCreate]: Event;
 };

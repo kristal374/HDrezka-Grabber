@@ -15,9 +15,11 @@ export async function settingsInit(
     if (areaName !== 'local') return;
     for (const [key, value] of Object.entries(changes)) {
       if (key === 'settings') {
-        globalThis.settings = value.newValue as Settings;
-        setInitData({ settings: globalThis.settings });
-        Object.assign(settings, globalThis.settings);
+        const newSettings =
+          (value.newValue as Settings | undefined) ?? (await getSettings());
+        globalThis.settings = newSettings;
+        setInitData({ settings: newSettings });
+        Object.assign(settings, newSettings);
       }
     }
   });

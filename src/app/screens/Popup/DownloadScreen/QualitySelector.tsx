@@ -1,3 +1,4 @@
+import equal from 'fast-deep-equal/es6';
 import { useCallback, useEffect } from 'react';
 import { Combobox } from '../../../../components/Combobox';
 import { sortQualityItem } from '../../../../lib/link-processing';
@@ -25,7 +26,12 @@ export function QualitySelector() {
   }, []);
 
   useEffect(() => {
-    if (!qualitiesList || !settings.displayQualitySize) return;
+    if (
+      !qualitiesList ||
+      equal(qualitiesInfo, {}) ||
+      !settings.displayQualitySize
+    )
+      return;
 
     let ignore = false;
     for (const [key, value] of Object.entries(qualitiesList)) {

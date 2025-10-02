@@ -7,6 +7,7 @@ import {
   Message,
   ResponseVideoData,
   SeasonsWithEpisodesList,
+  Settings,
   SubtitleInfo,
 } from '../lib/types';
 import { logCreate } from './background-logger';
@@ -27,6 +28,10 @@ async function main() {
     EventType.NewMessageReceived,
     browser.runtime.onMessage,
   );
+  eventBus.addMessageSource(
+    EventType.StorageChanged,
+    browser.storage.onChanged,
+  );
   eventBus.addMessageSource(EventType.LogCreate, globalThis);
   eventBus.addMessageSource(
     EventType.BrowserStartup,
@@ -46,7 +51,6 @@ async function main() {
   downloadManager = await DownloadManager.build();
 
   eventBus.on(EventType.NewMessageReceived, messageHandler);
-
   eventBus.on(
     EventType.BrowserStartup,
     downloadManager.stabilizeInsideState.bind(downloadManager),
@@ -64,14 +68,25 @@ async function main() {
       JSON.parse(JSON.stringify((message as CustomEvent).detail)),
     );
   });
+  eventBus.on(EventType.StorageChanged, async (changes, areaName) => {
+    if (areaName !== 'local') return;
+    for (const [key, value] of Object.entries(changes)) {
+      if (key === 'settings') {
+        globalThis.settings =
+          (value.newValue as Settings | undefined) ?? (await getSettings());
+      }
+    }
+  });
 
-  // @ts-ignore
-  browser.downloads.onDeterminingFilename?.addListener(
-    // Когда начинается загрузка "рекомендует" имя для загружаемого файла.
-    // Актуально только для chrome и реализовано исключительно во избежание
-    // конфликтов с другими расширениями, которые могут назначать имена файлов.
-    downloadManager.handlerDeterminingFilename.bind(downloadManager),
-  );
+  if (settings.trackEventsOnDeterminingFilename) {
+    // @ts-ignore
+    browser.downloads.onDeterminingFilename?.addListener(
+      // Когда начинается загрузка "рекомендует" имя для загружаемого файла.
+      // Актуально только для chrome и реализовано исключительно во избежание
+      // конфликтов с другими расширениями, которые могут назначать имена файлов.
+      downloadManager.handlerDeterminingFilename.bind(downloadManager),
+    );
+  }
 
   logger.info('Service worker is ready.');
 

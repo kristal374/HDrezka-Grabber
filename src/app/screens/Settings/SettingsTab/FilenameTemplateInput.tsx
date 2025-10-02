@@ -1,3 +1,4 @@
+import equal from 'fast-deep-equal/es6';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Mention,
@@ -11,7 +12,6 @@ import { useInputCopyAndPasteHandlers } from '../../../hooks/settings/useInputCo
 import { useInputDragHandlers } from '../../../hooks/settings/useInputDragHandlers';
 import { useUndoRedoHandlers } from '../../../hooks/settings/useUndoRedoHandlers';
 import { SettingItemProps } from './SettingsTab';
-import equal from 'fast-deep-equal/es6';
 
 export const MARKUP = '\\[__display__\\](__id__)';
 export const REGEXP_PLACEHOLDER_TEMPLATE = /(\\\[([A-я\s]+)\\]\((%[a-z_]+%)\))/;

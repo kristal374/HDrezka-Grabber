@@ -20,7 +20,8 @@ export async function popupInit(
 
     for (const [key, value] of Object.entries(changes)) {
       if (key === 'settings') {
-        globalThis.settings = value.newValue as Settings;
+        globalThis.settings =
+          (value.newValue as Settings | undefined) ?? (await getSettings());
         const newSessionStorage = tabId
           ? { sessionStorage: await loadSessionStorageSave(tabId) }
           : {};

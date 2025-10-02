@@ -9,13 +9,12 @@ export async function logCreate(message: LogMessage) {
     (e) => console.error(e),
   );
 
-  // TODO: Вернуть в проде
-  // await deleteOldLogMessage();
+  await deleteOldLogMessage(settings.logMessageLifetime);
   return true;
 }
 
 async function deleteOldLogMessage(
-  TTLInMs: number = 2 * 60 * 60 * 1000 // 2 hours
+  TTLInMs: number = 2 * 60 * 60 * 1000, // 2 hours
 ) {
   const cutoff = Date.now() - TTLInMs;
 

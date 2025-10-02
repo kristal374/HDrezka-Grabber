@@ -110,6 +110,17 @@ export function SettingsTab({ settings }: SettingsTabProps) {
 
         <SettingsSection title='Поведение при загрузке' icon={DownloadIcon}>
           <SettingsItemSelect
+            title='Приоритет загрузки'
+            description='Что стоит загружать первым: видео или субтитры'
+            value={settings.fileTypePriority}
+            setValue={updateSetting('fileTypePriority')}
+            options={[
+              { value: 'video', label: 'Видео' },
+              { value: 'subtitle', label: 'Субтитры' },
+            ]}
+            width={125}
+          />
+          <SettingsItemSelect
             title='Максимальное количество одновременных загрузок'
             description='Сколько файлов может загружаться одновременно'
             value={String(settings.maxParallelDownloads)}
@@ -223,6 +234,7 @@ export function SettingsTab({ settings }: SettingsTabProps) {
             setValue={updateSetting('replaceAllSpaces')}
           />
 
+          {/*TODO: Доделать*/}
           <FilenameTemplateMovie
             value={settings.filenameTemplate}
             setValue={updateSetting('filenameTemplate')}
@@ -299,17 +311,52 @@ export function SettingsTab({ settings }: SettingsTabProps) {
           />
 
           {settings.enableLogger && (
-            <SettingsItemSelect
-              title='Уровень отладки'
-              description='Уровень отладки расширения'
-              value={String(settings.debugLevel)}
-              setValue={updateSetting('debugLevel')}
-              options={Object.keys(LogLevel)
-                .filter((k) => isNaN(Number(k)))
-                .map((level, i) => ({ value: String(i), label: level }))}
-              width={125}
-            />
+            <>
+              <SettingsItemSelect
+                title='Уровень отладки'
+                description='Уровень логирования расширения'
+                value={String(settings.debugLevel)}
+                setValue={updateSetting('debugLevel')}
+                options={Object.keys(LogLevel)
+                  .filter((k) => isNaN(Number(k)))
+                  .map((level, i) => ({ value: String(i), label: level }))}
+                width={125}
+              />
+
+              <SettingsItemSelect
+                title='Время жизни сообщения в журнале'
+                description='Через сколько будет удалено лог сообщение из хранилища'
+                value={String(settings.logMessageLifetime)}
+                setValue={updateSetting('logMessageLifetime', 'number')}
+                options={[
+                  { value: String(60 * 1000), label: '1 минута' },
+                  { value: String(2 * 60 * 1000), label: '2 минуты' },
+                  { value: String(5 * 60 * 1000), label: '5 минут' },
+                  { value: String(10 * 60 * 1000), label: '10 минут' },
+                  { value: String(30 * 60 * 1000), label: '30 минут' },
+                  { value: String(60 * 60 * 1000), label: '1 час' },
+                  { value: String(2 * 60 * 60 * 1000), label: '2 часа' },
+                  { value: String(5 * 60 * 60 * 1000), label: '5 часов' },
+                  { value: String(12 * 60 * 60 * 1000), label: '12 часов' },
+                  { value: String(24 * 60 * 60 * 1000), label: '1 день' },
+                  { value: String(2 * 24 * 60 * 60 * 1000), label: '2 дня' },
+                  { value: String(7 * 24 * 60 * 60 * 1000), label: '1 неделя' },
+                  {
+                    value: String(2 * 7 * 24 * 60 * 60 * 1000),
+                    label: '2 недели',
+                  },
+                ]}
+                width={125}
+              />
+            </>
           )}
+
+          <SettingsItemToggle
+            title='Отслеживать события на именование файла onDeterminingFilename(НЕ актуально для Firefox)'
+            description='Не изменяйте если у вас всё работает хорошо! Может помочь если есть другое расширение которое так же отслеживает события на именование фалов из-за чего возникает конфликт и файлы при загрузке имеют некорректные названия.'
+            value={settings.trackEventsOnDeterminingFilename}
+            setValue={updateSetting('trackEventsOnDeterminingFilename')}
+          />
         </SettingsSection>
       </div>
     </Panel>

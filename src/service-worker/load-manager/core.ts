@@ -198,8 +198,13 @@ export class DownloadManager {
 
   handlerDeterminingFilename(downloadItem: DownloadItem, suggest: Function) {
     // Функция "рекомендации" имени файла. Обязательно должна быть синхронной!
-    // Возвращает true указывая что рекомендация будет дана асинхронно.
+    // Возвращает true указывая, что рекомендация будет дана асинхронно.
     logger.debug('Request for defining file name:', downloadItem);
+
+    if (downloadItem.byExtensionId !== browser.runtime.id) {
+      suggest();
+      return;
+    }
 
     indexedDBObject
       .getAllFromIndex('fileStorage', 'download_id', downloadItem.id)
