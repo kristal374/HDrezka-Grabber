@@ -11,6 +11,7 @@ import { useInputCopyAndPasteHandlers } from '../../../hooks/settings/useInputCo
 import { useInputDragHandlers } from '../../../hooks/settings/useInputDragHandlers';
 import { useUndoRedoHandlers } from '../../../hooks/settings/useUndoRedoHandlers';
 import { SettingItemProps } from './SettingsTab';
+import equal from 'fast-deep-equal/es6';
 
 export const MARKUP = '\\[__display__\\](__id__)';
 export const REGEXP_PLACEHOLDER_TEMPLATE = /(\\\[([A-я\s]+)\\]\((%[a-z_]+%)\))/;
@@ -130,7 +131,9 @@ export function FilenameTemplateInput({
         ? item.match(REGEXP_PLACEHOLDER_TEMPLATE)![3]
         : item,
     );
-    setValue(newUserTemplate);
+    if (!equal(value, newUserTemplate)) {
+      setValue(newUserTemplate);
+    }
   }, [rawUserTemplate]);
 
   useEffect(() => {
@@ -194,6 +197,7 @@ export function FilenameTemplateInput({
 
   return (
     <MentionsInput
+      id='editor-tamplate'
       inputRef={inputRef}
       value={rawUserTemplate}
       onChange={handleChange}
