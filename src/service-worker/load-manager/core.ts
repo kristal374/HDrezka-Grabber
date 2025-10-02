@@ -1,6 +1,5 @@
 import { Mutex } from 'async-mutex';
 import type { Downloads } from 'webextension-polyfill';
-import { getFromStorage } from '../../lib/storage';
 import {
   EventMessage,
   EventType,
@@ -104,13 +103,9 @@ export class DownloadManager {
     const siteLoader = this.siteLoaderFactory[nextLoadItem.siteType];
     const siteLoadItem = await siteLoader.build(nextLoadItem);
 
-    const fileTypePriority =
-      (await getFromStorage<'video' | 'subtitle'>('fileTypePriority')) ??
-      'video';
-
     const [videoFile, subtitleFile] = await siteLoadItem.createAndGetFile();
     const targetFile =
-      fileTypePriority === 'video'
+      settings.fileTypePriority === 'video'
         ? (videoFile ?? subtitleFile!)
         : (subtitleFile ?? videoFile!);
 
@@ -399,10 +394,7 @@ export class DownloadManager {
       return;
     }
 
-    const maxAttemptRetries =
-      (await getFromStorage<number>('maxAttemptRetries')) ?? 3;
-
-    if (fileItem.retryAttempts >= maxAttemptRetries) {
+    if (fileItem.retryAttempts >= settings.maxFallbackAttempts) {
       logger.error(
         'New load attempt interrupted - Max attempts reached:',
         fileItem,
@@ -434,7 +426,6 @@ export class DownloadManager {
     fileItem.status = LoadStatus.InitiatingDownload;
     await indexedDBObject.put('fileStorage', fileItem);
 
-    const timeOut = (await getFromStorage<number>('retryTimeout')) ?? 5000;
     return new Promise((resolve) => {
       setTimeout(async () => {
         const loadItem = (await indexedDBObject.getFromIndex(
@@ -453,7 +444,7 @@ export class DownloadManager {
         await indexedDBObject.put('fileStorage', fileItem);
 
         resolve(await this.launchFileDownload(fileItem));
-      }, timeOut);
+      }, settings.timeBetweenDownloadAttempts);
     });
   }
 }

@@ -22,13 +22,15 @@ export async function createDefaultSettings() {
     maxParallelDownloads: 5,
     maxParallelDownloadsEpisodes: 2,
     maxFallbackAttempts: 3,
+    timeBetweenDownloadAttempts: 5_000, // ms, equals 5 seconds
 
     actionOnNoQuality: 'reduce_quality',
     actionOnNoSubtitles: 'ignore',
-    actionOnLoadError: 'skip',
+    actionOnLoadSubtitleError: 'skip',
+    actionOnLoadVideoError: 'skip',
 
     createExtensionFolders: true,
-    createSeriesFolders: true,
+    createSeriesFolders: false,
     replaceAllSpaces: true,
     filenameTemplate: [
       '%orig_title%',
@@ -45,7 +47,7 @@ export async function createDefaultSettings() {
 
     enableLogger: true,
     debugLevel: LogLevel.DEBUG,
-    logMessageLifetime: 172800000, // ms, equals 2 days
+    logMessageLifetime: 172_800_000, // ms, equals 2 days
     trackEventsOnDeterminingFilename: true,
   };
   await setToStorage('settings', DEFAULT_SETTINGS);

@@ -7,6 +7,7 @@ import {
   LoadConfig,
   LoadItem,
   LoadStatus,
+  Message,
   Season,
   SeasonsWithEpisodesList,
   UrlDetails,
@@ -92,9 +93,46 @@ export class QueueController {
         ].includes(item.status),
     );
   }
+  private async stopDownload(movieId: number) {
+    const activeDownloads = await this.findActiveDownloads(movieId);
+    if (activeDownloads.length !== 0) {
+      logger.info('Cancelling active downloads.');
+      await this.removeDownloadsFromQueue(activeDownloads);
+    }
+
+    await browser.runtime
+      .sendMessage<Message<any>>({
+        type: 'setNotification',
+        message: {
+          movieId: String(movieId),
+          notification: `Загрузка прервана. Не удалось загрузить файл.`,
+        },
+      })
+      .then((response) => {
+        if (response !== 'ok') throw new Error('');
+      })
+      .catch(() => {});
+  }
+
+  private async skipDownload(movieId: number) {
+    browser.runtime
+      .sendMessage<Message<any>>({
+        type: 'setNotification',
+        message: {
+          movieId: String(movieId),
+          notification: `Сбой загрузки. Не удалось загрузить файл.`,
+        },
+      })
+      .then((response) => {
+        if (response !== 'ok') throw new Error('');
+      })
+      .catch(() => {});
+
+    // TODO: в случае сбоя отправки сообщения добавлять ошибку в хранилище
+  }
 
   private async removeDownloadsFromQueue(groupToRemove: LoadItem[]) {
-    // Удаляет загрузки из очереди находящиеся в списке на удаление, если
+    // Удаляет загрузки из очереди, находящиеся в списке на удаление, если
     // есть активные загрузки - прерывает их
     logger.debug('Removing from download queue:', groupToRemove);
 
@@ -190,7 +228,7 @@ export class QueueController {
     movieId: number,
     range: SeasonsWithEpisodesList | null,
   ) {
-    // Создаёт массив объектов на основе которых будет производиться загрузка
+    // Создаёт массив объектов, на основе которых будет производиться загрузка
     const loadItemArray: (Omit<LoadItem, 'id'> & { id?: number })[] = [];
     if (!(range === null)) {
       for (const [seasonId, seasonData] of Object.entries(range)) {
@@ -247,15 +285,11 @@ export class QueueController {
     // Отвечает за получение объекта, на основе которого будет производиться загрузка
     logger.info('Attempt to get next object for download.');
 
-    const maxDownloads = (await getFromStorage<number>('maxDownloads')) ?? 5;
-    const maxEpisodeDownloads =
-      (await getFromStorage<number>('maxEpisodeDownloads')) ?? 2;
-
     if (this.queue.length === 0) {
       logger.debug('Currently there are no available objects for loading.');
       return null;
     }
-    if (this.activeDownloads.length >= maxDownloads) {
+    if (this.activeDownloads.length >= settings.maxParallelDownloads) {
       logger.debug('Currently there are too many active downloads.');
       return null;
     }
@@ -277,7 +311,8 @@ export class QueueController {
       const numberActiveDownloads = this.activeDownloads.filter((id) =>
         loadConfig.loadItemIds.includes(id),
       ).length;
-      if (numberActiveDownloads >= maxEpisodeDownloads) continue;
+      if (numberActiveDownloads >= settings.maxParallelDownloadsEpisodes)
+        continue;
       if (item.length <= 1) {
         this.queue.splice(i, 1);
       }
@@ -290,7 +325,7 @@ export class QueueController {
 
   async successLoad(fileItem: FileItem) {
     // Находит и удаляет объект из активных загрузок
-    // и помечает его как успешно загружен
+    // и помечает его как успешно загруженный
     const loadItem = (await indexedDBObject.getFromIndex(
       'loadStorage',
       'load_id',
@@ -321,7 +356,37 @@ export class QueueController {
 
     this.activeDownloads.splice(this.activeDownloads.indexOf(loadItem.id), 1);
 
+    if (fileItem.url === null) {
+      const actionOnNoUrl =
+        fileItem.fileType === 'video'
+          ? settings.actionOnNoQuality
+          : settings.actionOnNoSubtitles;
+
+      if (actionOnNoUrl === 'stop') {
+        return await this.stopDownload(loadItem.movieId);
+      } else if (actionOnNoUrl === 'skip') {
+        return await this.skipDownload(loadItem.movieId);
+      } else if (
+        actionOnNoUrl === 'ignore' &&
+        fileItem.fileType === 'subtitle'
+      ) {
+        logger.warning('Subtitle download skip:', fileItem);
+        return;
+      }
+    }
+
     logger.info('Load was failed:', loadItem);
-    // TODO: настроить реакцию по настройкам пользователя
+    const action =
+      fileItem.fileType === 'video'
+        ? settings.actionOnLoadVideoError
+        : settings.actionOnLoadSubtitleError;
+
+    if (action === 'stop') {
+      await this.stopDownload(loadItem.movieId);
+    } else if (action === 'skip') {
+      await this.skipDownload(loadItem.movieId);
+    } else {
+      throw new Error('Unknown action on load error');
+    }
   }
 }

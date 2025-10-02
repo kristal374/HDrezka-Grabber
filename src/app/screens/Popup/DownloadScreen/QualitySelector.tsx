@@ -28,7 +28,7 @@ export function QualitySelector() {
   useEffect(() => {
     if (
       !qualitiesList ||
-      equal(qualitiesInfo, {}) ||
+      !equal(qualitiesInfo, {}) ||
       !settings.displayQualitySize
     )
       return;

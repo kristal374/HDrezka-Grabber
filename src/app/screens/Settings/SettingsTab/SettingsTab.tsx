@@ -172,6 +172,26 @@ export function SettingsTab({ settings }: SettingsTabProps) {
             }))}
             width={80}
           />
+
+          <SettingsItemSelect
+            title='Время между попытками загрузки'
+            description='Сколько ждать перед тем как снова попытаться загрузить файл'
+            value={String(settings.timeBetweenDownloadAttempts)}
+            setValue={updateSetting('timeBetweenDownloadAttempts', 'number')}
+            options={[
+              { value: String(1000), label: '1 секунда' },
+              { value: String(5 * 1000), label: '5 секунд' },
+              { value: String(10 * 1000), label: '10 секунд' },
+              { value: String(15 * 1000), label: '15 секунд' },
+              { value: String(30 * 1000), label: '30 секунд' },
+              { value: String(60 * 1000), label: '1 минута' },
+              { value: String(2 * 60 * 1000), label: '2 минуты' },
+              { value: String(5 * 60 * 1000), label: '5 минут' },
+              { value: String(10 * 60 * 1000), label: '10 минут' },
+              { value: String(15 * 60 * 1000), label: '15 минут' },
+            ]}
+            width={125}
+          />
         </SettingsSection>
 
         <SettingsSection title='Действия при сбоях' icon={ShieldAlert}>
@@ -198,12 +218,22 @@ export function SettingsTab({ settings }: SettingsTabProps) {
             ]}
           />
           <SettingsItemSelect
+            title='Если не удалось загрузить субтитры'
+            description='Что делать если произошёл сбой при загрузки субтитров во время загрузки серии'
+            value={settings.actionOnLoadSubtitleError}
+            setValue={updateSetting('actionOnLoadSubtitleError')}
+            options={[
+              { value: 'skip', label: 'Пропустить эти субтитры' },
+              { value: 'stop', label: 'Остановить загрузку сериала' },
+            ]}
+          />
+          <SettingsItemSelect
             title='Если не удалось загрузить серию'
             description='Что делать если произошла ошибка загрузки серии'
-            value={settings.actionOnLoadError}
+            value={settings.actionOnLoadVideoError}
             setValue={updateSetting('actionOnLoadError')}
             options={[
-              { value: 'skip', label: 'Пропустить серию' },
+              { value: 'skip', label: 'Пропустить эту серию' },
               { value: 'stop', label: 'Остановить загрузку сериала' },
             ]}
           />

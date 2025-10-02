@@ -4,7 +4,6 @@ import {
   getQualityWeight,
   sortQualityItem,
 } from '../../lib/link-processing';
-import { getFromStorage } from '../../lib/storage';
 import {
   FileItem,
   FileType,
@@ -14,6 +13,7 @@ import {
   QualityItem,
   QueryData,
   ResponseVideoData,
+  Subtitle,
   SubtitleInfo,
   UrlDetails,
 } from '../../lib/types';
@@ -47,6 +47,9 @@ export class HDrezkaLoader implements SiteLoader {
   public readonly downloadItem: LoadItem;
   public readonly loadConfig: LoadConfig;
   public readonly urlDetails: UrlDetails;
+  private serverResponse: ResponseVideoData | null = null;
+  private qualitiesList: Partial<Record<QualityItem, string[]>> | null = null;
+  private subtitlesList: Subtitle[] | null = null;
 
   constructor(async_param: SiteLoaderAsyncParams | undefined) {
     if (typeof async_param === 'undefined') {
@@ -105,42 +108,60 @@ export class HDrezkaLoader implements SiteLoader {
   }
 
   async getVideoData(): Promise<ResponseVideoData | null> {
-    return await updateVideoData(
-      this.urlDetails.siteUrl,
-      this.getQueryData(),
-    ).catch((e) => {
-      const error = e as Error;
-      logger.error('Server returned a bad response:', error.toString());
-      return null;
-    });
+    if (!this.serverResponse) {
+      this.serverResponse = await updateVideoData(
+        this.urlDetails.siteUrl,
+        this.getQueryData(),
+      ).catch((e) => {
+        const error = e as Error;
+        logger.error('Server returned a bad response:', error.toString());
+        return null;
+      });
+
+      if (this.serverResponse?.success) {
+        if (this.serverResponse.url) {
+          this.qualitiesList = decodeVideoURL(this.serverResponse.url)!;
+          this.downloadItem.availableQualities = Object.keys(
+            this.qualitiesList,
+          ) as QualityItem[];
+        }
+        if (this.serverResponse.subtitle) {
+          this.subtitlesList = decodeSubtitleURL({
+            subtitle: this.serverResponse.subtitle,
+            subtitle_def: this.serverResponse.subtitle_def,
+            subtitle_lns: this.serverResponse.subtitle_lns,
+          } as SubtitleInfo)!;
+          this.downloadItem.availableSubtitles = this.subtitlesList.map(
+            (subtitle) => subtitle.lang,
+          );
+        }
+
+        await indexedDBObject.put('loadStorage', this.downloadItem);
+      }
+    }
+
+    return this.serverResponse;
   }
 
   async getVideoUrl(): Promise<string | null> {
     const videoData = await this.getVideoData();
-    if (!videoData || !videoData.success || !videoData.url) return null;
+    if (!videoData?.url) return null;
 
-    const qualitiesList = decodeVideoURL(videoData.url)!;
-    this.downloadItem.availableQualities = Object.keys(
-      qualitiesList,
-    ) as QualityItem[];
-    await indexedDBObject.put('loadStorage', this.downloadItem);
+    if (settings.actionOnNoSubtitles === 'skip' && !this.subtitlesList)
+      return null;
 
     if (
-      this.downloadItem.availableQualities.includes(this.loadConfig.quality)
+      this.downloadItem.availableQualities!.includes(this.loadConfig.quality)
     ) {
       const urlItem = await fetchUrlSizes(
-        qualitiesList[this.loadConfig.quality]!,
+        this.qualitiesList![this.loadConfig.quality]!,
       );
       if (urlItem.rawSize > 0) return urlItem.url;
       logger.warning('"urlItem" is empty - skip.');
     }
 
-    const qualitySizes = await getQualityFileSize(qualitiesList);
-    if (qualitySizes === null) {
-      logger.warning('It was not possible to get quality sizes');
-      return null;
-    }
-
+    if (settings.actionOnNoQuality !== 'reduce_quality') return null;
+    const qualitySizes = (await getQualityFileSize(this.qualitiesList!))!;
     const targetWeight = getQualityWeight(this.loadConfig.quality);
     for (const [qualityItem, urlItem] of Object.entries(
       sortQualityItem(qualitySizes),
@@ -157,26 +178,15 @@ export class HDrezkaLoader implements SiteLoader {
   async getSubtitlesUrl(): Promise<string | null> {
     const videoData = await this.getVideoData();
 
-    if (!videoData || !videoData.success || !videoData.subtitle) return null;
-
-    const subtitlesList = decodeSubtitleURL({
-      subtitle: videoData.subtitle,
-      subtitle_def: videoData.subtitle_def,
-      subtitle_lns: videoData.subtitle_lns,
-    } as SubtitleInfo)!;
-    this.downloadItem.availableSubtitles = subtitlesList.map(
-      (subtitle) => subtitle.lang,
-    );
-    await indexedDBObject.put('loadStorage', this.downloadItem);
-    // TODO: Если нет субтитров список доступных субтитров не обновляется аналогично для видео
+    if (!videoData?.subtitle) return null;
 
     if (
       this.loadConfig.subtitle &&
-      this.downloadItem.availableSubtitles.includes(
+      this.downloadItem.availableSubtitles!.includes(
         this.loadConfig.subtitle.lang,
       )
     ) {
-      return subtitlesList.find(
+      return this.subtitlesList!.find(
         (subtitle) => subtitle.lang === this.loadConfig.subtitle!.lang,
       )!.url;
     }
@@ -233,41 +243,49 @@ export class HDrezkaLoader implements SiteLoader {
     // %subtitle_lang - Язык субтитров
     // %data - Дата начала загрузки
     // %time - Время начала загрузки
-    const userTemplate =
-      (await getFromStorage<string>('template')) ??
-      '%orig_title%_%n%_S%id_season%E%id_episode%';
-
     const replacements: Record<string, string | undefined> = {
       '%n%': (
         this.loadConfig.loadItemIds.lastIndexOf(this.downloadItem.id) + 1
       ).toString(),
-      '%movie_id%': this.downloadItem.movieId.toString(),
-      '%title%': this.urlDetails.filmTitle.localized,
+      '%movie_id%': this.downloadItem.movieId.toString(), //TODO: предварительно обработать
+      '%title%': this.urlDetails.filmTitle.localized.split(' / ')[0],
       '%orig_title%': (
         this.urlDetails.filmTitle.original ??
         this.urlDetails.filmTitle.localized
       ).split(' / ')[0],
       '%translate%': this.loadConfig.voiceOver.title,
-      '%id_translate%': this.loadConfig.voiceOver.id,
+      '%translate_id%': this.loadConfig.voiceOver.id,
       '%episode%': this.downloadItem.episode?.title,
-      '%id_episode%': this.downloadItem.episode?.id,
+      '%episode_id%': this.downloadItem.episode?.id,
       '%season%': this.downloadItem.season?.title,
-      '%id_season%': this.downloadItem.season?.id,
+      '%season_id%': this.downloadItem.season?.id,
       '%quality%': this.loadConfig.quality,
       '%subtitle_code%': this.loadConfig.subtitle?.code,
       '%subtitle_lang%': this.loadConfig.subtitle?.lang,
       '%data%': new Date(timestamp).toLocaleString().split(', ')[0],
       '%time%': new Date(timestamp).toLocaleString().split(', ')[1],
     };
+    let filename = settings.filenameTemplate
+      .map((item) =>
+        item.startsWith('%') && item.endsWith('%')
+          ? (replacements[item] ?? item ?? '')
+          : (item ?? ''),
+      )
+      .join('')
+      .replaceAll(/[:?"*\/\\<>|‪​‎]/g, '')
+      .trim();
 
-    let filename = userTemplate;
-    for (const [token, value] of Object.entries(replacements)) {
-      filename = filename.replaceAll(token, value ?? '');
-    }
-    const directory =
-      (await getFromStorage<string>('directory')) ?? 'HDrezkaGrabber/';
+    filename = settings.replaceAllSpaces
+      ? filename.replaceAll(' ', '_')
+      : filename;
+
+    const directory = settings.createExtensionFolders ? 'HDrezkaGrabber/' : '';
+    const serialFolder =
+      this.downloadItem.season && settings.createSeriesFolders
+        ? `${replacements['%orig_title%']}/`
+        : '';
     const extension = fileType == 'video' ? '.mp4' : '.vtt';
 
-    return directory + filename + extension;
+    return directory + serialFolder + filename + extension;
   }
 }

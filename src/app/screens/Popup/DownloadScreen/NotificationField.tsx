@@ -1,12 +1,44 @@
+import { useEffect } from 'react';
+import type { Runtime } from 'webextension-polyfill';
+import { EventType, Message } from '../../../../lib/types';
+import { selectMovieInfo } from './store/DownloadScreen.slice';
 import {
   selectNotification,
   setNotificationAction,
 } from './store/NotificationField.slice';
 import { useAppDispatch, useAppSelector } from './store/store';
+type MessageSender = Runtime.MessageSender;
 
 export function NotificationField() {
   const dispatch = useAppDispatch();
+  const movieInfo = useAppSelector(selectMovieInfo)!;
   const notification = useAppSelector((state) => selectNotification(state));
+
+  useEffect(() => {
+    eventBus.addMessageSource(
+      EventType.NewMessageReceived,
+      browser.runtime.onMessage,
+    );
+    eventBus.on(
+      EventType.NewMessageReceived,
+      (
+        message: unknown,
+        _sender: MessageSender,
+        _sendResponse: (message: unknown) => void,
+      ) => {
+        const data = message as Message<any>;
+        if (
+          data.type === 'setNotification' &&
+          movieInfo.data.id === data.message.movieId
+        ) {
+          dispatch(
+            setNotificationAction({ notification: data.message.notification }),
+          );
+          return 'ok';
+        } else return false;
+      },
+    );
+  }, []);
 
   if (!notification) return null;
 

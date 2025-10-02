@@ -19,7 +19,8 @@ export type MessageType =
   | 'logCreate'
   | 'trigger'
   | 'getFileSize'
-  | 'updateVideoInfo';
+  | 'updateVideoInfo'
+  | 'setNotification';
 
 export type LogMessage = {
   timestamp: number;
@@ -292,14 +293,16 @@ export type Settings = {
   displayQualitySize: boolean;
   getRealQuality: boolean;
 
-  fileTypePriority: 'video' | 'subtitle';
+  fileTypePriority: FileType;
   maxParallelDownloads: number;
   maxParallelDownloadsEpisodes: number;
   maxFallbackAttempts: number;
+  timeBetweenDownloadAttempts: number;
 
   actionOnNoQuality: 'skip' | 'reduce_quality' | 'stop';
   actionOnNoSubtitles: 'skip' | 'ignore' | 'stop';
-  actionOnLoadError: 'skip' | 'stop';
+  actionOnLoadSubtitleError: 'skip' | 'stop';
+  actionOnLoadVideoError: 'skip' | 'stop';
 
   createExtensionFolders: boolean;
   createSeriesFolders: boolean;
