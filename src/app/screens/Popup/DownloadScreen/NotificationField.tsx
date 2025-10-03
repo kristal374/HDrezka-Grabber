@@ -1,3 +1,4 @@
+import { XIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import type { Runtime } from 'webextension-polyfill';
 import { EventType, Message } from '../../../../lib/types';
@@ -44,13 +45,12 @@ export function NotificationField() {
 
   logger.info('New render NotificationField component.');
   return (
-    <div className='bg-error relative flex items-center rounded px-1.5 py-1 text-white'>
-      <p className='flex-grow pr-6 text-sm break-all'>{notification}</p>
+    <div className='bg-error text-light-color relative flex items-center gap-2 rounded px-1.5 py-1 text-sm'>
+      <p className='flex-grow'>{notification}</p>
       <button
-        className='absolute right-3 text-sm font-bold text-white'
         onClick={() => dispatch(setNotificationAction({ notification: null }))}
       >
-        ✕
+        <XIcon className='size-4' />
       </button>
     </div>
   );
