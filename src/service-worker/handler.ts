@@ -34,8 +34,8 @@ export async function getQualityFileSize(
 export async function fetchUrlSizes(urlsList: string[]): Promise<URLItem> {
   logger.info('Fetching URL sizes.');
   const promises = urlsList.map(async (item) => {
-    const size = await getFileSize(item);
-    return { url: urlsList[0], stringSize: formatBytes(size), rawSize: size };
+    const [url, size] = await getUrlAndFileSize(item);
+    return { url: url, stringSize: formatBytes(size), rawSize: size };
   });
 
   return await Promise.any(promises).catch(() => {
@@ -53,7 +53,7 @@ function formatBytes(bytes: number | null) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-async function getFileSize(videoURL: string) {
+async function getUrlAndFileSize(videoURL: string) {
   logger.info('Attempt get file size.');
   const controller = new AbortController();
   return await modifiedFetch(videoURL, {
@@ -65,7 +65,7 @@ async function getFileSize(videoURL: string) {
       const contentLength = response.headers.get('content-length');
       if (!contentLength || contentLength === '0') throw new Error();
       logger.debug('File size received:', contentLength, videoURL);
-      return parseInt(contentLength);
+      return [response.url, parseInt(contentLength)] as const;
     })
     .finally(() => controller.abort('Outdated.'));
 }

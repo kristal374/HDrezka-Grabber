@@ -149,12 +149,20 @@ export class DownloadManager {
         return;
       }
 
-      // TODO: брать время из настроек
+      const startInitiationDownloadTime = new Date().getTime();
       fileItem.downloadId = await browser.downloads.download({
         url: fileItem.url,
         filename: fileItem.fileName,
         saveAs: fileItem.saveAs,
       });
+      const totalInitiationDownloadTime =
+        new Date().getTime() - startInitiationDownloadTime;
+      if (totalInitiationDownloadTime > 10_000) {
+        logger.warning(
+          `Loading start took too much time: ${totalInitiationDownloadTime / 1_000}s`,
+          fileItem.url,
+        );
+      }
       fileItem.status = LoadStatus.Downloading;
       await indexedDBObject.put('fileStorage', fileItem);
       logger.info('File download started successfully:', fileItem);
