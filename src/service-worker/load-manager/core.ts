@@ -70,8 +70,8 @@ export class DownloadManager {
   }
 
   async startNextDownload() {
-    // Отвечает за получение объекта на основе которого будет
-    // производиться загрузка, а так же за его подготовку к загрузке
+    // Отвечает за получение объекта, на основе которого будет
+    // производиться загрузка, а также за его подготовку к загрузке
     logger.info('Attempt starting download.');
 
     const nextLoadItemId =
@@ -134,8 +134,8 @@ export class DownloadManager {
     }
 
     if (fileItem.downloadId !== null) {
-      // Мы должны удалить старую связь с объектом загрузки браузера
-      // ибо когда загрузка будет удалена из истории: браузер вызовет
+      // Мы должны удалить старую связь с объектом загрузки браузера,
+      // ибо, когда загрузка будет удалена из истории: браузер вызовет
       // событие USER_CANCELED. Из-за чего файлы будут удалены из активных
       // загрузок и расширение не сможет корректно отслеживать загрузки.
       fileItem.downloadId = null;
@@ -249,7 +249,7 @@ export class DownloadManager {
       : null;
 
     if (!file) {
-      // Игнорируем загрузки вызванные НЕ нашим расширением
+      // Игнорируем загрузки, вызванные НЕ нашим расширением
       logger.warning(
         'The related file was not found in the storage.',
         event.data,
@@ -268,6 +268,8 @@ export class DownloadManager {
         await this.successDownload(file);
       } else if (downloadDelta.error?.current === 'USER_CANCELED') {
         await this.cancelDownload(file);
+      } else if (downloadDelta.error?.current === 'FILE_NO_SPACE') {
+        await this.cancelAllDownload(file);
       } else if (downloadDelta.error?.current) {
         logger.error('Download failed:', downloadDelta.error.current);
         await this.newAttemptDownload(file, LoadStatus.DownloadFailed);
@@ -352,9 +354,6 @@ export class DownloadManager {
         LoadStatus.InitiationError,
       ].includes(fileItem.status)
     ) {
-      fileItem.status = LoadStatus.StoppedByUser;
-      await indexedDBObject.put('fileStorage', fileItem);
-
       const fileItemBrowser: DownloadItem | undefined = (
         await browser.downloads.search({
           id: fileItem.downloadId!,
@@ -390,6 +389,21 @@ export class DownloadManager {
     fileItem.status = LoadStatus.Downloading;
     await indexedDBObject.put('fileStorage', fileItem);
     await browser.downloads.resume(fileItem.downloadId!);
+  }
+
+  async cancelAllDownload(fileItem: FileItem) {
+    logger.critical('The disk is not enough space for uploading a file!');
+    const loadItem = (await indexedDBObject.getFromIndex(
+      'loadStorage',
+      'load_id',
+      fileItem.relatedLoadItemId,
+    )) as LoadItem;
+
+    await this.breakDownloadWithError(fileItem, LoadStatus.DownloadFailed);
+    await this.queueController.stopDownload(
+      loadItem.movieId,
+      LoadStatus.InitiationError,
+    );
   }
 
   async newAttemptDownload(fileItem: FileItem, cause: LoadStatus) {

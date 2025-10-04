@@ -93,11 +93,14 @@ export class QueueController {
         ].includes(item.status),
     );
   }
-  private async stopDownload(movieId: number) {
+  async stopDownload(
+    movieId: number,
+    cause: LoadStatus = LoadStatus.StoppedByUser,
+  ) {
     const activeDownloads = await this.findActiveDownloads(movieId);
     if (activeDownloads.length !== 0) {
       logger.info('Cancelling active downloads.');
-      await this.removeDownloadsFromQueue(activeDownloads);
+      await this.removeDownloadsFromQueue(activeDownloads, cause);
     }
 
     await browser.runtime
@@ -131,7 +134,10 @@ export class QueueController {
     // TODO: в случае сбоя отправки сообщения добавлять ошибку в хранилище
   }
 
-  private async removeDownloadsFromQueue(groupToRemove: LoadItem[]) {
+  private async removeDownloadsFromQueue(
+    groupToRemove: LoadItem[],
+    cause: LoadStatus = LoadStatus.StoppedByUser,
+  ) {
     // Удаляет загрузки из очереди, находящиеся в списке на удаление, если
     // есть активные загрузки - прерывает их
     logger.debug('Removing from download queue:', groupToRemove);
@@ -161,7 +167,7 @@ export class QueueController {
       )
         continue;
 
-      record.status = LoadStatus.StoppedByUser;
+      record.status = cause;
       await loadItemsStore.put(record);
 
       for (let i = 0; i < this.queue.length; i++) {
@@ -182,7 +188,7 @@ export class QueueController {
 
         for (const file of relatedFiles) {
           if (file.downloadId === null) {
-            file.status = LoadStatus.StoppedByUser;
+            file.status = cause;
             await fileItemsStore.put(file);
 
             this.failLoad(file, LoadStatus.StoppedByUser).then();
