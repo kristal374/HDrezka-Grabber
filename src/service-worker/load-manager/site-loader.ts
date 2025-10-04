@@ -147,8 +147,13 @@ export class HDrezkaLoader implements SiteLoader {
     const videoData = await this.getVideoData();
     if (!videoData?.url) return null;
 
-    if (settings.actionOnNoSubtitles === 'skip' && !this.subtitlesList)
+    if (
+      this.loadConfig.subtitle &&
+      settings.actionOnNoSubtitles === 'skip' &&
+      !this.subtitlesList
+    ) {
       return null;
+    }
 
     if (
       this.downloadItem.availableQualities!.includes(this.loadConfig.quality)
