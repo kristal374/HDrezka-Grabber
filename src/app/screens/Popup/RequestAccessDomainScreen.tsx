@@ -1,3 +1,4 @@
+import { Button } from '@/components/Button';
 import { Menu } from '@/components/Menu';
 import { PopupInitialDataContext } from '@/html/popup';
 import { useCallback, useContext } from 'react';
@@ -14,20 +15,11 @@ export function RequestAccessDomainScreen() {
   }, []);
 
   return (
-    <div
-      className={
-        'relative flex grow flex-col items-center justify-center gap-1 px-12 py-6 text-balance'
-      }
-    >
+    <div className='relative flex grow flex-col items-center justify-center gap-5 px-12 py-6 text-balance'>
       <p className='text-center text-base'>
-        Расширению требуется доступ для корректной работы на сайте
+        Расширению нужно предостовать доступ к этому сайту для работы
       </p>
-      <button
-        className='bg-link-color rounded-md px-4 py-2 text-white'
-        onClick={requestPermission}
-      >
-        Предоставить доступ
-      </button>
+      <Button onClick={requestPermission}>Предоставить доступ</Button>
       <Menu />
     </div>
   );

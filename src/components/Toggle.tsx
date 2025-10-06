@@ -14,9 +14,11 @@ export const Toggle = memo(function Toggle({
     <button
       type='button'
       className={cn(
-        'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors duration-200 ease-in-out outline-none',
-        'ring-link-color ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2',
-        checked ? 'bg-link-color' : 'bg-settings-border-secondary',
+        'group relative inline-flex w-11.5 flex-shrink-0 cursor-pointer items-center rounded-full p-[3px]',
+        'ring-link-color ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+        checked
+          ? 'bg-link-color not-disabled:hover:bg-link-color/75'
+          : 'bg-input not-disabled:hover:bg-input-active',
         disabled && 'cursor-not-allowed opacity-50',
       )}
       role='switch'
@@ -26,8 +28,9 @@ export const Toggle = memo(function Toggle({
     >
       <span
         className={cn(
-          'pointer-events-none inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+          'pointer-events-none block size-5 rounded-full bg-white shadow transition-transform duration-200 ease-in-out',
           checked ? 'translate-x-5' : 'translate-x-0',
+          'group-not-disabled:group-active:scale-92',
         )}
       />
     </button>

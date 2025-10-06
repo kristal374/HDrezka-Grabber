@@ -1,3 +1,5 @@
+import { Button } from '@/components/Button';
+
 interface MenuButtonProps
   extends Omit<React.ComponentProps<'button'>, 'onClick' | 'className'> {
   /**
@@ -13,8 +15,9 @@ export function MenuButton({
   ...props
 }: MenuButtonProps) {
   return (
-    <button
-      className='hover:bg-input rounded-md p-1 transition-colors'
+    <Button
+      variant='ghost'
+      className='p-1'
       onClick={() => {
         openInNewTab
           ? window.open(browser.runtime.getURL(`${href}.html`))

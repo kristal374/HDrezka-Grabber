@@ -1,3 +1,4 @@
+import { Button } from '@/components/Button';
 import { OutsideLink } from '@/components/OutsideLink';
 import { AlertCircle, Plus, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -78,12 +79,9 @@ function AddSitesModal({
           <h3 className='text-settings-text-primary text-lg font-semibold'>
             Добавить новые сайты
           </h3>
-          <button
-            onClick={handleClose}
-            className='text-settings-text-tertiary hover:text-settings-text-primary hover:bg-settings-background-tertiary rounded-md p-1 transition-colors'
-          >
+          <Button variant='ghost' size='square' onClick={handleClose}>
             <X className='size-5' />
-          </button>
+          </Button>
         </div>
 
         <div className='space-y-4 p-6'>
@@ -122,19 +120,12 @@ function AddSitesModal({
         </div>
 
         <div className='border-settings-border-primary bg-settings-background-tertiary flex items-center justify-end gap-3 border-t px-6 py-4'>
-          <button
-            onClick={handleClose}
-            className='border-settings-border-primary bg-settings-background-secondary text-settings-text-primary hover:bg-settings-background-tertiary rounded-md border px-4 py-2 text-sm font-medium transition-colors'
-          >
+          <Button onClick={handleClose} variant='outline'>
             Отмена
-          </button>
-          <button
-            onClick={handleAdd}
-            disabled={!inputValue.trim()}
-            className='bg-link-color rounded-md px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
-          >
+          </Button>
+          <Button onClick={handleAdd} disabled={!inputValue.trim()}>
             Добавить сайты
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -168,13 +159,10 @@ export function AllowedSitesList() {
           <h3 className='text-settings-text-secondary block text-sm font-medium'>
             Сайты к которым расширение имеет доступ ({allowedSites.length})
           </h3>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className='bg-link-color hover:bg-link-color/75 flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors'
-          >
+          <Button onClick={() => setIsModalOpen(true)}>
             <Plus className='size-4' />
             Добавить новый сайт
-          </button>
+          </Button>
         </div>
 
         {allowedSites.length === 0 ? (
@@ -195,14 +183,14 @@ export function AllowedSitesList() {
               />
 
               {!requiredSites.includes(site) && (
-                <button
+                <Button
                   onClick={() => handleRemoveSite(site)}
-                  className='text-settings-text-tertiary group/trash flex-shrink-0 rounded-md p-1.5 transition-all duration-200 hover:bg-red-500/10 hover:text-red-400'
-                  aria-label='Удалить сайт'
+                  variant='dangerous'
+                  size='square'
                   title='Удалить сайт'
                 >
-                  <Trash2 className='size-4 transition-transform duration-200 group-hover/trash:scale-110 group-active/trash:scale-95' />
-                </button>
+                  <Trash2 className='size-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-95' />
+                </Button>
               )}
             </div>
           ))

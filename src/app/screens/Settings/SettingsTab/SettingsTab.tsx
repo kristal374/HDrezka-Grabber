@@ -1,3 +1,4 @@
+import { Button } from '@/components/Button';
 import { Combobox } from '@/components/Combobox';
 import { Panel } from '@/components/Panel';
 import { Toggle } from '@/components/Toggle';
@@ -16,6 +17,8 @@ import { useCallback } from 'react';
 import { AllowedSitesList } from './AllowedSitesList';
 import { FilenameTemplateMovie } from './FilenameTemplateBuilder';
 import { SettingItem, SettingsSection } from './SettingsComponets';
+
+const isFirefox = typeof browser.runtime.getBrowserInfo === 'function';
 
 export type SettingItemProps<T> = {
   value: T;
@@ -402,12 +405,24 @@ export function SettingsTab() {
             </>
           )}
 
-          <SettingsItemToggle
-            title='Отслеживать события на именование файла onDeterminingFilename(НЕ актуально для Firefox)'
-            description='Не изменяйте если у вас всё работает хорошо! Может помочь если есть другое расширение которое так же отслеживает события на именование фалов из-за чего возникает конфликт и файлы при загрузке имеют некорректные названия.'
-            value={settings.trackEventsOnDeterminingFilename}
-            setValue={updateSetting('trackEventsOnDeterminingFilename')}
-          />
+          {!isFirefox && (
+            <SettingsItemToggle
+              title='Отслеживать события на именование файла onDeterminingFilename'
+              description='Не изменяйте если у вас всё работает хорошо! Может помочь если есть другое расширение которое так же отслеживает события на именование фалов из-за чего возникает конфликт и файлы при загрузке имеют некорректные названия.'
+              value={settings.trackEventsOnDeterminingFilename}
+              setValue={updateSetting('trackEventsOnDeterminingFilename')}
+            />
+          )}
+
+          <hr className='border-settings-border-primary mb-5 border-t' />
+
+          <div className='flex flex-wrap gap-3'>
+            <Button>Попытаться восстановить работу расширения</Button>
+            <Button>Восстановить настройки по умолчанию</Button>
+            <Button>Остановить все загрузки</Button>
+            <Button>Очистить историю загрузок</Button>
+            <Button>Удалить все данные расширения</Button>
+          </div>
         </SettingsSection>
       </div>
     </Panel>

@@ -76,10 +76,10 @@ export function Combobox({
           role='combobox'
           aria-expanded={open}
           className={cn(
-            'border-input bg-background hover:border-input-active hover:bg-input',
-            'flex items-center rounded-md border-2 px-2 py-1.5 text-sm',
+            'flex cursor-pointer items-center rounded-md border-2 px-2 py-1.5 text-sm',
+            'border-input bg-background not-disabled:hover:border-input-active not-disabled:hover:bg-input',
             'placeholder:text-foreground-disabled disabled:cursor-not-allowed disabled:opacity-50',
-            'ring-offset-background focus-visible:ring-link-color focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+            'ring-link-color ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
             className,
           )}
           style={{ width }}

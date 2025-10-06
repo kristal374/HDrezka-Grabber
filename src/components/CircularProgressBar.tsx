@@ -47,10 +47,14 @@ export function CircularProgressBar({ progress }: Props) {
           }}
         />
       </svg>
-      <span className='pointer-events-none absolute w-full text-center text-xl'>
+      <span className='pointer-events-none absolute flex w-full flex-col gap-1 text-center text-xl'>
         {progress.totalLoads > 1 ? (
           <>
-            <NumberFlow value={progress.completedLoads} />/{progress.totalLoads}
+            <span>
+              <NumberFlow value={progress.completedLoads} />/
+              {progress.totalLoads}
+            </span>
+            <span className='text-xs'>{percent}%</span>
           </>
         ) : (
           `${percent}%`
