@@ -24,6 +24,10 @@ export function MenuButton({
               width: 800,
               height: 600,
             });
+        if (openInNewTab) {
+          // Firefox specific
+          window.close();
+        }
       }}
       {...props}
     />

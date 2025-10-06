@@ -93,7 +93,6 @@ export function SimpleTabs<ID extends string>({
                 )}
                 role='tab'
                 aria-selected={isActive}
-                tabIndex={isActive ? 0 : -1}
               >
                 <span className='text-settings-text-primary inline-flex items-center gap-2'>
                   {tab.icon && (

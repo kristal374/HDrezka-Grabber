@@ -1,4 +1,5 @@
-import { SlidersHorizontal, SquareKanban, SquareTerminal } from 'lucide-react';
+import { SquareTerminalIcon } from 'lucide-react';
+import { HeroiconsCogIcon } from '../components/icons/HeroiconsCogIcon';
 import { cn } from '../lib/utils';
 import { MenuButton } from './MenuButton';
 
@@ -12,14 +13,20 @@ export function Menu({ className }: MenuProps) {
       className={cn('absolute top-0 right-0 flex flex-col gap-1', className)}
     >
       <MenuButton href='/settings' openInNewTab={true}>
-        <SlidersHorizontal size={32} strokeWidth={1.5} />
+        {/* <SlidersHorizontalIcon className='size-8' strokeWidth={1.5} /> */}
+        <HeroiconsCogIcon
+          className='size-8 transition-transform hover:rotate-45'
+          strokeWidth={1.5}
+        />
       </MenuButton>
-      <MenuButton href='/loadManager'>
-        <SquareKanban size={32} strokeWidth={1.5} className='rotate-[270deg]' />
-      </MenuButton>
-      <MenuButton href='/loadManager'>
-        <SquareTerminal size={32} strokeWidth={1.5} />
-      </MenuButton>
+      {/* <MenuButton href='/loadManager'>
+        <SquareKanbanIcon className='size-8 rotate-270' strokeWidth={1.5}  />
+      </MenuButton> */}
+      {settings.enableLogger && (
+        <MenuButton href='/logger'>
+          <SquareTerminalIcon className='size-8' strokeWidth={1.5} />
+        </MenuButton>
+      )}
     </div>
   );
 }

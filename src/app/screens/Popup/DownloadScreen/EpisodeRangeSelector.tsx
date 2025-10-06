@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo } from 'react';
-import { Checkbox } from '../../../../components/Checkbox';
 import { Combobox } from '../../../../components/Combobox';
+import { CheckboxWithLabel } from '../../../../components/Checkbox';
 import { getSeasons } from '../../../../extraction-scripts/extractSeasons';
 import { PopupInitialDataContext } from '../../../../html/popup';
 import { sliceSeasons } from '../../../../lib/utils';
@@ -87,20 +87,17 @@ export function EpisodeRangeSelector({
   logger.info('New render EpisodeRangeSelector component.');
   return (
     <>
-      <div className='flex items-center gap-2.5'>
-        <Checkbox
-          id='downloadSerial'
-          checked={downloadSerial}
-          onCheckedChange={(value) =>
-            dispatch(
-              setDownloadSerialAction({ downloadSerial: value as boolean }),
-            )
-          }
-        />
-        <label htmlFor='downloadSerial' className='text-base font-bold'>
-          {browser.i18n.getMessage('popup_loadSerial')}
-        </label>
-      </div>
+      <CheckboxWithLabel
+        id='downloadSerial'
+        checked={downloadSerial}
+        onCheckedChange={(value) =>
+          dispatch(
+            setDownloadSerialAction({ downloadSerial: value as boolean }),
+          )
+        }
+      >
+        {browser.i18n.getMessage('popup_loadSerial')}
+      </CheckboxWithLabel>
       {downloadSerial && seasons && (
         <>
           <div className='flex items-center gap-2.5'>

@@ -189,5 +189,14 @@
   },
   "settings_FaqAnswer_8": {
     "message": "No — the torrent protocol is not used. The extension imitates the site’s player and uses streaming file transfer. If you are interested in the legal aspects: the extension itself is just an external interface for downloading from the site, and all legal questions should be addressed to the site’s administration, not the extension."
+  },
+  "settings_ChangelogAdded": {
+    "message": "Added"
+  },
+  "settings_ChangelogFixed": {
+    "message": "Fixed"
+  },
+  "settings_ChangelogChanged": {
+    "message": "Changed"
   }
 }
