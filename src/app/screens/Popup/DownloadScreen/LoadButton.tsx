@@ -1,11 +1,12 @@
 import browser from 'webextension-polyfill';
 
+import { useTrackingTotalProgressForMovie } from '@/app/hooks/popup/useTrackingTotalProgressForMovie';
+import { CircularProgressBar } from '@/components/CircularProgressBar';
+import { AnimatedCheckIcon } from '@/components/icons/AnimatedCheckIcon';
+import { DownloadIcon } from '@/components/icons/DownloadIcon';
+import { Initiator, Message } from '@/lib/types';
+import { cn } from '@/lib/utils';
 import { useCallback } from 'react';
-import { CircularProgressBar } from '../../../../components/CircularProgressBar';
-import { AnimatedCheckIcon, DownloadIcon } from '../../../../components/Icons';
-import { Initiator, Message } from '../../../../lib/types';
-import { cn } from '../../../../lib/utils';
-import { useTrackingTotalProgressForMovie } from '../../../hooks/popup/useTrackingTotalProgressForMovie';
 import { selectMovieInfo } from './store/DownloadScreen.slice';
 import { selectRange } from './store/EpisodeRangeSelector.slice';
 import { selectCurrentQuality } from './store/QualitySelector.slice';

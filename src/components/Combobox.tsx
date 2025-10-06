@@ -1,6 +1,6 @@
+import { cn } from '@/lib/utils';
 import { ChevronDownIcon } from 'lucide-react';
 import { type JSX, useCallback, useEffect, useMemo, useState } from 'react';
-import { cn } from '../lib/utils';
 import {
   Command,
   CommandEmpty,

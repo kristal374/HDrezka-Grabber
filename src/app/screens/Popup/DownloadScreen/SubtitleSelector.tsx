@@ -1,5 +1,5 @@
-import { Combobox } from '../../../../components/Combobox';
-import { Subtitle } from '../../../../lib/types';
+import { Combobox } from '@/components/Combobox';
+import { Subtitle } from '@/lib/types';
 import { CheckboxWithLabel } from '../../../../components/Checkbox';
 import { useAppDispatch, useAppSelector } from './store/store';
 import {

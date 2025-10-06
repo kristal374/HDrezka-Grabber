@@ -1,5 +1,3 @@
-import { Mutex } from 'async-mutex';
-import type { Downloads } from 'webextension-polyfill';
 import {
   EventMessage,
   EventType,
@@ -7,7 +5,9 @@ import {
   Initiator,
   LoadItem,
   LoadStatus,
-} from '../../lib/types';
+} from '@/lib/types';
+import { Mutex } from 'async-mutex';
+import type { Downloads } from 'webextension-polyfill';
 import { QueueController } from './queue';
 import { HDrezkaLoader, SiteLoader } from './site-loader';
 

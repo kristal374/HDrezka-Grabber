@@ -1,4 +1,4 @@
-import { PageType, SeasonsWithEpisodesList } from '../lib/types';
+import { PageType, SeasonsWithEpisodesList } from '@/lib/types';
 
 export async function getSeasons(tabId: number, pageType: PageType) {
   if (pageType !== 'SERIAL') return null;

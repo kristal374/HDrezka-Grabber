@@ -1,5 +1,5 @@
+import { ErrorFallback } from '@/components/ErrorFallback';
 import { ErrorBoundary } from 'react-error-boundary';
-import { ErrorFallback } from '../components/ErrorFallback';
 import { AsyncContextProvider } from './providers/AsyncContextProvider';
 
 type AppProps<T> = {

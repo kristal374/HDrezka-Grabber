@@ -1,6 +1,6 @@
+import { OutsideLink } from '@/components/OutsideLink';
 import { AlertCircle, Plus, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { OutsideLink } from '../../../../components/OutsideLink';
 
 function AddSitesModal({
   isOpen,
@@ -147,7 +147,7 @@ export function AllowedSitesList() {
 
   const requiredSites = useMemo(() => {
     return browser.runtime.getManifest().host_permissions ?? [];
-  }, [])
+  }, []);
 
   const handleAddSites = (newSites: string[]) => {
     browser.permissions
@@ -194,14 +194,16 @@ export function AllowedSitesList() {
                 className='flex-1 text-sm break-all'
               />
 
-              {!requiredSites.includes(site) && <button
-                onClick={() => handleRemoveSite(site)}
-                className='text-settings-text-tertiary group/trash flex-shrink-0 rounded-md p-1.5 transition-all duration-200 hover:bg-red-500/10 hover:text-red-400'
-                aria-label='Удалить сайт'
-                title='Удалить сайт'
-              >
-                <Trash2 className='size-4 transition-transform duration-200 group-hover/trash:scale-110 group-active/trash:scale-95' />
-              </button>}
+              {!requiredSites.includes(site) && (
+                <button
+                  onClick={() => handleRemoveSite(site)}
+                  className='text-settings-text-tertiary group/trash flex-shrink-0 rounded-md p-1.5 transition-all duration-200 hover:bg-red-500/10 hover:text-red-400'
+                  aria-label='Удалить сайт'
+                  title='Удалить сайт'
+                >
+                  <Trash2 className='size-4 transition-transform duration-200 group-hover/trash:scale-110 group-active/trash:scale-95' />
+                </button>
+              )}
             </div>
           ))
         )}

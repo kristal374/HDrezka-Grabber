@@ -1,3 +1,4 @@
+import { Panel } from '@/components/Panel';
 import {
   AlertCircleIcon,
   CalendarIcon,
@@ -9,7 +10,6 @@ import {
   WrenchIcon,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Panel } from '../../../components/Panel';
 
 type ContentChapter = 'Added' | 'Fixed' | 'Changed';
 

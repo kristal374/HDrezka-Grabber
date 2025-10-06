@@ -1,19 +1,19 @@
-import { useContext, useEffect } from 'react';
-import { getMovieInfo } from '../../../extraction-scripts/extractMovieInfo';
-import { PopupInitialDataContext } from '../../../html/popup';
 import {
   selectMovieInfo,
   setMovieInfoAction,
-} from '../../screens/Popup/DownloadScreen/store/DownloadScreen.slice';
+} from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
 import {
   setCurrentQualityAction,
   setQualitiesListAction,
-} from '../../screens/Popup/DownloadScreen/store/QualitySelector.slice';
+} from '@/app/screens/Popup/DownloadScreen/store/QualitySelector.slice';
 import {
   useAppDispatch,
   useAppSelector,
-} from '../../screens/Popup/DownloadScreen/store/store';
-import { setSubtitleListAction } from '../../screens/Popup/DownloadScreen/store/SubtitleSelector.slice';
+} from '@/app/screens/Popup/DownloadScreen/store/store';
+import { setSubtitleListAction } from '@/app/screens/Popup/DownloadScreen/store/SubtitleSelector.slice';
+import { getMovieInfo } from '@/extraction-scripts/extractMovieInfo';
+import { PopupInitialDataContext } from '@/html/popup';
+import { useContext, useEffect } from 'react';
 
 export function useChangeMovieInfo() {
   const dispatch = useAppDispatch();

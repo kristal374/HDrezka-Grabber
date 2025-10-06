@@ -3,21 +3,25 @@ import {
   decodeVideoURL,
   getQualityWeight,
   sortQualityItem,
-} from '../../lib/link-processing';
-import {
+} from '@/lib/link-processing';
+import type {
   FileItem,
   FileType,
   LoadConfig,
   LoadItem,
-  LoadStatus,
   QualityItem,
   QueryData,
   ResponseVideoData,
   Subtitle,
   SubtitleInfo,
   UrlDetails,
-} from '../../lib/types';
-import { fetchUrlSizes, getQualityFileSize, updateVideoData } from '../handler';
+} from '@/lib/types';
+import { LoadStatus } from '@/lib/types';
+import {
+  fetchUrlSizes,
+  getQualityFileSize,
+  updateVideoData,
+} from '@/service-worker/handler';
 
 type SiteLoaderAsyncParams = {
   downloadItem: LoadItem;

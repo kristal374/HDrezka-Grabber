@@ -1,9 +1,9 @@
+import { CheckboxWithLabel } from '@/components/Checkbox';
+import { Combobox } from '@/components/Combobox';
+import { getSeasons } from '@/extraction-scripts/extractSeasons';
+import { PopupInitialDataContext } from '@/html/popup';
+import { sliceSeasons } from '@/lib/utils';
 import { useContext, useEffect, useMemo } from 'react';
-import { Combobox } from '../../../../components/Combobox';
-import { CheckboxWithLabel } from '../../../../components/Checkbox';
-import { getSeasons } from '../../../../extraction-scripts/extractSeasons';
-import { PopupInitialDataContext } from '../../../../html/popup';
-import { sliceSeasons } from '../../../../lib/utils';
 import {
   selectDownloadSerial,
   selectEpisodeFrom,
@@ -101,11 +101,11 @@ export function EpisodeRangeSelector({
       {downloadSerial && seasons && (
         <>
           <div className='flex items-center gap-2.5'>
-            {/* Components width in pixels: [85] ">" [115] */}
             <label htmlFor='seasonFrom' className='ml-auto text-base font-bold'>
               {browser.i18n.getMessage('popup_textFrom')}
             </label>
 
+            {/* Components width in pixels: [85] ">" [115] */}
             <Combobox
               id='seasonFrom'
               className='py-0.5'
@@ -118,7 +118,7 @@ export function EpisodeRangeSelector({
             />
 
             <label htmlFor='episodeFrom' className='text-sm'>
-              {/* Components width in pixels: [9.588] */}
+              {/* Arrow width in pixels: [9.588] */}
               {'>'}
             </label>
 
@@ -138,11 +138,11 @@ export function EpisodeRangeSelector({
           </div>
 
           <div className='flex items-center gap-2.5'>
-            {/* Components width in pixels: [85] ">" [115] */}
             <label htmlFor='seasonTo' className='ml-auto text-base font-bold'>
               {browser.i18n.getMessage('popup_textTo')}
             </label>
 
+            {/* Components width in pixels: [85] ">" [115] */}
             <Combobox
               id='seasonTo'
               className='py-0.5'
@@ -174,7 +174,7 @@ export function EpisodeRangeSelector({
             {!downloadToEnd && (
               <>
                 <label htmlFor='episodeTo' className='text-sm'>
-                  {/* Components width in pixels: [9.588] */}
+                  {/* Arrow width in pixels: [9.588] */}
                   {'>'}
                 </label>
 

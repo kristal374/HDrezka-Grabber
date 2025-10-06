@@ -1,6 +1,6 @@
+import { Menu } from '@/components/Menu';
+import { PopupInitialDataContext } from '@/html/popup';
 import { useCallback, useContext } from 'react';
-import { Menu } from '../../../components/Menu';
-import { PopupInitialDataContext } from '../../../html/popup';
 
 export function RequestAccessDomainScreen() {
   const { siteUrl } = useContext(PopupInitialDataContext)!;

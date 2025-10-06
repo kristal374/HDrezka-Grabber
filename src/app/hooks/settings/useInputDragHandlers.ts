@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useRef } from 'react';
 import {
   format,
   mapSelectionToTemplate,
   MARKUP,
   Placeholder,
   REGEXP_PLACEHOLDER_TEMPLATE,
-} from '../../screens/Settings/SettingsTab/FilenameTemplateInput';
+} from '@/app/screens/Settings/SettingsTab/FilenameTemplateInput';
+import { useCallback, useEffect, useRef } from 'react';
 
 export function useInputDragHandlers(
   inputRef: React.RefObject<HTMLTextAreaElement | null>,

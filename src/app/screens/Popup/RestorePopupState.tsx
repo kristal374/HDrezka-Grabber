@@ -1,6 +1,6 @@
+import { PopupInitialDataContext } from '@/html/popup';
+import { saveSessionStorage } from '@/lib/storage';
 import { useContext, useLayoutEffect, useState } from 'react';
-import { PopupInitialDataContext } from '../../../html/popup';
-import { saveSessionStorage } from '../../../lib/storage';
 import {
   resetAction,
   store,

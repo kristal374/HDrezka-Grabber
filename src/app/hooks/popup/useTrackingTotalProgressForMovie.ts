@@ -1,12 +1,7 @@
+import { getFromStorage } from '@/lib/storage';
+import { EventType, LoadItem, LoadStatus, MovieProgress } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import browser from 'webextension-polyfill';
-import { getFromStorage } from '../../../lib/storage';
-import {
-  EventType,
-  LoadItem,
-  LoadStatus,
-  MovieProgress,
-} from '../../../lib/types';
 import { useTrackingCurrentProgress } from './useTrackingCurrentProgress';
 
 type MovieLoadStatuses = {

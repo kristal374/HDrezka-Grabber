@@ -1,5 +1,5 @@
-import { getSettings } from '../../../lib/storage';
-import { EventType, Settings } from '../../../lib/types';
+import { getSettings } from '@/lib/storage';
+import { EventType, Settings } from '@/lib/types';
 
 export type SettingsInitData = Required<
   Awaited<ReturnType<typeof settingsInit>>

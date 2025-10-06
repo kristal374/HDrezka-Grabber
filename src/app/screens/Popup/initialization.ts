@@ -1,7 +1,7 @@
-import { getPageType } from '../../../extraction-scripts/extractPageType';
-import { doDatabaseStuff } from '../../../lib/idb-storage';
-import { getSettings, loadSessionStorageSave } from '../../../lib/storage';
-import { EventType, Settings } from '../../../lib/types';
+import { getPageType } from '@/extraction-scripts/extractPageType';
+import { doDatabaseStuff } from '@/lib/idb-storage';
+import { getSettings, loadSessionStorageSave } from '@/lib/storage';
+import { EventType, Settings } from '@/lib/types';
 
 export type PopupInitData = Required<Awaited<ReturnType<typeof popupInit>>>;
 

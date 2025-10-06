@@ -1,5 +1,5 @@
+import type { CurrentEpisode, MovieInfo } from '@/lib/types';
 import { createAction, createReducer } from '@reduxjs/toolkit';
-import { CurrentEpisode, MovieInfo } from '../../../../../lib/types';
 import { AppState } from './store';
 
 export const setMovieInfoAction = createAction<{

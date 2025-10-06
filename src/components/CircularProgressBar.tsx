@@ -1,8 +1,8 @@
+import type { MovieProgress } from '@/lib/types';
+import { cn } from '@/lib/utils';
 import NumberFlow from '@number-flow/react';
 import { XIcon } from 'lucide-react';
 import { useState } from 'react';
-import { MovieProgress } from '../lib/types';
-import { cn } from '../lib/utils';
 
 const RADIUS = 40;
 const STROKE = 6;

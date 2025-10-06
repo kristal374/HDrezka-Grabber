@@ -1,6 +1,6 @@
+import type { SeasonsWithEpisodesList } from '@/lib/types';
 import { createAction, createReducer } from '@reduxjs/toolkit';
 import equal from 'fast-deep-equal/es6';
-import { SeasonsWithEpisodesList } from '../../../../../lib/types';
 import { AppState } from './store';
 
 export const setDownloadSerialAction = createAction<{

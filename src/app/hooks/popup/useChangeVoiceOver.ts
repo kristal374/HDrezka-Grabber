@@ -1,27 +1,23 @@
-import equal from 'fast-deep-equal/es6';
-import { useCallback, useContext, useEffect, useState } from 'react';
-import { PopupInitialDataContext } from '../../../html/popup';
-import type {
-  ActualVideoData,
-  DataForUpdate,
-  Message,
-} from '../../../lib/types';
 import {
   selectMovieInfo,
   setCurrentEpisodeAction,
-} from '../../screens/Popup/DownloadScreen/store/DownloadScreen.slice';
-import { setSeasonsAction } from '../../screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
-import { setNotificationAction } from '../../screens/Popup/DownloadScreen/store/NotificationField.slice';
-import { setQualitiesListAction } from '../../screens/Popup/DownloadScreen/store/QualitySelector.slice';
+} from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
+import { setSeasonsAction } from '@/app/screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
+import { setNotificationAction } from '@/app/screens/Popup/DownloadScreen/store/NotificationField.slice';
+import { setQualitiesListAction } from '@/app/screens/Popup/DownloadScreen/store/QualitySelector.slice';
 import {
   useAppDispatch,
   useAppSelector,
-} from '../../screens/Popup/DownloadScreen/store/store';
-import { setSubtitleListAction } from '../../screens/Popup/DownloadScreen/store/SubtitleSelector.slice';
+} from '@/app/screens/Popup/DownloadScreen/store/store';
+import { setSubtitleListAction } from '@/app/screens/Popup/DownloadScreen/store/SubtitleSelector.slice';
 import {
   selectCurrentVoiceOver,
   setVoiceOverAction,
-} from '../../screens/Popup/DownloadScreen/store/VoiceOverSelector.slice';
+} from '@/app/screens/Popup/DownloadScreen/store/VoiceOverSelector.slice';
+import { PopupInitialDataContext } from '@/html/popup';
+import type { ActualVideoData, DataForUpdate, Message } from '@/lib/types';
+import equal from 'fast-deep-equal/es6';
+import { useCallback, useContext, useEffect, useState } from 'react';
 
 export function useChangeVoiceOver() {
   const dispatch = useAppDispatch();

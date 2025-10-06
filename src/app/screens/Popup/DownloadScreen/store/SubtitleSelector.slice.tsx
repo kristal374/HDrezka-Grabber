@@ -1,10 +1,7 @@
+import { decodeSubtitleURL, getTargetSubtitle } from '@/lib/link-processing';
+import type { Subtitle, SubtitleInfo } from '@/lib/types';
 import { createAction, createReducer } from '@reduxjs/toolkit';
 import equal from 'fast-deep-equal/es6';
-import {
-  decodeSubtitleURL,
-  getTargetSubtitle,
-} from '../../../../../lib/link-processing';
-import { Subtitle, SubtitleInfo } from '../../../../../lib/types';
 import { AppState } from './store';
 
 export const setSubtitleListAction = createAction<{

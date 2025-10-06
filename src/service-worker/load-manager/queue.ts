@@ -1,17 +1,16 @@
-import { createProxy, getFromStorage, saveInStorage } from '../../lib/storage';
-import {
-  ContentType,
+import { createProxy, getFromStorage, saveInStorage } from '@/lib/storage';
+import type {
   Episode,
   FileItem,
   Initiator,
   LoadConfig,
   LoadItem,
-  LoadStatus,
   Message,
   Season,
   SeasonsWithEpisodesList,
   UrlDetails,
-} from '../../lib/types';
+} from '@/lib/types';
+import { ContentType, LoadStatus } from '@/lib/types';
 
 type QueueControllerAsyncParams = {
   queue: (number | number[])[];

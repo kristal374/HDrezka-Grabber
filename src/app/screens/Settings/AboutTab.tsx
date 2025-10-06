@@ -1,3 +1,4 @@
+import { Panel } from '@/components/Panel';
 import {
   Coffee,
   Copy,
@@ -11,7 +12,6 @@ import {
   UserCircle2,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { Panel } from '../../../components/Panel';
 
 type StoreLink = {
   name: string;

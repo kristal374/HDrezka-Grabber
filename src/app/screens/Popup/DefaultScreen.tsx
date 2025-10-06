@@ -1,5 +1,5 @@
-import { Menu } from '../../../components/Menu';
-import { cn } from '../../../lib/utils';
+import { Menu } from '@/components/Menu';
+import { cn } from '@/lib/utils';
 
 type Props = {
   vpnNotice?: boolean;

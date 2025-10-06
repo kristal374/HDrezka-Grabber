@@ -1,3 +1,7 @@
+import { useInputCopyAndPasteHandlers } from '@/app/hooks/settings/useInputCopyAndPasteHandlers';
+import { useInputDragHandlers } from '@/app/hooks/settings/useInputDragHandlers';
+import { useUndoRedoHandlers } from '@/app/hooks/settings/useUndoRedoHandlers';
+import { cn } from '@/lib/utils';
 import equal from 'fast-deep-equal/es6';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -7,10 +11,6 @@ import {
   SuggestionFunc,
 } from 'react-mentions';
 import { toast } from 'sonner';
-import { cn } from '../../../../lib/utils';
-import { useInputCopyAndPasteHandlers } from '../../../hooks/settings/useInputCopyAndPasteHandlers';
-import { useInputDragHandlers } from '../../../hooks/settings/useInputDragHandlers';
-import { useUndoRedoHandlers } from '../../../hooks/settings/useUndoRedoHandlers';
 import { SettingItemProps } from './SettingsTab';
 
 export const MARKUP = '\\[__display__\\](__id__)';

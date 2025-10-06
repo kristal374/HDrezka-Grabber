@@ -1,5 +1,5 @@
+import { cn } from '@/lib/utils';
 import { memo } from 'react';
-import { cn } from '../../../../lib/utils';
 
 export const SettingItem = memo(function SettingItem({
   title,

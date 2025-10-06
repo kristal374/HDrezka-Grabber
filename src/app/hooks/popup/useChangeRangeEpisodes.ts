@@ -1,5 +1,24 @@
-import equal from 'fast-deep-equal/es6';
-import { useCallback, useEffect, useState } from 'react';
+import {
+  selectCurrentEpisode,
+  selectMovieInfo,
+  setCurrentEpisodeAction,
+} from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
+import {
+  selectRange,
+  selectSeasons,
+  setEpisodeFromAction,
+  setEpisodeToAction,
+  setSeasonFromAction,
+  setSeasonToAction,
+} from '@/app/screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
+import { setNotificationAction } from '@/app/screens/Popup/DownloadScreen/store/NotificationField.slice';
+import { setQualitiesListAction } from '@/app/screens/Popup/DownloadScreen/store/QualitySelector.slice';
+import {
+  useAppDispatch,
+  useAppSelector,
+} from '@/app/screens/Popup/DownloadScreen/store/store';
+import { setSubtitleListAction } from '@/app/screens/Popup/DownloadScreen/store/SubtitleSelector.slice';
+import { selectCurrentVoiceOver } from '@/app/screens/Popup/DownloadScreen/store/VoiceOverSelector.slice';
 import type {
   ActualVideoData,
   CurrentEpisode,
@@ -8,28 +27,9 @@ import type {
   Message,
   SerialData,
   SerialFields,
-} from '../../../lib/types';
-import {
-  selectCurrentEpisode,
-  selectMovieInfo,
-  setCurrentEpisodeAction,
-} from '../../screens/Popup/DownloadScreen/store/DownloadScreen.slice';
-import {
-  selectRange,
-  selectSeasons,
-  setEpisodeFromAction,
-  setEpisodeToAction,
-  setSeasonFromAction,
-  setSeasonToAction,
-} from '../../screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
-import { setNotificationAction } from '../../screens/Popup/DownloadScreen/store/NotificationField.slice';
-import { setQualitiesListAction } from '../../screens/Popup/DownloadScreen/store/QualitySelector.slice';
-import {
-  useAppDispatch,
-  useAppSelector,
-} from '../../screens/Popup/DownloadScreen/store/store';
-import { setSubtitleListAction } from '../../screens/Popup/DownloadScreen/store/SubtitleSelector.slice';
-import { selectCurrentVoiceOver } from '../../screens/Popup/DownloadScreen/store/VoiceOverSelector.slice';
+} from '@/lib/types';
+import equal from 'fast-deep-equal/es6';
+import { useCallback, useEffect, useState } from 'react';
 
 export function useChangeRangeEpisodes() {
   const dispatch = useAppDispatch();

@@ -1,7 +1,7 @@
+import { SimpleTabs } from '@/components/SimpleTabs';
+import { SettingsInitialDataContext } from '@/html/settings';
 import { useContext, useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
-import { SimpleTabs } from '../../../components/SimpleTabs';
-import { SettingsInitialDataContext } from '../../../html/settings';
 import { AboutTab } from './AboutTab';
 import { ChangeLogTab } from './ChangeLogTab';
 import { FAQTab } from './FAQTab';

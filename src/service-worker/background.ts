@@ -1,4 +1,4 @@
-import '../lib/global-scope-init';
+import '@/lib/global-scope-init';
 
 import {
   ActualVideoData,
@@ -9,12 +9,12 @@ import {
   SeasonsWithEpisodesList,
   Settings,
   SubtitleInfo,
-} from '../lib/types';
+} from '@/lib/types';
 import { logCreate } from './background-logger';
 
+import { doDatabaseStuff } from '@/lib/idb-storage';
+import { getSettings } from '@/lib/storage';
 import type { Runtime } from 'webextension-polyfill';
-import { doDatabaseStuff } from '../lib/idb-storage';
-import { getSettings } from '../lib/storage';
 import { fetchUrlSizes, updateVideoData } from './handler';
 import { DownloadManager } from './load-manager/core';
 type MessageSender = Runtime.MessageSender;

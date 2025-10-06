@@ -1,5 +1,5 @@
+import type { VoiceOverInfo } from '@/lib/types';
 import { createAction, createReducer } from '@reduxjs/toolkit';
-import { VoiceOverInfo } from '../../../../../lib/types';
 import { AppState } from './store';
 
 export const setVoiceOverListAction = createAction<{

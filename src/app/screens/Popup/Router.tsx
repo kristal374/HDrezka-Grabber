@@ -1,8 +1,8 @@
+import { OutsideLink } from '@/components/OutsideLink';
+import { PopupInitialDataContext } from '@/html/popup';
+import { patternsToRegExp } from '@/lib/permissions';
+import { PageType } from '@/lib/types';
 import { useContext } from 'react';
-import { OutsideLink } from '../../../components/OutsideLink';
-import { PopupInitialDataContext } from '../../../html/popup';
-import { patternsToRegExp } from '../../../lib/permissions';
-import { PageType } from '../../../lib/types';
 import { DefaultScreen } from './DefaultScreen';
 import { DownloadScreen } from './DownloadScreen/DownloadScreen';
 import { RequestAccessDomainScreen } from './RequestAccessDomainScreen';

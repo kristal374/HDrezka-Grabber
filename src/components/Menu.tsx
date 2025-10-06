@@ -1,7 +1,7 @@
+import { HeroiconsCogIcon } from '@/components/icons/HeroiconsCogIcon';
+import { MenuButton } from '@/components/MenuButton';
+import { cn } from '@/lib/utils';
 import { SquareTerminalIcon } from 'lucide-react';
-import { HeroiconsCogIcon } from '../components/icons/HeroiconsCogIcon';
-import { cn } from '../lib/utils';
-import { MenuButton } from './MenuButton';
 
 interface MenuProps {
   className?: string;

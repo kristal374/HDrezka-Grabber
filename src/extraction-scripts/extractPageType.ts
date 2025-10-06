@@ -1,4 +1,4 @@
-import { PageType } from '../lib/types';
+import { PageType } from '@/lib/types';
 
 export async function getPageType(tabId: number) {
   return await browser.scripting

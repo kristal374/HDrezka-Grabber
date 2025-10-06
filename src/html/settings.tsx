@@ -1,12 +1,12 @@
-import { createContext } from 'react';
-import { createRoot } from 'react-dom/client';
-import { App } from '../app/App';
-import { Settings } from '../app/screens/Settings/Settings';
+import { App } from '@/app/App';
+import { Settings } from '@/app/screens/Settings/Settings';
 import {
   settingsInit,
   SettingsInitData,
-} from '../app/screens/Settings/initialization';
-import { EventType } from '../lib/types';
+} from '@/app/screens/Settings/initialization';
+import { EventType } from '@/lib/types';
+import { createContext } from 'react';
+import { createRoot } from 'react-dom/client';
 
 logger.info('Settings open.');
 

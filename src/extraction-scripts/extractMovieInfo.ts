@@ -1,4 +1,4 @@
-import type { MovieInfo } from '../lib/types';
+import type { MovieInfo } from '@/lib/types';
 
 export async function getMovieInfo(tabId: number) {
   const pathToInjectScript = browser.runtime.getURL(

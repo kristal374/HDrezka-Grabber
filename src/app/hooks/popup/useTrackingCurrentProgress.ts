@@ -1,7 +1,7 @@
 import browser from 'webextension-polyfill';
 
+import { FileItem, LoadItem, LoadStatus } from '@/lib/types';
 import { useEffect, useState } from 'react';
-import { FileItem, LoadItem, LoadStatus } from '../../../lib/types';
 
 export function useTrackingCurrentProgress(loadItem: LoadItem | null) {
   const [currentProgress, setCurrentProgress] = useState<number | null>(null);

@@ -5,7 +5,7 @@ import {
   ResponseVideoData,
   URLItem,
   URLsContainer,
-} from '../lib/types';
+} from '@/lib/types';
 
 type ModificationOptions = {
   fullURL: string;

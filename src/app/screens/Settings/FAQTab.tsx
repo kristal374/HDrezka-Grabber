@@ -1,6 +1,6 @@
+import { Panel } from '@/components/Panel';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
-import { Panel } from '../../../components/Panel';
 
 const faqData = [
   {

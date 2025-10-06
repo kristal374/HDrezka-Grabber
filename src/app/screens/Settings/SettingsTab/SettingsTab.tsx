@@ -1,3 +1,9 @@
+import { Combobox } from '@/components/Combobox';
+import { Panel } from '@/components/Panel';
+import { Toggle } from '@/components/Toggle';
+import { hasPermissionsToAllSites } from '@/lib/permissions';
+import { saveInStorage } from '@/lib/storage';
+import { LogLevel } from '@/lib/types';
 import {
   DownloadIcon,
   FolderCogIcon,
@@ -7,12 +13,6 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { useCallback } from 'react';
-import { Combobox } from '../../../../components/Combobox';
-import { Panel } from '../../../../components/Panel';
-import { Toggle } from '../../../../components/Toggle';
-import { hasPermissionsToAllSites } from '../../../../lib/permissions';
-import { saveInStorage } from '../../../../lib/storage';
-import { LogLevel } from '../../../../lib/types';
 import { AllowedSitesList } from './AllowedSitesList';
 import { FilenameTemplateMovie } from './FilenameTemplateBuilder';
 import { SettingItem, SettingsSection } from './SettingsComponets';

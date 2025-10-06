@@ -1,4 +1,4 @@
-import { VoiceOverInfo } from '../lib/types';
+import { VoiceOverInfo } from '@/lib/types';
 
 export async function getVoiceOverList(tabId: number) {
   return await browser.scripting

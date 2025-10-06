@@ -1,11 +1,11 @@
+import { useChangeMovieInfo } from '@/app/hooks/popup/useChangeMovieInfo';
+import { useChangeRangeEpisodes } from '@/app/hooks/popup/useChangeRangeEpisodes';
+import { useChangeVoiceOver } from '@/app/hooks/popup/useChangeVoiceOver';
+import { DividingLine } from '@/components/DividingLine';
+import { Menu } from '@/components/Menu';
+import { PopupInitialDataContext } from '@/html/popup';
+import type { FilmData, SerialData } from '@/lib/types';
 import { useContext } from 'react';
-import { DividingLine } from '../../../../components/DividingLine';
-import { Menu } from '../../../../components/Menu';
-import { PopupInitialDataContext } from '../../../../html/popup';
-import type { FilmData, SerialData } from '../../../../lib/types';
-import { useChangeMovieInfo } from '../../../hooks/popup/useChangeMovieInfo';
-import { useChangeRangeEpisodes } from '../../../hooks/popup/useChangeRangeEpisodes';
-import { useChangeVoiceOver } from '../../../hooks/popup/useChangeVoiceOver';
 import { ProcessingScreen } from '../ProcessingScreen';
 import { EpisodeRangeSelector } from './EpisodeRangeSelector';
 import { LoadButton } from './LoadButton';

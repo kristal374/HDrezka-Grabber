@@ -1,8 +1,8 @@
+import { Combobox } from '@/components/Combobox';
+import { sortQualityItem } from '@/lib/link-processing';
+import { Message, QualityItem, URLItem } from '@/lib/types';
 import equal from 'fast-deep-equal/es6';
 import { useCallback, useEffect } from 'react';
-import { Combobox } from '../../../../components/Combobox';
-import { sortQualityItem } from '../../../../lib/link-processing';
-import { Message, QualityItem, URLItem } from '../../../../lib/types';
 import {
   addQualityInfoAction,
   selectCurrentQuality,

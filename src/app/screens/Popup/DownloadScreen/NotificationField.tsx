@@ -1,7 +1,7 @@
+import { EventType, Message } from '@/lib/types';
 import { XIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import type { Runtime } from 'webextension-polyfill';
-import { EventType, Message } from '../../../../lib/types';
 import { selectMovieInfo } from './store/DownloadScreen.slice';
 import {
   selectNotification,

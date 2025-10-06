@@ -1,14 +1,12 @@
-import { printLog } from '../lib/logger';
-import { LogMessage } from '../lib/types';
+import { printLog } from '@/lib/logger';
+import { LogMessage } from '@/lib/types';
 
 export async function logCreate(message: LogMessage) {
   printLog(message);
 
-  await indexedDBObject.put('logStorage', message).catch(
-    () => {
-      // Если БД закрыта, нет смысла поднимать ошибку, просто выводим в консоль
-    },
-  );
+  await indexedDBObject.put('logStorage', message).catch(() => {
+    // Если БД закрыта, нет смысла поднимать ошибку, просто выводим в консоль
+  });
 
   await deleteOldLogMessage(settings.logMessageLifetime);
   return true;

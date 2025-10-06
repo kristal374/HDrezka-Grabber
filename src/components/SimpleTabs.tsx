@@ -1,5 +1,5 @@
+import { cn } from '@/lib/utils';
 import { type JSX, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { cn } from '../lib/utils';
 
 export type TabItem<ID extends string = string> = {
   id: ID;
