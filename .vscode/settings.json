@@ -5,5 +5,12 @@
   },
   "editor.quickSuggestionsDelay": 0,
   "typescript.preferences.preferTypeOnlyAutoImports": true,
-  "typescript.preferences.importModuleSpecifier": "non-relative"
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    "ngClass",
+    "class:list",
+    "classNames"
+  ]
 }

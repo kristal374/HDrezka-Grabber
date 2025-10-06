@@ -25,7 +25,6 @@ export type Placeholder = {
 
 type FilenameTemplateBuilderProps = SettingItemProps<string[]> & {
   placeholders: Placeholder[];
-  className?: string;
 };
 
 export const format = (str: string, args: Record<string, string>): string => {
@@ -102,7 +101,6 @@ export function FilenameTemplateInput({
   value,
   setValue,
   placeholders,
-  className,
 }: FilenameTemplateBuilderProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [rawUserTemplate, setRawUserTemplate] = useState(
@@ -169,20 +167,11 @@ export function FilenameTemplateInput({
     [rawUserTemplate],
   );
 
-  const customSuggestionsContainer = useCallback(
-    (children: React.ReactNode) => (
-      <div style={{ border: '1px solid #ccc', borderRadius: '4px' }}>
-        <div style={{ maxHeight: '150px', overflowY: 'auto' }}>{children}</div>
-      </div>
-    ),
-    [],
-  );
-
   const renderPlaceholderSuggestion = useCallback<SuggestionFunc>(
     (suggestion, _search, _highlightedDisplay, index, _focused) => {
       if (!placeholders[index]) return suggestion.display;
       return (
-        <span className='flex w-full items-center justify-between gap-2 px-2 py-1 text-left text-xs'>
+        <span className='flex w-full items-center justify-between gap-2 text-left text-xs'>
           {suggestion.display}
         </span>
       );
@@ -197,57 +186,25 @@ export function FilenameTemplateInput({
 
   return (
     <MentionsInput
-      id='editor-tamplate'
+      id='editor-template'
       inputRef={inputRef}
       value={rawUserTemplate}
       onChange={handleChange}
-      // customSuggestionsContainer={customSuggestionsContainer}
-      className={cn(
-        className,
-        'settings-background-primary text-settings-text-primary text-base font-normal',
-      )}
-      // classNames={{
-      //   'mentions__control': 'font-mono min-h-[63px] ',
-      //   'mentions__highlighter': 'p-[9px] border border-transparent',
-      //   'mentions__input': 'p-[9px] border border-silver outline-none',
-      //   'mentions__suggestions': 'bg-settings-background-primary border border-black/15 text-sm',
-      //   'mentions__suggestions__list': 'bg-settings-background-primary border border-black/15 text-sm',
-      //   'mentions__suggestions__item': 'px-4 py-2 border-b border-black/15',
-      //   'mentions__suggestions__item--focused': 'bg-link-color',
-      // }}
-      style={{
-        '&multiLine': {
-          control: {
-            fontFamily: 'monospace',
-            // minHeight: 63,
-          },
-          highlighter: {
-            padding: 7,
-            paddingRight: 35, // отступ для кнопки
-            border: 'none',
-            outline: 'none',
-          },
-          input: {
-            padding: 7,
-            paddingRight: 35, // отступ для кнопки
-            border: 'none',
-            outline: 'none',
-          },
-        },
-        suggestions: {
-          list: {
-            backgroundColor: 'var(--settings-background-primary)',
-            border: '1px solid rgba(0,0,0,0.15)',
-            fontSize: 14,
-          },
-          item: {
-            padding: '5px 15px',
-            borderBottom: '1px solid rgba(0,0,0,0.15)',
-            '&focused': {
-              backgroundColor: 'var(--link-color)',
-            },
-          },
-        },
+      className='mentions'
+      classNames={{
+        mentions__control: 'font-mono',
+        mentions__highlighter: 'py-2 pl-2 pr-10 !text-base',
+        mentions__input: cn(
+          'py-2 pl-2 pr-10 !text-base',
+          'border-settings-border-primary rounded-lg border bg-settings-background-primary text-settings-text-primary font-normal',
+          'ring-link-color ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+        ),
+        mentions__suggestions:
+          '!bg-input text-foreground text-sm border-input-active rounded-md border shadow-md',
+        mentions__suggestions__list: 'flex flex-col !p-1',
+        mentions__suggestions__item:
+          'flex grow cursor-default items-center rounded-sm px-2 py-1.5 text-sm select-none',
+        'mentions__suggestions__item--focused': 'bg-link-color',
       }}
     >
       <Mention
