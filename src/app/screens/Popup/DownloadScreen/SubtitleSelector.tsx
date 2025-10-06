@@ -1,6 +1,6 @@
-import { Checkbox } from '../../../../components/Checkbox';
 import { Combobox } from '../../../../components/Combobox';
 import { Subtitle } from '../../../../lib/types';
+import { CheckboxWithLabel } from '../../../../components/Checkbox';
 import { useAppDispatch, useAppSelector } from './store/store';
 import {
   selectCurrentSubtitle,
@@ -23,20 +23,17 @@ export function SubtitleSelector() {
   logger.info('New render SubtitleSelector component.');
   return (
     <>
-      <div className='flex items-center gap-2.5'>
-        <Checkbox
-          id='downloadSubtitle'
-          checked={downloadSubtitle}
-          onCheckedChange={(value) =>
-            dispatch(
-              setDownloadSubtitleAction({ downloadSubtitle: value as boolean }),
-            )
-          }
-        />
-        <label htmlFor='downloadSubtitle' className='text-base font-bold'>
-          {browser.i18n.getMessage('popup_loadSubtitle')}
-        </label>
-      </div>
+      <CheckboxWithLabel
+        id='downloadSubtitle'
+        checked={downloadSubtitle}
+        onCheckedChange={(value) =>
+          dispatch(
+            setDownloadSubtitleAction({ downloadSubtitle: value as boolean }),
+          )
+        }
+      >
+        {browser.i18n.getMessage('popup_loadSubtitle')}
+      </CheckboxWithLabel>
 
       {downloadSubtitle && (
         <div className='flex items-center gap-2.5'>

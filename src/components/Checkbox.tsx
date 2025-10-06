@@ -23,4 +23,29 @@ function Checkbox({
   );
 }
 
-export { Checkbox };
+type CheckboxWithLabelProps = {
+  id: string;
+  checked: boolean;
+  onCheckedChange: (value: boolean) => void;
+  className?: string;
+  children: React.ReactNode;
+};
+
+function CheckboxWithLabel({
+  id,
+  checked,
+  onCheckedChange,
+  className,
+  children,
+}: CheckboxWithLabelProps) {
+  return (
+    <div className={cn('flex items-center gap-2.5', className)}>
+      <Checkbox id={id} checked={checked} onCheckedChange={onCheckedChange} />
+      <label htmlFor={id} className='text-base font-bold select-none'>
+        {children}
+      </label>
+    </div>
+  );
+}
+
+export { Checkbox, CheckboxWithLabel };

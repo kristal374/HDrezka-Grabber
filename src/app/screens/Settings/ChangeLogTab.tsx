@@ -1,12 +1,12 @@
 import {
-  AlertCircle,
-  Calendar,
-  Edit3,
-  ExternalLink,
-  Package,
-  Plus,
-  RefreshCw,
-  Wrench,
+  AlertCircleIcon,
+  CalendarIcon,
+  Edit3Icon,
+  ExternalLinkIcon,
+  PackageIcon,
+  PlusIcon,
+  RefreshCwIcon,
+  WrenchIcon,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Panel } from '../../../components/Panel';
@@ -34,44 +34,26 @@ function OutsideLink({ url, text }: { url: string; text: string }) {
       className='group text-link-color hover:text-link-color/80 inline-flex items-center gap-2 transition-all duration-300 hover:underline'
     >
       <span>{text}</span>
-      <ExternalLink className='h-4 w-4 transition-transform' />
+      <ExternalLinkIcon className='size-4 transition-transform' />
     </a>
   );
 }
 
 function ChangeTypeIcon({ type }: { type: ContentChapter }) {
-  const iconProps = {
-    className:
-      'h-5 w-5 transition-transform duration-300 group-hover:scale-110',
-  };
+  const iconClassName =
+    'size-5 transition-transform duration-300 group-hover:scale-110';
 
   switch (type) {
     case 'Added':
-      return (
-        <Plus
-          {...iconProps}
-          className={`${iconProps.className} text-green-500`}
-        />
-      );
+      return <PlusIcon className={`${iconClassName} text-green-500`} />;
     case 'Fixed':
-      return (
-        <Wrench
-          {...iconProps}
-          className={`${iconProps.className} text-orange-500`}
-        />
-      );
+      return <WrenchIcon className={`${iconClassName} text-orange-500`} />;
     case 'Changed':
-      return (
-        <Edit3
-          {...iconProps}
-          className={`${iconProps.className} text-blue-500`}
-        />
-      );
+      return <Edit3Icon className={`${iconClassName} text-blue-500`} />;
     default:
       return (
-        <AlertCircle
-          {...iconProps}
-          className={`${iconProps.className} text-settings-text-tertiary`}
+        <AlertCircleIcon
+          className={`${iconClassName} text-settings-text-tertiary`}
         />
       );
   }
@@ -81,7 +63,7 @@ function ReleaseHeader({ release }: { release: Release }) {
   return (
     <div className='flex items-baseline justify-between gap-4'>
       <h1 className='text-settings-text-primary flex items-center gap-3 text-2xl font-bold'>
-        <Package className='text-settings-text-tertiary h-6 w-6' />
+        <PackageIcon className='text-settings-text-tertiary h-6 w-6' />
         {release.url ? (
           <OutsideLink url={release.url} text={release.version} />
         ) : (
@@ -92,7 +74,7 @@ function ReleaseHeader({ release }: { release: Release }) {
       </h1>
       {release.date && (
         <div className='text-settings-text-tertiary flex items-center gap-2 text-lg'>
-          <Calendar className='h-4 w-4' />
+          <CalendarIcon className='h-4 w-4' />
           <span className='font-medium'>{release.date}</span>
         </div>
       )}
@@ -123,7 +105,7 @@ function ChangeSection({
     <section className='mt-8'>
       <h2 className='text-settings-text-accent mb-2 flex items-center gap-2 text-xl font-semibold'>
         <ChangeTypeIcon type={type} />
-        {type}
+        {browser.i18n.getMessage(`settings_Changelog${type}`)}
       </h2>
       <ul className='mt-2 ml-6 list-outside list-disc space-y-1 pl-6'>
         {items.map((itm) => (
@@ -168,55 +150,41 @@ function ReleaseElement({ release }: { release: Release }) {
   );
 }
 
-function LoadingState() {
+function EdgeCaseState({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description?: string;
+}) {
   return (
-    <div className='border-settings-border-secondary bg-settings-background-primary border-y p-8 text-center'>
+    <Panel className='p-8 text-center'>
       <div className='text-settings-text-primary mb-2 flex items-center justify-center gap-3'>
-        <RefreshCw className='h-6 w-6 animate-spin' />
-        <span className='text-lg'>Загрузка данных...</span>
+        {icon}
+        <span className='text-xl font-medium'>{title}</span>
       </div>
-    </div>
+      {description && (
+        <p className='text-settings-text-tertiary'>{description}</p>
+      )}
+    </Panel>
   );
 }
 
-function ErrorState() {
-  return (
-    <div className='border-settings-border-secondary bg-settings-background-primary border-y p-8 text-center'>
-      <div className='text-settings-text-primary mb-2 flex items-center justify-center gap-3'>
-        <AlertCircle className='h-6 w-6' />
-        <span className='text-xl font-medium'>Ошибка загрузки</span>
-      </div>
-      <p className='text-settings-text-tertiary'>
-        Не удалось загрузить список изменений.
-      </p>
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className='border-settings-border-secondary bg-settings-background-primary border-y p-8 text-center'>
-      <div className='text-settings-text-primary mb-2 flex items-center justify-center gap-3'>
-        <Package className='h-8 w-8' />
-        <span className='text-xl font-medium'>Нет данных</span>
-      </div>
-      <p className='text-settings-text-tertiary'>
-        Список изменений пуст или недоступен.
-      </p>
-    </div>
-  );
-}
+const changelogContentCache: Record<string, Release[]> = {};
 
 export function ChangeLogTab({
   changelogUrl = 'CHANGELOG.md',
 }: ChangeLogTabProps) {
   const [changelogContent, setChangelogContent] = useState<Release[] | null>(
-    null,
+    changelogContentCache[changelogUrl] ?? null,
   );
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
+    if (changelogContentCache[changelogUrl]) return;
     const loadChangelog = async () => {
       try {
         setIsLoading(true);
@@ -225,7 +193,9 @@ export function ChangeLogTab({
         const fullChangelogUrl = browser.runtime.getURL(changelogUrl);
         const response = await fetch(fullChangelogUrl);
         const content = await response.text();
-        setChangelogContent(parseChangelog(content));
+        const parsed = parseChangelog(content);
+        changelogContentCache[changelogUrl] = parsed;
+        setChangelogContent(parsed);
       } catch (error) {
         console.error('Failed to load changelog:', error);
         setHasError(true);
@@ -238,9 +208,29 @@ export function ChangeLogTab({
     loadChangelog();
   }, [changelogUrl]);
 
-  if (isLoading) return <LoadingState />;
-  if (hasError) return <ErrorState />;
-  if (!changelogContent || changelogContent.length === 0) return <EmptyState />;
+  if (isLoading)
+    return (
+      <EdgeCaseState
+        icon={<RefreshCwIcon className='size-6 animate-spin' />}
+        title='Загрузка данных...'
+      />
+    );
+  if (hasError)
+    return (
+      <EdgeCaseState
+        icon={<AlertCircleIcon className='size-6' />}
+        title='Ошибка загрузки'
+        description='Не удалось загрузить список изменений.'
+      />
+    );
+  if (!changelogContent || changelogContent.length === 0)
+    return (
+      <EdgeCaseState
+        icon={<PackageIcon className='size-6' />}
+        title='Нет данных'
+        description='Список изменений пуст или недоступен.'
+      />
+    );
 
   return changelogContent.map((release, index) => (
     <ReleaseElement key={index} release={release} />

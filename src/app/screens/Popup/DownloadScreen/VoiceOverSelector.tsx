@@ -1,9 +1,11 @@
 import { useContext, useEffect } from 'react';
 import { Combobox } from '../../../../components/Combobox';
-import { FlagKZ, FlagUA, PremiumIcon } from '../../../../components/Icons';
 import { getVoiceOverList } from '../../../../extraction-scripts/extractVoiceOverList';
 import { PopupInitialDataContext } from '../../../../html/popup';
 import type { VoiceOverInfo } from '../../../../lib/types';
+import { FlagKZ } from '../../../../components/icons/FlagKZ';
+import { FlagUA } from '../../../../components/icons/FlagUA';
+import { PremiumIcon } from '../../../../components/icons/PremiumIcon';
 import { useAppDispatch, useAppSelector } from './store/store';
 import {
   selectCurrentVoiceOver,

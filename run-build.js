@@ -100,8 +100,9 @@ function main() {
     }
 
     const endTime = new Date();
+    const spentTime = (endTime.getTime() - startTime.getTime()) / 1000;
     console.log(
-      `\n*** HDrezka-Grabber-v${versionString}: build packages was successful ${endTime.toLocaleString()} ***`,
+      `\n*** HDrezka-Grabber-v${versionString}: build packages was successful ${spentTime}s ***`,
     );
   } catch (error) {
     console.error(`Error during build process: ${error.message}`);
