@@ -31,13 +31,13 @@ const TAB_LIST = {
 } as const;
 
 export function Settings() {
-  const { settings: settingsData } = useContext(SettingsInitialDataContext)!;
+  const { settings } = useContext(SettingsInitialDataContext)!;
   const [activeTab, setActiveTab] = useState<keyof typeof TAB_LIST>(() => {
     const hash = window.location.hash.replace('#', '');
     return (hash in TAB_LIST ? hash : 'settings') as keyof typeof TAB_LIST;
   });
   const ActiveComponent = TAB_LIST[activeTab].component;
-  document.documentElement.className = settingsData.darkMode ? 'dark' : 'light';
+  document.documentElement.className = settings.darkMode ? 'dark' : 'light';
 
   useEffect(() => {
     window.location.hash = activeTab;
@@ -50,7 +50,7 @@ export function Settings() {
         expand={true}
         richColors
         duration={10_000} // ms
-        theme={settingsData.darkMode ? 'light' : 'dark'}
+        theme={settings.darkMode ? 'light' : 'dark'}
       />
       <div className='mt-6 flex w-full flex-col items-center'>
         <SimpleTabs
@@ -63,7 +63,7 @@ export function Settings() {
           onValueChange={setActiveTab}
         />
         <div className='my-10 w-full'>
-          <ActiveComponent settings={settingsData} />
+          <ActiveComponent />
         </div>
       </div>
     </>

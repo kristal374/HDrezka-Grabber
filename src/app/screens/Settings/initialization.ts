@@ -8,21 +8,27 @@ export type SettingsInitData = Required<
 export async function settingsInit(
   setInitData: React.Dispatch<React.SetStateAction<any>>,
 ) {
-  const settings = await getSettings();
-  globalThis.settings = settings;
+  globalThis.settings = await getSettings();
+  globalThis.permissions = await browser.permissions.getAll();
 
   eventBus.on(EventType.StorageChanged, async (changes, areaName) => {
     if (areaName !== 'local') return;
     for (const [key, value] of Object.entries(changes)) {
       if (key === 'settings') {
-        const newSettings =
+        globalThis.settings =
           (value.newValue as Settings | undefined) ?? (await getSettings());
-        globalThis.settings = newSettings;
-        setInitData({ settings: newSettings });
-        Object.assign(settings, newSettings);
+        setInitData({ settings });
       }
     }
   });
+
+  const handler = async () => {
+    globalThis.permissions = await browser.permissions.getAll();
+    setInitData({ settings });
+  };
+
+  eventBus.on(EventType.PermissionAdded, handler);
+  eventBus.on(EventType.PermissionRemoved, handler);
 
   eventBus.setReady();
   return { settings };

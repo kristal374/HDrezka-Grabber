@@ -19,6 +19,14 @@ export const PopupInitialDataContext = createContext<PopupInitData | null>(
 );
 
 eventBus.addMessageSource(EventType.StorageChanged, browser.storage.onChanged);
+eventBus.addMessageSource(
+  EventType.PermissionAdded,
+  browser.permissions.onAdded,
+);
+eventBus.addMessageSource(
+  EventType.PermissionRemoved,
+  browser.permissions.onRemoved,
+);
 
 root.render(
   <Provider store={store}>

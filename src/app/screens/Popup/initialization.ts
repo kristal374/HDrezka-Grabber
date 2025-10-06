@@ -9,6 +9,7 @@ export async function popupInit(
   setInitData: React.Dispatch<React.SetStateAction<any>>,
 ) {
   globalThis.settings = await getSettings();
+  globalThis.permissions = await browser.permissions.getAll();
 
   const currentTab = await getCurrentTab();
 
@@ -33,6 +34,22 @@ export async function popupInit(
       }
     }
   });
+
+  const handler = async () => {
+    globalThis.permissions = await browser.permissions.getAll();
+    const newSessionStorage = tabId
+      ? { sessionStorage: await loadSessionStorageSave(tabId) }
+      : {};
+
+    setInitData((prev: PopupInitData) => ({
+      ...prev,
+      ...newSessionStorage,
+    }));
+  };
+
+  eventBus.on(EventType.PermissionAdded, handler);
+  eventBus.on(EventType.PermissionRemoved, handler);
+
   eventBus.setReady();
 
   if (!tabId || !siteUrl) return null;

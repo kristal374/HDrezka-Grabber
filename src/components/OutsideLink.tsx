@@ -1,11 +1,22 @@
-export function OutsideLink({ url, text }: { url: string; text: string }) {
+import { cn } from '../lib/utils';
+
+type OutsideLinkProps = {
+  url: string;
+  text?: string;
+  className?: string;
+};
+
+export function OutsideLink({ url, text, className }: OutsideLinkProps) {
   return (
     <a
       href={url}
       target='_blank'
-      className='text-link-color font-bold underline underline-offset-4'
+      className={cn(
+        'text-link-color font-bold underline underline-offset-4',
+        className,
+      )}
     >
-      {text}
+      {text ?? url}
     </a>
   );
 }

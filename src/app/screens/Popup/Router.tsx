@@ -1,9 +1,11 @@
 import { useContext } from 'react';
 import { OutsideLink } from '../../../components/OutsideLink';
 import { PopupInitialDataContext } from '../../../html/popup';
+import { patternsToRegExp } from '../../../lib/permissions';
 import { PageType } from '../../../lib/types';
 import { DefaultScreen } from './DefaultScreen';
 import { DownloadScreen } from './DownloadScreen/DownloadScreen';
+import { RequestAccessDomainScreen } from './RequestAccessDomainScreen';
 
 export function Router() {
   const initData = useContext(PopupInitialDataContext);
@@ -16,10 +18,14 @@ export function Router() {
       </DefaultScreen>
     );
   }
-  const { pageType } = initData;
+  const { pageType, siteUrl } = initData;
 
   logger.debug('Page type defined:', pageType);
   if (pageType === 'FILM' || pageType === 'SERIAL') {
+    const allowedSites = patternsToRegExp(...(permissions.origins ?? []));
+    if (!allowedSites.test(siteUrl)) {
+      return <RequestAccessDomainScreen />;
+    }
     return <DownloadScreen />;
   }
 

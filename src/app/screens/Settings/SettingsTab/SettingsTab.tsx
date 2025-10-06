@@ -1,6 +1,7 @@
 import {
   DownloadIcon,
   FolderCogIcon,
+  LockKeyhole,
   LucideBug,
   Monitor,
   ShieldAlert,
@@ -9,14 +10,12 @@ import { useCallback } from 'react';
 import { Combobox } from '../../../../components/Combobox';
 import { Panel } from '../../../../components/Panel';
 import { Toggle } from '../../../../components/Toggle';
+import { hasPermissionsToAllSites } from '../../../../lib/permissions';
 import { saveInStorage } from '../../../../lib/storage';
-import { LogLevel, Settings } from '../../../../lib/types';
+import { LogLevel } from '../../../../lib/types';
+import { AllowedSitesList } from './AllowedSitesList';
 import { FilenameTemplateMovie } from './FilenameTemplateBuilder';
 import { SettingItem, SettingsSection } from './SettingsComponets';
-
-type SettingsTabProps = {
-  settings: Settings;
-};
 
 export type SettingItemProps<T> = {
   value: T;
@@ -71,7 +70,7 @@ function SettingsItemToggle({
   );
 }
 
-export function SettingsTab({ settings }: SettingsTabProps) {
+export function SettingsTab() {
   const updateSetting = useCallback(function <T>(key: string, type?: 'number') {
     return (value: T) => {
       const newValue = {
@@ -330,6 +329,28 @@ export function SettingsTab({ settings }: SettingsTabProps) {
               },
             ]}
           />
+        </SettingsSection>
+
+        <SettingsSection title='Управление сайтами' icon={LockKeyhole}>
+          <SettingsItemToggle
+            title='Разрешить доступ ко всем сайтам (НЕ рекомендуется)'
+            description='Выдать расширению доступ ко всем сайтам'
+            value={hasPermissionsToAllSites(permissions)}
+            setValue={(value) => {
+              const allowedSites = structuredClone(permissions.origins ?? []);
+              if (value) {
+                browser.permissions.request({ origins: ['*://*/*'] });
+              } else {
+                allowedSites.splice(allowedSites.indexOf('*://*/*'), 1);
+                browser.permissions.remove({ origins: ['*://*/*'] });
+
+                // При удалении шаблона '*://*/*' удаляются и все другие шаблоны
+                // Мы должны восстановить их, установив повторно
+                browser.permissions.request({ origins: allowedSites });
+              }
+            }}
+          />
+          {!hasPermissionsToAllSites(permissions) && <AllowedSitesList />}
         </SettingsSection>
 
         <SettingsSection title='Отладка расширения' icon={LucideBug}>

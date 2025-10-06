@@ -21,9 +21,17 @@
     "storage",
     "declarativeNetRequest",
     "declarativeNetRequestFeedback",
-    "downloads"
+    "downloads",
+    "activeTab"
   ],
-  "host_permissions": ["http://*/*", "https://*/*"],
+  "optional_host_permissions": ["*://*/*"],
+  "host_permissions": [
+    "*://hdrezka.ag/*",
+    "*://hdrezka.me/*",
+    "*://hdrezka.co/*",
+    "*://hdrezka.cm/*",
+    "*://rezka.ag/*"
+  ],
   "web_accessible_resources": [
     {
       "resources": ["src/js/*"],

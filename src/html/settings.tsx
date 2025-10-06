@@ -18,6 +18,14 @@ export const SettingsInitialDataContext =
   createContext<SettingsInitData | null>(null);
 
 eventBus.addMessageSource(EventType.StorageChanged, browser.storage.onChanged);
+eventBus.addMessageSource(
+  EventType.PermissionAdded,
+  browser.permissions.onAdded,
+);
+eventBus.addMessageSource(
+  EventType.PermissionRemoved,
+  browser.permissions.onRemoved,
+);
 
 root.render(
   <App asyncInitFunction={settingsInit} Context={SettingsInitialDataContext}>

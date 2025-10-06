@@ -1,4 +1,9 @@
-import type { Downloads, Runtime, Storage } from 'webextension-polyfill';
+import type {
+  Downloads,
+  Permissions,
+  Runtime,
+  Storage,
+} from 'webextension-polyfill';
 
 type DownloadItem = Downloads.DownloadItem;
 type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
@@ -321,6 +326,8 @@ export enum EventType {
   DownloadEvent = 'DownloadEvent',
   BrowserStartup = 'BrowserStartup',
   StorageChanged = 'StorageChanged',
+  PermissionAdded = 'PermissionAdded',
+  PermissionRemoved = 'PermissionRemoved',
   LogCreate = 'logCreate',
 }
 
@@ -344,5 +351,7 @@ export type EventBusTypes = {
   [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
   [EventType.BrowserStartup]: void;
   [EventType.StorageChanged]: [Record<string, StorageChange>, string];
+  [EventType.PermissionAdded]: Permissions.Permissions;
+  [EventType.PermissionRemoved]: Permissions.Permissions;
   [EventType.LogCreate]: Event;
 };

@@ -1,5 +1,5 @@
 import { IDBPDatabase } from 'idb';
-import Browser from 'webextension-polyfill';
+import Browser, { Permissions } from 'webextension-polyfill';
 import messages from './src/_locales/ru/messages.json';
 import type { BufferedEventBus } from './src/lib/event-bus';
 import { HDrezkaGrabberDB } from './src/lib/idb-storage';
@@ -20,6 +20,7 @@ declare global {
   var logger: Logger;
   var eventBus: BufferedEventBus<EventBusTypes>;
   var settings: Settings;
+  var permissions: Permissions.AnyPermissions;
   var indexedDBObject: IDBPDatabase<HDrezkaGrabberDB>;
 }
 
