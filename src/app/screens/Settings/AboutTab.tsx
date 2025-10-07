@@ -1,12 +1,12 @@
-import { Button } from '@/components/Button';
 import { GitHubIcon } from '@/components/icons/GitHubIcon';
 import { Panel } from '@/components/Panel';
+import { Button } from '@/components/ui/Button';
+import { OutsideLink } from '@/components/ui/OutsideLink';
 import {
   CoffeeIcon,
   CopyCheckIcon,
   CopyIcon,
   DollarSignIcon,
-  ExternalLinkIcon,
   HeartIcon,
   MailIcon,
   ScaleIcon,
@@ -151,43 +151,36 @@ function DonationCard({ donation }: { donation: DonationPlatform }) {
       <div className='text-settings-text-tertiary mb-3 text-sm text-balance'>
         {donation.subtitle}
       </div>
-      <a
-        href={donation.link}
-        target='_blank'
-        rel='noopener noreferrer'
-        className='focus-ring text-link-color hover:text-link-color/80 mt-auto inline-flex items-center gap-1 rounded-sm px-1 text-sm transition-transform duration-300 hover:scale-105 hover:underline'
-      >
-        <span>{browser.i18n.getMessage('settings_SupportButton')}</span>
-        <ExternalLinkIcon className='size-3' />
-      </a>
+      <OutsideLink
+        url={donation.link}
+        text={browser.i18n.getMessage('settings_SupportButton')}
+        className='mt-auto text-sm transition-transform duration-300 hover:scale-105'
+        icon
+        underlineOnHover
+      />
     </div>
   );
 }
 
 function PersonCard({ person }: { person: Person }) {
   return (
-    <div className='bg-settings-background-tertiary/30 hover:bg-settings-background-tertiary/50 flex items-start gap-3 rounded-lg p-3 transition-all duration-300'>
-      <UserCircle2Icon className='text-settings-text-tertiary mt-0.5 size-5 flex-shrink-0' />
-      <div className='text-settings-text-secondary'>
-        <div className='mb-1 text-lg font-medium'>
+    <div className='bg-settings-background-tertiary/30 text-settings-text-tertiary hover:bg-settings-background-tertiary/50 flex flex-col gap-1 rounded-lg p-3 transition-colors duration-300'>
+      <div className='flex items-center gap-2'>
+        <UserCircle2Icon className='size-5' />
+        <span className='text-lg font-medium'>
           {person.url ? (
-            <a
-              href={person.url}
-              target='_blank'
-              rel='noreferrer'
-              className='focus-ring hover:text-link-color/80 inline-flex items-center gap-2 rounded-sm transition-transform duration-300 hover:underline'
-            >
-              {person.name}
-              <ExternalLinkIcon className='size-3' />
-            </a>
+            <OutsideLink
+              url={person.url}
+              text={person.name}
+              icon
+              underlineOnHover
+            />
           ) : (
             person.name
           )}
-        </div>
-        <p className='text-settings-text-tertiary text-base'>
-          {person.description}
-        </p>
+        </span>
       </div>
+      <p className='pl-8 text-base'>{person.description}</p>
     </div>
   );
 }
@@ -325,20 +318,18 @@ function ExtensionHeader({
             {extensionShortDescription}
           </p>
 
-          <div className='mb-4 flex items-center gap-3'>
-            <a
-              href={githubLink}
-              target='_blank'
-              rel='noopener noreferrer'
-              className='focus-ring hover:text-link-color group text-settings-text-secondary inline-flex items-center gap-2 rounded-sm pr-1 text-sm'
-            >
-              <GitHubIcon
-                className='size-5'
-                fill={settings.darkMode ? '#ffffff' : undefined}
-              />
-              <span>{browser.i18n.getMessage('settings_SourceCode')}</span>
-              <ExternalLinkIcon className='size-3' />
-            </a>
+          <div className='mb-4 flex items-center gap-1'>
+            <GitHubIcon
+              className='size-5'
+              fill={settings.darkMode ? '#ffffff' : undefined}
+            />
+            <OutsideLink
+              url={githubLink}
+              text={browser.i18n.getMessage('settings_SourceCode')}
+              className='text-settings-text-secondary text-sm'
+              icon
+              underlineOnHover
+            />
           </div>
 
           <div className='space-y-3'>

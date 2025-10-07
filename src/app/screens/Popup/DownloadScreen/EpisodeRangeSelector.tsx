@@ -1,5 +1,5 @@
-import { CheckboxWithLabel } from '@/components/Checkbox';
-import { Combobox } from '@/components/Combobox';
+import { CheckboxWithLabel } from '@/components/ui/Checkbox';
+import { Combobox } from '@/components/ui/Combobox';
 import { getSeasons } from '@/extraction-scripts/extractSeasons';
 import { PopupInitialDataContext } from '@/html/popup';
 import { sliceSeasons } from '@/lib/utils';

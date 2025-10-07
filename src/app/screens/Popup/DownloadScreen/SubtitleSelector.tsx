@@ -1,6 +1,6 @@
-import { Combobox } from '@/components/Combobox';
+import { Combobox } from '@/components/ui/Combobox';
 import { Subtitle } from '@/lib/types';
-import { CheckboxWithLabel } from '../../../../components/Checkbox';
+import { CheckboxWithLabel } from '../../../../components/ui/Checkbox';
 import { useAppDispatch, useAppSelector } from './store/store';
 import {
   selectCurrentSubtitle,

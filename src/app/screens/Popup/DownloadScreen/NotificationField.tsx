@@ -1,4 +1,4 @@
-import { Button } from '@/components/Button';
+import { Button } from '@/components/ui/Button';
 import { EventType, Message } from '@/lib/types';
 import { XIcon } from 'lucide-react';
 import { Fragment, useEffect } from 'react';

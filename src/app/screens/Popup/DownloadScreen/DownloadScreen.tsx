@@ -1,7 +1,6 @@
 import { useChangeMovieInfo } from '@/app/hooks/popup/useChangeMovieInfo';
 import { useChangeRangeEpisodes } from '@/app/hooks/popup/useChangeRangeEpisodes';
 import { useChangeVoiceOver } from '@/app/hooks/popup/useChangeVoiceOver';
-import { DividingLine } from '@/components/DividingLine';
 import { Menu } from '@/components/Menu';
 import { PopupInitialDataContext } from '@/html/popup';
 import type { FilmData, SerialData } from '@/lib/types';
@@ -51,7 +50,7 @@ export function DownloadScreen() {
 
         <SubtitleSelector />
         {(pageType === 'SERIAL' || subtitleLang || notification) && (
-          <DividingLine />
+          <hr className='border-popup-border w-full border-b' />
         )}
 
         <VoiceOverSelector

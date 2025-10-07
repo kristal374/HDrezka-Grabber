@@ -1,9 +1,9 @@
 import { Panel } from '@/components/Panel';
+import { OutsideLink } from '@/components/ui/OutsideLink';
 import {
   AlertCircleIcon,
   CalendarIcon,
   Edit3Icon,
-  ExternalLinkIcon,
   PackageIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -23,20 +23,6 @@ interface Release {
 
 interface ChangeLogTabProps {
   changelogUrl?: string;
-}
-
-function OutsideLink({ url, text }: { url: string; text: string }) {
-  return (
-    <a
-      href={url}
-      target='_blank'
-      rel='noopener noreferrer'
-      className='group focus-ring text-link-color hover:text-link-color/80 inline-flex items-center gap-2 rounded px-1 hover:underline'
-    >
-      <span>{text}</span>
-      <ExternalLinkIcon className='size-4' />
-    </a>
-  );
 }
 
 function ChangeTypeIcon({ type }: { type: ContentChapter }) {
@@ -65,7 +51,12 @@ function ReleaseHeader({ release }: { release: Release }) {
       <h1 className='text-settings-text-primary flex items-center gap-2 text-2xl font-bold'>
         <PackageIcon className='text-settings-text-tertiary size-6' />
         {release.url ? (
-          <OutsideLink url={release.url} text={release.version} />
+          <OutsideLink
+            url={release.url}
+            text={release.version}
+            icon
+            underlineOnHover
+          />
         ) : (
           <span className='focus-ring rounded px-1' tabIndex={0}>
             {release.version}

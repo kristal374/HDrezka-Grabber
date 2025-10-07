@@ -1,5 +1,5 @@
-import { Button } from '@/components/Button';
-import { OutsideLink } from '@/components/OutsideLink';
+import { Button } from '@/components/ui/Button';
+import { OutsideLink } from '@/components/ui/OutsideLink';
 import { AlertCircle, Plus, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -179,7 +179,7 @@ export function AllowedSitesList() {
             >
               <OutsideLink
                 url={site.replace(/.*:\/\/(.+)\/.+/, `https://$1/`)}
-                className='flex-1 text-sm break-all'
+                className='text-sm break-all'
               />
 
               {!requiredSites.includes(site) && (

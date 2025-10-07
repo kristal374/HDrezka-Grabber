@@ -1,7 +1,7 @@
-import { Button } from '@/components/Button';
-import { Combobox } from '@/components/Combobox';
 import { Panel } from '@/components/Panel';
-import { Toggle } from '@/components/Toggle';
+import { Button } from '@/components/ui/Button';
+import { Combobox } from '@/components/ui/Combobox';
+import { Toggle } from '@/components/ui/Toggle';
 import { hasPermissionsToAllSites } from '@/lib/permissions';
 import { saveInStorage } from '@/lib/storage';
 import { LogLevel } from '@/lib/types';

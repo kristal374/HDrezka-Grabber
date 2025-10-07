@@ -1,5 +1,5 @@
-import { Button } from '@/components/Button';
 import { Menu } from '@/components/Menu';
+import { Button } from '@/components/ui/Button';
 import { PopupInitialDataContext } from '@/html/popup';
 import { useCallback, useContext } from 'react';
 

@@ -1,5 +1,5 @@
 import { HeroiconsCogIcon } from '@/components/icons/HeroiconsCogIcon';
-import { MenuButton } from '@/components/MenuButton';
+import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { SquareTerminalIcon } from 'lucide-react';
 
@@ -28,5 +28,42 @@ export function Menu({ className }: MenuProps) {
         </MenuButton>
       )}
     </div>
+  );
+}
+
+interface MenuButtonProps
+  extends Omit<React.ComponentProps<'button'>, 'onClick' | 'className'> {
+  /**
+   * Path to an HTML file without .html extension
+   */
+  href: `/${string}`;
+  openInNewTab?: boolean;
+}
+
+export function MenuButton({
+  href,
+  openInNewTab = false,
+  ...props
+}: MenuButtonProps) {
+  return (
+    <Button
+      variant='ghost'
+      size='square'
+      onClick={() => {
+        openInNewTab
+          ? window.open(browser.runtime.getURL(`${href}.html`))
+          : browser.windows.create({
+              url: browser.runtime.getURL(`${href}.html`),
+              type: 'popup',
+              width: 800,
+              height: 600,
+            });
+        if (openInNewTab) {
+          // Firefox specific
+          window.close();
+        }
+      }}
+      {...props}
+    />
   );
 }

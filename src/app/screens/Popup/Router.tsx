@@ -1,4 +1,4 @@
-import { OutsideLink } from '@/components/OutsideLink';
+import { OutsideLink } from '@/components/ui/OutsideLink';
 import { PopupInitialDataContext } from '@/html/popup';
 import { patternsToRegExp } from '@/lib/permissions';
 import { PageType } from '@/lib/types';
