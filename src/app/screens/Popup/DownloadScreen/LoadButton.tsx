@@ -62,11 +62,12 @@ export function LoadButton() {
   return (
     <button
       className={cn(
-        'group relative flex size-30 cursor-pointer items-center justify-center overflow-clip rounded-full text-white',
+        'group focus-ring relative flex size-30 cursor-pointer items-center justify-center overflow-clip rounded-full text-white',
         'bg-popup-border not-disabled:hover:bg-input transition-transform duration-200 not-disabled:active:scale-96',
-        'ring-link-color ring-offset-background outline-none focus-visible:ring-3 focus-visible:ring-offset-3',
+        'focus-visible:ring-3 focus-visible:ring-offset-3',
         isCompleted && 'cursor-not-allowed',
       )}
+      type='button'
       onClick={handleClick}
       disabled={isCompleted}
     >

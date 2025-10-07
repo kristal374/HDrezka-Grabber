@@ -17,7 +17,7 @@ export function MenuButton({
   return (
     <Button
       variant='ghost'
-      className='p-1'
+      size='square'
       onClick={() => {
         openInNewTab
           ? window.open(browser.runtime.getURL(`${href}.html`))

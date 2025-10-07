@@ -1,5 +1,6 @@
 import { Panel } from '@/components/Panel';
-import { ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ChevronDownIcon } from 'lucide-react';
 import { useState } from 'react';
 
 const faqData = [
@@ -56,21 +57,23 @@ function FAQItem({ question, answer, isOpen, onToggle }: FAQItemProps) {
   return (
     <div className='border-settings-border-secondary border-b last:border-b-0'>
       <button
-        className='hover:text-settings-text-primary flex w-full items-center justify-between py-4 text-left transition-colors duration-500'
+        className='focus-ring hover:text-settings-text-primary flex w-full items-center justify-between py-4 text-left'
         onClick={onToggle}
       >
         <span className='pr-4 text-lg font-medium'>{question}</span>
-        <ChevronDown
-          className={`text-settings-text-tertiary h-5 w-5 flex-shrink-0 transition-transform duration-500 ${
-            isOpen ? 'rotate-180' : ''
-          }`}
+        <ChevronDownIcon
+          className={cn(
+            'text-settings-text-tertiary size-5 flex-shrink-0 transition-transform duration-500',
+            isOpen && 'rotate-180',
+          )}
         />
       </button>
 
       <div
-        className={`grid transition-[grid-template-rows] duration-500 ease-in-out ${
-          isOpen ? 'grid-rows-[1fr] pb-4' : 'grid-rows-[0fr]'
-        }`}
+        className={cn(
+          'grid transition-[grid-template-rows] duration-500 ease-in-out',
+          isOpen ? 'grid-rows-[1fr] pb-4' : 'grid-rows-[0fr]',
+        )}
       >
         <div className='overflow-hidden'>
           <div className='text-settings-text-tertiary text-justify text-base leading-relaxed'>
@@ -106,17 +109,15 @@ export function FAQTab() {
 
   return (
     <Panel>
-      <div className='space-y-0'>
-        {faqData.map((item) => (
-          <FAQItem
-            key={item.id}
-            question={item.question}
-            answer={item.answer}
-            isOpen={openItems.has(item.id)}
-            onToggle={() => toggleItem(item.id)}
-          />
-        ))}
-      </div>
+      {faqData.map((item) => (
+        <FAQItem
+          key={item.id}
+          question={item.question}
+          answer={item.answer}
+          isOpen={openItems.has(item.id)}
+          onToggle={() => toggleItem(item.id)}
+        />
+      ))}
     </Panel>
   );
 }

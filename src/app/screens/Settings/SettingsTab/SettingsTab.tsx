@@ -414,7 +414,7 @@ export function SettingsTab() {
             />
           )}
 
-          <hr className='border-settings-border-primary mb-5 border-t' />
+          <hr className='border-settings-border-primary border-t' />
 
           <div className='flex flex-wrap gap-3'>
             <Button>Попытаться восстановить работу расширения</Button>

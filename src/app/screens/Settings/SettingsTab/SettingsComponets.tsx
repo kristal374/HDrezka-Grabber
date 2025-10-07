@@ -13,15 +13,13 @@ export const SettingItem = memo(function SettingItem({
   className?: string;
 }) {
   return (
-    <div
-      className={cn('flex items-center justify-between gap-3 py-3', className)}
-    >
+    <div className={cn('flex items-center justify-between gap-3', className)}>
       <div className='flex-1 pr-4'>
         <h4 className='text-settings-text-secondary text-base font-medium'>
           {title}
         </h4>
         {description && (
-          <p className='text-settings-text-tertiary mt-1 text-sm'>
+          <p className='text-settings-text-tertiary mt-1 text-sm text-balance'>
             {description}
           </p>
         )}
@@ -45,7 +43,8 @@ export function SettingsSection({
   return (
     <div
       className={cn(
-        'border-settings-border-primary bg-settings-background-secondary relative rounded-lg border p-6',
+        'relative flex flex-col gap-6 rounded-lg border p-6',
+        'border-settings-border-primary bg-settings-background-secondary',
         className,
       )}
     >

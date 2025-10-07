@@ -7,11 +7,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Mention,
   MentionsInput,
-  OnChangeHandlerFunc,
-  SuggestionFunc,
+  type OnChangeHandlerFunc,
+  type SuggestionFunc,
 } from 'react-mentions';
 import { toast } from 'sonner';
-import { SettingItemProps } from './SettingsTab';
+import type { SettingItemProps } from './SettingsTab';
 
 export const MARKUP = '\\[__display__\\](__id__)';
 export const REGEXP_PLACEHOLDER_TEMPLATE = /(\\\[([A-я\s]+)\\]\((%[a-z_]+%)\))/;
@@ -171,7 +171,7 @@ export function FilenameTemplateInput({
     (suggestion, _search, _highlightedDisplay, index, _focused) => {
       if (!placeholders[index]) return suggestion.display;
       return (
-        <span className='flex w-full items-center justify-between gap-2 text-left text-xs'>
+        <span className='flex w-full items-center justify-between gap-2 text-left'>
           {suggestion.display}
         </span>
       );
@@ -192,18 +192,21 @@ export function FilenameTemplateInput({
       onChange={handleChange}
       className='mentions'
       classNames={{
-        mentions__control: 'font-mono',
-        mentions__highlighter: 'py-2 pl-2 pr-10 !text-base',
+        mentions__control: cn(
+          'font-mono bg-background hover:bg-input border-transparent',
+          'rounded-lg border-2',
+        ),
+        mentions__highlighter: cn('py-2 pl-2 pr-10 !text-base', '!border-0'),
         mentions__input: cn(
           'py-2 pl-2 pr-10 !text-base',
-          'border-settings-border-primary rounded-lg border bg-settings-background-primary text-settings-text-primary font-normal',
-          'ring-link-color ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+          'rounded-lg border-2',
+          'focus-ring text-settings-text-primary border-input hover:border-input-active',
         ),
         mentions__suggestions:
-          '!bg-input text-foreground text-sm border-input-active rounded-md border shadow-md',
+          '!bg-input !mt-5 -ml-2.5 text-foreground text-sm border-input-active rounded-md border shadow-md',
         mentions__suggestions__list: 'flex flex-col !p-1',
         mentions__suggestions__item:
-          'flex grow cursor-default items-center rounded-sm px-2 py-1.5 text-sm select-none',
+          'flex grow cursor-default items-center rounded-sm px-2.5 py-1.5 text-sm select-none',
         'mentions__suggestions__item--focused': 'bg-link-color',
       }}
     >
@@ -212,7 +215,7 @@ export function FilenameTemplateInput({
         markup={MARKUP}
         data={placeholders}
         renderSuggestion={renderPlaceholderSuggestion}
-        className='bg-settings-border-tertiary text-settings-text-primary rounded'
+        className='bg-input-active rounded'
         displayTransform={displayTransformHandler}
       />
     </MentionsInput>

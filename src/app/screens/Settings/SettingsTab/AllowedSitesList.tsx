@@ -189,7 +189,7 @@ export function AllowedSitesList() {
                   size='square'
                   title='Удалить сайт'
                 >
-                  <Trash2 className='size-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-95' />
+                  <Trash2 className='m-0.5 size-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-95' />
                 </Button>
               )}
             </div>

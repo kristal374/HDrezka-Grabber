@@ -65,7 +65,7 @@ export function NotificationField() {
       <Button
         variant='dangerous'
         size='square'
-        className='mt-0.5 p-1 !text-white not-disabled:active:scale-92'
+        className='mt-0.5 !text-white not-disabled:active:scale-92'
         onClick={() => dispatch(setNotificationAction({ notification: null }))}
       >
         <XIcon className='size-4.5' />

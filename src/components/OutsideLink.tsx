@@ -12,7 +12,7 @@ export function OutsideLink({ url, text, className }: OutsideLinkProps) {
       href={url}
       target='_blank'
       className={cn(
-        'text-link-color font-bold underline underline-offset-4',
+        'text-link-color focus-ring rounded font-bold underline underline-offset-4',
         className,
       )}
     >

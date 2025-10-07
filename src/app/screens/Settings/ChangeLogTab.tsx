@@ -31,10 +31,10 @@ function OutsideLink({ url, text }: { url: string; text: string }) {
       href={url}
       target='_blank'
       rel='noopener noreferrer'
-      className='group text-link-color hover:text-link-color/80 inline-flex items-center gap-2 transition-all duration-300 hover:underline'
+      className='group focus-ring text-link-color hover:text-link-color/80 inline-flex items-center gap-2 rounded px-1 hover:underline'
     >
       <span>{text}</span>
-      <ExternalLinkIcon className='size-4 transition-transform' />
+      <ExternalLinkIcon className='size-4' />
     </a>
   );
 }
@@ -62,19 +62,19 @@ function ChangeTypeIcon({ type }: { type: ContentChapter }) {
 function ReleaseHeader({ release }: { release: Release }) {
   return (
     <div className='flex items-baseline justify-between gap-4'>
-      <h1 className='text-settings-text-primary flex items-center gap-3 text-2xl font-bold'>
-        <PackageIcon className='text-settings-text-tertiary h-6 w-6' />
+      <h1 className='text-settings-text-primary flex items-center gap-2 text-2xl font-bold'>
+        <PackageIcon className='text-settings-text-tertiary size-6' />
         {release.url ? (
           <OutsideLink url={release.url} text={release.version} />
         ) : (
-          <span className='hover:text-settings-text-accent transition-colors duration-300'>
+          <span className='focus-ring rounded px-1' tabIndex={0}>
             {release.version}
           </span>
         )}
       </h1>
       {release.date && (
         <div className='text-settings-text-tertiary flex items-center gap-2 text-lg'>
-          <CalendarIcon className='h-4 w-4' />
+          <CalendarIcon className='size-4' />
           <span className='font-medium'>{release.date}</span>
         </div>
       )}
@@ -102,7 +102,7 @@ function ChangeSection({
   if (!items || items.length === 0) return null;
 
   return (
-    <section className='mt-8'>
+    <section>
       <h2 className='text-settings-text-accent mb-2 flex items-center gap-2 text-xl font-semibold'>
         <ChangeTypeIcon type={type} />
         {browser.i18n.getMessage(`settings_Changelog${type}`)}
@@ -134,8 +134,8 @@ function ReleaseElement({ release }: { release: Release }) {
 
       {hasAnySections && (
         <>
-          <hr className='border-settings-border-secondary mt-2 border-t-2' />
-          <div className='space-y-8'>
+          <hr className='border-settings-border-secondary my-5 border-t-2' />
+          <div className='flex flex-col gap-8'>
             {Object.entries(content).map(([type, items]) => (
               <ChangeSection
                 key={type}

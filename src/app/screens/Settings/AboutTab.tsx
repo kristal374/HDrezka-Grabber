@@ -1,15 +1,16 @@
+import { Button } from '@/components/Button';
+import { GitHubIcon } from '@/components/icons/GitHubIcon';
 import { Panel } from '@/components/Panel';
 import {
-  Coffee,
-  Copy,
-  CopyCheck,
-  DollarSign,
-  ExternalLink,
-  Github,
-  Heart,
-  Mail,
-  Scale,
-  UserCircle2,
+  CoffeeIcon,
+  CopyCheckIcon,
+  CopyIcon,
+  DollarSignIcon,
+  ExternalLinkIcon,
+  HeartIcon,
+  MailIcon,
+  ScaleIcon,
+  UserCircle2Icon,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 
@@ -34,7 +35,7 @@ type DonationPlatform = {
   link: string;
 };
 
-type Helper = {
+type Person = {
   name: string;
   url?: string;
   description: string;
@@ -49,7 +50,7 @@ interface AboutTabProps {
   storeLinks?: StoreLink[];
   infoCards?: Card[];
   donations?: DonationPlatform[];
-  helpers?: Helper[];
+  people?: Person[];
 }
 
 function CopyButton({ content }: { content: string }) {
@@ -69,19 +70,21 @@ function CopyButton({ content }: { content: string }) {
   };
 
   return (
-    <button
+    <Button
+      variant='ghost'
+      size='square'
       onClick={handleCopy}
-      className='hover:bg-settings-background-tertiary rounded p-1 transition-all duration-200'
+      className='rounded'
       title={browser.i18n.getMessage('settings_CopyTitle')}
     >
       <div className='transition-all duration-200'>
         {isCopied ? (
-          <CopyCheck className='h-4 w-4 animate-pulse text-green-500' />
+          <CopyCheckIcon className='size-4 animate-pulse text-green-500' />
         ) : (
-          <Copy className='text-settings-text-tertiary hover:text-settings-text-accent h-4 w-4 transition-all duration-200 hover:scale-110' />
+          <CopyIcon className='text-settings-text-tertiary group-hover:text-settings-text-accent size-4 transition-all duration-200 group-hover:scale-110' />
         )}
       </div>
-    </button>
+    </Button>
   );
 }
 
@@ -93,7 +96,7 @@ function ExtensionStoreLink({ name, url, icon }: StoreLink) {
       rel='noopener noreferrer'
       title={name}
       aria-label={name}
-      className='border-settings-border-primary group bg-settings-background-primary hover:bg-settings-background-tertiary inline-flex h-10 items-center gap-2 rounded-lg border px-3 py-2 transition-transform duration-200 hover:scale-105 focus:outline-none focus-visible:ring-2'
+      className='focus-ring border-settings-border-primary group bg-settings-background-primary hover:bg-settings-background-tertiary inline-flex h-10 items-center gap-2 rounded-lg border px-3 py-2 transition-transform duration-200 hover:scale-105'
     >
       <img
         src={icon}
@@ -101,7 +104,7 @@ function ExtensionStoreLink({ name, url, icon }: StoreLink) {
         width={20}
         height={20}
         loading='lazy'
-        className='h-5 w-5 flex-shrink-0 rounded-sm transition-transform duration-200 group-hover:scale-110'
+        className='size-5 flex-shrink-0 rounded-sm transition-transform duration-200 group-hover:scale-110'
       />
       <span className='text-sm leading-none font-bold whitespace-nowrap'>
         {name}
@@ -152,38 +155,38 @@ function DonationCard({ donation }: { donation: DonationPlatform }) {
         href={donation.link}
         target='_blank'
         rel='noopener noreferrer'
-        className='text-link-color hover:text-link-color/80 mt-auto inline-flex items-center gap-1 text-sm transition-all duration-300 hover:scale-105 hover:underline'
+        className='focus-ring text-link-color hover:text-link-color/80 mt-auto inline-flex items-center gap-1 rounded-sm px-1 text-sm transition-transform duration-300 hover:scale-105 hover:underline'
       >
         <span>{browser.i18n.getMessage('settings_SupportButton')}</span>
-        <ExternalLink className='h-3 w-3' />
+        <ExternalLinkIcon className='size-3' />
       </a>
     </div>
   );
 }
 
-function HelperCard({ helper }: { helper: Helper }) {
+function PersonCard({ person }: { person: Person }) {
   return (
     <div className='bg-settings-background-tertiary/30 hover:bg-settings-background-tertiary/50 flex items-start gap-3 rounded-lg p-3 transition-all duration-300'>
-      <UserCircle2 className='text-settings-text-tertiary mt-0.5 h-5 w-5 flex-shrink-0' />
+      <UserCircle2Icon className='text-settings-text-tertiary mt-0.5 size-5 flex-shrink-0' />
       <div className='text-settings-text-secondary'>
         <div className='mb-1 text-lg font-medium'>
-          {helper.url ? (
+          {person.url ? (
             <a
-              href={helper.url}
+              href={person.url}
               target='_blank'
               rel='noreferrer'
-              className='hover:text-link-color/80 inline-flex items-center gap-2 transition-all duration-300 hover:underline'
+              className='focus-ring hover:text-link-color/80 inline-flex items-center gap-2 rounded-sm transition-transform duration-300 hover:underline'
             >
-              {helper.name}
-              <ExternalLink className='h-3 w-3 transition-transform duration-300' />
+              {person.name}
+              <ExternalLinkIcon className='size-3' />
             </a>
           ) : (
-            helper.name
+            person.name
           )}
         </div>
-        <div className='text-settings-text-tertiary text-base'>
-          {helper.description}
-        </div>
+        <p className='text-settings-text-tertiary text-base'>
+          {person.description}
+        </p>
       </div>
     </div>
   );
@@ -245,7 +248,7 @@ function SupportSection({
     <section className='border-settings-border-secondary border-t pt-8'>
       <div className='mb-6 text-center'>
         <div className='mb-2 flex items-center justify-center gap-2'>
-          <Heart className='h-6 w-6 animate-pulse fill-current text-red-500' />
+          <HeartIcon className='size-6 animate-pulse fill-current text-red-500' />
           <h2 className='text-settings-text-primary text-2xl font-medium'>
             {browser.i18n.getMessage('settings_SupportTitle')}
           </h2>
@@ -269,8 +272,8 @@ function SupportSection({
   );
 }
 
-function HelpersSection({ helpers }: { helpers?: Helper[] }) {
-  if (!helpers || helpers.length === 0) return null;
+function PersonsSection({ people }: { people?: Person[] }) {
+  if (!people || people.length === 0) return null;
 
   return (
     <section>
@@ -280,8 +283,8 @@ function HelpersSection({ helpers }: { helpers?: Helper[] }) {
             {browser.i18n.getMessage('settings_DevelopersTitle')}
           </h3>
           <div className='grid gap-3'>
-            {helpers.map((helper, index) => (
-              <HelperCard key={index} helper={helper} />
+            {people.map((person, index) => (
+              <PersonCard key={index} person={person} />
             ))}
           </div>
         </div>
@@ -327,11 +330,14 @@ function ExtensionHeader({
               href={githubLink}
               target='_blank'
               rel='noopener noreferrer'
-              className='hover:text-link-color group text-settings-text-secondary inline-flex items-center gap-2 text-sm'
+              className='focus-ring hover:text-link-color group text-settings-text-secondary inline-flex items-center gap-2 rounded-sm pr-1 text-sm'
             >
-              <Github className='h-4 w-4 transition-transform' />
+              <GitHubIcon
+                className='size-5'
+                fill={settings.darkMode ? '#ffffff' : undefined}
+              />
               <span>{browser.i18n.getMessage('settings_SourceCode')}</span>
-              <ExternalLink className='h-3 w-3 transition-transform' />
+              <ExternalLinkIcon className='size-3' />
             </a>
           </div>
 
@@ -390,12 +396,12 @@ export function AboutTab({
   infoCards = [
     {
       cardTitle: browser.i18n.getMessage('settings_LicenseTitle'),
-      cardIcon: <Scale className='text-settings-text-tertiary h-5 w-5' />,
+      cardIcon: <ScaleIcon className='text-settings-text-tertiary h-5 w-5' />,
       cardContent: 'GPL-3.0',
     },
     {
       cardTitle: browser.i18n.getMessage('settings_ContactsTitle'),
-      cardIcon: <Mail className='text-settings-text-tertiary h-5 w-5' />,
+      cardIcon: <MailIcon className='text-settings-text-tertiary h-5 w-5' />,
       cardContent: browser.runtime.getManifest().author!,
       cardUrl: 'mailto:' + browser.runtime.getManifest().author!,
       needCopyButton: true,
@@ -406,13 +412,13 @@ export function AboutTab({
     {
       title: 'Patreon',
       subtitle: browser.i18n.getMessage('settings_patreonSubtitle'),
-      icon: <Coffee className='mx-auto h-8 w-8 text-orange-500' />,
+      icon: <CoffeeIcon className='mx-auto h-8 w-8 text-orange-500' />,
       link: 'https://patreon.com/reactextpro',
     },
     {
       title: 'PayPal',
       subtitle: browser.i18n.getMessage('settings_PayPalSubtitle'),
-      icon: <DollarSign className='mx-auto h-8 w-8 text-blue-500' />,
+      icon: <DollarSignIcon className='mx-auto h-8 w-8 text-blue-500' />,
       link: 'https://paypal.me/reactextpro',
     },
     {
@@ -428,11 +434,11 @@ export function AboutTab({
     {
       title: 'GitHub Sponsors',
       subtitle: browser.i18n.getMessage('settings_GitHubSubtitle'),
-      icon: <Heart className='mx-auto h-8 w-8 text-red-500' />,
+      icon: <HeartIcon className='mx-auto h-8 w-8 text-red-500' />,
       link: 'https://github.com/sponsors/yourname',
     },
   ],
-  helpers = [
+  people = [
     {
       name: 'kristal374',
       url: 'https://github.com/kristal374/',
@@ -463,7 +469,7 @@ export function AboutTab({
 
         <SupportSection extensionName={extensionName} donations={donations} />
 
-        <HelpersSection helpers={helpers} />
+        <PersonsSection people={people} />
       </div>
     </Panel>
   );
