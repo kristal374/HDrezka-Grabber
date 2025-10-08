@@ -9,7 +9,6 @@ export async function settingsInit(
   setInitData: React.Dispatch<React.SetStateAction<any>>,
 ) {
   globalThis.settings = await getSettings();
-  globalThis.permissions = await browser.permissions.getAll();
 
   eventBus.on(EventType.StorageChanged, async (changes, areaName) => {
     if (areaName !== 'local') return;
@@ -21,14 +20,6 @@ export async function settingsInit(
       }
     }
   });
-
-  const handler = async () => {
-    globalThis.permissions = await browser.permissions.getAll();
-    setInitData({ settings });
-  };
-
-  eventBus.on(EventType.PermissionAdded, handler);
-  eventBus.on(EventType.PermissionRemoved, handler);
 
   eventBus.setReady();
   return { settings };

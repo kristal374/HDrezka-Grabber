@@ -10,19 +10,16 @@ import { Panel } from '@/components/Panel';
 import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { Toggle } from '@/components/ui/Toggle';
-import { hasPermissionsToAllSites } from '@/lib/permissions';
 import { saveInStorage } from '@/lib/storage';
 import { LogLevel } from '@/lib/types';
 import {
   DownloadIcon,
   FolderCogIcon,
-  LockKeyhole,
   LucideBug,
   Monitor,
   ShieldAlert,
 } from 'lucide-react';
 import { useCallback } from 'react';
-import { AllowedSitesList } from './AllowedSitesList';
 import { FilenameTemplateComponent } from './FilenameTemplateComponent';
 import { SettingItem, SettingsSection } from './SettingsComponets';
 
@@ -286,28 +283,6 @@ export function SettingsTab() {
             readyTemplates={SERIES_READY_TEMPLATES}
             previews={SERIES_PREVIEW}
           />
-        </SettingsSection>
-
-        <SettingsSection title='Управление сайтами' icon={LockKeyhole}>
-          <SettingsItemToggle
-            title='Разрешить доступ ко всем сайтам (НЕ рекомендуется)'
-            description='Выдать расширению доступ ко всем сайтам'
-            value={hasPermissionsToAllSites(permissions)}
-            setValue={(value) => {
-              const allowedSites = structuredClone(permissions.origins ?? []);
-              if (value) {
-                browser.permissions.request({ origins: ['*://*/*'] });
-              } else {
-                allowedSites.splice(allowedSites.indexOf('*://*/*'), 1);
-                browser.permissions.remove({ origins: ['*://*/*'] });
-
-                // При удалении шаблона '*://*/*' удаляются и все другие шаблоны
-                // Мы должны восстановить их, установив повторно
-                browser.permissions.request({ origins: allowedSites });
-              }
-            }}
-          />
-          {!hasPermissionsToAllSites(permissions) && <AllowedSitesList />}
         </SettingsSection>
 
         <SettingsSection title='Отладка расширения' icon={LucideBug}>

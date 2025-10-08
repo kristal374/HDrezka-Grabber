@@ -35,21 +35,6 @@ export async function popupInit(
     }
   });
 
-  const handler = async () => {
-    globalThis.permissions = await browser.permissions.getAll();
-    const newSessionStorage = tabId
-      ? { sessionStorage: await loadSessionStorageSave(tabId) }
-      : {};
-
-    setInitData((prev: PopupInitData) => ({
-      ...prev,
-      ...newSessionStorage,
-    }));
-  };
-
-  eventBus.on(EventType.PermissionAdded, handler);
-  eventBus.on(EventType.PermissionRemoved, handler);
-
   eventBus.setReady();
 
   if (!tabId || !siteUrl) return null;
