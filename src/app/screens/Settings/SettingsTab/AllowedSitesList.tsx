@@ -96,7 +96,7 @@ function AddSitesModal({
               onKeyDown={handleKeyDown}
               placeholder='https://rezka.ag&#10;http://hdrezka.ag'
               rows={8}
-              className='border-settings-border-primary bg-settings-background-primary text-settings-text-primary placeholder-settings-text-tertiary focus:border-settings-border-tertiary focus:ring-settings-border-tertiary/20 w-full resize-none rounded-lg border px-4 py-3 font-mono text-sm focus:ring-2 focus:outline-none'
+              className='border-settings-border-primary bg-settings-background-primary text-settings-text-primary placeholder-settings-text-tertiary scroll-container focus-ring w-full resize-none rounded-lg border px-4 py-3 font-mono text-sm'
               autoFocus
             />
             <p className='text-settings-text-tertiary mt-2 text-xs'>
@@ -105,7 +105,7 @@ function AddSitesModal({
           </div>
 
           {errors.length > 0 && (
-            <div className='max-h-32 space-y-1 overflow-y-auto rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3'>
+            <div className='scroll-container max-h-32 space-y-1 overflow-y-auto rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 break-all'>
               {errors.map((error, index) => (
                 <div
                   key={index}
@@ -172,28 +172,39 @@ export function AllowedSitesList() {
             </p>
           </div>
         ) : (
-          allowedSites.map((site, index) => (
-            <div
-              key={index}
-              className='border-settings-border-secondary bg-settings-background-secondary flex items-center justify-between gap-3 rounded-md border px-3 py-2.5'
-            >
-              <OutsideLink
-                url={site.replace(/.*:\/\/(.+)\/.+/, `https://$1/`)}
-                className='text-sm break-all'
-              />
+          allowedSites
+            .sort((a, b) => {
+              const aRequired = requiredSites.includes(a);
+              const bRequired = requiredSites.includes(b);
+              if (aRequired === bRequired) return 0;
+              return aRequired ? -1 : 1;
+            })
+            .map((site, index) => (
+              <div
+                key={index}
+                className='border-settings-border-secondary bg-settings-background-secondary flex items-center justify-between gap-3 rounded-md border px-3 py-2.5'
+              >
+                <OutsideLink
+                  url={site.replace(/.*:\/\/(.+)\/.+/, `https://$1/`)}
+                  className='text-sm break-all'
+                />
 
-              {!requiredSites.includes(site) && (
-                <Button
-                  onClick={() => handleRemoveSite(site)}
-                  variant='dangerous'
-                  size='square'
-                  title='Удалить сайт'
-                >
-                  <Trash2 className='m-0.5 size-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-95' />
-                </Button>
-              )}
-            </div>
-          ))
+                {!requiredSites.includes(site) ? (
+                  <Button
+                    onClick={() => handleRemoveSite(site)}
+                    variant='dangerous'
+                    size='square'
+                    title='Удалить сайт'
+                  >
+                    <Trash2 className='m-0.5 size-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-95' />
+                  </Button>
+                ) : (
+                  <span className='text-settings-text-tertiary select-none'>
+                    default
+                  </span>
+                )}
+              </div>
+            ))
         )}
       </div>
 
