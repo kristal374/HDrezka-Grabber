@@ -1,4 +1,9 @@
 import {
+  cleanTitle,
+  makePathAndFilename,
+  Replacements,
+} from '@/lib/filename-maker';
+import {
   decodeSubtitleURL,
   decodeVideoURL,
   getQualityWeight,
@@ -237,31 +242,15 @@ export class HDrezkaLoader implements SiteLoader {
   }
 
   async makeFilename(fileType: FileType, timestamp: number): Promise<string> {
-    // %n - Номер файла
-    // %movie_id - Идентификатор фильма
-    // %title - Локализованное название фильма
-    // %orig_title - Оригинальное название фильма
-    // %translate - Название озвучки
-    // %translate_id - идентификатор озвучки
-    // %episode - Полное название серии
-    // %episode_id - Идентификатор серии
-    // %season - Полное название сезона
-    // %season_id - Идентификатор сезона
-    // %quality - Качество видео
-    // %subtitle_code - Код языка субтитров
-    // %subtitle_lang - Язык субтитров
-    // %data - Дата начала загрузки
-    // %time - Время начала загрузки
-    const replacements: Record<string, string | undefined> = {
-      '%n%': (
-        this.loadConfig.loadItemIds.lastIndexOf(this.downloadItem.id) + 1
-      ).toString(),
-      '%movie_id%': this.downloadItem.movieId.toString(), //TODO: предварительно обработать
-      '%title%': this.urlDetails.filmTitle.localized.split(' / ')[0],
-      '%orig_title%': (
-        this.urlDetails.filmTitle.original ??
-        this.urlDetails.filmTitle.localized
-      ).split(' / ')[0],
+    const replacements: Replacements = {
+      '%n%': String(
+        this.loadConfig.loadItemIds.lastIndexOf(this.downloadItem.id) + 1,
+      ),
+      '%movie_id%': String(this.downloadItem.movieId),
+      '%title%': cleanTitle(this.urlDetails.filmTitle.localized),
+      '%orig_title%':
+        cleanTitle(this.urlDetails.filmTitle.original) ??
+        cleanTitle(this.urlDetails.filmTitle.localized),
       '%translate%': this.loadConfig.voiceOver.title,
       '%translate_id%': this.loadConfig.voiceOver.id,
       '%episode%': this.downloadItem.episode?.title,
@@ -274,27 +263,7 @@ export class HDrezkaLoader implements SiteLoader {
       '%data%': new Date(timestamp).toLocaleString().split(', ')[0],
       '%time%': new Date(timestamp).toLocaleString().split(', ')[1],
     };
-    let filename = settings.filenameTemplate
-      .map((item) =>
-        item.startsWith('%') && item.endsWith('%')
-          ? (replacements[item] ?? item ?? '')
-          : (item ?? ''),
-      )
-      .join('')
-      .replaceAll(/[:?"*\/\\<>|‪​‎]/g, '')
-      .trim();
 
-    filename = settings.replaceAllSpaces
-      ? filename.replaceAll(' ', '_')
-      : filename;
-
-    const directory = settings.createExtensionFolders ? 'HDrezkaGrabber/' : '';
-    const serialFolder =
-      this.downloadItem.season && settings.createSeriesFolders
-        ? `${replacements['%orig_title%']}/`
-        : '';
-    const extension = fileType == 'video' ? '.mp4' : '.vtt';
-
-    return directory + serialFolder + filename + extension;
+    return makePathAndFilename(replacements, fileType).join('');
   }
 }

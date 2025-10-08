@@ -1,3 +1,11 @@
+import {
+  MOVIE_PLACEHOLDERS,
+  MOVIE_PREVIEW,
+  MOVIE_READY_TEMPLATES,
+  SERIES_PLACEHOLDERS,
+  SERIES_PREVIEW,
+  SERIES_READY_TEMPLATES,
+} from '@/app/screens/Settings/SettingsTab/FilenameComponentData';
 import { Panel } from '@/components/Panel';
 import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
@@ -15,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useCallback } from 'react';
 import { AllowedSitesList } from './AllowedSitesList';
-import { FilenameTemplateMovie } from './FilenameTemplateBuilder';
+import { FilenameTemplateComponent } from './FilenameTemplateComponent';
 import { SettingItem, SettingsSection } from './SettingsComponets';
 
 const isFirefox = typeof browser.runtime.getBrowserInfo === 'function';
@@ -23,11 +31,6 @@ const isFirefox = typeof browser.runtime.getBrowserInfo === 'function';
 export type SettingItemProps<T> = {
   value: T;
   setValue: (value: T) => void;
-};
-
-export type PreviewItem = {
-  value: string;
-  label: string;
 };
 
 function SettingsItemSelect({
@@ -40,7 +43,7 @@ function SettingsItemSelect({
 }: SettingItemProps<string> & {
   title: string;
   description: string;
-  options: PreviewItem[];
+  options: { value: string; label: string }[];
   width?: number;
 }) {
   return (
@@ -266,71 +269,22 @@ export function SettingsTab() {
             setValue={updateSetting('replaceAllSpaces')}
           />
 
-          {/*TODO: Доделать*/}
-          <FilenameTemplateMovie
-            value={settings.filenameTemplate}
-            setValue={updateSetting('filenameTemplate')}
-            placeholders={[
-              { id: '%n%', display: 'Номер файла' },
-              { id: '%movie_id%', display: 'ID фильма' },
-              { id: '%title%', display: 'Название фильма' },
-              { id: '%orig_title%', display: 'Оригинальное название фильма' },
-              { id: '%translate%', display: 'Озвучка' },
-              { id: '%translate_id%', display: 'ID озвучки' },
-              { id: '%episode%', display: 'Эпизод' },
-              { id: '%episode_id%', display: 'ID эпизода' },
-              { id: '%season%', display: 'Сезон' },
-              { id: '%season_id%', display: 'ID сезона' },
-              { id: '%quality%', display: 'Качество видео' },
-              { id: '%subtitle_code%', display: 'Код субтитров' },
-              { id: '%subtitle_lang%', display: 'Язык субтитров' },
-              { id: '%data%', display: 'Дата' },
-              { id: '%time%', display: 'Время' },
-            ]}
-            readyTemplates={[
-              [
-                '%n%',
-                ') ',
-                '%orig_title%',
-                '[',
-                '%translate%',
-                '] (',
-                '%season%',
-                ') (',
-                '%episode%',
-                ')',
-              ],
-              [
-                '%orig_title%',
-                '(',
-                '%translate%',
-                ')_S-',
-                '%season_id%',
-                '_E-',
-                '%episode_id%',
-                '_[',
-                '%quality%',
-                ']',
-              ],
-            ]}
-            previews={[
-              {
-                label: 'Предпросмотр шаблона',
-                value: '%n% - %orig_title%',
-              },
-              {
-                label: 'Предпросмотр шаблона',
-                value: '%orig_title% - %translate%',
-              },
-              {
-                label: 'Предпросмотр шаблона',
-                value: '%translate% - %season_id%',
-              },
-              {
-                label: 'Предпросмотр шаблона',
-                value: '%season_id% - %episode_id%',
-              },
-            ]}
+          <FilenameTemplateComponent
+            value={settings.filenameFilmTemplate}
+            setValue={updateSetting('filenameFilmTemplate')}
+            title='Шаблон имени файлов для фильмов'
+            placeholders={MOVIE_PLACEHOLDERS}
+            readyTemplates={MOVIE_READY_TEMPLATES}
+            previews={MOVIE_PREVIEW}
+          />
+
+          <FilenameTemplateComponent
+            value={settings.filenameSeriesTemplate}
+            setValue={updateSetting('filenameSeriesTemplate')}
+            title='Шаблон имени файлов для сериалов'
+            placeholders={SERIES_PLACEHOLDERS}
+            readyTemplates={SERIES_READY_TEMPLATES}
+            previews={SERIES_PREVIEW}
           />
         </SettingsSection>
 

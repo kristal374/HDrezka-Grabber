@@ -312,7 +312,8 @@ export type Settings = {
   createExtensionFolders: boolean;
   createSeriesFolders: boolean;
   replaceAllSpaces: boolean;
-  filenameTemplate: string[];
+  filenameFilmTemplate: string[];
+  filenameSeriesTemplate: string[];
 
   enableLogger: boolean;
   debugLevel: LogLevel;
