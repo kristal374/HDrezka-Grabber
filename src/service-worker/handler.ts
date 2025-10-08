@@ -6,12 +6,8 @@ import {
   URLItem,
   URLsContainer,
 } from '@/lib/types';
-
-type ModificationOptions = {
-  fullURL: string;
-  referer: string;
-  origin: string;
-};
+import { hashCode } from '@/lib/utils';
+import { Input, MP4, UrlSource } from 'mediabunny';
 
 export async function getQualityFileSize(
   urlsContainer: QualitiesList | null,
@@ -34,12 +30,22 @@ export async function getQualityFileSize(
 export async function fetchUrlSizes(urlsList: string[]): Promise<URLItem> {
   logger.info('Fetching URL sizes.');
   const promises = urlsList.map(async (item) => {
-    const [url, size] = await getUrlAndFileSize(item);
-    return { url: url, stringSize: formatBytes(size), rawSize: size };
+    const [size, resolution] = await getSizeAndVideoResolution(item);
+    return {
+      url: item,
+      stringSize: formatBytes(size),
+      rawSize: size,
+      videoResolution: resolution,
+    };
   });
 
   return await Promise.any(promises).catch(() => {
-    return { url: urlsList[0], stringSize: formatBytes(0), rawSize: 0 };
+    return {
+      url: urlsList[0],
+      stringSize: formatBytes(0),
+      rawSize: 0,
+      videoResolution: null,
+    };
   });
 }
 
@@ -53,21 +59,45 @@ function formatBytes(bytes: number | null) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-async function getUrlAndFileSize(videoURL: string) {
+async function getSizeAndVideoResolution(resource: string) {
   logger.info('Attempt get file size.');
-  const controller = new AbortController();
-  return await modifiedFetch(videoURL, {
-    method: 'GET',
-    signal: controller.signal,
-  })
-    .then((response) => {
-      if (!response.ok) throw new Error();
-      const contentLength = response.headers.get('content-length');
-      if (!contentLength || contentLength === '0') throw new Error();
-      logger.debug('File size received:', contentLength, videoURL);
-      return [response.url, parseInt(contentLength)] as const;
+  const input = new Input({
+    source: new UrlSource(resource, {
+      fetchFn: modifiedFetch,
+      getRetryDelay: () => null,
+    }),
+    formats: [MP4],
+  });
+
+  const readVideoInfo = async () => {
+    const fileSize = await input.source.getSize();
+
+    const track =
+      (settings.getRealQuality && (await input.getPrimaryVideoTrack())) || null;
+    if (!fileSize || fileSize === 0) throw new Error();
+    logger.debug('File size received:', fileSize);
+    return [
+      fileSize,
+      track
+        ? {
+            width: track!.codedWidth,
+            height: track!.codedHeight,
+          }
+        : null,
+    ] as const;
+  };
+
+  return readVideoInfo()
+    .then((result) => {
+      const [fileSize, videoResolution] = result;
+      if (!fileSize || fileSize === 0) throw new Error();
+      logger.debug('File size received:', fileSize);
+      return [fileSize, videoResolution] as const;
     })
-    .finally(() => controller.abort('Outdated.'));
+    .catch(async (e) => {
+      throw e as Error;
+    })
+    .finally(() => input.dispose());
 }
 
 export async function updateVideoData(siteURL: string, data: QueryData) {
@@ -77,20 +107,16 @@ export async function updateVideoData(siteURL: string, data: QueryData) {
   const params = new URLSearchParams({ t: time.toString() });
   const fullURL = `${url.origin}/ajax/get_cdn_series/?${params}`;
 
-  return modifiedFetch(
-    fullURL,
-    {
-      method: 'POST',
-      credentials: 'include',
-      body: new URLSearchParams(data).toString(),
-      headers: {
-        Accept: 'application/json, text/javascript, */*; q=0.01',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      },
+  return modifiedFetch(fullURL, {
+    method: 'POST',
+    credentials: 'include',
+    body: new URLSearchParams(data).toString(),
+    headers: {
+      Accept: 'application/json, text/javascript, */*; q=0.01',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
     },
-    { fullURL, referer: url.href, origin: url.origin },
-  ).then(async (response) => {
+  }).then(async (response) => {
     const serverResponse: ResponseVideoData = await response.json();
     logger.debug('Server response:', serverResponse);
     return serverResponse;
@@ -98,21 +124,20 @@ export async function updateVideoData(siteURL: string, data: QueryData) {
 }
 
 async function modifiedFetch(
-  url: string | URL,
-  options?: RequestInit,
-  modificationOptions?: ModificationOptions,
+  input: string | URL | Request,
+  init?: RequestInit,
 ) {
-  logger.debug('Fetch query:', url, options);
-  if (modificationOptions) await addHeaderModificationRule(modificationOptions);
+  logger.debug('Fetch query:', input, init);
+  const ruleId = await addHeaderModificationRule(input);
 
   const controller = new AbortController();
-  const combinedSignal = options?.signal
-    ? combineSignals(options.signal, controller.signal)
+  const combinedSignal = init?.signal
+    ? combineSignals(init.signal, controller.signal)
     : controller.signal;
 
-  const timeout = setTimeout(() => controller.abort('Timeout.'), 5000);
-  return await fetch(url, {
-    ...options,
+  const timeout = setTimeout(() => controller.abort('Timeout.'), 10_000);
+  return await fetch(input, {
+    ...init,
     signal: combinedSignal,
   })
     .then((response) => {
@@ -124,7 +149,7 @@ async function modifiedFetch(
       logger.error(error.toString());
       throw error;
     })
-    .finally(async () => await removeHeaderModificationRule());
+    .finally(async () => await removeHeaderModificationRule(ruleId));
 }
 
 function combineSignals(...signals: AbortSignal[]): AbortSignal {
@@ -133,7 +158,7 @@ function combineSignals(...signals: AbortSignal[]): AbortSignal {
 
   const abortHandler = (event: Event) => {
     const signal = event.target as AbortSignal;
-    mainController.abort(new Error(`Signal aborted: ${signal.reason}`));
+    mainController.abort(`Signal aborted: ${signal.reason}`);
     signals.forEach((s) => s.removeEventListener('abort', abortHandler));
   };
 
@@ -148,27 +173,36 @@ function combineSignals(...signals: AbortSignal[]): AbortSignal {
   return mainController.signal;
 }
 
-async function addHeaderModificationRule(
-  modificationOptions: ModificationOptions,
-) {
+async function addHeaderModificationRule(targetUrl: string | URL | Request) {
+  const url = !(targetUrl instanceof Request)
+    ? targetUrl instanceof URL
+      ? targetUrl
+      : new URL(targetUrl)
+    : new URL(targetUrl.url);
+
+  const ruleId = hashCode(
+    `${url.href}-${new Date().getTime()}-${Math.random()}`,
+  );
+  // TODO: пересмотреть подход обновления правил для каждого запроса.
+  // Дополнительно, возможно стоит заменить на updateSessionRules
+  // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/declarativeNetRequest/updateSessionRules
   await browser.declarativeNetRequest.updateDynamicRules({
     addRules: [
       {
-        id: 1,
+        id: ruleId,
         priority: 1,
         action: {
           type: 'modifyHeaders',
           requestHeaders: [
             {
-              // I don't know why, but this header in FF uses lowercase
               header: 'Referer',
               operation: 'set',
-              value: modificationOptions.referer,
+              value: url.href,
             },
             {
               header: 'Origin',
               operation: 'set',
-              value: modificationOptions.origin,
+              value: url.origin,
             },
             {
               header: 'Sec-Fetch-Site',
@@ -178,17 +212,18 @@ async function addHeaderModificationRule(
           ],
         },
         condition: {
-          urlFilter: modificationOptions.fullURL,
-          resourceTypes: ['xmlhttprequest'],
+          urlFilter: url.href,
+          resourceTypes: ['media', 'xmlhttprequest', 'other'],
         },
       },
     ],
-    removeRuleIds: [1],
+    removeRuleIds: [ruleId],
   });
+  return ruleId;
 }
 
-async function removeHeaderModificationRule() {
+async function removeHeaderModificationRule(ruleId: number) {
   await browser.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: [1],
+    removeRuleIds: [ruleId],
   });
 }

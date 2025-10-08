@@ -119,7 +119,15 @@ export type Subtitle = {
 
 export type QualitiesList = Partial<Record<QualityItem, string[]>>;
 
-export type URLItem = { url: string; stringSize: string; rawSize: number };
+export type URLItem = {
+  url: string;
+  videoResolution: {
+    height: number;
+    width: number;
+  } | null;
+  stringSize: string;
+  rawSize: number;
+};
 
 export type URLsContainer = Partial<Record<QualityItem, URLItem>>;
 

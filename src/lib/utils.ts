@@ -58,10 +58,10 @@ export function sliceSeasons(
 }
 
 export function hashCode(s: string): number {
-  return (
-    s.split('').reduce(function (a, b) {
-      a = (a << 5) - a + b.charCodeAt(0);
-      return a & a;
-    }, 0) >>> 0
-  );
+  const MAX_INT32 = (1 << 31) - 1; // 2147483647
+  const hash = s.split('').reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0);
+    return a | 0;
+  }, 0);
+  return Math.abs(hash) % MAX_INT32;
 }

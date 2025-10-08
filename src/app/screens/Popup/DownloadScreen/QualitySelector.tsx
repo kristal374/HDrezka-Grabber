@@ -1,7 +1,7 @@
+import { AnimatedLoaderIcon } from '@/components/icons/AnimatedLoaderIcon';
 import { Combobox } from '@/components/ui/Combobox';
 import { sortQualityItem } from '@/lib/link-processing';
 import { Message, QualityItem, URLItem } from '@/lib/types';
-import equal from 'fast-deep-equal/es6';
 import { useCallback, useEffect } from 'react';
 import {
   addQualityInfoAction,
@@ -26,15 +26,19 @@ export function QualitySelector() {
   }, []);
 
   useEffect(() => {
-    if (
-      !qualitiesList ||
-      !equal(qualitiesInfo, {}) ||
-      !settings.displayQualitySize
-    )
-      return;
+    const needToUpdate = settings.displayQualitySize || settings.getRealQuality;
+    if (!qualitiesList || !needToUpdate) return;
 
     let ignore = false;
     for (const [key, value] of Object.entries(qualitiesList)) {
+      const qualityItem = key as QualityItem;
+      const qualityInfo = qualitiesInfo?.[qualityItem] ?? null;
+      if (
+        (qualityInfo?.rawSize || !settings.displayQualitySize) &&
+        (qualityInfo?.videoResolution || !settings.getRealQuality)
+      )
+        continue;
+
       getQualitySize(value).then((response) => {
         if (!ignore) {
           dispatch(
@@ -70,16 +74,29 @@ export function QualitySelector() {
           label: q,
           labelComponent({ children }) {
             const targetQuality = q as QualityItem;
+            const qualityInfo = qualitiesInfo?.[targetQuality] ?? null;
+            const videoResolution = qualityInfo?.videoResolution ?? null;
+            const realQuality = `${videoResolution?.height}p`;
             return (
               <>
-                {children}
-                {qualitiesInfo &&
-                  qualitiesInfo[targetQuality] &&
-                  settings.displayQualitySize && (
-                    <span className='ml-auto'>
-                      {qualitiesInfo[targetQuality].stringSize}
-                    </span>
-                  )}
+                {qualityInfo && settings.getRealQuality
+                  ? videoResolution && targetQuality !== realQuality
+                    ? `${targetQuality} (${realQuality})`
+                    : targetQuality
+                  : children}
+                {settings.displayQualitySize ? (
+                  <span className='ml-auto'>
+                    {qualityInfo ? (
+                      qualityInfo.rawSize !== 0 ? (
+                        qualityInfo.stringSize
+                      ) : (
+                        '??? MB'
+                      )
+                    ) : (
+                      <AnimatedLoaderIcon className='size-4' />
+                    )}
+                  </span>
+                ) : undefined}
               </>
             );
           },
