@@ -27,7 +27,6 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
       : null;
 
   useEffect(() => {
-    // TODO: При восстановлении попапа использовать упрощённый механизм
     setup(movieId).then((result) => {
       if (result) {
         setLoadItem(result.targetDownload);

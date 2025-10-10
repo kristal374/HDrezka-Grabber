@@ -8,6 +8,7 @@ import {
   URLsContainer,
 } from '@/lib/types';
 import { hashCode } from '@/lib/utils';
+import { getFromCache, setInCache } from '@/service-worker/cache';
 import { Input, InputVideoTrack, MP4, UrlSource } from 'mediabunny';
 
 export async function getQualityFileSize(
@@ -70,6 +71,11 @@ async function getVideoInfo(
   readonly [string, number, { width: number; height: number } | null]
 > {
   logger.info('Attempt get file size.');
+  const cache =
+    await getFromCache<
+      readonly [string, number, { width: number; height: number } | null]
+    >(videoUrl);
+  if (cache) return cache;
 
   const [getFinallyUrl, modifiedFetch] = makeModifyFetch(siteUrl);
   const input = new Input({
@@ -105,10 +111,9 @@ async function getVideoInfo(
 
   return readVideoInfo()
     .then((result) => {
-      const [url, fileSize, videoResolution] = result;
-      if (!fileSize || fileSize === 0) throw new Error();
-      logger.debug('File size received:', fileSize);
-      return [url, fileSize, videoResolution] as const;
+      logger.debug('File info received:', result);
+      setInCache(result, videoUrl).then();
+      return result;
     })
     .catch(async (e) => {
       throw e as Error;
@@ -119,16 +124,19 @@ async function getVideoInfo(
 export async function updateVideoData(siteUrl: string, data: QueryData) {
   logger.info('Attempt update video data.');
 
-  const url = new URL(siteUrl);
   const time = new Date().getTime();
   const params = new URLSearchParams({ t: time.toString() });
-  const fullURL = `${url.origin}/ajax/get_cdn_series/?${params}`;
+  const fullURL = `${new URL(siteUrl).origin}/ajax/get_cdn_series/?${params}`;
+  const body = new URLSearchParams(data).toString();
   const [_getFinallyUrl, modifiedFetch] = makeModifyFetch(siteUrl);
+
+  const cache = await getFromCache<ResponseVideoData>(siteUrl, body);
+  if (cache) return cache;
 
   return modifiedFetch(fullURL, {
     method: 'POST',
     credentials: 'include',
-    body: new URLSearchParams(data).toString(),
+    body: body,
     headers: {
       Accept: 'application/json, text/javascript, */*; q=0.01',
       'X-Requested-With': 'XMLHttpRequest',
@@ -137,6 +145,7 @@ export async function updateVideoData(siteUrl: string, data: QueryData) {
   }).then(async (response) => {
     const serverResponse: ResponseVideoData = await response.json();
     logger.debug('Server response:', serverResponse);
+    setInCache(serverResponse, siteUrl, body).then();
     return serverResponse;
   });
 }

@@ -1,5 +1,9 @@
 import '@/lib/global-scope-init';
+import { logCreate } from './background-logger';
 
+import { doDatabaseStuff } from '@/lib/idb-storage';
+import { isFirstRunExtension } from '@/lib/on-extension-start';
+import { getSettings } from '@/lib/storage';
 import {
   ActualVideoData,
   DataForUpdate,
@@ -10,10 +14,7 @@ import {
   Settings,
   SubtitleInfo,
 } from '@/lib/types';
-import { logCreate } from './background-logger';
-
-import { doDatabaseStuff } from '@/lib/idb-storage';
-import { getSettings } from '@/lib/storage';
+import { clearCache } from '@/service-worker/cache';
 import type { Runtime } from 'webextension-polyfill';
 import { DownloadManager } from './load-manager/core';
 import { fetchUrlSizes, updateVideoData } from './network-layer';
@@ -49,12 +50,10 @@ async function main() {
   globalThis.indexedDBObject = await doDatabaseStuff();
   globalThis.settings = await getSettings();
   downloadManager = await DownloadManager.build();
+  await onStartup();
 
   eventBus.on(EventType.NewMessageReceived, messageHandler);
-  eventBus.on(
-    EventType.BrowserStartup,
-    downloadManager.stabilizeInsideState.bind(downloadManager),
-  );
+  eventBus.on(EventType.BrowserStartup, onStartup);
   eventBus.on(
     EventType.DownloadEvent,
     downloadManager.handlerDownloadEvent.bind(downloadManager),
@@ -91,6 +90,13 @@ async function main() {
   logger.info('Service worker is ready.');
 
   eventBus.setReady();
+}
+
+async function onStartup() {
+  if (await isFirstRunExtension()) {
+    await clearCache();
+    await downloadManager.stabilizeInsideState();
+  }
 }
 
 async function messageHandler(
@@ -176,5 +182,4 @@ const handleError = async (originalError: Error) => {
 main().catch(handleError);
 self.addEventListener('unhandledrejection', (e) => handleError(e.reason));
 
-// TODO: добавить кэш
 // TODO: пофиксить выбор озвучки

@@ -348,6 +348,7 @@ export function SettingsTab() {
           <div className='flex flex-wrap gap-3'>
             <Button>Попытаться восстановить работу расширения</Button>
             <Button>Восстановить настройки по умолчанию</Button>
+            <Button>Очистить кэш</Button>
             <Button>Остановить все загрузки</Button>
             <Button>Очистить историю загрузок</Button>
             <Button>Удалить все данные расширения</Button>

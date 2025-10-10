@@ -22,7 +22,6 @@ export function makePathAndFilename(
   replacements: Replacements,
   fileType: FileType,
 ): readonly [string, string] {
-  // TODO: use correct filenameTemplate
   const template = !replacements['%season%']
     ? settings.filenameFilmTemplate
     : settings.filenameSeriesTemplate;

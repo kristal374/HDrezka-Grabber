@@ -370,3 +370,9 @@ export type EventBusTypes = {
   [EventType.PermissionRemoved]: Permissions.Permissions;
   [EventType.LogCreate]: Event;
 };
+
+export type CacheItem = {
+  key: string;
+  timeOfDeath: number;
+  data: any;
+};

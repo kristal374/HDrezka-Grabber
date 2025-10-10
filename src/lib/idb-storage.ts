@@ -1,5 +1,6 @@
 import { DBSchema, IDBPDatabase, openDB } from 'idb';
 import {
+  CacheItem,
   FileItem,
   LoadConfig,
   LoadItem,
@@ -48,6 +49,14 @@ export interface HDrezkaGrabberDB extends DBSchema {
       timestamp: number;
     };
   };
+  cacheStorage: {
+    key: string;
+    value: CacheItem;
+    indexes: {
+      key: string;
+      time_of_death: number;
+    };
+  };
 }
 
 export async function doDatabaseStuff(): Promise<
@@ -57,44 +66,54 @@ export async function doDatabaseStuff(): Promise<
     upgrade(db, oldVersion, _newVersion, _transaction, _event) {
       switch (oldVersion) {
         case 0:
-          const logStorage = db.createObjectStore('logStorage', {
-            keyPath: 'id',
-            autoIncrement: true,
-          });
-          logStorage.createIndex('log_id', 'id');
-          logStorage.createIndex('timestamp', 'timestamp');
-
-          const fileStorage = db.createObjectStore('fileStorage', {
-            keyPath: 'id',
-            autoIncrement: true,
-          });
-          fileStorage.createIndex('file_id', 'id');
-          fileStorage.createIndex('download_id', 'downloadId');
-          fileStorage.createIndex('load_item_id', 'relatedLoadItemId');
-
-          const movieItems = db.createObjectStore('loadStorage', {
-            keyPath: 'id',
-            autoIncrement: true,
-          });
-          movieItems.createIndex('load_id', 'id');
-          movieItems.createIndex('movie_id', 'movieId');
-
-          const loadConfigs = db.createObjectStore('loadConfig', {
-            keyPath: 'createdAt',
-          });
-          loadConfigs.createIndex('config_id', 'createdAt');
-          loadConfigs.createIndex('load_item_ids', 'loadItemIds', {
-            multiEntry: true,
-          });
-
-          const urlDetails = db.createObjectStore('urlDetail', {
-            keyPath: 'movieId',
-          });
-          urlDetails.createIndex('movie_id', 'movieId');
+          createDBv0(db);
       }
     },
     terminated() {
       console.error('Database was terminated.');
     },
   });
+}
+
+function createDBv0(db: IDBPDatabase<HDrezkaGrabberDB>) {
+  const logStorage = db.createObjectStore('logStorage', {
+    keyPath: 'id',
+    autoIncrement: true,
+  });
+  logStorage.createIndex('log_id', 'id');
+  logStorage.createIndex('timestamp', 'timestamp');
+
+  const fileStorage = db.createObjectStore('fileStorage', {
+    keyPath: 'id',
+    autoIncrement: true,
+  });
+  fileStorage.createIndex('file_id', 'id');
+  fileStorage.createIndex('download_id', 'downloadId');
+  fileStorage.createIndex('load_item_id', 'relatedLoadItemId');
+
+  const movieItems = db.createObjectStore('loadStorage', {
+    keyPath: 'id',
+    autoIncrement: true,
+  });
+  movieItems.createIndex('load_id', 'id');
+  movieItems.createIndex('movie_id', 'movieId');
+
+  const loadConfigs = db.createObjectStore('loadConfig', {
+    keyPath: 'createdAt',
+  });
+  loadConfigs.createIndex('config_id', 'createdAt');
+  loadConfigs.createIndex('load_item_ids', 'loadItemIds', {
+    multiEntry: true,
+  });
+
+  const urlDetails = db.createObjectStore('urlDetail', {
+    keyPath: 'movieId',
+  });
+  urlDetails.createIndex('movie_id', 'movieId');
+
+  const cacheStorage = db.createObjectStore('cacheStorage', {
+    keyPath: 'timeOfDeath',
+  });
+  cacheStorage.createIndex('key', 'key');
+  cacheStorage.createIndex('time_of_death', 'timeOfDeath');
 }
