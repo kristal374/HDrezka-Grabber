@@ -15,8 +15,8 @@ import { logCreate } from './background-logger';
 import { doDatabaseStuff } from '@/lib/idb-storage';
 import { getSettings } from '@/lib/storage';
 import type { Runtime } from 'webextension-polyfill';
-import { fetchUrlSizes, updateVideoData } from './handler';
 import { DownloadManager } from './load-manager/core';
+import { fetchUrlSizes, updateVideoData } from './network-layer';
 type MessageSender = Runtime.MessageSender;
 
 let downloadManager: DownloadManager;

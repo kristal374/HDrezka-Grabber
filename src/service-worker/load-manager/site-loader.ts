@@ -26,7 +26,7 @@ import {
   fetchUrlSizes,
   getQualityFileSize,
   updateVideoData,
-} from '@/service-worker/handler';
+} from '@/service-worker/network-layer';
 
 type SiteLoaderAsyncParams = {
   downloadItem: LoadItem;
@@ -167,15 +167,20 @@ export class HDrezkaLoader implements SiteLoader {
     if (
       this.downloadItem.availableQualities!.includes(this.loadConfig.quality)
     ) {
-      const urlItem = await fetchUrlSizes(
-        this.qualitiesList![this.loadConfig.quality]!,
-      );
+      const urlItem = await fetchUrlSizes({
+        urlsList: this.qualitiesList![this.loadConfig.quality]!,
+        siteUrl: this.urlDetails.siteUrl,
+        onlySize: true,
+      });
       if (urlItem.rawSize > 0) return urlItem.url;
       logger.warning('"urlItem" is empty - skip.');
     }
 
     if (settings.actionOnNoQuality !== 'reduce_quality') return null;
-    const qualitySizes = (await getQualityFileSize(this.qualitiesList!))!;
+    const qualitySizes = (await getQualityFileSize(
+      this.qualitiesList,
+      this.urlDetails.siteUrl,
+    ))!;
     const targetWeight = getQualityWeight(this.loadConfig.quality);
     for (const [qualityItem, urlItem] of Object.entries(
       sortQualityItem(qualitySizes),

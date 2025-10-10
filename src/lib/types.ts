@@ -131,6 +131,12 @@ export type URLItem = {
 
 export type URLsContainer = Partial<Record<QualityItem, URLItem>>;
 
+export type RequestUrlSize = {
+  urlsList: string[];
+  siteUrl: string;
+  onlySize?: boolean;
+};
+
 export type Action = 'get_movie' | 'get_stream' | 'get_episodes';
 
 export type Fields = {

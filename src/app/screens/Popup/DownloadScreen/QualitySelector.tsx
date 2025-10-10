@@ -1,7 +1,8 @@
+import { selectMovieInfo } from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
 import { AnimatedLoaderIcon } from '@/components/icons/AnimatedLoaderIcon';
 import { Combobox } from '@/components/ui/Combobox';
 import { sortQualityItem } from '@/lib/link-processing';
-import { Message, QualityItem, URLItem } from '@/lib/types';
+import { Message, QualityItem, RequestUrlSize, URLItem } from '@/lib/types';
 import { useCallback, useEffect } from 'react';
 import {
   addQualityInfoAction,
@@ -14,14 +15,16 @@ import { useAppDispatch, useAppSelector } from './store/store';
 
 export function QualitySelector() {
   const dispatch = useAppDispatch();
+  const movieInfo = useAppSelector(selectMovieInfo)!;
+
   const quality = useAppSelector((state) => selectCurrentQuality(state));
   const qualitiesList = useAppSelector((state) => selectQualitiesList(state));
   const qualitiesInfo = useAppSelector((state) => selectQualityInfo(state));
 
   const getQualitySize = useCallback(async (urls: string[]) => {
-    return (await browser.runtime.sendMessage<Message<string[]>>({
+    return (await browser.runtime.sendMessage<Message<RequestUrlSize>>({
       type: 'getFileSize',
-      message: urls,
+      message: { urlsList: urls, siteUrl: movieInfo.url },
     })) as URLItem;
   }, []);
 
@@ -87,11 +90,7 @@ export function QualitySelector() {
                 {settings.displayQualitySize ? (
                   <span className='ml-auto'>
                     {qualityInfo ? (
-                      qualityInfo.rawSize !== 0 ? (
-                        qualityInfo.stringSize
-                      ) : (
-                        '??? MB'
-                      )
+                      qualityInfo.stringSize
                     ) : (
                       <AnimatedLoaderIcon className='size-4' />
                     )}
