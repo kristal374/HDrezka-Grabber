@@ -69,7 +69,7 @@ export class DownloadManager {
     this.mutex.runExclusive(this.startNextDownload.bind(this)).then();
   }
 
-  async startNextDownload() {
+  private async startNextDownload() {
     // Отвечает за получение объекта, на основе которого будет
     // производиться загрузка, а также за его подготовку к загрузке
     logger.info('Attempt starting download.');
@@ -121,7 +121,7 @@ export class DownloadManager {
     this.mutex.runExclusive(this.startNextDownload.bind(this)).then();
   }
 
-  async launchFileDownload(fileItem: FileItem) {
+  private async launchFileDownload(fileItem: FileItem) {
     // Запускает загрузку конкретного файла
     logger.debug('Launching file download:', fileItem);
 
@@ -145,7 +145,7 @@ export class DownloadManager {
     try {
       if (fileItem.url === null) {
         logger.warning('File download failed - no url:', fileItem);
-        await this.newAttemptDownload(fileItem, LoadStatus.InitiationError);
+        await this.attemptNewDownload(fileItem, LoadStatus.InitiationError);
         return;
       }
 
@@ -163,17 +163,16 @@ export class DownloadManager {
           fileItem.url,
         );
       }
-      fileItem.status = LoadStatus.Downloading;
       await indexedDBObject.put('fileStorage', fileItem);
       logger.info('File download started successfully:', fileItem);
     } catch (e: any) {
       const error = e as Error;
       logger.error('Download start failed:', error.toString());
-      await this.newAttemptDownload(fileItem, LoadStatus.InitiationError);
+      await this.attemptNewDownload(fileItem, LoadStatus.InitiationError);
     }
   }
 
-  handlerCreated(downloadItem: DownloadItem) {
+  handleCreateEvent(downloadItem: DownloadItem) {
     // Обработчик успешной инициализации загрузки браузером
     logger.debug('Download has been created:', downloadItem);
 
@@ -186,7 +185,7 @@ export class DownloadManager {
     );
   }
 
-  handlerDownloadEvent(downloadDelta: OnChangedDownloadDeltaType) {
+  handleDownloadEvent(downloadDelta: OnChangedDownloadDeltaType) {
     // Отслеживает события загрузок и принимает решения на их основе
     logger.debug('An event occurred:', downloadDelta);
 
@@ -199,7 +198,10 @@ export class DownloadManager {
     );
   }
 
-  handlerDeterminingFilename(downloadItem: DownloadItem, suggest: Function) {
+  handleDeterminingFilenameEvent(
+    downloadItem: DownloadItem,
+    suggest: Function,
+  ) {
     // Функция "рекомендации" имени файла. Обязательно должна быть синхронной!
     // Возвращает true указывая, что рекомендация будет дана асинхронно.
     logger.debug('Request for defining file name:', downloadItem);
@@ -229,7 +231,7 @@ export class DownloadManager {
     return true;
   }
 
-  async eventOrchestrator(event: EventMessage | undefined) {
+  private async eventOrchestrator(event: EventMessage | undefined) {
     if (event === undefined) return;
     logger.debug('Processing of the event:', event);
 
@@ -272,7 +274,7 @@ export class DownloadManager {
         await this.cancelAllDownload(file);
       } else if (downloadDelta.error?.current) {
         logger.error('Download failed:', downloadDelta.error.current);
-        await this.newAttemptDownload(file, LoadStatus.DownloadFailed);
+        await this.attemptNewDownload(file, LoadStatus.DownloadFailed);
       }
 
       if (downloadDelta.paused?.current === true) {
@@ -286,7 +288,7 @@ export class DownloadManager {
     }
   }
 
-  async createDownload(fileItem: FileItem, downloadItem: DownloadItem) {
+  private async createDownload(fileItem: FileItem, downloadItem: DownloadItem) {
     if (fileItem.status === LoadStatus.StoppedByUser) {
       // Иногда старт загрузки задерживается, в то время как она уже была
       // отменена. В этом случае необходимо отменить загрузку при старте
@@ -319,7 +321,7 @@ export class DownloadManager {
     }
   }
 
-  async successDownload(fileItem: FileItem) {
+  private async successDownload(fileItem: FileItem) {
     // Обработчик успешного завершения загрузки
     logger.debug('The load is completed successfully:', fileItem);
 
@@ -342,7 +344,7 @@ export class DownloadManager {
     this.mutex.runExclusive(this.startNextDownload.bind(this)).then();
   }
 
-  async cancelDownload(fileItem: FileItem) {
+  private async cancelDownload(fileItem: FileItem) {
     // Обработчик остановки активной загрузки
     logger.info('Attempt stopped loading:', fileItem);
 
@@ -373,7 +375,7 @@ export class DownloadManager {
     this.mutex.runExclusive(this.startNextDownload.bind(this)).then();
   }
 
-  async pauseDownload(fileItem: FileItem) {
+  private async pauseDownload(fileItem: FileItem) {
     // Обработчик паузы загрузки
     logger.debug('Download paused:', fileItem);
 
@@ -382,7 +384,7 @@ export class DownloadManager {
     await browser.downloads.pause(fileItem.downloadId!);
   }
 
-  async unpauseDownload(fileItem: FileItem) {
+  private async unpauseDownload(fileItem: FileItem) {
     // Обработчик возобновления загрузки после паузы
     logger.debug('Download resumed:', fileItem);
 
@@ -391,7 +393,7 @@ export class DownloadManager {
     await browser.downloads.resume(fileItem.downloadId!);
   }
 
-  async cancelAllDownload(fileItem: FileItem) {
+  private async cancelAllDownload(fileItem: FileItem) {
     logger.critical('The disk is not enough space for uploading a file!');
     const loadItem = (await indexedDBObject.getFromIndex(
       'loadStorage',
@@ -406,7 +408,7 @@ export class DownloadManager {
     );
   }
 
-  async newAttemptDownload(fileItem: FileItem, cause: LoadStatus) {
+  private async attemptNewDownload(fileItem: FileItem, cause: LoadStatus) {
     // Пытается повторить загрузку в случае неожиданного прерывания
     logger.warning('New load attempt:', fileItem);
 
@@ -427,7 +429,7 @@ export class DownloadManager {
     }
   }
 
-  async breakDownloadWithError(fileItem: FileItem, cause: LoadStatus) {
+  private async breakDownloadWithError(fileItem: FileItem, cause: LoadStatus) {
     fileItem.status = cause;
     await indexedDBObject.put('fileStorage', fileItem);
     await this.queueController.failLoad(fileItem, cause);
@@ -436,7 +438,7 @@ export class DownloadManager {
     this.mutex.runExclusive(this.startNextDownload.bind(this)).then();
   }
 
-  async repeatDownload(fileItem: FileItem) {
+  private async repeatDownload(fileItem: FileItem) {
     logger.info('Start new load attempt:', fileItem);
 
     if (fileItem.downloadId) {

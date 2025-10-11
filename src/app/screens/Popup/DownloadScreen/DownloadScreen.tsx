@@ -5,7 +5,7 @@ import { Menu } from '@/components/Menu';
 import { PopupInitialDataContext } from '@/html/popup';
 import type { FilmData, SerialData } from '@/lib/types';
 import { useContext } from 'react';
-import { ProcessingScreen } from '../ProcessingScreen';
+import { DownloadScreenSceleton } from './DownloadScreenSceleton';
 import { EpisodeRangeSelector } from './EpisodeRangeSelector';
 import { LoadButton } from './LoadButton';
 import { NotificationField } from './NotificationField';
@@ -30,7 +30,7 @@ export function DownloadScreen() {
 
   if (movieInfo === null || !movieInfo.success) {
     logger.info('"MovieInfo" is missing.');
-    return <ProcessingScreen />;
+    return <DownloadScreenSceleton />;
   }
 
   logger.info('New render DownloadScreen component.');

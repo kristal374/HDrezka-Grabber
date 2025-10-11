@@ -55,6 +55,7 @@ export const SERIES_READY_TEMPLATES = [
     ']',
   ],
 ];
+
 export const MOVIE_READY_TEMPLATES = [
   [
     '%n%',

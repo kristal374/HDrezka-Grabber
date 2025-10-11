@@ -49,11 +49,11 @@ async function main() {
   eventBus.on(EventType.BrowserStartup, onStartup);
   eventBus.on(
     EventType.DownloadEvent,
-    downloadManager.handlerDownloadEvent.bind(downloadManager),
+    downloadManager.handleDownloadEvent.bind(downloadManager),
   );
   eventBus.on(
     EventType.DownloadCreated,
-    downloadManager.handlerCreated.bind(downloadManager),
+    downloadManager.handleCreateEvent.bind(downloadManager),
   );
   eventBus.on(EventType.LogCreate, async (message) => {
     await logCreate(
@@ -76,7 +76,7 @@ async function main() {
       // Когда начинается загрузка "рекомендует" имя для загружаемого файла.
       // Актуально только для chrome и реализовано исключительно во избежание
       // конфликтов с другими расширениями, которые могут назначать имена файлов.
-      downloadManager.handlerDeterminingFilename.bind(downloadManager),
+      downloadManager.handleDeterminingFilenameEvent.bind(downloadManager),
     );
   }
 
@@ -115,6 +115,7 @@ async function messageHandler(
 }
 
 const handleError = async (originalError: Error) => {
+  console.error(originalError.toString());
   logger.critical(originalError.toString());
 };
 

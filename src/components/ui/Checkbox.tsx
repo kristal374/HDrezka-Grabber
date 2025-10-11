@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
+import { Checkbox as CheckboxPrimitive } from '@base-ui-components/react/checkbox';
 
 function Checkbox({
   className,
@@ -10,7 +10,7 @@ function Checkbox({
       className={cn(
         'peer focus-ring size-5 shrink-0 cursor-pointer rounded border-2 text-lg leading-none font-bold',
         'border-check-box bg-background not-disabled:hover:border-check-box-active not-disabled:hover:bg-input',
-        'data-[state=checked]:bg-check-box data-[state=checked]:text-background not-disabled:hover:data-[state=checked]:bg-check-box-active',
+        'data-checked:bg-check-box data-checked:text-background not-disabled:hover:data-checked:bg-check-box-active',
         'disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}
