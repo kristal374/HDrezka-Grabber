@@ -24,10 +24,10 @@
   "permissions": [
     "scripting",
     "storage",
-    "declarativeNetRequest",
-    "declarativeNetRequestFeedback",
+    "declarativeNetRequestWithHostAccess",
     "downloads",
-    "<all_urls>"
+    "http://*/*",
+    "https://*/*"
   ],
   "web_accessible_resources": ["src/js/*"],
   "options_ui": {
