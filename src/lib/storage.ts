@@ -1,5 +1,6 @@
+import { LogLevel } from '@/lib/logger/types';
 import browser from 'webextension-polyfill';
-import { LogLevel, Settings } from './types';
+import { Settings } from './types';
 
 export async function getFromStorage<T>(key: string): Promise<T | undefined> {
   const storage = await browser.storage.local.get([key]);

@@ -2,7 +2,7 @@
 import polyfill from 'webextension-polyfill';
 
 import { BufferedEventBus } from './event-bus';
-import { Logger } from './logger.js';
+import { Logger } from './logger';
 
 globalThis.browser = polyfill;
 globalThis.eventBus = new BufferedEventBus();

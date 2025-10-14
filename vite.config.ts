@@ -18,9 +18,7 @@ export default defineConfig({
       },
       onwarn(warning, warn) {
         // Suppress "Module level directives cause errors when bundled" warnings
-        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
-          return;
-        }
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
         warn(warning);
       },
     },

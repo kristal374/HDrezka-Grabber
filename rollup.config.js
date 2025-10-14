@@ -12,6 +12,16 @@ export default [
       file: 'dist/build/HDrezka-Grabber.build/src/js/background.js',
       sourcemap: true,
     },
+    onwarn(warning, warn) {
+      // Suppress "Circular dependencies" warnings from node_modules
+      if (
+        warning.code === 'CIRCULAR_DEPENDENCY' &&
+        /node_modules/.test(warning.message)
+      ) {
+        return;
+      }
+      warn(warning);
+    },
     plugins: [
       nodeResolve({ browser: true, preferBuiltins: false }),
       commonjs(),

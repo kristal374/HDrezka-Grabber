@@ -1,12 +1,6 @@
+import { LogMessage } from '@/lib/logger';
 import { DBSchema, IDBPDatabase, openDB } from 'idb';
-import {
-  CacheItem,
-  FileItem,
-  LoadConfig,
-  LoadItem,
-  LogMessage,
-  UrlDetails,
-} from './types';
+import { CacheItem, FileItem, LoadConfig, LoadItem, UrlDetails } from './types';
 
 export interface HDrezkaGrabberDB extends DBSchema {
   urlDetail: {

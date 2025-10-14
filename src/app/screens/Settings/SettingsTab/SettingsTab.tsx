@@ -10,8 +10,8 @@ import { Panel } from '@/components/Panel';
 import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { Toggle } from '@/components/ui/Toggle';
+import { LogLevel } from '@/lib/logger/types';
 import { saveInStorage } from '@/lib/storage';
-import { LogLevel } from '@/lib/types';
 import {
   DownloadIcon,
   FolderCogIcon,

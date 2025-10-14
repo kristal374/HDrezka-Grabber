@@ -1,3 +1,4 @@
+import type { LogLevel } from '@/lib/logger/types';
 import type {
   Downloads,
   Permissions,
@@ -12,14 +13,6 @@ type StorageChange = Storage.StorageChange;
 
 export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
-export enum LogLevel {
-  CRITICAL,
-  ERROR,
-  WARNING,
-  INFO,
-  DEBUG,
-}
-
 export type MessageType =
   | 'logCreate'
   | 'trigger'
@@ -27,27 +20,10 @@ export type MessageType =
   | 'updateVideoInfo'
   | 'setNotification';
 
-export type LogMessage = {
-  timestamp: number;
-  level: LogLevel;
-  context: string;
-  message: any[];
-  location: string;
-};
-
 export type Message<T> = {
   type: MessageType;
   message: T;
 };
-
-export interface SourceMap {
-  version: number;
-  file: string;
-  sources: string[];
-  sourcesContent: string[];
-  names: string[];
-  mappings: string;
-}
 
 export type PageType =
   | 'DEFAULT'

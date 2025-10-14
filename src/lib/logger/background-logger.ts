@@ -1,5 +1,4 @@
-import { printLog } from '@/lib/logger';
-import { LogMessage } from '@/lib/types';
+import { LogMessage, printLog } from '@/lib/logger';
 
 export async function logCreate(message: LogMessage) {
   printLog(message);

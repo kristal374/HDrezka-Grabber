@@ -1,5 +1,5 @@
 import '@/lib/global-scope-init';
-import { logCreate } from './background-logger';
+import { logCreate } from '@/lib/logger/background-logger';
 
 import { doDatabaseStuff } from '@/lib/idb-storage';
 import { isFirstRunExtension } from '@/lib/on-extension-start';
