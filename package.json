@@ -10,8 +10,7 @@
     "build:firefox": "node run-build.js -b firefox",
     "build:dev": "node run-build.js -b all -s false",
     "build:prod": "node run-build.js -b all -p",
-    "format": "prettier --write --cache .",
-    "settings:dev": "vite -c vite.config.dev.ts"
+    "format": "prettier --write --cache ."
   },
   "dependencies": {
     "@base-ui-components/react": "1.0.0-beta.4",
