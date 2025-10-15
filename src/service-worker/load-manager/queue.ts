@@ -11,6 +11,7 @@ import type {
   UrlDetails,
 } from '@/lib/types';
 import { ContentType, LoadStatus } from '@/lib/types';
+import { loadIsCompleted } from '@/lib/utils';
 
 type QueueControllerAsyncParams = {
   queue: (number | number[])[];
@@ -82,15 +83,7 @@ export class QueueController {
     )) as LoadItem[];
 
     if (loadItems.length === 0) return [];
-    return loadItems.filter(
-      (item) =>
-        ![
-          LoadStatus.DownloadSuccess,
-          LoadStatus.DownloadFailed,
-          LoadStatus.StoppedByUser,
-          LoadStatus.InitiationError,
-        ].includes(item.status),
-    );
+    return loadItems.filter((item) => !loadIsCompleted(item.status));
   }
   async stopDownload(
     movieId: number,
@@ -155,16 +148,7 @@ export class QueueController {
         | LoadItem
         | undefined;
 
-      if (
-        !record ||
-        [
-          LoadStatus.DownloadSuccess,
-          LoadStatus.DownloadFailed,
-          LoadStatus.StoppedByUser,
-          LoadStatus.InitiationError,
-        ].includes(record.status)
-      )
-        continue;
+      if (!record || loadIsCompleted(record.status)) continue;
 
       record.status = cause;
       await loadItemsStore.put(record);

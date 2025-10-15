@@ -1,6 +1,7 @@
 import browser from 'webextension-polyfill';
 
-import { FileItem, LoadItem, LoadStatus } from '@/lib/types';
+import { FileItem, LoadItem } from '@/lib/types';
+import { loadIsCompleted } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
 export function useTrackingCurrentProgress(loadItem: LoadItem | null) {
@@ -57,15 +58,7 @@ async function getDownloadId(loadItemId: number) {
     : [fileItems[1], fileItems[0]];
 
   // Если приоритетный файл уже завершил загрузку, то возвращаем ссылку на второй
-  if (
-    [
-      LoadStatus.StoppedByUser,
-      LoadStatus.DownloadFailed,
-      LoadStatus.DownloadSuccess,
-      LoadStatus.InitiationError,
-    ].includes(firstDownload.status)
-  )
-    return secondDownload.downloadId;
+  if (loadIsCompleted(firstDownload.status)) return secondDownload.downloadId;
 
   return firstDownload.downloadId;
 }

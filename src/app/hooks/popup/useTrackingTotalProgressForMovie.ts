@@ -1,5 +1,6 @@
 import { getFromStorage } from '@/lib/storage';
-import { EventType, LoadItem, LoadStatus, MovieProgress } from '@/lib/types';
+import { EventType, LoadItem, MovieProgress } from '@/lib/types';
+import { loadIsCompleted } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import browser from 'webextension-polyfill';
 import { useTrackingCurrentProgress } from './useTrackingCurrentProgress';
@@ -201,15 +202,6 @@ async function updateAllLoadStatuses(downloadItemIds: number[]) {
     range,
   )) as LoadItem[];
   return await getLoadStatuses(downloadItems);
-}
-
-function loadIsCompleted(status: LoadStatus) {
-  return [
-    LoadStatus.InitiationError,
-    LoadStatus.StoppedByUser,
-    LoadStatus.DownloadFailed,
-    LoadStatus.DownloadSuccess,
-  ].includes(status);
 }
 
 async function getLoadStatuses(downloadItems: LoadItem[]) {

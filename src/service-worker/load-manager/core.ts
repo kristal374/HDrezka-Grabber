@@ -6,6 +6,7 @@ import {
   LoadItem,
   LoadStatus,
 } from '@/lib/types';
+import { loadIsCompleted } from '@/lib/utils';
 import { Mutex } from 'async-mutex';
 import type { Downloads } from 'webextension-polyfill';
 import { QueueController } from './queue';
@@ -348,14 +349,7 @@ export class DownloadManager {
     // Обработчик остановки активной загрузки
     logger.info('Attempt stopped loading:', fileItem);
 
-    if (
-      ![
-        LoadStatus.DownloadSuccess,
-        LoadStatus.DownloadFailed,
-        LoadStatus.StoppedByUser,
-        LoadStatus.InitiationError,
-      ].includes(fileItem.status)
-    ) {
+    if (!loadIsCompleted(fileItem.status)) {
       const fileItemBrowser: DownloadItem | undefined = (
         await browser.downloads.search({
           id: fileItem.downloadId!,

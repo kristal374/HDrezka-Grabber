@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { SeasonsWithEpisodesList } from './types';
+import { LoadStatus, SeasonsWithEpisodesList } from './types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -64,4 +64,13 @@ export function hashCode(s: string): number {
     return a | 0;
   }, 0);
   return Math.abs(hash) % MAX_INT32;
+}
+
+export function loadIsCompleted(status: LoadStatus) {
+  return [
+    LoadStatus.InitiationError,
+    LoadStatus.StoppedByUser,
+    LoadStatus.DownloadFailed,
+    LoadStatus.DownloadSuccess,
+  ].includes(status);
 }
