@@ -170,6 +170,7 @@ function PersonCard({ person }: { person: Person }) {
         <span className='text-lg font-medium'>
           {person.url ? (
             <OutsideLink
+              className='p-1'
               url={person.url}
               text={person.name}
               icon

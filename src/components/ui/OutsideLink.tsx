@@ -22,7 +22,7 @@ export function OutsideLink({
       target='_blank'
       rel='noopener noreferrer'
       className={cn(
-        'focus-ring text-link-color hover:text-link-color/80 rounded-sm px-1 font-bold underline-offset-4',
+        'focus-ring text-link-color hover:text-link-color/80 rounded-sm font-bold underline-offset-4',
         icon && 'inline-flex items-center gap-2',
         underlineOnHover ? 'hover:underline' : 'underline',
         className,
