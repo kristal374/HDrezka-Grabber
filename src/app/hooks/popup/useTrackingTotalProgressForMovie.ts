@@ -3,6 +3,7 @@ import { EventType, LoadItem, LoadStatus, MovieProgress } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import browser from 'webextension-polyfill';
 import { useTrackingCurrentProgress } from './useTrackingCurrentProgress';
+import equal from 'fast-deep-equal/es6';
 
 type MovieLoadStatuses = {
   completed: number[];
@@ -97,22 +98,30 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
   ) => {
     if (!loadItemIds || !loadStatuses) return;
 
-    // Определяем удалённые id, т.к. это означает, что загрузка для этих элементов была завершена
     const newSet = new Set(newValue ?? []);
-    const removedIds = [...(oldValue ?? [])].filter((i) => !newSet.has(i));
+    const oldSet = new Set(oldValue ?? []);
 
-    for (const id of removedIds) {
+    let needUpdateLoadItem = false;
+    for (const id of oldSet.difference(newSet)) {
       if (loadItemIds.includes(id)) {
         setLoadStatuses(await updateAllLoadStatuses(loadItemIds));
       }
-      if (loadItem?.id === id) {
-        setLoadItem(
-          await getTargetLoadItemFromActiveDownloads(
-            newValue!,
-            movieId,
-            loadItemIds,
-          ),
-        );
+      if (loadItem?.id === id) needUpdateLoadItem = true;
+    }
+
+    needUpdateLoadItem =
+      needUpdateLoadItem ||
+      [...newSet.difference(oldSet)].some((id) => loadItemIds.includes(id));
+
+    if (needUpdateLoadItem) {
+      const newLoadItem = await getTargetLoadItemFromActiveDownloads(
+        newValue!,
+        movieId,
+        loadItemIds,
+      );
+
+      if (!equal(loadItem, newLoadItem)){
+        setLoadItem(newLoadItem);
       }
     }
   };
@@ -145,11 +154,12 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
             'load_item_ids',
             targetLoadItem.id,
           ))!;
+          const loadStatuses = await updateAllLoadStatuses(
+            targetLoadConfig.loadItemIds,
+          );
 
           setLoadItemIds(targetLoadConfig.loadItemIds);
-          setLoadStatuses(
-            await updateAllLoadStatuses(targetLoadConfig.loadItemIds),
-          );
+          setLoadStatuses(loadStatuses);
           setLoadItem(targetLoadItem);
         }
       }
