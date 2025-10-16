@@ -1,3 +1,4 @@
+import { ResourceLockManager } from '@/lib/resource-lock-manager';
 import {
   EventMessage,
   EventType,
@@ -21,11 +22,12 @@ type LoadManagerAsyncParams = {
 
 export class DownloadManager {
   private mutex = new Mutex();
+  private resourceLockManager = new ResourceLockManager();
 
   private readonly queueController: QueueController;
   private siteLoaderFactory: Record<
     string,
-    { build: (...args: any[]) => Promise<SiteLoader> }
+    { build: (downloadItem: LoadItem) => Promise<SiteLoader> }
   > = {
     hdrezka: HDrezkaLoader,
   };
@@ -61,13 +63,8 @@ export class DownloadManager {
     // Отвечает за добавление фильмов/сериалов в очередь на загрузку
     logger.debug('Trigger new load:', initiator);
 
-    await this.mutex.runExclusive(
-      this.queueController.initializeNewDownload.bind(
-        this.queueController,
-        initiator,
-      ),
-    );
-    this.mutex.runExclusive(this.startNextDownload.bind(this)).then();
+    await this.queueController.initializeNewDownload(initiator);
+    this.startNextDownload().then();
   }
 
   private async startNextDownload() {
@@ -75,31 +72,37 @@ export class DownloadManager {
     // производиться загрузка, а также за его подготовку к загрузке
     logger.info('Attempt starting download.');
 
-    const nextLoadItemId =
-      await this.queueController.getNextObjectIdForDownload();
+    // Вызов getNextObjectIdForDownload должен быть исключительно
+    // последовательным, иначе количество загрузок будет выходить за лимит
+    const nextLoadItemId = await this.mutex.runExclusive(
+      this.queueController.getNextObjectIdForDownload.bind(
+        this.queueController,
+      ),
+    );
 
     if (!nextLoadItemId) {
       logger.info('Currently there are no available objects for loading.');
       return;
     }
     logger.debug('Next load item id:', nextLoadItemId);
+    await this.resourceLockManager.lock({
+      type: 'loadStorage',
+      id: nextLoadItemId,
+    });
 
-    const tx = indexedDBObject.transaction('loadStorage', 'readwrite');
-
-    const loadStorage = tx.objectStore('loadStorage');
-    const loadStorageIndex = loadStorage.index('load_id');
-
-    const nextLoadItem = (await loadStorageIndex.get(
+    const nextLoadItem = (await indexedDBObject.getFromIndex(
+      'loadStorage',
+      'load_id',
       nextLoadItemId,
     )) as LoadItem;
+
     if (nextLoadItem.status !== LoadStatus.DownloadCandidate) {
       logger.warning('The start of the load initialization is interrupted.');
       return;
     }
     nextLoadItem.status = LoadStatus.InitiatingDownload;
 
-    await loadStorage.put(nextLoadItem);
-    tx.done;
+    await indexedDBObject.put('loadStorage', nextLoadItem);
 
     const siteLoader = this.siteLoaderFactory[nextLoadItem.siteType];
     const siteLoadItem = await siteLoader.build(nextLoadItem);
@@ -119,7 +122,7 @@ export class DownloadManager {
     await indexedDBObject.put('fileStorage', targetFile);
 
     this.launchFileDownload(targetFile).then();
-    this.mutex.runExclusive(this.startNextDownload.bind(this)).then();
+    this.startNextDownload().then();
   }
 
   private async launchFileDownload(fileItem: FileItem) {
@@ -131,6 +134,10 @@ export class DownloadManager {
         'File download is interrupted - incorrect status:',
         fileItem.status,
       );
+      this.resourceLockManager.unlock({
+        type: 'loadStorage',
+        id: fileItem.relatedLoadItemId,
+      });
       return;
     }
 
@@ -143,29 +150,40 @@ export class DownloadManager {
       await indexedDBObject.put('fileStorage', fileItem);
     }
 
-    try {
-      if (fileItem.url === null) {
-        logger.warning('File download failed - no url:', fileItem);
-        await this.attemptNewDownload(fileItem, LoadStatus.InitiationError);
-        return;
-      }
+    // Если при запросе URL с сервера, произойдёт сбой, URL будет установлен как NULL
+    if (fileItem.url === null) {
+      logger.warning('File download failed - no url:', fileItem);
+      await this.attemptNewDownload(fileItem, LoadStatus.InitiationError);
+      return;
+    }
 
+    try {
       const startInitiationDownloadTime = new Date().getTime();
+
+      // TODO: Тут происходит ошибка с задержкой остановки загрузки: слишком долгая инициализация
       fileItem.downloadId = await browser.downloads.download({
         url: fileItem.url,
         filename: fileItem.fileName,
         saveAs: fileItem.saveAs,
       });
+
       const totalInitiationDownloadTime =
         new Date().getTime() - startInitiationDownloadTime;
+
       if (totalInitiationDownloadTime > 10_000) {
         logger.warning(
           `Loading start took too much time: ${totalInitiationDownloadTime / 1_000}s`,
           fileItem.url,
         );
       }
+
       await indexedDBObject.put('fileStorage', fileItem);
       logger.info('File download started successfully:', fileItem);
+
+      this.resourceLockManager.unlock({
+        type: 'loadStorage',
+        id: fileItem.relatedLoadItemId,
+      });
     } catch (e: any) {
       const error = e as Error;
       logger.error('Download start failed:', error.toString());
@@ -177,26 +195,20 @@ export class DownloadManager {
     // Обработчик успешной инициализации загрузки браузером
     logger.debug('Download has been created:', downloadItem);
 
-    this.mutex.runExclusive(
-      async () =>
-        await this.eventOrchestrator({
-          type: EventType.DownloadCreated,
-          data: downloadItem,
-        }),
-    );
+    this.eventOrchestrator({
+      type: EventType.DownloadCreated,
+      data: downloadItem,
+    });
   }
 
   handleDownloadEvent(downloadDelta: OnChangedDownloadDeltaType) {
     // Отслеживает события загрузок и принимает решения на их основе
     logger.debug('An event occurred:', downloadDelta);
 
-    this.mutex.runExclusive(
-      async () =>
-        await this.eventOrchestrator({
-          type: EventType.DownloadEvent,
-          data: downloadDelta,
-        }),
-    );
+    this.eventOrchestrator({
+      type: EventType.DownloadEvent,
+      data: downloadDelta,
+    });
   }
 
   handleDeterminingFilenameEvent(
@@ -247,11 +259,11 @@ export class DownloadManager {
     // Что потенциально может создать ситуацию, когда у нас
     // в базе будет лежать несколько FileItem с одинаковым downloadId.
     // В таком случае нас интересует только последний созданный FileItem.
-    const file = fileItems.length
+    const targetFile = fileItems.length
       ? fileItems.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
       : null;
 
-    if (!file) {
+    if (!targetFile) {
       // Игнорируем загрузки, вызванные НЕ нашим расширением
       logger.warning(
         'The related file was not found in the storage.',
@@ -259,6 +271,21 @@ export class DownloadManager {
       );
       return;
     }
+
+    // Мы должны заблокировать работу с данным объектом для других задач.
+    // Все остальные задачи будут ожидать завершения текущей, после чего они
+    // будут запущены в порядке очереди появления
+    await this.resourceLockManager.lock({
+      type: 'loadStorage',
+      id: targetFile.relatedLoadItemId,
+    });
+
+    // Пока мы ждали завершения предыдущей задачи объект мог измениться
+    const file = (await indexedDBObject.getFromIndex(
+      'fileStorage',
+      'file_id',
+      targetFile.id,
+    )) as FileItem;
 
     if (event.type === EventType.DownloadCreated) {
       const downloadItem: DownloadItem = event.data;
@@ -276,6 +303,13 @@ export class DownloadManager {
       } else if (downloadDelta.error?.current) {
         logger.error('Download failed:', downloadDelta.error.current);
         await this.attemptNewDownload(file, LoadStatus.DownloadFailed);
+      } else {
+        // Деблокируем объект, иначе он навсегда останется заблокированным
+        this.resourceLockManager.unlock({
+          type: 'loadStorage',
+          id: file.relatedLoadItemId,
+        });
+        logger.warning('Unknown download event:', downloadDelta);
       }
 
       if (downloadDelta.paused?.current === true) {
@@ -320,6 +354,10 @@ export class DownloadManager {
         fileItem,
       );
     }
+    this.resourceLockManager.unlock({
+      type: 'loadStorage',
+      id: fileItem.relatedLoadItemId,
+    });
   }
 
   private async successDownload(fileItem: FileItem) {
@@ -331,18 +369,27 @@ export class DownloadManager {
 
     if (fileItem.dependentFileItemId !== null) {
       logger.info('Found a related file for downloading.');
+
       const nextFileItem = (await indexedDBObject.getFromIndex(
         'fileStorage',
         'file_id',
         fileItem.dependentFileItemId,
       )) as FileItem;
-      nextFileItem.status = LoadStatus.InitiatingDownload;
+
+      if (
+        nextFileItem.status !== LoadStatus.StoppedByUser ||
+        !loadIsCompleted(nextFileItem.status)
+      ) {
+        console.log('successDownload', nextFileItem.id, nextFileItem.status);
+        nextFileItem.status = LoadStatus.InitiatingDownload;
+      }
+
       await indexedDBObject.put('fileStorage', nextFileItem);
       await this.launchFileDownload(nextFileItem);
     } else {
       await this.queueController.successLoad(fileItem);
     }
-    this.mutex.runExclusive(this.startNextDownload.bind(this)).then();
+    this.startNextDownload().then();
   }
 
   private async cancelDownload(fileItem: FileItem) {
@@ -361,12 +408,16 @@ export class DownloadManager {
       }
       await this.breakDownloadWithError(fileItem, LoadStatus.StoppedByUser);
     } else {
+      this.resourceLockManager.unlock({
+        type: 'loadStorage',
+        id: fileItem.relatedLoadItemId,
+      });
       logger.debug(
         'Attempt to stop loading interrupted - load is completed:',
         fileItem,
       );
     }
-    this.mutex.runExclusive(this.startNextDownload.bind(this)).then();
+    this.startNextDownload().then();
   }
 
   private async pauseDownload(fileItem: FileItem) {
@@ -376,6 +427,10 @@ export class DownloadManager {
     fileItem.status = LoadStatus.DownloadPaused;
     await indexedDBObject.put('fileStorage', fileItem);
     await browser.downloads.pause(fileItem.downloadId!);
+    this.resourceLockManager.unlock({
+      type: 'loadStorage',
+      id: fileItem.relatedLoadItemId,
+    });
   }
 
   private async unpauseDownload(fileItem: FileItem) {
@@ -385,6 +440,10 @@ export class DownloadManager {
     fileItem.status = LoadStatus.Downloading;
     await indexedDBObject.put('fileStorage', fileItem);
     await browser.downloads.resume(fileItem.downloadId!);
+    this.resourceLockManager.unlock({
+      type: 'loadStorage',
+      id: fileItem.relatedLoadItemId,
+    });
   }
 
   private async cancelAllDownload(fileItem: FileItem) {
@@ -408,7 +467,11 @@ export class DownloadManager {
 
     if (fileItem.status === LoadStatus.StoppedByUser) {
       logger.warning('New load attempt interrupted - StoppedByUser:', fileItem);
-      this.mutex.runExclusive(this.startNextDownload.bind(this)).then();
+      this.resourceLockManager.unlock({
+        type: 'loadStorage',
+        id: fileItem.relatedLoadItemId,
+      });
+      this.startNextDownload().then();
       return;
     }
 
@@ -424,12 +487,14 @@ export class DownloadManager {
   }
 
   private async breakDownloadWithError(fileItem: FileItem, cause: LoadStatus) {
-    fileItem.status = cause;
-    await indexedDBObject.put('fileStorage', fileItem);
     await this.queueController.failLoad(fileItem, cause);
+    this.resourceLockManager.unlock({
+      type: 'loadStorage',
+      id: fileItem.relatedLoadItemId,
+    });
 
     logger.error('Loading stopped with error:', cause, fileItem);
-    this.mutex.runExclusive(this.startNextDownload.bind(this)).then();
+    this.startNextDownload().then();
   }
 
   private async repeatDownload(fileItem: FileItem) {
@@ -443,25 +508,41 @@ export class DownloadManager {
     fileItem.retryAttempts++;
     fileItem.status = LoadStatus.InitiatingDownload;
     await indexedDBObject.put('fileStorage', fileItem);
+    this.resourceLockManager.unlock({
+      type: 'loadStorage',
+      id: fileItem.relatedLoadItemId,
+    });
 
     return new Promise((resolve) => {
       setTimeout(async () => {
+        await this.resourceLockManager.lock({
+          type: 'loadStorage',
+          id: fileItem.relatedLoadItemId,
+        });
+
+        // Повторно получаем объект, ибо пока мы ждали доступа,
+        // файл мог измениться
+        const targetFile = (await indexedDBObject.getFromIndex(
+          'fileStorage',
+          'file_id',
+          fileItem.id,
+        )) as FileItem;
         const loadItem = (await indexedDBObject.getFromIndex(
           'loadStorage',
           'load_id',
-          fileItem.relatedLoadItemId,
+          targetFile.relatedLoadItemId,
         )) as LoadItem;
 
         const siteLoader = this.siteLoaderFactory[loadItem.siteType];
         const siteLoadItem = await siteLoader.build(loadItem);
 
-        fileItem.url =
-          fileItem.fileType === 'video'
+        targetFile.url =
+          targetFile.fileType === 'video'
             ? await siteLoadItem.getVideoUrl()
             : await siteLoadItem.getSubtitlesUrl();
-        await indexedDBObject.put('fileStorage', fileItem);
+        await indexedDBObject.put('fileStorage', targetFile);
 
-        resolve(await this.launchFileDownload(fileItem));
+        resolve(await this.launchFileDownload(targetFile));
       }, settings.timeBetweenDownloadAttempts);
     });
   }

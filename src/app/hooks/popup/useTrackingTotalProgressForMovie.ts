@@ -1,10 +1,10 @@
 import { getFromStorage } from '@/lib/storage';
 import { EventType, LoadItem, MovieProgress } from '@/lib/types';
 import { loadIsCompleted } from '@/lib/utils';
+import equal from 'fast-deep-equal/es6';
 import { useEffect, useState } from 'react';
 import browser from 'webextension-polyfill';
 import { useTrackingCurrentProgress } from './useTrackingCurrentProgress';
-import equal from 'fast-deep-equal/es6';
 
 type MovieLoadStatuses = {
   completed: number[];
@@ -121,7 +121,7 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
         loadItemIds,
       );
 
-      if (!equal(loadItem, newLoadItem)){
+      if (!equal(loadItem, newLoadItem)) {
         setLoadItem(newLoadItem);
       }
     }

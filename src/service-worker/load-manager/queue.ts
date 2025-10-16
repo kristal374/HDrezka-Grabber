@@ -1,16 +1,18 @@
+import { ResourceLockManager } from '@/lib/resource-lock-manager';
 import { createProxy, getFromStorage, saveInStorage } from '@/lib/storage';
-import type {
+import {
+  ContentType,
   Episode,
   FileItem,
   Initiator,
   LoadConfig,
   LoadItem,
+  LoadStatus,
   Message,
   Season,
   SeasonsWithEpisodesList,
   UrlDetails,
 } from '@/lib/types';
-import { ContentType, LoadStatus } from '@/lib/types';
 import { loadIsCompleted } from '@/lib/utils';
 
 type QueueControllerAsyncParams = {
@@ -19,8 +21,10 @@ type QueueControllerAsyncParams = {
 };
 
 export class QueueController {
-  queue: (number | number[])[];
-  activeDownloads: number[];
+  private resourceLockManager = new ResourceLockManager();
+
+  private readonly queue: (number | number[])[];
+  private activeDownloads: number[];
 
   constructor(async_param: QueueControllerAsyncParams | undefined) {
     if (typeof async_param === 'undefined') {
@@ -74,8 +78,8 @@ export class QueueController {
     return true;
   }
 
-  private async findActiveDownloads(movieId: number): Promise<LoadItem[]> {
-    // Ищет все активные загрузки для заданного фильма и возвращает их
+  private async findActiveDownloads(movieId: number): Promise<number[]> {
+    // Ищет ID всех активных загрузок для заданного фильма и возвращает их
     const loadItems = (await indexedDBObject.getAllFromIndex(
       'loadStorage',
       'movie_id',
@@ -83,8 +87,11 @@ export class QueueController {
     )) as LoadItem[];
 
     if (loadItems.length === 0) return [];
-    return loadItems.filter((item) => !loadIsCompleted(item.status));
+    return loadItems
+      .filter((item) => !loadIsCompleted(item.status))
+      .map((item) => item.id);
   }
+
   async stopDownload(
     movieId: number,
     cause: LoadStatus = LoadStatus.StoppedByUser,
@@ -127,61 +134,66 @@ export class QueueController {
   }
 
   private async removeDownloadsFromQueue(
-    groupToRemove: LoadItem[],
+    groupToRemove: number[],
     cause: LoadStatus = LoadStatus.StoppedByUser,
   ) {
-    // Удаляет загрузки из очереди, находящиеся в списке на удаление, если
-    // есть активные загрузки - прерывает их
+    // Удаляет загрузки из очереди, находящиеся в списке на удаление,
+    // если есть активные загрузки - прерывает их
     logger.debug('Removing from download queue:', groupToRemove);
 
-    const tx = indexedDBObject.transaction(
-      ['loadStorage', 'fileStorage'],
-      'readwrite',
+    await Promise.all(
+      groupToRemove.map((id) =>
+        this.resourceLockManager.run(
+          { type: 'loadStorage', id },
+          this.cancelDownload.bind(this, id, cause),
+          1000,
+        ),
+      ),
     );
-    const loadItemsStore = tx.objectStore('loadStorage');
-    const fileItemsStore = tx.objectStore('fileStorage');
-    const loadItemsIndex = loadItemsStore.index('load_id');
-    const fileItemsIndex = fileItemsStore.index('load_item_id');
+  }
 
-    for (const item of groupToRemove) {
-      const record = (await loadItemsIndex.get(item.id)) as
-        | LoadItem
-        | undefined;
+  private async cancelDownload(
+    id: number,
+    cause: LoadStatus = LoadStatus.StoppedByUser,
+  ) {
+    logger.debug('Canceling download:', id, cause);
+    const record = (await indexedDBObject.getFromIndex(
+      'loadStorage',
+      'load_id',
+      id,
+    )) as LoadItem | undefined;
 
-      if (!record || loadIsCompleted(record.status)) continue;
+    if (!record || loadIsCompleted(record.status)) return;
 
+    if (this.activeDownloads.includes(record.id)) {
+      const relatedFiles = (await indexedDBObject.getAllFromIndex(
+        'fileStorage',
+        'load_item_id',
+        record.id,
+      )) as FileItem[];
+
+      for (const file of relatedFiles) {
+        if (file.downloadId === null) {
+          await this.failLoad(file, cause);
+        } else {
+          await browser.downloads.cancel(file.downloadId);
+        }
+      }
+    } else {
       record.status = cause;
-      await loadItemsStore.put(record);
+      await indexedDBObject.put('loadStorage', record);
 
       for (let i = 0; i < this.queue.length; i++) {
         const group = this.queue[i];
         if (
-          record.id === group ||
+          id === group ||
           (Array.isArray(group) && group.includes(record.id))
         ) {
           this.queue.splice(i, 1);
           break;
         }
       }
-      if (this.activeDownloads.includes(record.id)) {
-        // this.activeDownloads.splice(this.activeDownloads.indexOf(record.id), 1);
-        const relatedFiles = (await fileItemsIndex.getAll(
-          record.id,
-        )) as FileItem[];
-
-        for (const file of relatedFiles) {
-          if (file.downloadId === null) {
-            file.status = cause;
-            await fileItemsStore.put(file);
-
-            this.failLoad(file, LoadStatus.StoppedByUser).then();
-          } else {
-            browser.downloads.cancel(file.downloadId!).then();
-          }
-        }
-      }
     }
-    tx.done;
   }
 
   private async createNewDownloads(initiator: Initiator): Promise<number[]> {
@@ -328,6 +340,10 @@ export class QueueController {
       1,
     );
 
+    this.resourceLockManager.unlock({
+      type: 'loadStorage',
+      id: fileItem.relatedLoadItemId,
+    });
     logger.info('Load was successful:', loadItem);
   }
 
@@ -335,6 +351,11 @@ export class QueueController {
     // Находит и удаляет объект из активных загрузок
     // и помечает его как сбой загрузки.
     // В зависимости от настроек пользователя определяет реакцию на сбой
+    logger.debug('Mark download as failed:', fileItem, cause);
+
+    fileItem.status = cause;
+    await indexedDBObject.put('fileStorage', fileItem);
+
     const loadItem = (await indexedDBObject.getFromIndex(
       'loadStorage',
       'load_id',
@@ -344,6 +365,8 @@ export class QueueController {
     await indexedDBObject.put('loadStorage', loadItem);
 
     this.activeDownloads.splice(this.activeDownloads.indexOf(loadItem.id), 1);
+
+    if (cause === LoadStatus.StoppedByUser) return;
 
     if (fileItem.url === null) {
       const actionOnNoUrl =
