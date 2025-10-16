@@ -1,8 +1,11 @@
+import { selectMovieInfo } from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
+import { selectRange } from '@/app/screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
+import { useAppSelector } from '@/app/screens/Popup/DownloadScreen/store/store';
 import { getFromStorage } from '@/lib/storage';
 import { EventType, LoadItem, MovieProgress } from '@/lib/types';
 import { loadIsCompleted } from '@/lib/utils';
 import equal from 'fast-deep-equal/es6';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import browser from 'webextension-polyfill';
 import { useTrackingCurrentProgress } from './useTrackingCurrentProgress';
 
@@ -12,6 +15,9 @@ type MovieLoadStatuses = {
 };
 
 export function useTrackingTotalProgressForMovie(movieId: number) {
+  const movieInfo = useAppSelector(selectMovieInfo)!;
+  const range = useAppSelector(selectRange);
+
   const [loadItem, setLoadItem] = useState<LoadItem | null>(null);
   const [loadItemIds, setLoadItemIds] = useState<number[] | null>(null);
   const [loadStatuses, setLoadStatuses] = useState<MovieLoadStatuses | null>(
@@ -71,6 +77,7 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
             );
             break;
           case 'settings':
+            // ignore settings changes
             break;
           default:
             logger.warning('Unknown event type:', key);
@@ -91,30 +98,38 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
       );
       eventBus.off(EventType.StorageChanged, handleLocalStorageChange);
     };
-  }, [loadItem, loadItemIds, loadStatuses]);
+  }, [loadItem, loadItemIds, loadStatuses, range, movieInfo]);
 
-  const handleActiveDownloadsChange = async (
-    oldValue: number[] | undefined,
-    newValue: number[] | undefined,
-  ) => {
-    if (!loadItemIds || !loadStatuses) return;
+  const handleActiveDownloadsChange = useCallback(
+    async (oldValue: number[] | undefined, newValue: number[] | undefined) => {
+      const newSet = new Set(newValue ?? []);
+      const oldSet = new Set(oldValue ?? []);
 
-    const newSet = new Set(newValue ?? []);
-    const oldSet = new Set(oldValue ?? []);
+      const added = [...newSet].filter((id) => !oldSet.has(id));
+      const removed = [...oldSet].filter((id) => !newSet.has(id));
 
-    let needUpdateLoadItem = false;
-    for (const id of oldSet.difference(newSet)) {
-      if (loadItemIds.includes(id)) {
+      if (!loadItemIds || !loadStatuses) {
+        if (
+          movieInfo.data.action === 'get_movie' ||
+          (range && !Object.values(range).some((s) => s.episodes.length > 1))
+        ) {
+          if (added.length) await updateLoadTracking(added);
+        }
+        return;
+      }
+
+      const removedTouchesLoadIds = removed.some((id) =>
+        loadItemIds.includes(id),
+      );
+      const loadItemWasRemoved = loadItem?.id && removed.includes(loadItem.id);
+      const addedTouchesLoadIds = added.some((id) => loadItemIds.includes(id));
+      const needUpdateLoadItem = loadItemWasRemoved || addedTouchesLoadIds;
+
+      if (removedTouchesLoadIds) {
         setLoadStatuses(await updateAllLoadStatuses(loadItemIds));
       }
-      if (loadItem?.id === id) needUpdateLoadItem = true;
-    }
 
-    needUpdateLoadItem =
-      needUpdateLoadItem ||
-      [...newSet.difference(oldSet)].some((id) => loadItemIds.includes(id));
-
-    if (needUpdateLoadItem) {
+      if (!needUpdateLoadItem) return;
       const newLoadItem = await getTargetLoadItemFromActiveDownloads(
         newValue!,
         movieId,
@@ -124,48 +139,56 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
       if (!equal(loadItem, newLoadItem)) {
         setLoadItem(newLoadItem);
       }
-    }
-  };
+    },
+    [loadItemIds, loadStatuses, loadItem, range, movieInfo],
+  );
 
-  const handleQueueChange = async (
-    oldValue: QueueItem[],
-    newValue: QueueItem[],
-  ) => {
-    const changes = detectQueueChanges(oldValue, newValue);
+  const handleQueueChange = useCallback(
+    async (oldValue: QueueItem[], newValue: QueueItem[]) => {
+      const changes = detectQueueChanges(oldValue, newValue);
 
-    if (changes.completed?.length && loadItemIds) {
-      for (const movie of changes.completed) {
-        const movieId = Array.isArray(movie) ? movie[0] : movie;
-        if (loadItemIds.includes(movieId))
-          setLoadStatuses(await updateAllLoadStatuses(loadItemIds));
+      if (changes.completed?.length && loadItemIds) {
+        for (const movie of changes.completed) {
+          const movieId = Array.isArray(movie) ? movie[0] : movie;
+          if (loadItemIds.includes(movieId))
+            setLoadStatuses(await updateAllLoadStatuses(loadItemIds));
+        }
       }
-    }
 
-    if (changes.initialized?.length && !loadItemIds) {
-      for (const movie of changes.initialized) {
+      if (changes.initialized?.length && !loadItemIds) {
+        await updateLoadTracking(changes.initialized);
+      }
+    },
+    [loadItemIds],
+  );
+
+  const updateLoadTracking = useCallback(
+    async (loadItemIdsSequence: QueueItem[]) => {
+      for (const movie of loadItemIdsSequence ?? []) {
         const targetLoadItem = (await indexedDBObject.getFromIndex(
           'loadStorage',
           'load_id',
           Array.isArray(movie) ? movie[0] : movie,
         )) as LoadItem;
 
-        if (targetLoadItem && targetLoadItem.movieId === movieId) {
+        if (targetLoadItem?.movieId === movieId) {
           const targetLoadConfig = (await indexedDBObject.getFromIndex(
             'loadConfig',
             'load_item_ids',
             targetLoadItem.id,
           ))!;
-          const loadStatuses = await updateAllLoadStatuses(
+          const newLoadStatuses = await updateAllLoadStatuses(
             targetLoadConfig.loadItemIds,
           );
 
           setLoadItemIds(targetLoadConfig.loadItemIds);
-          setLoadStatuses(loadStatuses);
+          setLoadStatuses(newLoadStatuses);
           setLoadItem(targetLoadItem);
         }
       }
-    }
-  };
+    },
+    [],
+  );
 
   return progress;
 }

@@ -58,9 +58,9 @@ async function getDownloadId(loadItemId: number) {
     : [fileItems[1], fileItems[0]];
 
   // Если приоритетный файл уже завершил загрузку, то возвращаем ссылку на второй
-  if (loadIsCompleted(firstDownload.status)) return secondDownload.downloadId;
-
-  return firstDownload.downloadId;
+  return loadIsCompleted(firstDownload.status)
+    ? secondDownload.downloadId
+    : firstDownload.downloadId;
 }
 
 function createProgressFetcher() {
@@ -81,6 +81,8 @@ function createProgressFetcher() {
 
     const currentProgress = await getCurrentProgress(downloadBrowserId);
     if (lastProgress === currentProgress) counter++;
+    lastProgress = currentProgress;
+
     if (currentProgress === 100 || counter > 3) {
       cachedDownloadBrowserId = null;
       counter = 0;
