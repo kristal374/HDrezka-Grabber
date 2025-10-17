@@ -11,6 +11,8 @@ import { hashCode } from '@/lib/utils';
 import { getFromCache, setInCache } from '@/service-worker/cache';
 import { Input, InputVideoTrack, MP4, UrlSource } from 'mediabunny';
 
+const inFlightFetches = new Map<string, Promise<URLItem>>();
+
 export async function getQualityFileSize(
   urlsContainer: QualitiesList | null,
   siteUrl: string,
@@ -34,13 +36,21 @@ export async function getQualityFileSize(
 
 export async function fetchUrlSizes(request: RequestUrlSize): Promise<URLItem> {
   logger.info('Fetching URL sizes.');
+
+  // Проверяем есть ли хоть один из искомых URL в кэше, у которого размер > 0
+  const allItemFromCache = await Promise.all(
+    request.urlsList.map(async (item) => await getFromCache<URLItem>(item)),
+  );
+  const cleanCache = allItemFromCache.filter((c) => c?.rawSize) as URLItem[];
+
+  if (cleanCache.length) {
+    return cleanCache[0];
+  }
+
   const promises = request.urlsList.map(async (item) => {
-    const [url, rawSize, videoResolution] = await getVideoInfo(
-      item,
-      request.siteUrl,
-      request.onlySize,
-    );
-    return { url, rawSize, stringSize: formatBytes(rawSize), videoResolution };
+    // TODO: На текущий момент если один из связанных запросов корректно
+    //  завершает работу, остальные не прерываются и продолжают работать
+    return await getVideoInfoOrWaitFor(item, request.siteUrl, request.onlySize);
   });
 
   return await Promise.any(promises).catch(() => {
@@ -51,6 +61,31 @@ export async function fetchUrlSizes(request: RequestUrlSize): Promise<URLItem> {
       videoResolution: null,
     };
   });
+}
+
+async function getVideoInfoOrWaitFor(
+  videoUrl: string,
+  siteUrl: string,
+  onlySize?: boolean,
+) {
+  const existing = inFlightFetches.get(videoUrl);
+  if (existing) return existing;
+
+  const promise = getVideoInfo(videoUrl, siteUrl, onlySize).then(
+    ([url, rawSize, videoResolution]) => {
+      const urlItem = {
+        url,
+        rawSize,
+        stringSize: formatBytes(rawSize),
+        videoResolution,
+      };
+      setInCache(urlItem, videoUrl).then();
+      return urlItem;
+    },
+  );
+
+  inFlightFetches.set(videoUrl, promise);
+  return promise;
 }
 
 function formatBytes(bytes: number | null) {
@@ -71,11 +106,6 @@ async function getVideoInfo(
   readonly [string, number, { width: number; height: number } | null]
 > {
   logger.info('Attempt get file size.');
-  const cache =
-    await getFromCache<
-      readonly [string, number, { width: number; height: number } | null]
-    >(videoUrl);
-  if (cache) return cache;
 
   const [getFinallyUrl, modifiedFetch] = makeModifyFetch(siteUrl);
   const input = new Input({
@@ -112,7 +142,6 @@ async function getVideoInfo(
   return readVideoInfo()
     .then((result) => {
       logger.debug('File info received:', result);
-      setInCache(result, videoUrl).then();
       return result;
     })
     .catch(async (e) => {
@@ -268,6 +297,7 @@ async function addHeaderModificationRule(
             },
           ],
         },
+        // TODO: Стоит использовать Regexp дабы не зависеть от домена при медиа запросах
         condition: { urlFilter: target.href },
       },
     ],
