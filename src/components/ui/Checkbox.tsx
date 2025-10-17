@@ -8,7 +8,7 @@ function Checkbox({
   return (
     <CheckboxPrimitive.Root
       className={cn(
-        'peer focus-ring size-5 shrink-0 cursor-pointer rounded border-2 text-lg leading-none font-bold',
+        'peer focus-ring size-5 shrink-0 cursor-pointer rounded border-[0.125rem] text-lg leading-none font-bold',
         'border-check-box bg-background not-disabled:hover:border-check-box-active not-disabled:hover:bg-input',
         'data-checked:bg-check-box data-checked:text-background not-disabled:hover:data-checked:bg-check-box-active',
         'disabled:cursor-not-allowed disabled:opacity-50',

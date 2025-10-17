@@ -37,12 +37,12 @@ export function SubtitleSelector() {
 
       {downloadSubtitle && (
         <div className='flex items-center gap-2.5'>
-          <label htmlFor='subtitles' className='ml-auto text-sm'>
+          <label htmlFor='subtitles' className='ml-auto text-sm select-none'>
             {browser.i18n.getMessage('popup_subtitleLang')}
           </label>
           <Combobox
             id='subtitles'
-            width={229.588}
+            width='14.4rem'
             data={subtitlesList.map((subtitle) => ({
               value: JSON.stringify(subtitle),
               label: subtitle.lang,

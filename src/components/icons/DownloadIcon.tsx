@@ -1,11 +1,13 @@
-export function DownloadIcon() {
+export function DownloadIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
+      xmlns='http://www.w3.org/2000/svg'
       width='61'
       height='77'
       viewBox='0 0 61 77'
+      role='img'
       fill='none'
-      xmlns='http://www.w3.org/2000/svg'
+      {...props}
     >
       <g clip-path='url(#clip0_334_688)'>
         <path

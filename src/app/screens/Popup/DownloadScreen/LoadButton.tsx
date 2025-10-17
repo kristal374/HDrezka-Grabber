@@ -68,10 +68,12 @@ export function LoadButton() {
         isCompleted && 'cursor-not-allowed',
       )}
       type='button'
+      title={!isCompleted ? 'Начать загрузку' : undefined}
+      aria-label={!isCompleted ? 'Начать загрузку' : undefined}
       onClick={handleClick}
       disabled={isCompleted}
     >
-      {!progress && <DownloadIcon />}
+      {!progress && <DownloadIcon className='size-19' />}
       {progress &&
         (isCompleted ? (
           <AnimatedCheckIcon className='size-16' />

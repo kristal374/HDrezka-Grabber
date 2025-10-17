@@ -58,13 +58,14 @@ export function VoiceOverSelector({
   logger.info('New render VoiceOverSelector component.');
   return (
     <div className='flex items-center gap-2.5'>
-      <label htmlFor='voiceOver' className='ml-auto text-sm'>
+      <label htmlFor='voiceOver' className='ml-auto text-sm select-none'>
         {browser.i18n.getMessage('popup_translate')}
       </label>
+      {/*TODO: disable combobox if downloadSerial is false*/}
       <Combobox
         id='voiceOver'
-        width={229.588}
-        height={pageType === 'FILM' ? 155 : undefined}
+        width='14.4rem'
+        height={pageType === 'FILM' ? '9.5rem' : undefined}
         data={voiceOverList.map((voiceOver) => ({
           value: JSON.stringify(voiceOver),
           label: voiceOver.title,
@@ -75,11 +76,11 @@ export function VoiceOverSelector({
                 {voiceOver.flag_country && (
                   <FlagIcon
                     country={voiceOver.flag_country}
-                    className='ml-2 shrink-0'
+                    className='ml-2 size-4 shrink-0'
                   />
                 )}
                 {voiceOver.prem_content && (
-                  <PremiumIcon className='ml-2 shrink-0' />
+                  <PremiumIcon className='ml-2 size-4 shrink-0' />
                 )}
               </>
             );

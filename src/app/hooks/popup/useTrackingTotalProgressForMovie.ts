@@ -189,12 +189,11 @@ async function setup(movieId: number) {
   );
 
   if (targetLoadItem) {
-    const targetLoadConfig =
-      (await indexedDBObject.getFromIndex(
-        'loadConfig',
-        'load_item_ids',
-        targetLoadItem.id,
-      ));
+    const targetLoadConfig = await indexedDBObject.getFromIndex(
+      'loadConfig',
+      'load_item_ids',
+      targetLoadItem.id,
+    );
 
     if (!targetLoadConfig) return null;
     const loadItemIds = targetLoadConfig.loadItemIds;

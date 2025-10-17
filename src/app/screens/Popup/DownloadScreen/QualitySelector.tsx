@@ -62,12 +62,12 @@ export function QualitySelector() {
 
   return (
     <div className='flex items-center gap-2.5'>
-      <label htmlFor='qualities' className='ml-auto text-sm'>
+      <label htmlFor='qualities' className='ml-auto text-sm select-none'>
         {browser.i18n.getMessage('popup_quality')}
       </label>
       <Combobox
         id='qualities'
-        width={229.588}
+        width='14.4rem'
         value={quality || Object.keys(qualitiesList).at(-1)}
         onValueChange={(v) =>
           dispatch(setCurrentQualityAction({ quality: v as QualityItem }))

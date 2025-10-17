@@ -1,11 +1,11 @@
 import { DownloadIcon } from '@/components/icons/DownloadIcon';
 import { DefaultScreen } from '../DefaultScreen';
 
-export function DownloadScreenSceleton() {
+export function DownloadScreenSkeleton() {
   return (
     <DefaultScreen className='py-0'>
       <div className='bg-popup-border flex size-30 items-center justify-center rounded-full text-white'>
-        <DownloadIcon />
+        <DownloadIcon className='size-19' />
       </div>
     </DefaultScreen>
   );

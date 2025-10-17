@@ -15,13 +15,13 @@ interface ComboboxProps {
   id?: string;
   className?: string;
   /**
-   * Width of button and min width of combobox content in pixels
+   * Width of button and min width of combobox content in pixels or rem
    */
-  width?: number;
+  width?: number | string;
   /**
-   * Max height of combobox content in pixels
+   * Max height of combobox content in pixels or rem
    */
-  height?: number;
+  height?: number | string;
   data: Array<{
     value: string;
     label: string;
@@ -36,8 +36,8 @@ interface ComboboxProps {
 export function Combobox({
   id,
   className,
-  width = 225,
-  height = 185,
+  width = '14rem', // 224px
+  height = '11.5rem', // 184px
   data,
   value: defaultValue = '',
   onValueChange,
@@ -76,7 +76,7 @@ export function Combobox({
           role='combobox'
           aria-expanded={open}
           className={cn(
-            'focus-ring flex cursor-pointer items-center rounded-md border-2 px-2 py-1.5 text-sm',
+            'focus-ring flex cursor-pointer items-center rounded-md border-[0.125rem] px-2 py-1.5 text-sm',
             'border-input bg-background not-disabled:hover:border-input-active not-disabled:hover:bg-input',
             'placeholder:text-foreground-disabled disabled:cursor-not-allowed disabled:opacity-50',
             className,
@@ -109,8 +109,10 @@ export function Combobox({
           {data.length > 12 && needSearch && (
             <CommandInput
               placeholder={browser.i18n.getMessage('combobox_search')}
-              // 8 - scrollbar, 16 - search icon, 10 - left margin, 8 - right margin
-              style={{ width: width - 8 - 16 - 10 - 8 }}
+              // 0.5rem - scrollbar, 1rem - search icon, 0.625rem - left margin, 0.5rem - right margin
+              style={{
+                width: `calc(${width} - 0.5rem - 1rem - 0.625rem - 0.5rem)`,
+              }}
             />
           )}
           <CommandList>

@@ -12,18 +12,18 @@ export function Menu({ className }: MenuProps) {
     <div
       className={cn('absolute top-0 right-0 flex flex-col gap-1', className)}
     >
-      <MenuButton href='/settings' openInNewTab={true}>
+      <MenuButton href='/settings' openInNewTab={true} title='Настройки'>
         {/* <SlidersHorizontalIcon className='size-8' strokeWidth={1.5} /> */}
         <HeroiconsCogIcon
           className='size-8 transition-transform hover:rotate-45'
           strokeWidth={1.5}
         />
       </MenuButton>
-      {/* <MenuButton href='/loadManager'>
+      {/* <MenuButton href='/loadManager' title='Диспетчер загрузок'>
         <SquareKanbanIcon className='size-8 rotate-270' strokeWidth={1.5}  />
       </MenuButton> */}
       {settings.enableLogger && (
-        <MenuButton href='/logger'>
+        <MenuButton href='/logger' title='Журнал событий'>
           <SquareTerminalIcon className='size-8' strokeWidth={1.5} />
         </MenuButton>
       )}

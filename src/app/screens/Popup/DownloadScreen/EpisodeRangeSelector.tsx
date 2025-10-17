@@ -101,7 +101,10 @@ export function EpisodeRangeSelector({
       {downloadSerial && seasons && (
         <>
           <div className='flex items-center gap-2.5'>
-            <label htmlFor='seasonFrom' className='ml-auto text-base font-bold'>
+            <label
+              htmlFor='seasonFrom'
+              className='ml-auto text-base font-bold select-none'
+            >
               {browser.i18n.getMessage('popup_textFrom')}
             </label>
 
@@ -109,7 +112,7 @@ export function EpisodeRangeSelector({
             <Combobox
               id='seasonFrom'
               className='py-0.5'
-              width={85}
+              width='5.3125rem' // 85px
               data={seasonValues}
               value={seasonFrom}
               onValueChange={(value) => {
@@ -117,15 +120,18 @@ export function EpisodeRangeSelector({
               }}
             />
 
-            <label htmlFor='episodeFrom' className='text-sm'>
-              {/* Arrow width in pixels: [9.588] */}
+            <label
+              htmlFor='episodeFrom'
+              className='h-full w-[0.65rem] text-sm select-none'
+            >
+              {/* Arrow width in pixels: [10.4] */}
               {'>'}
             </label>
 
             <Combobox
               id='episodeFrom'
               className='py-0.5'
-              width={115}
+              width='7.1875rem' // 115px
               data={seasons[seasonFrom].episodes.map((episode) => ({
                 value: episode.id,
                 label: episode.title,
@@ -138,7 +144,10 @@ export function EpisodeRangeSelector({
           </div>
 
           <div className='flex items-center gap-2.5'>
-            <label htmlFor='seasonTo' className='ml-auto text-base font-bold'>
+            <label
+              htmlFor='seasonTo'
+              className='ml-auto text-base font-bold select-none'
+            >
               {browser.i18n.getMessage('popup_textTo')}
             </label>
 
@@ -146,7 +155,7 @@ export function EpisodeRangeSelector({
             <Combobox
               id='seasonTo'
               className='py-0.5'
-              width={downloadToEnd ? 229.588 : 85}
+              width={downloadToEnd ? '14.4rem' : '5.3125rem'}
               data={[
                 {
                   value: '-2',
@@ -173,15 +182,18 @@ export function EpisodeRangeSelector({
 
             {!downloadToEnd && (
               <>
-                <label htmlFor='episodeTo' className='text-sm'>
-                  {/* Arrow width in pixels: [9.588] */}
+                <label
+                  htmlFor='episodeFrom'
+                  className='h-full w-[0.65rem] text-sm select-none'
+                >
+                  {/* Arrow width in pixels: [10.4] */}
                   {'>'}
                 </label>
 
                 <Combobox
                   id='episodeTo'
                   className='py-0.5'
-                  width={115}
+                  width='7.1875rem' // 115px
                   data={seasons[seasonTo].episodes
                     .filter((episode) => {
                       return !(
