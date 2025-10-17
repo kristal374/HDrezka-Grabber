@@ -37,7 +37,7 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
   useEffect(() => {
     setup(movieId).then((result) => {
       if (result) {
-        setLoadItem(result.targetDownload);
+        setLoadItem(result.targetLoadItem);
         setLoadItemIds(result.loadItemIds);
         setLoadStatuses(result.movieLoadStatuses);
       }
@@ -113,7 +113,13 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
           movieInfo.data.action === 'get_movie' ||
           (range && !Object.values(range).some((s) => s.episodes.length > 1))
         ) {
-          if (added.length) await updateLoadTracking(added);
+          const [targetLoadItem, targetLoadConfig, newLoadStatuses] =
+            await getNewTarget(added, movieId);
+
+          if (!targetLoadConfig) return;
+          setLoadItemIds(targetLoadConfig.loadItemIds);
+          setLoadStatuses(newLoadStatuses);
+          setLoadItem(targetLoadItem);
         }
         return;
       }
@@ -156,38 +162,16 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
       }
 
       if (changes.initialized?.length && !loadItemIds) {
-        await updateLoadTracking(changes.initialized);
+        const [targetLoadItem, targetLoadConfig, newLoadStatuses] =
+          await getNewTarget(changes.initialized, movieId);
+
+        if (!targetLoadConfig) return;
+        setLoadItemIds(targetLoadConfig.loadItemIds);
+        setLoadStatuses(newLoadStatuses);
+        setLoadItem(targetLoadItem);
       }
     },
-    [loadItemIds],
-  );
-
-  const updateLoadTracking = useCallback(
-    async (loadItemIdsSequence: QueueItem[]) => {
-      for (const movie of loadItemIdsSequence ?? []) {
-        const targetLoadItem = (await indexedDBObject.getFromIndex(
-          'loadStorage',
-          'load_id',
-          Array.isArray(movie) ? movie[0] : movie,
-        )) as LoadItem;
-
-        if (targetLoadItem?.movieId === movieId) {
-          const targetLoadConfig = (await indexedDBObject.getFromIndex(
-            'loadConfig',
-            'load_item_ids',
-            targetLoadItem.id,
-          ))!;
-          const newLoadStatuses = await updateAllLoadStatuses(
-            targetLoadConfig.loadItemIds,
-          );
-
-          setLoadItemIds(targetLoadConfig.loadItemIds);
-          setLoadStatuses(newLoadStatuses);
-          setLoadItem(targetLoadItem);
-        }
-      }
-    },
-    [],
+    [loadItemIds, movieId],
   );
 
   return progress;
@@ -195,23 +179,62 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
 
 async function setup(movieId: number) {
   const activeDownloads = await getFromStorage<number[]>('activeDownloads');
+  const queue = await getFromStorage<number[]>('queue');
 
   if (!activeDownloads) return null;
-  const targetDownload = await getTargetLoadItemFromActiveDownloads(
+
+  let targetLoadItem = await getTargetLoadItemFromActiveDownloads(
     activeDownloads,
     movieId,
   );
 
-  if (!targetDownload) return null;
-  const targetLoadConfig = (await indexedDBObject.getFromIndex(
-    'loadConfig',
-    'load_item_ids',
-    targetDownload.id,
-  ))!;
+  if (targetLoadItem) {
+    const targetLoadConfig =
+      (await indexedDBObject.getFromIndex(
+        'loadConfig',
+        'load_item_ids',
+        targetLoadItem.id,
+      ));
 
-  const loadItemIds = targetLoadConfig.loadItemIds;
-  const movieLoadStatuses = await updateAllLoadStatuses(loadItemIds);
-  return { targetDownload, loadItemIds, movieLoadStatuses };
+    if (!targetLoadConfig) return null;
+    const loadItemIds = targetLoadConfig.loadItemIds;
+    const movieLoadStatuses = await updateAllLoadStatuses(loadItemIds);
+
+    return { targetLoadItem, loadItemIds, movieLoadStatuses };
+  } else if (queue) {
+    const [targetLoadItem, targetLoadConfig, movieLoadStatuses] =
+      await getNewTarget(queue, movieId);
+
+    if (!targetLoadConfig) return null;
+    const loadItemIds = targetLoadConfig.loadItemIds;
+
+    return { targetLoadItem, loadItemIds, movieLoadStatuses };
+  }
+
+  return null;
+}
+
+async function getNewTarget(loadItemIdsSequence: QueueItem[], movieId: number) {
+  for (const movie of loadItemIdsSequence ?? []) {
+    const targetLoadItem = (await indexedDBObject.getFromIndex(
+      'loadStorage',
+      'load_id',
+      Array.isArray(movie) ? movie[0] : movie,
+    )) as LoadItem;
+
+    if (targetLoadItem?.movieId !== movieId) continue;
+    const targetLoadConfig = (await indexedDBObject.getFromIndex(
+      'loadConfig',
+      'load_item_ids',
+      targetLoadItem.id,
+    ))!;
+
+    const movieLoadStatuses = await updateAllLoadStatuses(
+      targetLoadConfig.loadItemIds,
+    );
+    return [targetLoadItem, targetLoadConfig, movieLoadStatuses] as const;
+  }
+  return [null, null, null] as const;
 }
 
 async function updateAllLoadStatuses(downloadItemIds: number[]) {
