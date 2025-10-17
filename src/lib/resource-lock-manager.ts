@@ -24,15 +24,12 @@ export class ResourceLockManager {
 
   async lock({ type, id }: ResourceTarget, priority?: number) {
     const mutex = this.getMutex({ type, id });
-    const releaser = await mutex.acquire(priority ?? 1);
-    console.log('lock', { type, id });
-    return releaser;
+    return await mutex.acquire(priority ?? 1);
   }
 
   unlock({ type, id }: ResourceTarget) {
     const mutex = this.getMutex({ type, id });
-    mutex.release();
-    console.log('unlock', { type, id });
+    return mutex.release();
   }
 
   async run<T>(

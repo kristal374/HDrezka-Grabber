@@ -11,7 +11,6 @@ import { createRoot } from 'react-dom/client';
 logger.info('Settings open.');
 
 const element = document.querySelector('body')!;
-element.classList.add('bg-settings-background-primary', 'overflow-y-scroll');
 const root = createRoot(element);
 
 export const SettingsInitialDataContext =

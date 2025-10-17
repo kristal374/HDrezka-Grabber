@@ -15,7 +15,7 @@ export function Menu({ className }: MenuProps) {
       <MenuButton href='/settings' openInNewTab={true}>
         {/* <SlidersHorizontalIcon className='size-8' strokeWidth={1.5} /> */}
         <HeroiconsCogIcon
-          className='size-8 transition-transform hover:rotate-45'
+          className='size-8 transition-transform duration-300 hover:rotate-45'
           strokeWidth={1.5}
         />
       </MenuButton>
