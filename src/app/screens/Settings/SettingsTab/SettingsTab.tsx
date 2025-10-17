@@ -10,8 +10,9 @@ import { Panel } from '@/components/Panel';
 import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { Toggle } from '@/components/ui/Toggle';
+import { dropDatabase } from '@/lib/idb-storage';
 import { LogLevel } from '@/lib/logger/types';
-import { saveInStorage } from '@/lib/storage';
+import { createDefaultSettings, saveInStorage } from '@/lib/storage';
 import {
   DownloadIcon,
   FolderCogIcon,
@@ -41,7 +42,7 @@ function SettingsItemSelect({
   title: string;
   description: string;
   options: { value: string; label: string }[];
-  width?: number;
+  width?: number | string;
 }) {
   return (
     <SettingItem title={title} description={description}>
@@ -120,7 +121,7 @@ export function SettingsTab() {
               { value: 'video', label: 'Видео' },
               { value: 'subtitle', label: 'Субтитры' },
             ]}
-            width={125}
+            width='8rem'
           />
           <SettingsItemSelect
             title='Максимальное количество одновременных загрузок'
@@ -145,7 +146,7 @@ export function SettingsTab() {
               value: String(i + 1),
               label: String(i + 1),
             }))}
-            width={80}
+            width='5rem'
           />
 
           <SettingsItemSelect
@@ -160,7 +161,7 @@ export function SettingsTab() {
                 label: String(i + 1),
               }),
             )}
-            width={80}
+            width='5rem'
           />
 
           <SettingsItemSelect
@@ -172,7 +173,7 @@ export function SettingsTab() {
               value: String(i + 1),
               label: String(i + 1),
             }))}
-            width={80}
+            width='5rem'
           />
 
           <SettingsItemSelect
@@ -192,7 +193,7 @@ export function SettingsTab() {
               { value: String(10 * 60 * 1000), label: '10 минут' },
               { value: String(15 * 60 * 1000), label: '15 минут' },
             ]}
-            width={125}
+            width='8rem'
           />
         </SettingsSection>
 
@@ -207,6 +208,7 @@ export function SettingsTab() {
               { value: 'reduce_quality', label: 'Понизить качество серии' },
               { value: 'stop', label: 'Остановить загрузку сериала' },
             ]}
+            width='14.5rem'
           />
           <SettingsItemSelect
             title='Если при загрузки серии нет выбраных субтитров'
@@ -218,6 +220,7 @@ export function SettingsTab() {
               { value: 'ignore', label: 'Игнорировать' },
               { value: 'stop', label: 'Остановить загрузку сериала' },
             ]}
+            width='14.5rem'
           />
           <SettingsItemSelect
             title='Если не удалось загрузить субтитры'
@@ -228,6 +231,7 @@ export function SettingsTab() {
               { value: 'skip', label: 'Пропустить эти субтитры' },
               { value: 'stop', label: 'Остановить загрузку сериала' },
             ]}
+            width='14.5rem'
           />
           <SettingsItemSelect
             title='Если не удалось загрузить серию'
@@ -238,6 +242,7 @@ export function SettingsTab() {
               { value: 'skip', label: 'Пропустить эту серию' },
               { value: 'stop', label: 'Остановить загрузку сериала' },
             ]}
+            width='14.5rem'
           />
         </SettingsSection>
 
@@ -303,7 +308,7 @@ export function SettingsTab() {
                 options={Object.keys(LogLevel)
                   .filter((k) => isNaN(Number(k)))
                   .map((level, i) => ({ value: String(i), label: level }))}
-                width={125}
+                width='8rem'
               />
 
               <SettingsItemSelect
@@ -329,7 +334,7 @@ export function SettingsTab() {
                     label: '2 недели',
                   },
                 ]}
-                width={125}
+                width='8rem'
               />
             </>
           )}
@@ -347,11 +352,23 @@ export function SettingsTab() {
 
           <div className='flex flex-wrap gap-3'>
             <Button>Попытаться восстановить работу расширения</Button>
-            <Button>Восстановить настройки по умолчанию</Button>
+
+            <Button onClick={createDefaultSettings}>
+              Восстановить настройки по умолчанию
+            </Button>
+
             <Button>Очистить кэш</Button>
             <Button>Остановить все загрузки</Button>
             <Button>Очистить историю загрузок</Button>
-            <Button>Удалить все данные расширения</Button>
+            <Button
+              onClick={async () => {
+                await browser.storage.local.clear();
+                await browser.storage.session.clear();
+                await dropDatabase();
+              }}
+            >
+              Удалить все данные расширения
+            </Button>
           </div>
         </SettingsSection>
       </div>
