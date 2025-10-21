@@ -353,9 +353,7 @@ export class QueueController {
     // В зависимости от настроек пользователя определяет реакцию на сбой
     logger.debug('Mark download as failed:', fileItem, cause);
 
-    fileItem.status = cause;
-    await indexedDBObject.put('fileStorage', fileItem);
-
+    // Обновляем сам объект загрузки
     const loadItem = (await indexedDBObject.getFromIndex(
       'loadStorage',
       'load_id',
@@ -363,6 +361,30 @@ export class QueueController {
     )) as LoadItem;
     loadItem.status = cause;
     await indexedDBObject.put('loadStorage', loadItem);
+
+    const relatedFiles = (await indexedDBObject.getAllFromIndex(
+      'fileStorage',
+      'load_item_id',
+      loadItem.id,
+    )) as FileItem[];
+
+    // И так же обновляем статусы для всех связанных файлов
+    await Promise.all(
+      relatedFiles.map(async (file) => {
+        if (loadIsCompleted(file.status)) return;
+        if (file.id === fileItem.id || cause === LoadStatus.StoppedByUser) {
+          return await indexedDBObject.put('fileStorage', {
+            ...file,
+            status: cause,
+          });
+        }
+
+        return await indexedDBObject.put('fileStorage', {
+          ...file,
+          status: LoadStatus.InitiationError,
+        });
+      }),
+    );
 
     this.activeDownloads.splice(this.activeDownloads.indexOf(loadItem.id), 1);
 
