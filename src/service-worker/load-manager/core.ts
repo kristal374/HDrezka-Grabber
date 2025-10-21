@@ -141,15 +141,6 @@ export class DownloadManager {
       return;
     }
 
-    if (fileItem.downloadId !== null) {
-      // Мы должны удалить старую связь с объектом загрузки браузера,
-      // ибо, когда загрузка будет удалена из истории: браузер вызовет
-      // событие USER_CANCELED. Из-за чего файлы будут удалены из активных
-      // загрузок и расширение не сможет корректно отслеживать загрузки.
-      fileItem.downloadId = null;
-      await indexedDBObject.put('fileStorage', fileItem);
-    }
-
     // Если при запросе URL с сервера, произойдёт сбой, URL будет установлен как NULL
     if (fileItem.url === null) {
       logger.warning('File download failed - no url:', fileItem);
@@ -380,7 +371,6 @@ export class DownloadManager {
         nextFileItem.status !== LoadStatus.StoppedByUser ||
         !loadIsCompleted(nextFileItem.status)
       ) {
-        console.log('successDownload', nextFileItem.id, nextFileItem.status);
         nextFileItem.status = LoadStatus.InitiatingDownload;
       }
 
@@ -396,15 +386,15 @@ export class DownloadManager {
     // Обработчик остановки активной загрузки
     logger.info('Attempt stopped loading:', fileItem);
 
-    if (!loadIsCompleted(fileItem.status)) {
+    if (fileItem.downloadId && !loadIsCompleted(fileItem.status)) {
       const fileItemBrowser: DownloadItem | undefined = (
         await browser.downloads.search({
-          id: fileItem.downloadId!,
+          id: fileItem.downloadId,
         })
       )[0];
 
       if (fileItemBrowser?.state === 'in_progress') {
-        await browser.downloads.cancel(fileItem.downloadId!);
+        await browser.downloads.cancel(fileItem.downloadId);
       }
       await this.breakDownloadWithError(fileItem, LoadStatus.StoppedByUser);
     } else {
@@ -467,19 +457,18 @@ export class DownloadManager {
 
     if (fileItem.status === LoadStatus.StoppedByUser) {
       logger.warning('New load attempt interrupted - StoppedByUser:', fileItem);
+
       this.resourceLockManager.unlock({
         type: 'loadStorage',
         id: fileItem.relatedLoadItemId,
       });
       this.startNextDownload().then();
-      return;
-    }
-
-    if (fileItem.retryAttempts >= settings.maxFallbackAttempts) {
+    } else if (fileItem.retryAttempts >= settings.maxFallbackAttempts) {
       logger.error(
         'New load attempt interrupted - Max attempts reached:',
         fileItem,
       );
+
       await this.breakDownloadWithError(fileItem, cause);
     } else {
       await this.repeatDownload(fileItem);
@@ -500,14 +489,28 @@ export class DownloadManager {
   private async repeatDownload(fileItem: FileItem) {
     logger.info('Start new load attempt:', fileItem);
 
-    if (fileItem.downloadId) {
-      // Удаляем старую загрузку из истории перед началом новой попытки
-      await browser.downloads.erase({ id: fileItem.downloadId });
-    }
+    const oldDownloadId = fileItem.downloadId;
 
     fileItem.retryAttempts++;
-    fileItem.status = LoadStatus.InitiatingDownload;
+    fileItem.status = LoadStatus.DownloadFailed;
+
+    // Мы должны удалить старую связь с объектом загрузки браузера,
+    // ибо, когда загрузка будет удалена из истории: браузер вызовет
+    // событие USER_CANCELED. Из-за чего файлы будут удалены из активных
+    // загрузок и расширение не сможет корректно отслеживать загрузки.
+    fileItem.downloadId = null;
+
+    // Сохраняем fileItem в хранилище ПЕРЕД вызовом downloads.erase, чтоб
+    // downloadId успел обновиться до того, как придёт событие USER_CANCELED
     await indexedDBObject.put('fileStorage', fileItem);
+
+    if (oldDownloadId) {
+      // Удаляем старую загрузку из истории перед началом новой попытки
+      // для того, чтоб в истории загрузок не было видно неудачных попыток,
+      // так для пользователя работа расширения будет выглядеть стабильнее
+      await browser.downloads.erase({ id: oldDownloadId });
+    }
+
     this.resourceLockManager.unlock({
       type: 'loadStorage',
       id: fileItem.relatedLoadItemId,
@@ -540,6 +543,8 @@ export class DownloadManager {
           targetFile.fileType === 'video'
             ? await siteLoadItem.getVideoUrl()
             : await siteLoadItem.getSubtitlesUrl();
+        targetFile.status = LoadStatus.InitiatingDownload;
+
         await indexedDBObject.put('fileStorage', targetFile);
 
         resolve(await this.launchFileDownload(targetFile));
