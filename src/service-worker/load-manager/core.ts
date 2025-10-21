@@ -68,12 +68,12 @@ export class DownloadManager {
   }
 
   private async startNextDownload() {
-    // Отвечает за получение объекта, на основе которого будет
-    // производиться загрузка, а также за его подготовку к загрузке
+    // Отвечает за определение объекта, на основе которого будет
+    // производиться загрузка
     logger.info('Attempt starting download.');
 
     // Вызов getNextObjectIdForDownload должен быть исключительно
-    // последовательным, иначе количество загрузок будет выходить за лимит
+    // последовательным, иначе количество загрузок может выходить за лимит
     const nextLoadItemId = await this.mutex.runExclusive(
       this.queueController.getNextObjectIdForDownload.bind(
         this.queueController,
@@ -84,28 +84,39 @@ export class DownloadManager {
       logger.info('Currently there are no available objects for loading.');
       return;
     }
-    logger.debug('Next load item id:', nextLoadItemId);
-    await this.resourceLockManager.lock({
-      type: 'loadStorage',
-      id: nextLoadItemId,
-    });
 
-    const nextLoadItem = (await indexedDBObject.getFromIndex(
+    logger.debug('Next load item id:', nextLoadItemId);
+    this.resourceLockManager
+      .lock({
+        type: 'loadStorage',
+        id: nextLoadItemId,
+      })
+      .then(() => this.prepareDownload(nextLoadItemId));
+    this.startNextDownload().then();
+  }
+
+  private async prepareDownload(nextLoadItemId: number) {
+    // Подготавливает объект перед загрузкой
+    const loadItem = (await indexedDBObject.getFromIndex(
       'loadStorage',
       'load_id',
       nextLoadItemId,
     )) as LoadItem;
 
-    if (nextLoadItem.status !== LoadStatus.DownloadCandidate) {
+    if (loadItem.status !== LoadStatus.DownloadCandidate) {
       logger.warning('The start of the load initialization is interrupted.');
+      this.resourceLockManager.unlock({
+        type: 'loadStorage',
+        id: loadItem.id,
+      });
       return;
     }
-    nextLoadItem.status = LoadStatus.InitiatingDownload;
 
-    await indexedDBObject.put('loadStorage', nextLoadItem);
+    loadItem.status = LoadStatus.InitiatingDownload;
+    await indexedDBObject.put('loadStorage', loadItem);
 
-    const siteLoader = this.siteLoaderFactory[nextLoadItem.siteType];
-    const siteLoadItem = await siteLoader.build(nextLoadItem);
+    const siteLoader = this.siteLoaderFactory[loadItem.siteType];
+    const siteLoadItem = await siteLoader.build(loadItem);
 
     const [videoFile, subtitleFile] = await siteLoadItem.createAndGetFile();
     const targetFile =
