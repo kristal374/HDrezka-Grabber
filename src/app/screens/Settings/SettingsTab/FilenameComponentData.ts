@@ -30,57 +30,28 @@ export const SERIES_PLACEHOLDERS = [
 ];
 
 export const SERIES_READY_TEMPLATES = [
+  ['%orig_title%', ' S-', '%season_id%', ' E-', '%episode_id%'],
+  ['%title%', ' ', '%season%', ' ', '%episode%'],
   [
     '%n%',
     ') ',
     '%orig_title%',
-    '[',
+    ' (',
     '%translate%',
-    '] (',
+    ') ',
     '%season%',
-    ') (',
+    ' ',
     '%episode%',
-    ')',
-  ],
-  [
-    '%orig_title%',
-    '(',
-    '%translate%',
-    ')_S-',
-    '%season_id%',
-    '_E-',
-    '%episode_id%',
-    '_[',
+    ' [',
     '%quality%',
     ']',
   ],
 ];
 
 export const MOVIE_READY_TEMPLATES = [
-  [
-    '%n%',
-    ') ',
-    '%orig_title%',
-    '[',
-    '%translate%',
-    '] (',
-    '%season%',
-    ') (',
-    '%episode%',
-    ')',
-  ],
-  [
-    '%orig_title%',
-    '(',
-    '%translate%',
-    ')_S-',
-    '%season_id%',
-    '_E-',
-    '%episode_id%',
-    '_[',
-    '%quality%',
-    ']',
-  ],
+  ['%orig_title%'],
+  ['%title%'],
+  ['%orig_title%', ' (', '%translate%', ') [', '%quality%', ']'],
 ];
 
 export const MOVIE_PREVIEW = [

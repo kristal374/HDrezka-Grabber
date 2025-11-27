@@ -272,6 +272,7 @@ export function SettingsTab() {
           />
 
           <FilenameTemplateComponent
+            fieldId={'movie-template-editor'}
             value={settings.filenameFilmTemplate}
             setValue={updateSetting('filenameFilmTemplate')}
             title='Шаблон имени файлов для фильмов'
@@ -281,6 +282,7 @@ export function SettingsTab() {
           />
 
           <FilenameTemplateComponent
+            fieldId={'series-template-editor'}
             value={settings.filenameSeriesTemplate}
             setValue={updateSetting('filenameSeriesTemplate')}
             title='Шаблон имени файлов для сериалов'

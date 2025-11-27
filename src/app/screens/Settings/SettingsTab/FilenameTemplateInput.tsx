@@ -24,6 +24,7 @@ export type Placeholder = {
 };
 
 type FilenameTemplateBuilderProps = SettingItemProps<string[]> & {
+  fieldId: string;
   placeholders: Placeholder[];
 };
 
@@ -98,6 +99,7 @@ export const mapSelectionToTemplate = (
 };
 
 export function FilenameTemplateInput({
+  fieldId,
   value,
   setValue,
   placeholders,
@@ -186,8 +188,9 @@ export function FilenameTemplateInput({
 
   return (
     <MentionsInput
-      id='editor-template'
+      id={fieldId}
       inputRef={inputRef}
+      spellCheck={false}
       value={rawUserTemplate}
       onChange={handleChange}
       className='mentions'

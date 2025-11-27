@@ -33,7 +33,7 @@ export async function createDefaultSettings() {
     createExtensionFolders: true,
     createSeriesFolders: false,
     replaceAllSpaces: true,
-    filenameFilmTemplate: ['%orig_title%', '_Q-', '%quality%'],
+    filenameFilmTemplate: ['%orig_title%'],
     filenameSeriesTemplate: [
       '%orig_title%',
       '_',

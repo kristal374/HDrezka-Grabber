@@ -17,6 +17,7 @@ export type PreviewItem = {
 };
 
 type FilenameTemplateProps = SettingItemProps<string[]> & {
+  fieldId: string;
   title: string;
   placeholders: Placeholder[];
   readyTemplates: string[][];
@@ -24,6 +25,7 @@ type FilenameTemplateProps = SettingItemProps<string[]> & {
 };
 
 export function FilenameTemplateComponent({
+  fieldId,
   value,
   setValue,
   title,
@@ -40,6 +42,7 @@ export function FilenameTemplateComponent({
 
       <div className='relative'>
         <FilenameTemplateInput
+          fieldId={fieldId}
           value={value}
           setValue={setValue}
           placeholders={placeholders}
@@ -220,13 +223,15 @@ function PreviewItems({ previews }: PreviewItemProps) {
               cleanTitle(preview.value['%orig_title%']) ??
               cleanTitle(preview.value['%title%']);
 
+            // Имитация получения времени из вне
             const timestamp = new Date().getTime();
             preview.value['%data%'] = new Date(timestamp)
               .toLocaleString()
               .split(', ')[0];
             preview.value['%time%'] = new Date(timestamp)
               .toLocaleString()
-              .split(', ')[1];
+              .split(', ')[1]
+              .replaceAll(':', '-');
 
             return (
               <div
