@@ -266,7 +266,10 @@ export class HDrezkaLoader implements SiteLoader {
       '%subtitle_code%': this.loadConfig.subtitle?.code,
       '%subtitle_lang%': this.loadConfig.subtitle?.lang,
       '%data%': new Date(timestamp).toLocaleString().split(', ')[0],
-      '%time%': new Date(timestamp).toLocaleString().split(', ')[1],
+      '%time%': new Date(timestamp)
+        .toLocaleString()
+        .split(', ')[1]
+        .replaceAll(':', '-'),
     };
 
     return makePathAndFilename(replacements, fileType).join('');
