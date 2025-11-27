@@ -401,34 +401,34 @@ export function AboutTab({
   ],
   // TODO: добавить ссылки на платёжные сервисы
   donations = [
-    {
-      title: 'Patreon',
-      subtitle: browser.i18n.getMessage('settings_patreonSubtitle'),
-      icon: <CoffeeIcon className='mx-auto h-8 w-8 text-orange-500' />,
-      link: 'https://patreon.com/reactextpro',
-    },
-    {
-      title: 'PayPal',
-      subtitle: browser.i18n.getMessage('settings_PayPalSubtitle'),
-      icon: <DollarSignIcon className='mx-auto h-8 w-8 text-blue-500' />,
-      link: 'https://paypal.me/reactextpro',
-    },
-    {
-      title: 'Monero',
-      subtitle: browser.i18n.getMessage('settings_MoneroSubtitle'),
-      icon: (
-        <div className='mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white'>
-          XMR
-        </div>
-      ),
-      link: 'monero:',
-    },
-    {
-      title: 'GitHub Sponsors',
-      subtitle: browser.i18n.getMessage('settings_GitHubSubtitle'),
-      icon: <HeartIcon className='mx-auto h-8 w-8 text-red-500' />,
-      link: 'https://github.com/sponsors/yourname',
-    },
+    // {
+    //   title: 'Patreon',
+    //   subtitle: browser.i18n.getMessage('settings_patreonSubtitle'),
+    //   icon: <CoffeeIcon className='mx-auto h-8 w-8 text-orange-500' />,
+    //   link: 'https://patreon.com/',
+    // },
+    // {
+    //   title: 'PayPal',
+    //   subtitle: browser.i18n.getMessage('settings_PayPalSubtitle'),
+    //   icon: <DollarSignIcon className='mx-auto h-8 w-8 text-blue-500' />,
+    //   link: 'https://paypal.me/',
+    // },
+    // {
+    //   title: 'Monero',
+    //   subtitle: browser.i18n.getMessage('settings_MoneroSubtitle'),
+    //   icon: (
+    //     <div className='mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white'>
+    //       XMR
+    //     </div>
+    //   ),
+    //   link: 'monero:',
+    // },
+    // {
+    //   title: 'GitHub Sponsors',
+    //   subtitle: browser.i18n.getMessage('settings_GitHubSubtitle'),
+    //   icon: <HeartIcon className='mx-auto h-8 w-8 text-red-500' />,
+    //   link: 'https://github.com/sponsors/',
+    // },
   ],
   people = [
     {
