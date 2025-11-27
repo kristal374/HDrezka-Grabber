@@ -15,6 +15,7 @@ import { HDrezkaLoader, SiteLoader } from './site-loader';
 
 type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
 type DownloadItem = Downloads.DownloadItem;
+type DownloadOptionsType = Downloads.DownloadOptionsType;
 
 type LoadManagerAsyncParams = {
   controller: QueueController;
@@ -145,10 +146,7 @@ export class DownloadManager {
         'File download is interrupted - incorrect status:',
         fileItem.status,
       );
-      this.resourceLockManager.unlock({
-        type: 'loadStorage',
-        id: fileItem.relatedLoadItemId,
-      });
+      await this.attemptNewDownload(fileItem, LoadStatus.InitiationError);
       return;
     }
 
@@ -163,7 +161,7 @@ export class DownloadManager {
       const startInitiationDownloadTime = new Date().getTime();
 
       // TODO: Тут происходит ошибка с задержкой остановки загрузки: слишком долгая инициализация
-      fileItem.downloadId = await browser.downloads.download({
+      fileItem.downloadId = await this.callDownloadWithTimeout({
         url: fileItem.url,
         filename: fileItem.fileName,
         saveAs: fileItem.saveAs,
@@ -172,12 +170,9 @@ export class DownloadManager {
       const totalInitiationDownloadTime =
         new Date().getTime() - startInitiationDownloadTime;
 
-      if (totalInitiationDownloadTime > 10_000) {
-        logger.warning(
-          `Loading start took too much time: ${totalInitiationDownloadTime / 1_000}s`,
-          fileItem.url,
-        );
-      }
+      logger.info(
+        `File item ${fileItem.id} took ${totalInitiationDownloadTime / 1_000}s to start loading.`,
+      );
 
       await indexedDBObject.put('fileStorage', fileItem);
       logger.info('File download started successfully:', fileItem);
@@ -191,6 +186,37 @@ export class DownloadManager {
       logger.error('Download start failed:', error.toString());
       await this.attemptNewDownload(fileItem, LoadStatus.InitiationError);
     }
+  }
+
+  private async callDownloadWithTimeout(
+    options: DownloadOptionsType,
+  ): Promise<number> {
+    let isTimeout = false;
+    return new Promise(async (resolve, reject) => {
+      browser.downloads
+        .download(options)
+        .then(async (downloadId) => {
+          console.log('downloadId:', downloadId);
+          if (isTimeout) {
+            try {
+              if ((await browser.downloads.search({ id: downloadId })).length) {
+                await browser.downloads.erase({ id: downloadId });
+              }
+            } catch (e) {
+              console.warn('erase failed:', e);
+            }
+          } else {
+            resolve(downloadId);
+          }
+        })
+        .catch(async (error) => {
+          reject(error);
+        });
+      setTimeout(async () => {
+        isTimeout = true;
+        reject(new Error('Download timeout'));
+      }, settings.downloadStartTimeLimit);
+    });
   }
 
   handleCreateEvent(downloadItem: DownloadItem) {

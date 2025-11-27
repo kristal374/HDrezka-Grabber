@@ -293,6 +293,7 @@ export type Settings = {
   maxParallelDownloadsEpisodes: number;
   maxFallbackAttempts: number;
   timeBetweenDownloadAttempts: number;
+  downloadStartTimeLimit: number;
 
   actionOnNoQuality: 'skip' | 'reduce_quality' | 'stop';
   actionOnNoSubtitles: 'skip' | 'ignore' | 'stop';

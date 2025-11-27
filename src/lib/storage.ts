@@ -24,6 +24,7 @@ export async function createDefaultSettings() {
     maxParallelDownloadsEpisodes: 2,
     maxFallbackAttempts: 3,
     timeBetweenDownloadAttempts: 5_000, // ms, equals 5 seconds
+    downloadStartTimeLimit: 10_000, // ms, equals 10 seconds
 
     actionOnNoQuality: 'reduce_quality',
     actionOnNoSubtitles: 'ignore',

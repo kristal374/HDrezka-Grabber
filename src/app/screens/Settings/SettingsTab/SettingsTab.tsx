@@ -195,6 +195,24 @@ export function SettingsTab() {
             ]}
             width='8rem'
           />
+
+          <SettingsItemSelect
+            title='Максимальное время, отведенное для начала загрузки'
+            description='Через какой период времени запуск загрузки будет считаться неудачным, если загрузка не стартовала.'
+            value={String(settings.downloadStartTimeLimit)}
+            setValue={updateSetting('downloadStartTimeLimit', 'number')}
+
+            // Лимит времени обусловлен временем жизни неактивного service-worker-а.
+            // https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle
+            options={[
+              { value: String(5 * 1000), label: '5 секунд' },
+              { value: String(10 * 1000), label: '10 секунд' },
+              { value: String(15 * 1000), label: '15 секунд' },
+              { value: String(20 * 1000), label: '20 секунд' },
+              { value: String(25 * 1000), label: '25 секунд' },
+            ]}
+            width='8rem'
+          />
         </SettingsSection>
 
         <SettingsSection title='Действия при сбоях' icon={ShieldAlert}>
@@ -353,6 +371,7 @@ export function SettingsTab() {
           <hr className='border-settings-border-primary border-t' />
 
           <div className='flex flex-wrap gap-3'>
+            {/*TODO: реализовать обработку нажатий*/}
             <Button>Попытаться восстановить работу расширения</Button>
 
             <Button onClick={createDefaultSettings}>
