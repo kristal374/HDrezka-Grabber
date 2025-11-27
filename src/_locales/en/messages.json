@@ -143,52 +143,58 @@
     "message": "Co-pilot. Responsible for the design and appearance of the extension."
   },
   "settings_FaqQuestion_1": {
-    "message": "How to choose where to download files?"
+    "message": "How to choose where files are downloaded?"
   },
   "settings_FaqAnswer_1": {
-    "message": "The extension cannot affect this in any way. The browser does not allow extensions to specify paths outside the standard \"Downloads\" folder. The only option is to manually change the default download folder in the browser settings."
+    "message": "The extension cannot influence this in any way. The browser does not allow extensions to specify paths outside the standard \"Downloads\" folder. The only option is to manually change the default download folder in the browser settings."
   },
   "settings_FaqQuestion_2": {
-    "message": "When choosing 1080p/1080p-Ultra quality, the video is downloaded at 720p"
+    "message": "When selecting 1080p/1080p-Ultra quality, a 720p video file is downloaded"
   },
   "settings_FaqAnswer_2": {
-    "message": "This is not a bug of the extension, but rather a consequence of how it works. To play a movie on the site, the player must first request the server to provide access to the desired video. The server responds with a link to the video — each quality (whether 360p or 1080p) has a unique link that only the server can provide, since all content is stored there. The extension imitates the player’s behavior and knows how to get this link to download the file. However, when rezka’s servers are under heavy load, they begin to downgrade the quality. You may still see the 1080p option, but when requesting it, the server automatically downgrades to the next lower quality — in this case, 720p. The extension can detect such downgrades, but since it cannot get the 1080p link, it downloads what is available. In the extension’s settings, you can configure behavior when a downgrade is detected. Also, since the extension mimics the player, you can verify the downgrade yourself by simply watching the video in the site’s player."
+    "message": "This is not a bug in the extension but a feature of the website. To play a movie, the player requests a link to the video of the required quality from the server. If the server is overloaded, it may automatically lower the quality — for example, deliver 720p instead of 1080p. The extension receives exactly the link the server returns. You can verify this directly on the site: the quality in the player will also drop."
   },
   "settings_FaqQuestion_3": {
-    "message": "The extension downloads files slowly, even though I have fast internet"
+    "message": "The extension downloads files slowly even though I have fast internet"
   },
   "settings_FaqAnswer_3": {
-    "message": "The extension does not affect download speed, as it uses the built-in browser download API, meaning the browser itself is the real initiator of downloads. Unfortunately, download speed depends not only on your internet connection: it can also be limited by the upload speed of rezka’s servers. This is especially noticeable in the evenings, when people come home and start watching movies — servers get overloaded, which may slow downloads, or even lower video quality from 1080p to 720p. However, one mystery remains: sometimes, when downloading several files of the same size, one file gets stuck at half, while a dozen others finish in parallel. Sometimes pausing and immediately resuming the slow download helps."
+    "message": "The extension does not slow down the download. The speed depends not only on your internet connection but also on the servers that distribute the files. During peak hours they may work slower, causing the speed and sometimes even the video quality to drop."
   },
   "settings_FaqQuestion_4": {
     "message": "How does the extension work?"
   },
   "settings_FaqAnswer_4": {
-    "message": "In simple terms, the extension’s logic works like this. When you open the popup, several key events occur. The extension tries to detect the page type — if it is not a movie or TV show page on the rezka.ag family of sites, it shows a placeholder message and stops further actions. If the page is suitable, the extension tries to retrieve player data (technical info, episode numbers, dubbing options, selected parameters, etc.). To do this, it injects a script that extracts the data from the page and sends it back to the extension. Once you start a download, two parameters are required — the filename and the file link. The filename is generated from the popup data and user template in settings; the link comes from the server. Imitating the player, the extension sends a request for the desired video, and the server responds with a list of links and available qualities (this is where issues with incorrect quality can occur if the server marks a link as higher quality than it really is). The extension chooses the appropriate link and passes it to the browser to start the download — this may take some time. Once the browser begins downloading, the extension monitors download events and reacts accordingly. At the same time, the extension manages multiple downloads, as there may be 100+ queued."
+    "message": "When you open the dropdown menu, the extension checks whether you are on a suitable website. If it’s not a movie or series on a rezka.ag family site, it simply shows a placeholder and stops. If the page is suitable, the extension retrieves the player data (episode, voiceover, parameters, etc.). To do this, a temporary script is inserted into the page, which collects the necessary information and passes it to the extension. When you click “Download”, the extension generates a file name and requests from the server a list of links to videos of different qualities. The extension selects the required link and sends it to the browser, which starts the download. After that, the extension simply monitors the download and reacts to its events. It can also manage several downloads at once."
   },
   "settings_FaqQuestion_5": {
-    "message": "Why does the extension need access to all sites?"
+    "message": "Why does the extension need access to all websites?"
   },
   "settings_FaqAnswer_5": {
-    "message": "Access to all sites is required in case you use rezka mirrors. During development, there were two options: either constantly update the list of available sites whenever a new mirror appears (and release a new update), or give the extension access to all sites and check each time whether the current site is a target — if not, just ignore it. I chose the second option because it’s less time-consuming, and also ensures that if support for the extension stops in the future, it will still work correctly with existing mirrors."
+    "message": "Access to all websites is required so that the extension can work with rezka mirrors."
   },
   "settings_FaqQuestion_6": {
-    "message": "Does the extension support other site mirrors?"
+    "message": "Does the extension support other mirrors of the site?"
   },
   "settings_FaqAnswer_6": {
-    "message": "Yes, it does. When opening the popup, the extension checks whether the site matches the rezka.ag pattern; if not, it notifies you that the site is unrecognized and suggests switching to the official rezka.ag. Since all OFFICIAL mirrors follow the pattern, they work without issue. However, keep in mind: besides official mirrors, there may be others! In rare cases, the pattern in the extension may become outdated — then downloading will be impossible, even from the official site."
+    "message": "Yes, it does. When opening the popup, the extension checks whether the site matches the structure pattern of rezka.ag; if not, it will inform you that the site is not recognized and suggest visiting the official rezka.ag site. Since all OFFICIAL mirrors follow the pattern, they will work without issues, but keep in mind: besides official mirrors, there may be others! In rare cases, the pattern in the extension may become outdated — then downloading may be impossible even from the official site."
   },
   "settings_FaqQuestion_7": {
-    "message": "How to download multiple movies/TV shows at once?"
+    "message": "How to download multiple movies/series simultaneously?"
   },
   "settings_FaqAnswer_7": {
-    "message": "The extension supports background downloading, meaning you do NOT need to stay on the same page where you started the download: after initiating, you can close the tab and continue with other tasks. The extension has a download queue — you can add multiple movies/TV shows, and as soon as a slot becomes available, the extension will automatically start the next download. The number of slots can be configured in the “Settings” section."
+    "message": "The extension has a download queue — you can queue multiple movies/series for download, and as soon as a slot becomes free, the extension will automatically start downloading the next video. The number of download slots can be configured in the “Settings” section."
   },
   "settings_FaqQuestion_8": {
-    "message": "How are files downloaded, is the torrent protocol used?"
+    "message": "Does the extension support background downloading?"
   },
   "settings_FaqAnswer_8": {
-    "message": "No — the torrent protocol is not used. The extension imitates the site’s player and uses streaming file transfer. If you are interested in the legal aspects: the extension itself is just an external interface for downloading from the site, and all legal questions should be addressed to the site’s administration, not the extension."
+    "message": "Yes. The extension supports background downloading. The extension itself initiates the download, and as long as the browser is running, it will continue downloading files."
+  },
+  "settings_FaqQuestion_9": {
+    "message": "How are files downloaded, does it use the torrent protocol?"
+  },
+  "settings_FaqAnswer_9": {
+    "message": "No — the torrent protocol is not used. The extension imitates the way the player works on the website and uses streaming data transfer. If you're interested in the legal aspects of using the extension: the extension is merely an external interface for downloading from the site, and all legal questions should be addressed to the site administration, not the extension."
   },
   "settings_ChangelogAdded": {
     "message": "Added"

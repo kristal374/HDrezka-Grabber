@@ -44,6 +44,11 @@ const faqData = [
     question: browser.i18n.getMessage('settings_FaqQuestion_8'),
     answer: browser.i18n.getMessage('settings_FaqAnswer_8'),
   },
+  {
+    id: 9,
+    question: browser.i18n.getMessage('settings_FaqQuestion_9'),
+    answer: browser.i18n.getMessage('settings_FaqAnswer_9'),
+  },
 ];
 
 type FAQItemProps = {
