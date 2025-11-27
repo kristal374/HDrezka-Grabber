@@ -221,29 +221,45 @@ export class DownloadManager {
     // Возвращает true указывая, что рекомендация будет дана асинхронно.
     logger.debug('Request for defining file name:', downloadItem);
 
-    if (downloadItem.byExtensionId !== browser.runtime.id) {
+    if (
+      downloadItem.byExtensionId !== browser.runtime.id ||
+      !settings.trackEventsOnDeterminingFilename
+    ) {
       suggest();
       return;
     }
 
-    indexedDBObject
-      .getAllFromIndex('fileStorage', 'download_id', downloadItem.id)
-      .then((fileItems) => {
-        const fileItemsList = fileItems as FileItem[];
-        const file = fileItemsList.length
-          ? fileItemsList.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
-          : null;
-        return file?.fileName;
-      })
+    this.findFilenameByDownloadId(downloadItem.id)
       .then((suggestFileName) => {
-        if (!suggestFileName) suggest();
-        else
+        if (!suggestFileName) {
+          suggest();
+        }
+        else {
           suggest({
             conflictAction: 'uniquify',
             filename: suggestFileName,
           });
+        }
       });
+
     return true;
+  }
+
+  private async findFilenameByDownloadId(downloadId: number): Promise<string | undefined> {
+    // handleDeterminingFilenameEvent может быть вызван до того, как данные
+    // сохранятся в БД, поэтому мы ждём следующего фрейма, чтобы данные в БД
+    // успели точно обновиться
+    await new Promise((res) => setTimeout(res, 0));
+    const fileItemsList = (await indexedDBObject.getAllFromIndex(
+      'fileStorage',
+      'download_id',
+      downloadId
+    )) as FileItem[];
+
+    const targetFileItem = fileItemsList.length
+      ? fileItemsList.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
+      : null;
+    return targetFileItem?.fileName;
   }
 
   private async eventOrchestrator(event: EventMessage | undefined) {
