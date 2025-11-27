@@ -47,6 +47,7 @@ export async function fetchUrlSizes(request: RequestUrlSize): Promise<URLItem> {
     return cleanCache[0];
   }
 
+  logger.info('No cached data found. Fetching from server.');
   const promises = request.urlsList.map(async (item) => {
     // TODO: На текущий момент если один из связанных запросов корректно
     //  завершает работу, остальные не прерываются и продолжают работать
@@ -118,6 +119,8 @@ async function getVideoInfo(
   });
 
   const readVideoInfo = async () => {
+    //TODO: Размер файла должен отправляться в попап сразу как только
+    // был получен не дожидаясь пока будет получено разрешение видео
     const fileSize = await input.source.getSize();
     if (!fileSize || fileSize === 0) throw new Error();
 

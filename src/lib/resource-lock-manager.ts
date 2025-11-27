@@ -24,10 +24,13 @@ export class ResourceLockManager {
 
   async lock({ type, id }: ResourceTarget, priority?: number) {
     const mutex = this.getMutex({ type, id });
-    return await mutex.acquire(priority ?? 1);
+    const result = await mutex.acquire(priority ?? 1);
+    logger.debug(`Lock for: ${type}:${id}.`);
+    return result;
   }
 
   unlock({ type, id }: ResourceTarget) {
+    logger.debug(`Unlock for: ${type}:${id}.`);
     const mutex = this.getMutex({ type, id });
     return mutex.release();
   }
@@ -38,6 +41,9 @@ export class ResourceLockManager {
     priority?: number,
   ) {
     const mutex = this.getMutex({ type, id });
-    return mutex.runExclusive<T>(fn, priority);
+    logger.debug(`Lock for: ${type}:${id}.`);
+    const result = await mutex.runExclusive<T>(fn, priority);
+    logger.debug(`Unlock for: ${type}:${id}.`);
+    return result;
   }
 }
