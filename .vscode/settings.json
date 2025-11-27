@@ -1,6 +1,16 @@
 {
+  "editor.tabSize": 2,
   "editor.quickSuggestions": {
     "strings": "on"
   },
-  "editor.quickSuggestionsDelay": 0
+  "editor.quickSuggestionsDelay": 0,
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    "ngClass",
+    "class:list",
+    "classNames"
+  ]
 }

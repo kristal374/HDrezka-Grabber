@@ -2,35 +2,65 @@
   "manifest_description": {
     "message": "Fast and convenient downloading of movies and TV shows from rezka.ag! Access your favorite movies and TV shows in just a few clicks."
   },
-  "default_description": {
-    "message": "Перейди на страницу сериала или фильма на HDrezka, чтобы скачать его"
+  "popup_stub_default": {
+    "message": "To download the video, go to the show's or movie's page on the website."
   },
-  "popup_loadAll": {
-    "message": "Download Entire Series"
+  "popup_stub_trailer": {
+    "message": "It seems that the content is pending release.\nCheck back later!"
+  },
+  "popup_stub_locationFilm": {
+    "message": "Sorry, but the movie is not available from your location :("
+  },
+  "popup_stub_locationSerial": {
+    "message": "Sorry, but the series is not available from your location :("
+  },
+  "popup_stub_vpn": {
+    "message": "Try using a VPN."
+  },
+  "popup_stub_unavailable": {
+    "message": "Content is unavailable for download — no data to process."
+  },
+  "popup_stub_error": {
+    "message": "Oops! Something went wrong..."
+  },
+  "popup_loadSerial": {
+    "message": "Load series"
+  },
+  "popup_loadSubtitle": {
+    "message": "Load subtitle"
+  },
+  "popup_textFrom": {
+    "message": "from"
+  },
+  "popup_textTo": {
+    "message": "to"
+  },
+  "popup_textEndEpisodes": {
+    "message": "the end of the season"
+  },
+  "popup_textEndSeasons": {
+    "message": "the end of the series"
+  },
+  "popup_subtitleLang": {
+    "message": "Lang"
   },
   "popup_quality": {
-    "message": "Quality:"
+    "message": "Quality"
   },
   "popup_translate": {
-    "message": "Translate:"
+    "message": "Translate"
   },
-  "popup_seasonStart": {
-    "message": "Season:"
+  "popup_DownloadCancel": {
+    "message": "Cancel download"
   },
-  "popup_episodeStart": {
-    "message": "Episode:"
+  "combobox_placeholder": {
+    "message": "Select value"
   },
-  "popup_infoTitle": {
-    "message": "Start downloading the series from:"
+  "combobox_search": {
+    "message": "Search..."
   },
-  "popup_createFolder": {
-    "message": "Create Separate Folder"
-  },
-  "popup_selectDirectory": {
-    "message": "Select Folder"
-  },
-  "info_unknownVoice": {
-    "message": "Unknown translate"
+  "combobox_empty": {
+    "message": "No results found"
   },
   "message_noDataVideo": {
     "message": "Failed to retrieve video data. Check your internet connection or use a VPN."
@@ -41,7 +71,138 @@
   "message_userBreak": {
     "message": "You interrupted the loading."
   },
-  "message_badConnect": {
-    "message": ""
+  "settings_TabSettings": {
+    "message": "Settings"
+  },
+  "settings_TabFAQ": {
+    "message": "FAQ"
+  },
+  "settings_TabChangelog": {
+    "message": "Changelog"
+  },
+  "settings_TabAbout": {
+    "message": "About Extension"
+  },
+  "settings_SourceCode": {
+    "message": "Source Code on GitHub"
+  },
+  "settings_DownloadExtension": {
+    "message": "Download Extension"
+  },
+  "settings_ShortDescription": {
+    "message": "Open Source extension for downloading movies and TV shows from rezka.ag!"
+  },
+  "settings_LongDescription": {
+    "message": "HDrezka Grabber is a universal tool for downloading your favorite movies and TV shows from rezka.ag! Control everything: choose dubbing, subtitles, or even download an entire series in one click. Customize file name templates for your media library and speed up the process with parallel downloads. A modern minimalist interface with light and dark theme support, as well as compatibility with most browsers, makes this tool your perfect assistant."
+  },
+  "settings_AboutTitle": {
+    "message": "About the Project"
+  },
+  "settings_LicenseTitle": {
+    "message": "License"
+  },
+  "settings_ContactsTitle": {
+    "message": "Contacts"
+  },
+  "settings_CopyTitle": {
+    "message": "Copy"
+  },
+  "settings_SupportTitle": {
+    "message": "Support the Project"
+  },
+  "settings_SupportDescription": {
+    "message": "Thank you for using $extensionName$. If you like the extension, please consider making a small donation as a token of appreciation.",
+    "placeholders": {
+      "extensionName": {
+        "content": "$1"
+      }
+    }
+  },
+  "settings_SupportButton": {
+    "message": "Support"
+  },
+  "settings_patreonSubtitle": {
+    "message": "Monthly Support"
+  },
+  "settings_PayPalSubtitle": {
+    "message": "One-Time Donation"
+  },
+  "settings_MoneroSubtitle": {
+    "message": "Cryptocurrency Support"
+  },
+  "settings_GitHubSubtitle": {
+    "message": "Sponsorship via GitHub"
+  },
+  "settings_DevelopersTitle": {
+    "message": "People Involved in Development"
+  },
+  "settings_AuthorDescription": {
+    "message": "Project author. Responsible for developing the internal logic of the extension."
+  },
+  "settings_SecondPilotDescription": {
+    "message": "Co-pilot. Responsible for the design and appearance of the extension."
+  },
+  "settings_FaqQuestion_1": {
+    "message": "How to choose where files are downloaded?"
+  },
+  "settings_FaqAnswer_1": {
+    "message": "The extension cannot influence this in any way. The browser does not allow extensions to specify paths outside the standard \"Downloads\" folder. The only option is to manually change the default download folder in the browser settings."
+  },
+  "settings_FaqQuestion_2": {
+    "message": "When selecting 1080p/1080p-Ultra quality, a 720p video file is downloaded"
+  },
+  "settings_FaqAnswer_2": {
+    "message": "This is not a bug in the extension but a feature of the website. To play a movie, the player requests a link to the video of the required quality from the server. If the server is overloaded, it may automatically lower the quality — for example, deliver 720p instead of 1080p. The extension receives exactly the link the server returns. You can verify this directly on the site: the quality in the player will also drop."
+  },
+  "settings_FaqQuestion_3": {
+    "message": "The extension downloads files slowly even though I have fast internet"
+  },
+  "settings_FaqAnswer_3": {
+    "message": "The extension does not slow down the download. The speed depends not only on your internet connection but also on the servers that distribute the files. During peak hours they may work slower, causing the speed and sometimes even the video quality to drop."
+  },
+  "settings_FaqQuestion_4": {
+    "message": "How does the extension work?"
+  },
+  "settings_FaqAnswer_4": {
+    "message": "When you open the dropdown menu, the extension checks whether you are on a suitable website. If it’s not a movie or series on a rezka.ag family site, it simply shows a placeholder and stops. If the page is suitable, the extension retrieves the player data (episode, voiceover, parameters, etc.). To do this, a temporary script is inserted into the page, which collects the necessary information and passes it to the extension. When you click “Download”, the extension generates a file name and requests from the server a list of links to videos of different qualities. The extension selects the required link and sends it to the browser, which starts the download. After that, the extension simply monitors the download and reacts to its events. It can also manage several downloads at once."
+  },
+  "settings_FaqQuestion_5": {
+    "message": "Why does the extension need access to all websites?"
+  },
+  "settings_FaqAnswer_5": {
+    "message": "Access to all websites is required so that the extension can work with rezka mirrors."
+  },
+  "settings_FaqQuestion_6": {
+    "message": "Does the extension support other mirrors of the site?"
+  },
+  "settings_FaqAnswer_6": {
+    "message": "Yes, it does. When opening the popup, the extension checks whether the site matches the structure pattern of rezka.ag; if not, it will inform you that the site is not recognized and suggest visiting the official rezka.ag site. Since all OFFICIAL mirrors follow the pattern, they will work without issues, but keep in mind: besides official mirrors, there may be others! In rare cases, the pattern in the extension may become outdated — then downloading may be impossible even from the official site."
+  },
+  "settings_FaqQuestion_7": {
+    "message": "How to download multiple movies/series simultaneously?"
+  },
+  "settings_FaqAnswer_7": {
+    "message": "The extension has a download queue — you can queue multiple movies/series for download, and as soon as a slot becomes free, the extension will automatically start downloading the next video. The number of download slots can be configured in the “Settings” section."
+  },
+  "settings_FaqQuestion_8": {
+    "message": "Does the extension support background downloading?"
+  },
+  "settings_FaqAnswer_8": {
+    "message": "Yes. The extension supports background downloading. The extension itself initiates the download, and as long as the browser is running, it will continue downloading files."
+  },
+  "settings_FaqQuestion_9": {
+    "message": "How are files downloaded, does it use the torrent protocol?"
+  },
+  "settings_FaqAnswer_9": {
+    "message": "No — the torrent protocol is not used. The extension imitates the way the player works on the website and uses streaming data transfer. If you're interested in the legal aspects of using the extension: the extension is merely an external interface for downloading from the site, and all legal questions should be addressed to the site administration, not the extension."
+  },
+  "settings_ChangelogAdded": {
+    "message": "Added"
+  },
+  "settings_ChangelogFixed": {
+    "message": "Fixed"
+  },
+  "settings_ChangelogChanged": {
+    "message": "Changed"
   }
 }

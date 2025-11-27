@@ -1,27 +1,38 @@
+import commonjs from '@rollup/plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
-import terser from '@rollup/plugin-terser';
+// import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import copy from 'rollup-plugin-copy';
-import commonjs from '@rollup/plugin-commonjs';
 
 export default [
   {
-    input: 'src/js/background.ts',
+    logLevel: 'debug',
+    input: 'src/service-worker/background.ts',
     output: {
       file: 'dist/build/HDrezka-Grabber.build/src/js/background.js',
       sourcemap: true,
     },
+    onwarn(warning, warn) {
+      // Suppress "Circular dependencies" warnings from node_modules
+      if (
+        warning.code === 'CIRCULAR_DEPENDENCY' &&
+        /node_modules/.test(warning.message)
+      ) {
+        return;
+      }
+      warn(warning);
+    },
     plugins: [
       nodeResolve({ browser: true, preferBuiltins: false }),
       commonjs(),
-      typescript({ sourceMap: false }),
-      terser(),
+      typescript(),
+      // terser(),
       copy({
         targets: [
           {
             src: [
               'node_modules/webextension-polyfill/dist/browser-polyfill.min.js',
-              'node_modules/webextension-polyfill/dist/browser-polyfill.min.js.map',
+              'src/extraction-scripts/InjectionScripts/',
             ],
             dest: 'dist/build/HDrezka-Grabber.build/src/js/',
           },

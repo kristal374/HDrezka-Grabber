@@ -1,0 +1,117 @@
+import { FlagKZ } from '@/components/icons/FlagKZ';
+import { FlagUA } from '@/components/icons/FlagUA';
+import { PremiumIcon } from '@/components/icons/PremiumIcon';
+import { Combobox } from '@/components/ui/Combobox';
+import { getVoiceOverList } from '@/extraction-scripts/extractVoiceOverList';
+import { PopupInitialDataContext } from '@/html/popup';
+import type { VoiceOverInfo } from '@/lib/types';
+import { useContext, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from './store/store';
+import {
+  selectCurrentVoiceOver,
+  selectVoiceOverList,
+  setVoiceOverAction,
+  setVoiceOverListAction,
+} from './store/VoiceOverSelector.slice';
+
+interface VoiceOverSelectorProps {
+  defaultVoiceOverId: string;
+  is_camrip?: string;
+  is_director?: string;
+  is_ads?: string;
+}
+
+export function VoiceOverSelector({
+  defaultVoiceOverId,
+  is_camrip,
+  is_director,
+  is_ads,
+}: VoiceOverSelectorProps) {
+  const dispatch = useAppDispatch();
+  const { tabId, pageType } = useContext(PopupInitialDataContext)!;
+
+  const voiceOverList = useAppSelector((state) => selectVoiceOverList(state));
+  const currentVoiceOver = useAppSelector((state) =>
+    selectCurrentVoiceOver(state),
+  );
+
+  useEffect(() => {
+    // Если у нас нет списка озвучек - получаем его со страницы сайта
+    if (voiceOverList !== null) return;
+    getVoiceOverList(tabId).then((result) => {
+      dispatch(setVoiceOverListAction({ voiceOverList: result }));
+      const targetVoiceOver =
+        result?.find((voiceOver) =>
+          pageType === 'SERIAL'
+            ? voiceOver.id === defaultVoiceOverId
+            : voiceOver.id === defaultVoiceOverId &&
+              voiceOver.is_camrip === is_camrip &&
+              voiceOver.is_director === is_director &&
+              voiceOver.is_ads === is_ads,
+        ) || null;
+      dispatch(setVoiceOverAction({ voiceOver: targetVoiceOver }));
+    });
+  }, [voiceOverList]);
+
+  if (!voiceOverList) return null;
+
+  logger.info('New render VoiceOverSelector component.');
+  return (
+    <div className='flex items-center gap-2.5'>
+      <label htmlFor='voiceOver' className='ml-auto text-sm select-none'>
+        {browser.i18n.getMessage('popup_translate')}
+      </label>
+      {/*TODO: disable combobox if downloadSerial is false*/}
+      <Combobox
+        id='voiceOver'
+        width='14.4rem'
+        height={pageType === 'FILM' ? '9.5rem' : undefined}
+        data={voiceOverList.map((voiceOver) => ({
+          value: JSON.stringify(voiceOver),
+          label: voiceOver.title,
+          labelComponent({ children }) {
+            return (
+              <>
+                {children}
+                {voiceOver.flag_country && (
+                  <FlagIcon
+                    country={voiceOver.flag_country}
+                    className='ml-2 size-4 shrink-0'
+                  />
+                )}
+                {voiceOver.prem_content && (
+                  <PremiumIcon className='ml-2 size-4 shrink-0' />
+                )}
+              </>
+            );
+          },
+        }))}
+        value={JSON.stringify(currentVoiceOver) || ''}
+        onValueChange={(value) =>
+          dispatch(
+            setVoiceOverAction({
+              voiceOver: JSON.parse(value) as VoiceOverInfo,
+            }),
+          )
+        }
+      />
+    </div>
+  );
+}
+
+function FlagIcon({
+  country,
+  className,
+}: {
+  country: string;
+  className?: string;
+}) {
+  switch (country) {
+    case 'ua':
+      return <FlagUA className={className} />;
+    case 'kz':
+      return <FlagKZ className={className} />;
+    default:
+      return null;
+  }
+}

@@ -16,15 +16,23 @@
   "background": {
     "service_worker": "src/js/background.js"
   },
-  "permissions": ["scripting", "storage"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": [
+    "scripting",
+    "storage",
+    "declarativeNetRequestWithHostAccess",
+    "downloads"
+  ],
+  "host_permissions": ["http://*/*", "https://*/*"],
   "web_accessible_resources": [
     {
       "resources": ["src/js/*"],
-      "matches": ["<all_urls>"]
+      "matches": ["http://*/*", "https://*/*"]
     }
   ],
-
+  "options_ui": {
+    "open_in_tab": true,
+    "page": "settings.html"
+  },
   "author": "mail.aleks.for.work@gmail.com",
   "homepage_url": "https://github.com/kristal374/HDrezka-Grabber"
 }

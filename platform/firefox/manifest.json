@@ -21,8 +21,19 @@
   "background": {
     "scripts": ["src/js/background.js"]
   },
-  "permissions": ["scripting", "storage", "<all_urls>"],
-  "web_accessible_resources": ["js/injection_scripts/*", "lib/*"],
+  "permissions": [
+    "scripting",
+    "storage",
+    "declarativeNetRequestWithHostAccess",
+    "downloads",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "web_accessible_resources": ["src/js/*"],
+  "options_ui": {
+    "open_in_tab": true,
+    "page": "settings.html"
+  },
   "author": "mail.aleks.for.work@gmail.com",
   "homepage_url": "https://github.com/kristal374/HDrezka-Grabber"
 }
