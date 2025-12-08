@@ -21,6 +21,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { useCallback } from 'react';
+import { toast } from 'sonner';
 import { FilenameTemplateComponent } from './FilenameTemplateComponent';
 import { SettingItem, SettingsSection } from './SettingsComponets';
 
@@ -201,7 +202,6 @@ export function SettingsTab() {
             description='Через какой период времени запуск загрузки будет считаться неудачным, если загрузка не стартовала.'
             value={String(settings.downloadStartTimeLimit)}
             setValue={updateSetting('downloadStartTimeLimit', 'number')}
-
             // Лимит времени обусловлен временем жизни неактивного service-worker-а.
             // https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle
             options={[
@@ -372,20 +372,33 @@ export function SettingsTab() {
 
           <div className='flex flex-wrap gap-3'>
             {/*TODO: реализовать обработку нажатий*/}
-            <Button>Попытаться восстановить работу расширения</Button>
+            {/*TODO: Добавить локализацию*/}
+            {/*<Button>Попытаться восстановить работу расширения</Button>*/}
 
-            <Button onClick={createDefaultSettings}>
+            <Button
+              onClick={async () => {
+                await createDefaultSettings();
+                toast.success('Настройки сброшены!');
+              }}
+            >
               Восстановить настройки по умолчанию
             </Button>
 
-            <Button>Очистить кэш</Button>
-            <Button>Остановить все загрузки</Button>
-            <Button>Очистить историю загрузок</Button>
+            {/*<Button onClick={async () => {*/}
+            {/*  await indexedDBObject.clear('cacheStorage')*/}
+            {/*  toast.success('Кэш очищен успешно!')*/}
+            {/*}}>Очистить кэш</Button>*/}
+
+            {/*<Button>Остановить все загрузки</Button>*/}
+
+            {/*<Button>Очистить историю загрузок</Button>*/}
+
             <Button
               onClick={async () => {
                 await browser.storage.local.clear();
                 await browser.storage.session.clear();
                 await dropDatabase();
+                toast.success('Данные расширения сброшены!');
               }}
             >
               Удалить все данные расширения
