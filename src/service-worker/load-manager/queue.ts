@@ -8,7 +8,6 @@ import {
   LoadConfig,
   LoadItem,
   LoadStatus,
-  Message,
   Season,
   SeasonsWithEpisodesList,
   UrlDetails,
@@ -102,35 +101,21 @@ export class QueueController {
       await this.removeDownloadsFromQueue(activeDownloads, cause);
     }
 
-    await browser.runtime
-      .sendMessage<Message<any>>({
-        type: 'setNotification',
-        message: {
-          movieId: String(movieId),
-          notification: `Загрузка прервана. Не удалось загрузить файл.`,
-        },
-      })
-      .then((response) => {
-        if (response !== 'ok') throw new Error('');
-      })
-      .catch(() => {});
+    await messageBroker.sendMessage(movieId, {
+      priority: 100,
+      stackable: false,
+      message: 'Загрузка прервана. Не удалось загрузить файл.',
+      type: 'warning',
+    });
   }
 
   private async skipDownload(movieId: number) {
-    browser.runtime
-      .sendMessage<Message<any>>({
-        type: 'setNotification',
-        message: {
-          movieId: String(movieId),
-          notification: `Сбой загрузки. Не удалось загрузить файл.`,
-        },
-      })
-      .then((response) => {
-        if (response !== 'ok') throw new Error('');
-      })
-      .catch(() => {});
-
-    // TODO: в случае сбоя отправки сообщения добавлять ошибку в хранилище
+    await messageBroker.sendMessage(movieId, {
+      priority: 100,
+      stackable: false,
+      message: 'Сбой загрузки. Не удалось загрузить файл.',
+      type: 'warning',
+    });
   }
 
   private async removeDownloadsFromQueue(

@@ -11,7 +11,6 @@ import {
   setSeasonFromAction,
   setSeasonToAction,
 } from '@/app/screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
-import { setNotificationAction } from '@/app/screens/Popup/DownloadScreen/store/NotificationField.slice';
 import { setQualitiesListAction } from '@/app/screens/Popup/DownloadScreen/store/QualitySelector.slice';
 import {
   useAppDispatch,
@@ -139,12 +138,12 @@ export function useChangeRangeEpisodes() {
           dispatch(setEpisodeToAction({ value: endEpisode }));
         }
         // TODO: use i18n
-        dispatch(
-          setNotificationAction({
-            notification:
-              'Ошибка при попытке изменить серию, попробуйте снова.',
-          }),
-        );
+        messageBroker.sendMessage(Number(movieInfo?.data.id), {
+          priority: 100,
+          stackable: false,
+          message: 'Ошибка при попытке изменить серию, попробуйте снова.',
+          type: 'error',
+        });
       });
     return () => {
       ignore = true;

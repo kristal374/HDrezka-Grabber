@@ -255,23 +255,23 @@ export class DownloadManager {
       return;
     }
 
-    this.findFilenameByDownloadId(downloadItem.id)
-      .then((suggestFileName) => {
-        if (!suggestFileName) {
-          suggest();
-        }
-        else {
-          suggest({
-            conflictAction: 'uniquify',
-            filename: suggestFileName,
-          });
-        }
-      });
+    this.findFilenameByDownloadId(downloadItem.id).then((suggestFileName) => {
+      if (!suggestFileName) {
+        suggest();
+      } else {
+        suggest({
+          conflictAction: 'uniquify',
+          filename: suggestFileName,
+        });
+      }
+    });
 
     return true;
   }
 
-  private async findFilenameByDownloadId(downloadId: number): Promise<string | undefined> {
+  private async findFilenameByDownloadId(
+    downloadId: number,
+  ): Promise<string | undefined> {
     // handleDeterminingFilenameEvent может быть вызван до того, как данные
     // сохранятся в БД, поэтому мы ждём следующего фрейма, чтобы данные в БД
     // успели точно обновиться
@@ -279,7 +279,7 @@ export class DownloadManager {
     const fileItemsList = (await indexedDBObject.getAllFromIndex(
       'fileStorage',
       'download_id',
-      downloadId
+      downloadId,
     )) as FileItem[];
 
     const targetFileItem = fileItemsList.length

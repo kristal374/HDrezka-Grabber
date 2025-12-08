@@ -11,7 +11,7 @@ import { LoadButton } from './LoadButton';
 import { NotificationField } from './NotificationField';
 import { QualitySelector } from './QualitySelector';
 import { selectMovieInfo } from './store/DownloadScreen.slice';
-import { selectNotification } from './store/NotificationField.slice';
+import { selectNotifications } from './store/NotificationField.slice';
 import { useAppSelector } from './store/store';
 import { selectCurrentSubtitle } from './store/SubtitleSelector.slice';
 import { SubtitleSelector } from './SubtitleSelector';
@@ -21,7 +21,7 @@ export function DownloadScreen() {
   const { pageType } = useContext(PopupInitialDataContext)!;
 
   const movieInfo = useAppSelector((state) => selectMovieInfo(state));
-  const notification = useAppSelector((state) => selectNotification(state));
+  const notifications = useAppSelector((state) => selectNotifications(state));
   const subtitleLang = useAppSelector((state) => selectCurrentSubtitle(state));
 
   useChangeVoiceOver();
@@ -49,7 +49,7 @@ export function DownloadScreen() {
         />
 
         <SubtitleSelector />
-        {(pageType === 'SERIAL' || subtitleLang || notification) && (
+        {(pageType === 'SERIAL' || subtitleLang || notifications.length) && (
           <hr className='border-popup-border w-full border-b' />
         )}
 

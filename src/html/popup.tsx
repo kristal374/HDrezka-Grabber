@@ -19,6 +19,11 @@ export const PopupInitialDataContext = createContext<PopupInitData | null>(
 );
 
 eventBus.addMessageSource(EventType.StorageChanged, browser.storage.onChanged);
+eventBus.addMessageSource(
+  EventType.NotificationMessage,
+  browser.runtime.onMessage,
+);
+eventBus.addMessageSource(EventType.NotificationEvent, globalThis);
 
 root.render(
   <Provider store={store}>

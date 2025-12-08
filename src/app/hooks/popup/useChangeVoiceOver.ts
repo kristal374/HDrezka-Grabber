@@ -3,7 +3,6 @@ import {
   setCurrentEpisodeAction,
 } from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
 import { setSeasonsAction } from '@/app/screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
-import { setNotificationAction } from '@/app/screens/Popup/DownloadScreen/store/NotificationField.slice';
 import { setQualitiesListAction } from '@/app/screens/Popup/DownloadScreen/store/QualitySelector.slice';
 import {
   useAppDispatch,
@@ -99,12 +98,13 @@ export function useChangeVoiceOver() {
       .catch(() => {
         if (ignore) return;
         dispatch(setVoiceOverAction({ voiceOver: previewVoiceOver }));
-        dispatch(
-          setNotificationAction({
-            notification: 'Ошибка при попытке смены озвучки, попробуйте снова.',
-          }),
-        );
-        //TODO: use i18n
+        // TODO: use i18n
+        messageBroker.sendMessage(Number(movieInfo?.data.id), {
+          priority: 100,
+          stackable: false,
+          message: 'Ошибка при попытке смены озвучки, попробуйте снова.',
+          type: 'error',
+        });
       });
     return () => {
       ignore = true;
