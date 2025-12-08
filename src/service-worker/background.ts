@@ -27,10 +27,7 @@ async function main() {
     browser.storage.onChanged,
   );
   eventBus.addMessageSource(EventType.LogCreate, globalThis);
-  eventBus.addMessageSource(
-    EventType.BrowserStartup,
-    browser.runtime.onStartup,
-  );
+  eventBus.addMessageSource(EventType.ScheduleEvent, browser.alarms.onAlarm);
   eventBus.addMessageSource(
     EventType.DownloadEvent,
     browser.downloads.onChanged,
@@ -46,7 +43,6 @@ async function main() {
   await onStartup();
 
   eventBus.on(EventType.NewMessageReceived, messageHandler);
-  eventBus.on(EventType.BrowserStartup, onStartup);
   eventBus.on(
     EventType.DownloadEvent,
     downloadManager.handleDownloadEvent.bind(downloadManager),
@@ -55,11 +51,24 @@ async function main() {
     EventType.DownloadCreated,
     downloadManager.handleCreateEvent.bind(downloadManager),
   );
+  eventBus.on(EventType.ScheduleEvent, async (alarm) => {
+    if (alarm.name.startsWith('repeat-download-')) {
+      const [_matchString, loadItemId, targetFileId] = alarm.name.match(
+        /repeat-download-(\d+)-(\d+)/,
+      )!;
+      await downloadManager.executeRetry(
+        Number(loadItemId),
+        Number(targetFileId),
+      );
+    }
+  });
+
   eventBus.on(EventType.LogCreate, async (message) => {
     await logCreate(
       JSON.parse(JSON.stringify((message as CustomEvent).detail)),
     );
   });
+
   eventBus.on(EventType.StorageChanged, async (changes, areaName) => {
     if (areaName !== 'local') return;
     for (const [key, value] of Object.entries(changes)) {

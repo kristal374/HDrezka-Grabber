@@ -1,11 +1,7 @@
 import type { LogLevel } from '@/lib/logger/types';
-import type {
-  Downloads,
-  Permissions,
-  Runtime,
-  Storage,
-} from 'webextension-polyfill';
+import { Alarms, Downloads, Runtime, Storage } from 'webextension-polyfill';
 
+type Alarm = Alarms.Alarm;
 type DownloadItem = Downloads.DownloadItem;
 type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
 type MessageSender = Runtime.MessageSender;
@@ -316,9 +312,9 @@ export enum EventType {
   NewMessageReceived = 'MessageReceived',
   DownloadCreated = 'DownloadCreated',
   DownloadEvent = 'DownloadEvent',
-  BrowserStartup = 'BrowserStartup',
+  ScheduleEvent = 'ScheduleEvent',
   StorageChanged = 'StorageChanged',
-  LogCreate = 'logCreate',
+  LogCreate = 'LogCreate',
 }
 
 export type EventMessage =
@@ -339,7 +335,7 @@ export type EventBusTypes = {
   ];
   [EventType.DownloadCreated]: DownloadItem;
   [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
-  [EventType.BrowserStartup]: void;
+  [EventType.ScheduleEvent]: Alarm;
   [EventType.StorageChanged]: [Record<string, StorageChange>, string];
   [EventType.LogCreate]: Event;
 };

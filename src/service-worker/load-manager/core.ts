@@ -255,23 +255,23 @@ export class DownloadManager {
       return;
     }
 
-    this.findFilenameByDownloadId(downloadItem.id)
-      .then((suggestFileName) => {
-        if (!suggestFileName) {
-          suggest();
-        }
-        else {
-          suggest({
-            conflictAction: 'uniquify',
-            filename: suggestFileName,
-          });
-        }
-      });
+    this.findFilenameByDownloadId(downloadItem.id).then((suggestFileName) => {
+      if (!suggestFileName) {
+        suggest();
+      } else {
+        suggest({
+          conflictAction: 'uniquify',
+          filename: suggestFileName,
+        });
+      }
+    });
 
     return true;
   }
 
-  private async findFilenameByDownloadId(downloadId: number): Promise<string | undefined> {
+  private async findFilenameByDownloadId(
+    downloadId: number,
+  ): Promise<string | undefined> {
     // handleDeterminingFilenameEvent может быть вызван до того, как данные
     // сохранятся в БД, поэтому мы ждём следующего фрейма, чтобы данные в БД
     // успели точно обновиться
@@ -279,7 +279,7 @@ export class DownloadManager {
     const fileItemsList = (await indexedDBObject.getAllFromIndex(
       'fileStorage',
       'download_id',
-      downloadId
+      downloadId,
     )) as FileItem[];
 
     const targetFileItem = fileItemsList.length
@@ -569,39 +569,43 @@ export class DownloadManager {
       id: fileItem.relatedLoadItemId,
     });
 
-    return new Promise((resolve) => {
-      setTimeout(async () => {
-        await this.resourceLockManager.lock({
-          type: 'loadStorage',
-          id: fileItem.relatedLoadItemId,
-        });
+    browser.alarms.create(
+      `repeat-download-${fileItem.relatedLoadItemId}-${fileItem.id}`,
+      {
+        when: Date.now() + settings.timeBetweenDownloadAttempts,
+      },
+    );
+  }
 
-        // Повторно получаем объект, ибо пока мы ждали доступа,
-        // файл мог измениться
-        const targetFile = (await indexedDBObject.getFromIndex(
-          'fileStorage',
-          'file_id',
-          fileItem.id,
-        )) as FileItem;
-        const loadItem = (await indexedDBObject.getFromIndex(
-          'loadStorage',
-          'load_id',
-          targetFile.relatedLoadItemId,
-        )) as LoadItem;
-
-        const siteLoader = this.siteLoaderFactory[loadItem.siteType];
-        const siteLoadItem = await siteLoader.build(loadItem);
-
-        targetFile.url =
-          targetFile.fileType === 'video'
-            ? await siteLoadItem.getVideoUrl()
-            : await siteLoadItem.getSubtitlesUrl();
-        targetFile.status = LoadStatus.InitiatingDownload;
-
-        await indexedDBObject.put('fileStorage', targetFile);
-
-        resolve(await this.launchFileDownload(targetFile));
-      }, settings.timeBetweenDownloadAttempts);
+  public async executeRetry(loadItemId: number, targetFileId: number) {
+    await this.resourceLockManager.lock({
+      type: 'loadStorage',
+      id: loadItemId,
     });
+
+    const loadItem = (await indexedDBObject.getFromIndex(
+      'loadStorage',
+      'load_id',
+      loadItemId,
+    )) as LoadItem;
+
+    const targetFile = (await indexedDBObject.getFromIndex(
+      'fileStorage',
+      'file_id',
+      targetFileId,
+    )) as FileItem;
+
+    const siteLoader = this.siteLoaderFactory[loadItem.siteType];
+    const siteLoadItem = await siteLoader.build(loadItem);
+
+    targetFile.url =
+      targetFile.fileType === 'video'
+        ? await siteLoadItem.getVideoUrl()
+        : await siteLoadItem.getSubtitlesUrl();
+    targetFile.status = LoadStatus.InitiatingDownload;
+
+    await indexedDBObject.put('fileStorage', targetFile);
+
+    return await this.launchFileDownload(targetFile);
   }
 }
