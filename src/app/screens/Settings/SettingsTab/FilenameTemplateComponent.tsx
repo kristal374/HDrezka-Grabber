@@ -223,6 +223,13 @@ function PreviewItems({ previews }: PreviewItemProps) {
               cleanTitle(preview.value['%orig_title%']) ??
               cleanTitle(preview.value['%title%']);
 
+            preview.value['%episode_id%'] = preview.value[
+              '%episode_id%'
+            ]?.padStart(2, '0');
+            preview.value['%season_id%'] = preview.value[
+              '%season_id%'
+            ]?.padStart(2, '0');
+
             // Имитация получения времени из вне
             const timestamp = new Date().getTime();
             preview.value['%data%'] = new Date(timestamp)
