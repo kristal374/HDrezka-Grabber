@@ -1,6 +1,13 @@
 import { LogMessage } from '@/lib/logger';
 import { DBSchema, IDBPDatabase, openDB } from 'idb';
-import { CacheItem, FileItem, LoadConfig, LoadItem, UrlDetails } from './types';
+import {
+  CacheItem,
+  FileItem,
+  LoadConfig,
+  LoadItem,
+  Optional,
+  UrlDetails,
+} from './types';
 
 export interface HDrezkaGrabberDB extends DBSchema {
   urlDetail: {
@@ -20,7 +27,7 @@ export interface HDrezkaGrabberDB extends DBSchema {
   };
   loadStorage: {
     key: number;
-    value: Omit<LoadItem, 'id'> & { id?: number };
+    value: Optional<LoadItem, 'id'>;
     indexes: {
       load_id: number;
       movie_id: number;
@@ -28,7 +35,7 @@ export interface HDrezkaGrabberDB extends DBSchema {
   };
   fileStorage: {
     key: number;
-    value: Omit<FileItem, 'id'> & { id?: number };
+    value: Optional<FileItem, 'id'>;
     indexes: {
       file_id: number;
       download_id: number;

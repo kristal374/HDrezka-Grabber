@@ -1,13 +1,20 @@
 import { getPageType } from '@/extraction-scripts/extractPageType';
 import { doDatabaseStuff } from '@/lib/idb-storage';
 import { getSettings, loadSessionStorageSave } from '@/lib/storage';
-import { EventType, Settings } from '@/lib/types';
+import { EventType, PageType, RequireAllOrNone, Settings } from '@/lib/types';
+import type { Tabs } from 'webextension-polyfill';
 
-export type PopupInitData = Required<Awaited<ReturnType<typeof popupInit>>>;
+type Tab = Tabs.Tab;
+
+export type PopupInitData = { pageType: PageType } & RequireAllOrNone<{
+  tabId: number;
+  siteUrl: string;
+  sessionStorage: Record<string, any>;
+}>;
 
 export async function popupInit(
   setInitData: React.Dispatch<React.SetStateAction<any>>,
-) {
+): Promise<PopupInitData> {
   globalThis.settings = await getSettings();
   globalThis.permissions = await browser.permissions.getAll();
 
@@ -37,10 +44,16 @@ export async function popupInit(
 
   eventBus.setReady();
 
-  if (!tabId || !siteUrl) return null;
+  let pageType: PageType =
+    tabId && siteUrl ? await getPageType(tabId) : 'DEFAULT';
+
+  if (['ERROR', 'DEFAULT'].includes(pageType)) {
+    const isNotSplitView = currentTab?.splitViewId === -1;
+    pageType = !isNotSplitView ? 'SPLIT_VIEW' : pageType;
+  }
+  if (!tabId || !siteUrl) return { pageType };
 
   await openDB();
-  const pageType = await getPageType(tabId);
   const sessionStorage = await loadSessionStorageSave(tabId);
 
   return { tabId, siteUrl, pageType, sessionStorage };
@@ -48,7 +61,8 @@ export async function popupInit(
 
 async function getCurrentTab() {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-  return tabs && tabs.length > 0 ? tabs[0] : undefined;
+  // splitViewId added in Chrome 140+
+  return tabs.length ? (tabs[0] as Tab & { splitViewId?: number }) : undefined;
 }
 
 async function openDB() {

@@ -9,6 +9,10 @@ type StorageChange = Storage.StorageChange;
 
 export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
+export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+
+export type RequireAllOrNone<T> = T | { [K in keyof T]?: undefined };
+
 export type MessageType =
   | 'logCreate'
   | 'trigger'
@@ -22,14 +26,15 @@ export type Message<T> = {
 };
 
 export type PageType =
-  | 'DEFAULT'
-  | 'FILM'
-  | 'SERIAL'
-  | 'TRAILER'
-  | 'LOCATION_FILM'
-  | 'LOCATION_SERIAL'
-  | 'UNAVAILABLE'
-  | 'ERROR';
+  | 'DEFAULT' // Любая страница, НЕ принадлежащая семейству сайтов rezka.ag
+  | 'FILM' // Страница с фильмом
+  | 'SERIAL' // Страница с сериалом
+  | 'TRAILER' // Страница с трейлером
+  | 'LOCATION_FILM' // Страница с фильмом, недоступным в этом регионе
+  | 'LOCATION_SERIAL' // Страница с сериалом, недоступным в этом регионе
+  | 'UNAVAILABLE' // Страница корректная, но отсутствуют данные плеера
+  | 'ERROR' // Не удалось определить тип страницы
+  | 'SPLIT_VIEW'; // Страница открыта в режиме split-view
 
 export type MovieInfo = {
   success: boolean;

@@ -9,6 +9,7 @@ import {
   LoadItem,
   LoadStatus,
   Message,
+  Optional,
   Season,
   SeasonsWithEpisodesList,
   UrlDetails,
@@ -230,7 +231,7 @@ export class QueueController {
     range: SeasonsWithEpisodesList | null,
   ) {
     // Создаёт массив объектов, на основе которых будет производиться загрузка
-    const loadItemArray: (Omit<LoadItem, 'id'> & { id?: number })[] = [];
+    const loadItemArray: Optional<LoadItem, 'id'>[] = [];
     if (!(range === null)) {
       for (const [seasonId, seasonData] of Object.entries(range)) {
         const season = { id: seasonId, title: seasonData.title };
@@ -249,7 +250,7 @@ export class QueueController {
     movieId: number,
     season?: Season,
     episode?: Episode,
-  ): Omit<LoadItem, 'id'> & { id?: number } {
+  ): Optional<LoadItem, 'id'> {
     return {
       siteType: 'hdrezka',
       movieId: movieId,

@@ -38,7 +38,7 @@ export function VoiceOverSelector({
   useEffect(() => {
     // Если у нас нет списка озвучек - получаем его со страницы сайта
     if (voiceOverList !== null) return;
-    getVoiceOverList(tabId).then((result) => {
+    getVoiceOverList(tabId!).then((result) => {
       dispatch(setVoiceOverListAction({ voiceOverList: result }));
       const targetVoiceOver =
         result?.find((voiceOver) =>
