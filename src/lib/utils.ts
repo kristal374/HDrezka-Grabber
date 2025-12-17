@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { LoadStatus, SeasonsWithEpisodesList } from './types';
+import { FileItem, LoadStatus, SeasonsWithEpisodesList } from './types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -73,4 +73,21 @@ export function loadIsCompleted(status: LoadStatus) {
     LoadStatus.DownloadFailed,
     LoadStatus.DownloadSuccess,
   ].includes(status);
+}
+
+export async function findSomeFilesFromLoadItemIdsInDB(ids: readonly number[]) {
+  const fileItemArray: FileItem[] = [];
+
+  if (ids.length === 0) return fileItemArray;
+
+  const fileStorage = indexedDBObject.transaction('fileStorage');
+
+  let cursor = await fileStorage.store.openCursor();
+  while (cursor) {
+    const item = cursor.value as FileItem;
+    if (ids.includes(item.relatedLoadItemId)) fileItemArray.push(item);
+    cursor = await cursor.continue();
+  }
+
+  return fileItemArray;
 }

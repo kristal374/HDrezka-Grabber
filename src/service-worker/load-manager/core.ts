@@ -4,6 +4,11 @@ import { findSomeFilesFromLoadItemIdsInDB, loadIsCompleted } from '@/lib/utils';
 import type { Downloads } from 'webextension-polyfill';
 import { QueueController } from './queue';
 import { HDrezkaLoader, SiteLoader } from './site-loader';
+import {
+  findBrokenDownloadsInActiveDownloads,
+  isFirstRunExtension,
+} from '@/lib/inside-state-controller';
+import { clearCache } from '@/service-worker/cache';
 
 type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
 type DownloadItem = Downloads.DownloadItem;
@@ -48,7 +53,18 @@ export class DownloadManager {
     // может быть нарушена логика работы расширения, а данные потеряют актуальность.
     // Поэтому при старте браузера проводим аудит данных и в случае необходимости
     // восстанавливаем работоспособность расширения.
-    // TODO: реализовать
+
+    logger.info('Started checking inside state of load manager.')
+    const isFirstRun = await isFirstRunExtension();
+    const brokenDownloads = await findBrokenDownloadsInActiveDownloads(isFirstRun)
+
+    if (isFirstRun) {
+      await clearCache();
+      for (const fileItem of brokenDownloads) {
+        await this.resourceLockManager.lock({ type: 'loadStorage', id: fileItem.relatedLoadItemId });
+        await this.repeatDownload(fileItem, true)
+      }
+    }
   }
 
   async initNewDownload(initiator: Initiator) {
@@ -532,7 +548,7 @@ export class DownloadManager {
     this.startNextDownload().then();
   }
 
-  private async repeatDownload(fileItem: FileItem) {
+  private async repeatDownload(fileItem: FileItem, repeatNow: boolean = false) {
     logger.info('Start new load attempt:', fileItem);
 
     const oldDownloadId = fileItem.downloadId;
@@ -557,17 +573,19 @@ export class DownloadManager {
       await browser.downloads.erase({ id: oldDownloadId });
     }
 
+    if (repeatNow) {
+      // Даём небольшую задержку, чтобы при старте браузер успел инициализироваться
+      setTimeout(this.executeRetry.bind(this, fileItem.relatedLoadItemId, fileItem.id), 5000);
+    } else {
+      const repeatKey = `repeat-download-${fileItem.relatedLoadItemId}-${fileItem.id}`;
+      const when = Date.now() + settings.timeBetweenDownloadAttempts;
+      browser.alarms.create(repeatKey, {when});
+    }
+
     this.resourceLockManager.unlock({
       type: 'loadStorage',
       id: fileItem.relatedLoadItemId,
     });
-
-    browser.alarms.create(
-      `repeat-download-${fileItem.relatedLoadItemId}-${fileItem.id}`,
-      {
-        when: Date.now() + settings.timeBetweenDownloadAttempts,
-      },
-    );
   }
 
   public async executeRetry(loadItemId: number, targetFileId: number) {

@@ -2,10 +2,8 @@ import '@/lib/global-scope-init';
 import { logCreate } from '@/lib/logger/background-logger';
 
 import { doDatabaseStuff } from '@/lib/idb-storage';
-import { isFirstRunExtension } from '@/lib/on-extension-start';
 import { getSettings } from '@/lib/storage';
 import { EventType, Message, Settings } from '@/lib/types';
-import { clearCache } from '@/service-worker/cache';
 import { updateVideoInfo } from '@/service-worker/response-parser';
 import type { Runtime } from 'webextension-polyfill';
 import { DownloadManager } from './load-manager/core';
@@ -40,7 +38,7 @@ async function main() {
   globalThis.indexedDBObject = await doDatabaseStuff();
   globalThis.settings = await getSettings();
   downloadManager = await DownloadManager.build();
-  await onStartup();
+  await downloadManager.stabilizeInsideState();
 
   eventBus.on(EventType.NewMessageReceived, messageHandler);
   eventBus.on(
@@ -92,13 +90,6 @@ async function main() {
   logger.info('Service worker is ready.');
 
   eventBus.setReady();
-}
-
-async function onStartup() {
-  if (await isFirstRunExtension()) {
-    await clearCache();
-    await downloadManager.stabilizeInsideState();
-  }
 }
 
 async function messageHandler(
