@@ -22,7 +22,6 @@ type LoadManagerAsyncParams = {
 };
 
 export class DownloadManager {
-  private mutex = new Mutex();
   private resourceLockManager = new ResourceLockManager();
 
   private readonly queueController: QueueController;
@@ -73,13 +72,8 @@ export class DownloadManager {
     // производиться загрузка
     logger.info('Attempt starting download.');
 
-    // Вызов getNextObjectIdForDownload должен быть исключительно
-    // последовательным, иначе количество загрузок может выходить за лимит
-    const nextLoadItemId = await this.mutex.runExclusive(
-      this.queueController.getNextObjectIdForDownload.bind(
-        this.queueController,
-      ),
-    );
+    const nextLoadItemId =
+      await this.queueController.getNextObjectIdForDownload();
 
     if (!nextLoadItemId) {
       logger.info('Currently there are no available objects for loading.');

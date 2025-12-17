@@ -15,6 +15,7 @@ import {
   UrlDetails,
 } from '@/lib/types';
 import { loadIsCompleted } from '@/lib/utils';
+import { Mutex } from 'async-mutex';
 
 type QueueControllerAsyncParams = {
   queue: (number | number[])[];
@@ -22,10 +23,11 @@ type QueueControllerAsyncParams = {
 };
 
 export class QueueController {
+  private mutex = new Mutex();
   private resourceLockManager = new ResourceLockManager();
 
   private readonly queue: (number | number[])[];
-  private activeDownloads: number[];
+  private readonly activeDownloads: number[];
 
   constructor(async_param: QueueControllerAsyncParams | undefined) {
     if (typeof async_param === 'undefined') {
@@ -287,42 +289,49 @@ export class QueueController {
     // Отвечает за получение объекта, на основе которого будет производиться загрузка
     logger.info('Attempt to get next object for download.');
 
-    if (this.queue.length === 0) {
-      logger.debug('Currently there are no available objects for loading.');
-      return null;
-    }
-    if (this.activeDownloads.length >= settings.maxParallelDownloads) {
-      logger.debug('Currently there are too many active downloads.');
-      return null;
-    }
-
-    for (let i = 0; i < this.queue.length; i++) {
-      const item = this.queue[i];
-      if (!Array.isArray(item)) {
-        this.queue.splice(i, 1);
-        this.activeDownloads.push(item);
-        return item;
+    // Вызов getNextObjectIdForDownload должен быть исключительно
+    // последовательным, иначе количество загрузок может выходить за лимит
+    const release = await this.mutex.acquire();
+    try {
+      if (this.queue.length === 0) {
+        logger.debug('Currently there are no available objects for loading.');
+        return null;
+      }
+      if (this.activeDownloads.length >= settings.maxParallelDownloads) {
+        logger.debug('Currently there are too many active downloads.');
+        return null;
       }
 
-      const loadConfig = (await indexedDBObject.getFromIndex(
-        'loadConfig',
-        'load_item_ids',
-        item[0],
-      )) as LoadConfig;
+      for (let i = 0; i < this.queue.length; i++) {
+        const item = this.queue[i];
+        if (!Array.isArray(item)) {
+          this.queue.splice(i, 1);
+          this.activeDownloads.push(item);
+          return item;
+        }
 
-      const numberActiveDownloads = this.activeDownloads.filter((id) =>
-        loadConfig.loadItemIds.includes(id),
-      ).length;
-      if (numberActiveDownloads >= settings.maxParallelDownloadsEpisodes)
-        continue;
-      if (item.length <= 1) {
-        this.queue.splice(i, 1);
+        const loadConfig = (await indexedDBObject.getFromIndex(
+          'loadConfig',
+          'load_item_ids',
+          item[0],
+        )) as LoadConfig;
+
+        const numberActiveDownloads = this.activeDownloads.filter((id) =>
+          loadConfig.loadItemIds.includes(id),
+        ).length;
+        if (numberActiveDownloads >= settings.maxParallelDownloadsEpisodes)
+          continue;
+        if (item.length <= 1) {
+          this.queue.splice(i, 1);
+        }
+        this.activeDownloads.push(item[0]);
+        return item.shift()!;
       }
-      this.activeDownloads.push(item[0]);
-      return item.shift()!;
+      logger.warning('Failed to find an object to download.');
+      return null;
+    } finally {
+      release();
     }
-    logger.warning('Failed to find an object to download.');
-    return null;
   }
 
   async successLoad(fileItem: FileItem) {
