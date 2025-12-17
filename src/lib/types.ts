@@ -322,15 +322,6 @@ export enum EventType {
   LogCreate = 'LogCreate',
 }
 
-export type EventMessage =
-  | {
-      type: EventType.DownloadCreated;
-      data: DownloadItem;
-    }
-  | {
-      type: EventType.DownloadEvent;
-      data: OnChangedDownloadDeltaType;
-    };
 
 export type EventBusTypes = {
   [EventType.NewMessageReceived]: [

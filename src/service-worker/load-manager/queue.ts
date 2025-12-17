@@ -46,6 +46,10 @@ export class QueueController {
     );
   }
 
+  get activeDownloadsList(): readonly number[] {
+    return this.activeDownloads;
+  }
+
   static async build() {
     const async_result = await this.asyncConstructor();
     return new QueueController(async_result);

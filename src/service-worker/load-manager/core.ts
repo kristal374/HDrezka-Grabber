@@ -1,14 +1,6 @@
 import { ResourceLockManager } from '@/lib/resource-lock-manager';
-import {
-  EventMessage,
-  EventType,
-  FileItem,
-  Initiator,
-  LoadItem,
-  LoadStatus,
-} from '@/lib/types';
-import { loadIsCompleted } from '@/lib/utils';
-import { Mutex } from 'async-mutex';
+import { FileItem, Initiator, LoadItem, LoadStatus } from '@/lib/types';
+import { findSomeFilesFromLoadItemIdsInDB, loadIsCompleted } from '@/lib/utils';
 import type { Downloads } from 'webextension-polyfill';
 import { QueueController } from './queue';
 import { HDrezkaLoader, SiteLoader } from './site-loader';
@@ -136,7 +128,7 @@ export class DownloadManager {
     logger.debug('Launching file download:', fileItem);
 
     if (fileItem.status !== LoadStatus.InitiatingDownload) {
-      logger.info(
+      logger.error(
         'File download is interrupted - incorrect status:',
         fileItem.status,
       );
@@ -190,7 +182,7 @@ export class DownloadManager {
       browser.downloads
         .download(options)
         .then(async (downloadId) => {
-          console.log('downloadId:', downloadId);
+          logger.info('Created downloadId:', downloadId);
           if (isTimeout) {
             try {
               if ((await browser.downloads.search({ id: downloadId })).length) {
@@ -213,24 +205,122 @@ export class DownloadManager {
     });
   }
 
-  handleCreateEvent(downloadItem: DownloadItem) {
+  private async findLastFileItemByDownloadId(
+    downloadId: number,
+  ): Promise<FileItem | null> {
+    const fileItems = (await indexedDBObject.getAllFromIndex(
+      'fileStorage',
+      'download_id',
+      downloadId,
+    )) as FileItem[];
+
+    // Если пользователь очистит историю загрузок в браузере,
+    // то браузер начнёт создавать новые загрузки с id от 1.
+    // Что потенциально может создать ситуацию, когда у нас
+    // в базе будет лежать несколько FileItem с одинаковым downloadId.
+    // В таком случае нас интересует только последний созданный FileItem.
+    return fileItems.length
+      ? fileItems.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
+      : null;
+  }
+
+  async handleCreateEvent(downloadItem: DownloadItem) {
     // Обработчик успешной инициализации загрузки браузером
     logger.debug('Download has been created:', downloadItem);
 
-    this.eventOrchestrator({
-      type: EventType.DownloadCreated,
-      data: downloadItem,
+    let targetFile = await this.findLastFileItemByDownloadId(downloadItem.id);
+    if (!targetFile) {
+      // Есть вероятность, что событие пришло раньше, чем был установлен
+      // downloadId, и, следовательно, targetFile будет равен null, однако,
+      // если загрузка была инициирована нашим расширением, мы можем попытаться
+      // найти загрузку, сравнив URL, у downloadItem и файлов активных загрузок
+      const fileItemsList = await findSomeFilesFromLoadItemIdsInDB(
+        this.queueController.activeDownloadsList,
+      );
+
+      targetFile =
+        fileItemsList.find(
+          (fileItem) =>
+            fileItem.downloadId === downloadItem.id ||
+            fileItem.url === downloadItem.url,
+        ) ?? null;
+    }
+
+    if (!targetFile) {
+      // Если нам не удалось найти целевой FileItem - игнорируем событие
+      logger.warning(
+        `The related file (${downloadItem.id}) was not found in the storage.`,
+      );
+      return;
+    }
+
+    await this.resourceLockManager.lock({
+      type: 'loadStorage',
+      id: targetFile.relatedLoadItemId,
     });
+
+    // Пока мы ждали завершения предыдущей задачи объект мог измениться
+    targetFile = (await indexedDBObject.getFromIndex(
+      'fileStorage',
+      'file_id',
+      targetFile.id,
+    )) as FileItem;
+
+    await this.createDownload(targetFile, downloadItem);
   }
 
-  handleDownloadEvent(downloadDelta: OnChangedDownloadDeltaType) {
+  async handleDownloadEvent(downloadDelta: OnChangedDownloadDeltaType) {
     // Отслеживает события загрузок и принимает решения на их основе
     logger.debug('An event occurred:', downloadDelta);
 
-    this.eventOrchestrator({
-      type: EventType.DownloadEvent,
-      data: downloadDelta,
+    let targetFile = await this.findLastFileItemByDownloadId(downloadDelta.id);
+    if (!targetFile) {
+      // Игнорируем загрузки, вызванные НЕ нашим расширением
+      logger.warning(
+        `The related file (${downloadDelta.id}) was not found in the storage.`,
+      );
+      return;
+    }
+
+    await this.resourceLockManager.lock({
+      type: 'loadStorage',
+      id: targetFile.relatedLoadItemId,
     });
+
+    // Пока мы ждали завершения предыдущей задачи объект мог измениться
+    targetFile = (await indexedDBObject.getFromIndex(
+      'fileStorage',
+      'file_id',
+      targetFile.id,
+    )) as FileItem;
+
+    if (downloadDelta.paused?.current === true) {
+      await this.pauseDownload(targetFile);
+    } else if (downloadDelta.paused?.current === false) {
+      await this.unpauseDownload(targetFile);
+    }
+
+    if (downloadDelta.state?.current === 'complete') {
+      await this.successDownload(targetFile);
+    } else if (downloadDelta.error?.current) {
+      if (downloadDelta.error?.current === 'USER_CANCELED') {
+        await this.cancelDownload(targetFile);
+      } else if (downloadDelta.error?.current === 'FILE_NO_SPACE') {
+        await this.cancelAllDownload(targetFile);
+      } else {
+        logger.error('Download failed:', downloadDelta.error.current);
+        await this.attemptNewDownload(targetFile, LoadStatus.DownloadFailed);
+      }
+    } else {
+      // Деблокируем объект, иначе он навсегда останется заблокированным
+      if (!downloadDelta.filename?.current) {
+        logger.warning('Unknown download event:', downloadDelta);
+      }
+      this.resourceLockManager.unlock({
+        type: 'loadStorage',
+        id: targetFile.relatedLoadItemId,
+      });
+    }
   }
 
   handleDeterminingFilenameEvent(
@@ -245,19 +335,15 @@ export class DownloadManager {
       downloadItem.byExtensionId !== browser.runtime.id ||
       !settings.trackEventsOnDeterminingFilename
     ) {
-      suggest();
-      return;
+      return suggest();
     }
 
     this.findFilenameByDownloadId(downloadItem.id).then((suggestFileName) => {
-      if (!suggestFileName) {
-        suggest();
-      } else {
-        suggest({
-          conflictAction: 'uniquify',
-          filename: suggestFileName,
-        });
-      }
+      suggest(
+        suggestFileName
+          ? { conflictAction: 'uniquify', filename: suggestFileName }
+          : undefined,
+      );
     });
 
     return true;
@@ -280,85 +366,6 @@ export class DownloadManager {
       ? fileItemsList.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
       : null;
     return targetFileItem?.fileName;
-  }
-
-  private async eventOrchestrator(event: EventMessage | undefined) {
-    if (event === undefined) return;
-    logger.debug('Processing of the event:', event);
-
-    const fileItems = (await indexedDBObject.getAllFromIndex(
-      'fileStorage',
-      'download_id',
-      event.data.id,
-    )) as FileItem[];
-
-    // Если пользователь очистит историю загрузок в браузере,
-    // то браузер начнёт создавать новые загрузки с id от 1.
-    // Что потенциально может создать ситуацию, когда у нас
-    // в базе будет лежать несколько FileItem с одинаковым downloadId.
-    // В таком случае нас интересует только последний созданный FileItem.
-    const targetFile = fileItems.length
-      ? fileItems.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
-      : null;
-
-    if (!targetFile) {
-      // Игнорируем загрузки, вызванные НЕ нашим расширением
-      logger.warning(
-        'The related file was not found in the storage.',
-        event.data,
-      );
-      return;
-    }
-
-    // Мы должны заблокировать работу с данным объектом для других задач.
-    // Все остальные задачи будут ожидать завершения текущей, после чего они
-    // будут запущены в порядке очереди появления
-    await this.resourceLockManager.lock({
-      type: 'loadStorage',
-      id: targetFile.relatedLoadItemId,
-    });
-
-    // Пока мы ждали завершения предыдущей задачи объект мог измениться
-    const file = (await indexedDBObject.getFromIndex(
-      'fileStorage',
-      'file_id',
-      targetFile.id,
-    )) as FileItem;
-
-    if (event.type === EventType.DownloadCreated) {
-      const downloadItem: DownloadItem = event.data;
-
-      await this.createDownload(file, downloadItem);
-    } else if (event.type === EventType.DownloadEvent) {
-      const downloadDelta: OnChangedDownloadDeltaType = event.data;
-
-      if (downloadDelta.state?.current === 'complete') {
-        await this.successDownload(file);
-      } else if (downloadDelta.error?.current === 'USER_CANCELED') {
-        await this.cancelDownload(file);
-      } else if (downloadDelta.error?.current === 'FILE_NO_SPACE') {
-        await this.cancelAllDownload(file);
-      } else if (downloadDelta.error?.current) {
-        logger.error('Download failed:', downloadDelta.error.current);
-        await this.attemptNewDownload(file, LoadStatus.DownloadFailed);
-      } else {
-        // Деблокируем объект, иначе он навсегда останется заблокированным
-        this.resourceLockManager.unlock({
-          type: 'loadStorage',
-          id: file.relatedLoadItemId,
-        });
-        logger.warning('Unknown download event:', downloadDelta);
-      }
-
-      if (downloadDelta.paused?.current === true) {
-        await this.pauseDownload(file);
-      } else if (downloadDelta.paused?.current === false) {
-        await this.unpauseDownload(file);
-      }
-    } else {
-      logger.critical('Unknown event type:', event);
-      throw new Error('Unknown event type');
-    }
   }
 
   private async createDownload(fileItem: FileItem, downloadItem: DownloadItem) {
@@ -464,10 +471,6 @@ export class DownloadManager {
     fileItem.status = LoadStatus.DownloadPaused;
     await indexedDBObject.put('fileStorage', fileItem);
     await browser.downloads.pause(fileItem.downloadId!);
-    this.resourceLockManager.unlock({
-      type: 'loadStorage',
-      id: fileItem.relatedLoadItemId,
-    });
   }
 
   private async unpauseDownload(fileItem: FileItem) {
@@ -477,10 +480,6 @@ export class DownloadManager {
     fileItem.status = LoadStatus.Downloading;
     await indexedDBObject.put('fileStorage', fileItem);
     await browser.downloads.resume(fileItem.downloadId!);
-    this.resourceLockManager.unlock({
-      type: 'loadStorage',
-      id: fileItem.relatedLoadItemId,
-    });
   }
 
   private async cancelAllDownload(fileItem: FileItem) {
