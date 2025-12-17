@@ -319,7 +319,7 @@ export enum EventType {
   DownloadEvent = 'DownloadEvent',
   ScheduleEvent = 'ScheduleEvent',
   StorageChanged = 'StorageChanged',
-  LogCreate = 'LogCreate',
+  LogCreate = 'logCreate', // должна соответствовать типу в MessageType
 }
 
 
