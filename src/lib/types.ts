@@ -18,6 +18,7 @@ export type MessageType =
   | 'trigger'
   | 'getFileSize'
   | 'updateVideoInfo'
+  | 'requestToRestoreState'
   | 'setNotification';
 
 export type Message<T> = {
@@ -321,7 +322,6 @@ export enum EventType {
   StorageChanged = 'StorageChanged',
   LogCreate = 'logCreate', // должна соответствовать типу в MessageType
 }
-
 
 export type EventBusTypes = {
   [EventType.NewMessageReceived]: [

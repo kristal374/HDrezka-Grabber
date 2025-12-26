@@ -6,7 +6,10 @@ import type { Tabs } from 'webextension-polyfill';
 
 type Tab = Tabs.Tab;
 
-export type PopupInitData = { pageType: PageType } & RequireAllOrNone<{
+export type PopupInitData = {
+  pageType: PageType;
+  needToRestoreInsideState: boolean | undefined;
+} & RequireAllOrNone<{
   tabId: number;
   siteUrl: string;
   sessionStorage: Record<string, any>;
@@ -17,6 +20,11 @@ export async function popupInit(
 ): Promise<PopupInitData> {
   globalThis.settings = await getSettings();
   globalThis.permissions = await browser.permissions.getAll();
+
+  const storage = await browser.storage.session.get('needToRestoreInsideState');
+  const needToRestoreInsideState = storage['needToRestoreInsideState'] as
+    | boolean
+    | undefined;
 
   const currentTab = await getCurrentTab();
 
@@ -51,12 +59,12 @@ export async function popupInit(
     const isNotSplitView = currentTab?.splitViewId === -1;
     pageType = !isNotSplitView ? 'SPLIT_VIEW' : pageType;
   }
-  if (!tabId || !siteUrl) return { pageType };
+  if (!tabId || !siteUrl) return { pageType, needToRestoreInsideState };
 
   await openDB();
   const sessionStorage = await loadSessionStorageSave(tabId);
 
-  return { tabId, siteUrl, pageType, sessionStorage };
+  return { tabId, siteUrl, pageType, sessionStorage, needToRestoreInsideState };
 }
 
 async function getCurrentTab() {

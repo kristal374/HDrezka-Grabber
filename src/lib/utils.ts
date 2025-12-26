@@ -91,3 +91,60 @@ export async function findSomeFilesFromLoadItemIdsInDB(ids: readonly number[]) {
 
   return fileItemArray;
 }
+
+async function groupDownloadsByLoadItemId(items: FileItem[]) {
+  const groupedItems: Record<number, FileItem[]> = {};
+  for (const item of items) {
+    if (!groupedItems[item.relatedLoadItemId])
+      groupedItems[item.relatedLoadItemId] = [];
+    groupedItems[item.relatedLoadItemId].push(item);
+  }
+  return groupedItems;
+}
+
+function sortChain(items: FileItem[]) {
+  const map = new Map(items.map((i) => [i.id, i]));
+  const referenced = new Set(items.map((i) => i.dependentFileItemId));
+
+  let cur = items.find((i) => !referenced.has(i.id));
+  const result = [];
+
+  while (cur) {
+    result.push(cur);
+    if (cur.dependentFileItemId === null) break;
+    cur = map.get(cur.dependentFileItemId);
+  }
+
+  return result;
+}
+
+export async function getActiveFileItem(activeDownloads: readonly number[]) {
+  const extensionActiveDownloads =
+    await findSomeFilesFromLoadItemIdsInDB(activeDownloads);
+
+  // Группируем наши загрузки по relatedLoadItemId, т.к. несколько FileItem
+  // могут ссылаться на один и тот же LoadItem, но при этом загружаться
+  // может только один FileItem единовременно
+  const groupedDownloads = await groupDownloadsByLoadItemId(
+    extensionActiveDownloads,
+  );
+
+  // Убираем лишние FileItem - это либо полностью загруженные файлы, либо файлы,
+  // имеющие статус DownloadCandidate, оставляем при этом файлы, которые прямо
+  // сейчас находятся в обработке у расширения
+  return Object.values(groupedDownloads).map((fileItems) => {
+    const sortedFileItems = sortChain(fileItems);
+    return sortedFileItems.filter((currentFile, index) => {
+      // Если у файла нет dependentFileItemId, значит это последний файл
+      // в цепочке, а если мы дошли до последнего файла в цепочке,
+      // значит это целевой файл
+      if (!currentFile.dependentFileItemId) return true;
+
+      // Если у следующего в цепочке файла статус DownloadCandidate,
+      // значит текущий файл либо загружается, либо уже загружен,
+      // но статус не успел обновиться, и значит текущий файл - целевой
+      const nextFile = sortedFileItems[index + 1];
+      return nextFile!.status === LoadStatus.DownloadCandidate;
+    })[0];
+  });
+}

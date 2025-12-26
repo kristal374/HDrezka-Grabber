@@ -201,7 +201,6 @@ export function SettingsTab() {
             description='Через какой период времени запуск загрузки будет считаться неудачным, если загрузка не стартовала.'
             value={String(settings.downloadStartTimeLimit)}
             setValue={updateSetting('downloadStartTimeLimit', 'number')}
-
             // Лимит времени обусловлен временем жизни неактивного service-worker-а.
             // https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle
             options={[

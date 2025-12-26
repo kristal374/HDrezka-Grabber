@@ -1,3 +1,4 @@
+import { RequestToRestoreExtensionState } from '@/app/screens/Popup/RequestToRestoreExtensionState';
 import { OutsideLink } from '@/components/ui/OutsideLink';
 import { PopupInitialDataContext } from '@/html/popup';
 import { PageType } from '@/lib/types';
@@ -6,7 +7,13 @@ import { DefaultScreen } from './DefaultScreen';
 import { DownloadScreen } from './DownloadScreen/DownloadScreen';
 
 export function Router() {
-  const { pageType } = useContext(PopupInitialDataContext)!;
+  const { pageType, needToRestoreInsideState } = useContext(
+    PopupInitialDataContext,
+  )!;
+
+  if (needToRestoreInsideState) {
+    return <RequestToRestoreExtensionState />;
+  }
 
   logger.debug('Page type defined:', pageType);
   if (pageType === 'FILM' || pageType === 'SERIAL') {

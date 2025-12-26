@@ -1,6 +1,6 @@
 import { getFromStorage } from '@/lib/storage';
-import { FileItem, LoadStatus } from '@/lib/types';
-import { findSomeFilesFromLoadItemIdsInDB } from '@/lib/utils';
+import { FileItem } from '@/lib/types';
+import { getActiveFileItem } from '@/lib/utils';
 
 const STORAGE_KEY = 'isFirstRun';
 
@@ -16,68 +16,13 @@ export async function isFirstRunExtension() {
   return isFirstRun;
 }
 
-async function groupDownloadsByLoadItemId(items: FileItem[]) {
-  const groupedItems: Record<number, FileItem[]> = {};
-  for (const item of items) {
-    if (!groupedItems[item.relatedLoadItemId])
-      groupedItems[item.relatedLoadItemId] = [];
-    groupedItems[item.relatedLoadItemId].push(item);
-  }
-  return groupedItems;
-}
-
-export function sortChain(items: FileItem[]) {
-  const map = new Map(items.map((i) => [i.id, i]));
-  const referenced = new Set(items.map((i) => i.dependentFileItemId));
-
-  let cur = items.find((i) => !referenced.has(i.id));
-  const result = [];
-
-  while (cur) {
-    result.push(cur);
-    if (cur.dependentFileItemId === null) break;
-    cur = map.get(cur.dependentFileItemId);
-  }
-
-  return result;
-}
-
 export async function findBrokenDownloadsInActiveDownloads(strictMode = false) {
   const brokenDownloads: FileItem[] = [];
 
   // Сначала получаем объекты активных загрузок, которые отслеживает расширение
   const activeDownloads =
     (await getFromStorage<number[]>('activeDownloads')) ?? [];
-  const extensionActiveDownloads =
-    await findSomeFilesFromLoadItemIdsInDB(activeDownloads);
-
-  // Группируем наши загрузки по relatedLoadItemId, т.к. несколько FileItem
-  // могут ссылаться на один и тот же LoadItem, но при этом загружаться
-  // может только один FileItem единовременно
-  const groupedDownloads = await groupDownloadsByLoadItemId(
-    extensionActiveDownloads,
-  );
-
-  // Убираем лишние FileItem - это либо полностью загруженные файлы, либо файлы,
-  // имеющие статус DownloadCandidate, оставляем при этом файлы, которые прямо
-  // сейчас находятся в обработке у расширения
-  const extensionActiveFiles = Object.values(groupedDownloads).map(
-    (fileItems) => {
-      const sortedFileItems = sortChain(fileItems);
-      return sortedFileItems.filter((currentFile, index) => {
-        // Если у файла нет dependentFileItemId, значит это последний файл
-        // в цепочке, а если мы дошли до последнего файла в цепочке,
-        // значит это целевой файл
-        if (!currentFile.dependentFileItemId) return true;
-
-        // Если у следующего в цепочке файла статус DownloadCandidate,
-        // значит текущий файл либо загружается, либо уже загружен,
-        // но статус не успел обновиться, и значит текущий файл - целевой
-        const nextFile = sortedFileItems[index + 1];
-        return nextFile!.status === LoadStatus.DownloadCandidate;
-      })[0];
-    },
-  );
+  const extensionActiveFiles = await getActiveFileItem(activeDownloads);
 
   // Далее получаем активные загрузки браузера, что отслеживает сам браузер,
   // и отсеиваем те, которые НЕ принадлежат расширению

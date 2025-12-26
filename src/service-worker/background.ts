@@ -108,6 +108,8 @@ async function messageHandler(
       return await updateVideoInfo(data.message);
     case 'trigger':
       return await downloadManager.initNewDownload(data.message);
+    case 'requestToRestoreState':
+      return await downloadManager.stabilizeInsideState(data.message);
     default:
       logger.warning(message);
       return false;

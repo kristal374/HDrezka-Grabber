@@ -1,14 +1,14 @@
-import { ResourceLockManager } from '@/lib/resource-lock-manager';
-import { FileItem, Initiator, LoadItem, LoadStatus } from '@/lib/types';
-import { findSomeFilesFromLoadItemIdsInDB, loadIsCompleted } from '@/lib/utils';
-import type { Downloads } from 'webextension-polyfill';
-import { QueueController } from './queue';
-import { HDrezkaLoader, SiteLoader } from './site-loader';
 import {
   findBrokenDownloadsInActiveDownloads,
   isFirstRunExtension,
 } from '@/lib/inside-state-controller';
+import { ResourceLockManager } from '@/lib/resource-lock-manager';
+import { FileItem, Initiator, LoadItem, LoadStatus } from '@/lib/types';
+import { findSomeFilesFromLoadItemIdsInDB, loadIsCompleted } from '@/lib/utils';
 import { clearCache } from '@/service-worker/cache';
+import type { Downloads } from 'webextension-polyfill';
+import { QueueController } from './queue';
+import { HDrezkaLoader, SiteLoader } from './site-loader';
 
 type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
 type DownloadItem = Downloads.DownloadItem;
@@ -48,23 +48,69 @@ export class DownloadManager {
     };
   }
 
-  async stabilizeInsideState() {
+  async stabilizeInsideState(permissionToRestore?: boolean) {
     // При непредвиденном прерывании работы браузера (например отключение электричества),
     // может быть нарушена логика работы расширения, а данные потеряют актуальность.
     // Поэтому при старте браузера проводим аудит данных и в случае необходимости
     // восстанавливаем работоспособность расширения.
 
-    logger.info('Started checking inside state of load manager.')
+    logger.info('Started checking inside state of load manager.');
     const isFirstRun = await isFirstRunExtension();
-    const brokenDownloads = await findBrokenDownloadsInActiveDownloads(isFirstRun)
+    const brokenDownloads = await findBrokenDownloadsInActiveDownloads(
+      isFirstRun || Boolean(permissionToRestore),
+    );
 
     if (isFirstRun) {
       await clearCache();
-      for (const fileItem of brokenDownloads) {
-        await this.resourceLockManager.lock({ type: 'loadStorage', id: fileItem.relatedLoadItemId });
-        await this.repeatDownload(fileItem, true)
+
+      if (!brokenDownloads.length) return;
+      await browser.storage.session.set({ needToRestoreInsideState: true });
+    }
+
+    if (typeof permissionToRestore !== 'undefined') {
+      await browser.storage.session.set({ needToRestoreInsideState: false });
+
+      if (permissionToRestore) {
+        for (const fileItem of brokenDownloads) {
+          await this.resourceLockManager.lock({
+            type: 'loadStorage',
+            id: fileItem.relatedLoadItemId,
+          });
+          await this.repeatDownload(fileItem, true);
+        }
+      } else {
+        //   TODO: cancel all downloads
+        return;
       }
     }
+
+    // Первоочерёдно то, что может сломаться это activeDownloads и queue, далее
+    // может случиться, так что статус файла будет установлен некорректно.
+    // Основная задача минимизировать количество обрабатываемых файлов. А значит
+    // нужно выборочно обрабатывать файлы и восстанавливать загрузку. Первыми
+    // стоит взять файлы из activeDownloads и сравнить их со списком реальных
+    // загрузок браузера, но, если расширение пробуждается по причине завершения
+    // загрузки, список реальных загрузок не будет соответствовать списку
+    // активных загрузок. Так же стоит разделять промежуточный запуск метода и
+    // старт метода после перезагрузки от этого будет зависеть можно ли
+    // восстанавливать сломанные загрузки. Ещё граничным случаем будет очистка
+    // истории загрузок браузера пользователем, в таком случае нужно
+    // ориентироваться на url, вместо id загрузки. Ещё стоит помнить, что не у
+    // всех активных загрузок может быть id во время стандартной обработки,
+    // но когда расширение уходит в сон id должен быть у всех файлов в activeDownloads
+    //
+    // Жизненный цикл файла примерно следующий:
+    // Файл создан => Установлен статус InitiatingDownload =>
+    // Установка id загрузки => Установка статуса Downloading и url =>
+    // pause / unpause => Установка статуса DownloadSuccess / StoppedByUser
+    //
+    // Несмотря на то, что именно файл является ключевым объектом загрузки, мы
+    // отслеживаем объект загрузки, который может иметь несколько файлов, его
+    // жизненный цикл:
+    // Создание объекта загрузки => помещение объекта в queue =>
+    // перемещение его в activeDownloads => статус InitiatingDownload =>
+    // обновление данных url => создание файла => статус Downloading =>
+    // |
   }
 
   async initNewDownload(initiator: Initiator) {
