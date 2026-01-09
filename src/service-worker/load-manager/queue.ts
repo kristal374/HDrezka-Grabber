@@ -1,4 +1,4 @@
-import { ResourceLockManager } from '@/lib/resource-lock-manager';
+import { Mutex, ResourceLockManager } from '@/lib/resource-lock-manager';
 import { createProxy, getFromStorage, saveInStorage } from '@/lib/storage';
 import {
   ContentType,
@@ -15,7 +15,6 @@ import {
   UrlDetails,
 } from '@/lib/types';
 import { loadIsCompleted } from '@/lib/utils';
-import { Mutex } from 'async-mutex';
 
 type QueueControllerAsyncParams = {
   queue: (number | number[])[];
