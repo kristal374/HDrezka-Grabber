@@ -79,7 +79,7 @@ export async function saveSessionStorage(
 const pendingUpdates: Record<string, any> = {};
 let debounceTimer: NodeJS.Timeout | null = null;
 
-export async function saveInStorage(objName: string, data: any): Promise<void> {
+export function saveInStorage(objName: string, data: any) {
   // Функция для динамического сохранения данных в хранилище, с возможностью
   // накопления изменений для уменьшения нагрузки на хранилище
   pendingUpdates[objName] = data;
@@ -100,7 +100,7 @@ export async function saveInStorage(objName: string, data: any): Promise<void> {
     } finally {
       debounceTimer = null;
     }
-  }, 0);
+  }, 150);
 }
 
 export type ObserverType<T> = {
