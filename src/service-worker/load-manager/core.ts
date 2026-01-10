@@ -266,12 +266,12 @@ export class DownloadManager {
         .then(async (downloadId) => {
           logger.info('Created downloadId:', downloadId);
           if (isTimeout) {
-            try {
-              if ((await browser.downloads.search({ id: downloadId })).length) {
-                await browser.downloads.erase({ id: downloadId });
-              }
-            } catch (e) {
-              console.warn('erase failed:', e);
+            logger.error('Download timeout:', downloadId);
+            const downloadItem =
+              await this.getActiveDownloadItemFromDownloadId(downloadId);
+            if (downloadItem?.state === 'in_progress') {
+              await browser.downloads.cancel(downloadId);
+              await browser.downloads.erase({ id: downloadId });
             }
           } else {
             resolve(downloadId);
@@ -669,11 +669,14 @@ export class DownloadManager {
 
     if (repeatNow) {
       // Даём небольшую задержку, чтобы при старте браузер успел инициализироваться
-      setTimeout(this.executeRetry.bind(this, fileItem.relatedLoadItemId, fileItem.id), 5000);
+      setTimeout(
+        this.executeRetry.bind(this, fileItem.relatedLoadItemId, fileItem.id),
+        5000,
+      );
     } else {
       const repeatKey = `repeat-download-${fileItem.relatedLoadItemId}-${fileItem.id}`;
       const when = Date.now() + settings.timeBetweenDownloadAttempts;
-      browser.alarms.create(repeatKey, {when});
+      browser.alarms.create(repeatKey, { when });
     }
 
     this.resourceLockManager.unlock({
