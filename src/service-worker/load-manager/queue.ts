@@ -1,5 +1,10 @@
 import { Mutex, ResourceLockManager } from '@/lib/resource-lock-manager';
-import { createProxy, getFromStorage, saveInStorage } from '@/lib/storage';
+import {
+  createObservableStore,
+  getFromStorage,
+  ObserverType,
+  saveInStorage,
+} from '@/lib/storage';
 import {
   ContentType,
   Episode,
@@ -15,6 +20,9 @@ import {
   UrlDetails,
 } from '@/lib/types';
 import { loadIsCompleted } from '@/lib/utils';
+import type { Downloads } from 'webextension-polyfill';
+
+type DownloadItem = Downloads.DownloadItem;
 
 type QueueControllerAsyncParams = {
   queue: (number | number[])[];
@@ -25,20 +33,21 @@ export class QueueController {
   private mutex = new Mutex();
   private resourceLockManager = new ResourceLockManager();
 
-  private readonly queue: (number | number[])[];
-  private readonly activeDownloads: number[];
+  private readonly queue: ObserverType<(number | number[])[]>;
+  private readonly activeDownloads: ObserverType<number[]>;
 
   constructor(async_param: QueueControllerAsyncParams | undefined) {
     if (typeof async_param === 'undefined') {
       throw new Error('Cannot be called directly');
     }
 
-    this.queue = createProxy(
+    this.queue = createObservableStore(
       async_param.queue,
       'queue',
       saveInStorage.bind(this),
     );
-    this.activeDownloads = createProxy(
+
+    this.activeDownloads = createObservableStore(
       async_param.activeDownloads,
       'activeDownloads',
       saveInStorage.bind(this),
@@ -46,7 +55,11 @@ export class QueueController {
   }
 
   get activeDownloadsList(): readonly number[] {
-    return this.activeDownloads;
+    return this.activeDownloads.state;
+  }
+
+  get queueList(): readonly (number | number[])[] {
+    return this.queue.state;
   }
 
   static async build() {
@@ -78,7 +91,9 @@ export class QueueController {
 
     logger.info('Creating new downloads.');
     const loadItemIds = await this.createNewDownloads(initiator);
-    this.queue.push(loadItemIds.length === 1 ? loadItemIds[0] : loadItemIds);
+    this.queue.update((state) => {
+      state.push(loadItemIds.length === 1 ? loadItemIds[0] : loadItemIds);
+    });
     logger.info('Loads were created:', loadItemIds);
 
     return true;
@@ -159,46 +174,82 @@ export class QueueController {
   }
 
   private async cancelDownload(
-    id: number,
+    loadItem: LoadItem,
     cause: LoadStatus = LoadStatus.StoppedByUser,
   ) {
-    logger.debug('Canceling download:', id, cause);
-    const record = (await indexedDBObject.getFromIndex(
-      'loadStorage',
-      'load_id',
-      id,
-    )) as LoadItem | undefined;
+    logger.debug('Canceling download:', loadItem, cause);
 
-    if (!record || loadIsCompleted(record.status)) return;
+    if (!loadItem || loadIsCompleted(loadItem.status)) return loadItem;
+    loadItem.status = cause;
 
-    if (this.activeDownloads.includes(record.id)) {
+    if (this.activeDownloads.state.includes(loadItem.id)) {
       const relatedFiles = (await indexedDBObject.getAllFromIndex(
         'fileStorage',
         'load_item_id',
-        record.id,
+        loadItem.id,
       )) as FileItem[];
 
       for (const file of relatedFiles) {
-        if (file.downloadId === null) {
-          await this.failLoad(file, cause);
-        } else {
-          await browser.downloads.cancel(file.downloadId);
-        }
-      }
-    } else {
-      record.status = cause;
-      await indexedDBObject.put('loadStorage', record);
+        if (file.downloadId !== null) {
+          const browserFile = (
+            await browser.downloads.search({ id: file.downloadId })
+          )[0] as DownloadItem | undefined;
 
-      for (let i = 0; i < this.queue.length; i++) {
-        const group = this.queue[i];
-        if (
-          id === group ||
-          (Array.isArray(group) && group.includes(record.id))
-        ) {
-          this.queue.splice(i, 1);
-          break;
+          if (!browserFile) continue;
+
+          // Вызываем failLoad перед cancel для того, чтоб установить
+          // "свой" статус прерывания загрузки, вместо "StoppedByUser"
+          // который будет установлен после вызова cancel
+          await this.failLoad(file, cause);
+          await browser.downloads.cancel(file.downloadId);
+          return loadItem;
         }
       }
+
+      if (relatedFiles.length === 0) {
+        const index = this.activeDownloads.state.indexOf(loadItem.id);
+        this.activeDownloads.update((state) => {
+          state.splice(index, 1);
+        });
+      } else {
+        // Если по каким-то причинам мы не нашли загружаемый файл -
+        // отменяем загрузку вслепую
+        logger.warning('Failed to find downloadable file:', loadItem);
+        await this.failLoad(relatedFiles[0], cause);
+      }
+      return loadItem;
+    } else {
+      // Поскольку нам нужно удалить всего один единственный объект,
+      // мы можем не бояться того, что после удаления диапазон объектов
+      // внутри массива сместится
+      for (let i = 0; i < this.queue.state.length; i++) {
+        const group = this.queue.state[i];
+
+        if (group === loadItem.id) {
+          this.queue.update((state) => {
+            state.splice(i, 1);
+          });
+          return loadItem;
+        }
+
+        if (Array.isArray(group)) {
+          const idx = group.indexOf(loadItem.id);
+
+          if (idx !== -1) {
+            this.queue.update((state) => {
+              if (group.length === 1) {
+                state.splice(i, 1);
+              } else {
+                (state[i] as number[]).splice(idx, 1);
+              }
+            });
+            return loadItem;
+          }
+        }
+      }
+
+      logger.warning('Failed to find an LoadItem in queue.');
+      return loadItem;
     }
   }
 
@@ -296,20 +347,24 @@ export class QueueController {
     // последовательным, иначе количество загрузок может выходить за лимит
     const release = await this.mutex.acquire();
     try {
-      if (this.queue.length === 0) {
+      if (this.queue.state.length === 0) {
         logger.debug('Currently there are no available objects for loading.');
         return null;
       }
-      if (this.activeDownloads.length >= settings.maxParallelDownloads) {
+      if (this.activeDownloads.state.length >= settings.maxParallelDownloads) {
         logger.debug('Currently there are too many active downloads.');
         return null;
       }
 
-      for (let i = 0; i < this.queue.length; i++) {
-        const item = this.queue[i];
+      for (let i = 0; i < this.queue.state.length; i++) {
+        const item = this.queue.state[i];
         if (!Array.isArray(item)) {
-          this.queue.splice(i, 1);
-          this.activeDownloads.push(item);
+          this.queue.update((state) => {
+            state.splice(i, 1);
+          });
+          this.activeDownloads.update((state) => {
+            state.push(item);
+          });
           return item;
         }
 
@@ -319,16 +374,25 @@ export class QueueController {
           item[0],
         )) as LoadConfig;
 
-        const numberActiveDownloads = this.activeDownloads.filter((id) =>
+        const numberActiveDownloads = this.activeDownloads.state.filter((id) =>
           loadConfig.loadItemIds.includes(id),
         ).length;
         if (numberActiveDownloads >= settings.maxParallelDownloadsEpisodes)
           continue;
-        if (item.length <= 1) {
-          this.queue.splice(i, 1);
-        }
-        this.activeDownloads.push(item[0]);
-        return item.shift()!;
+
+        const targetItem = item[0];
+        this.activeDownloads.update((state) => {
+          state.push(targetItem);
+        });
+        this.queue.update((state) => {
+          if (item.length <= 1) {
+            state.splice(i, 1);
+          } else {
+            (state[i] as number[]).shift();
+          }
+        });
+
+        return targetItem;
       }
       logger.warning('Failed to find an object to download.');
       return null;
@@ -348,15 +412,13 @@ export class QueueController {
     loadItem.status = LoadStatus.DownloadSuccess;
     await indexedDBObject.put('loadStorage', loadItem);
 
-    this.activeDownloads.splice(
-      this.activeDownloads.indexOf(fileItem.relatedLoadItemId),
-      1,
+    const index = this.activeDownloads.state.indexOf(
+      fileItem.relatedLoadItemId,
     );
-
-    this.resourceLockManager.unlock({
-      type: 'loadStorage',
-      id: fileItem.relatedLoadItemId,
+    this.activeDownloads.update((state) => {
+      state.splice(index, 1);
     });
+
     logger.info('Load was successful:', loadItem);
   }
 
@@ -399,7 +461,10 @@ export class QueueController {
       }),
     );
 
-    this.activeDownloads.splice(this.activeDownloads.indexOf(loadItem.id), 1);
+    const index = this.activeDownloads.state.indexOf(loadItem.id);
+    this.activeDownloads.update((state) => {
+      state.splice(index, 1);
+    });
 
     if (cause === LoadStatus.StoppedByUser) return;
 

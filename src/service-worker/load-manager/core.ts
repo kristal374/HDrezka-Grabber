@@ -526,6 +526,11 @@ export class DownloadManager {
       await this.launchFileDownload(nextFileItem);
     } else {
       await this.queueController.successLoad(fileItem);
+
+      this.resourceLockManager.unlock({
+        type: 'loadStorage',
+        id: fileItem.relatedLoadItemId,
+      });
     }
     this.startNextDownload().then();
   }
