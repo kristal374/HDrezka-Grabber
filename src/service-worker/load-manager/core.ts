@@ -135,11 +135,9 @@ export class DownloadManager {
     }
 
     logger.debug('Next load item id:', nextLoadItemId);
+    const targetResource = { type: 'loadStorage', id: nextLoadItemId };
     this.resourceLockManager
-      .lock({
-        type: 'loadStorage',
-        id: nextLoadItemId,
-      })
+      .lock(targetResource, 10)
       .then(() => this.prepareDownload(nextLoadItemId));
     this.startNextDownload().then();
   }
@@ -205,11 +203,14 @@ export class DownloadManager {
       return;
     }
 
+    const restoreHardLock = this.resourceLockManager.markAsSoftLock({
+      type: 'loadStorage',
+      id: fileItem.relatedLoadItemId,
+    });
     try {
       const startInitiationDownloadTime = new Date().getTime();
 
-      // TODO: Тут происходит ошибка с задержкой остановки загрузки: слишком долгая инициализация
-      fileItem.downloadId = await this.callDownloadWithTimeout({
+      const downloadId = await this.callDownloadWithTimeout({
         url: fileItem.url,
         filename: fileItem.fileName,
         saveAs: fileItem.saveAs,
@@ -222,16 +223,35 @@ export class DownloadManager {
         `File item ${fileItem.id} took ${totalInitiationDownloadTime / 1_000}s to start loading.`,
       );
 
-      await indexedDBObject.put('fileStorage', fileItem);
-      logger.info('File download started successfully:', fileItem);
+      restoreHardLock().then(async (wasInterrupted) => {
+        if (wasInterrupted) {
+          logger.warning('File download start interrupted:', fileItem);
+          const updatedFileItem = (await indexedDBObject.getFromIndex(
+            'fileStorage',
+            'file_id',
+            fileItem.id,
+          )) as FileItem;
+          updatedFileItem.downloadId = downloadId;
+          await indexedDBObject.put('fileStorage', updatedFileItem);
 
-      this.resourceLockManager.unlock({
-        type: 'loadStorage',
-        id: fileItem.relatedLoadItemId,
+          if (loadIsCompleted(updatedFileItem.status)) {
+            await this.cancelOneDownload(updatedFileItem);
+          }
+        } else {
+          fileItem.downloadId = downloadId;
+          await indexedDBObject.put('fileStorage', fileItem);
+
+          logger.info('File download started successfully:', fileItem);
+          this.resourceLockManager.unlock({
+            type: 'loadStorage',
+            id: fileItem.relatedLoadItemId,
+          });
+        }
       });
     } catch (e: any) {
       const error = e as Error;
       logger.error('Download start failed:', error.toString());
+      await restoreHardLock().catch(() => {});
       await this.attemptNewDownload(fileItem, LoadStatus.InitiationError);
     }
   }
@@ -265,6 +285,18 @@ export class DownloadManager {
         reject(new Error('Download timeout'));
       }, settings.downloadStartTimeLimit);
     });
+  }
+
+  private async getActiveDownloadItemFromDownloadId(downloadId: number) {
+    let downloadItem: DownloadItem | undefined;
+    do {
+      downloadItem = (await browser.downloads.search({ id: downloadId }))[0];
+      if (typeof downloadItem === 'undefined') return;
+      // Если у фала есть filename - значит файл уже начал загрузку и
+      // может быть удалён из списка загрузок, иначе, возникнет ошибка:
+      // Unchecked runtime.lastError: Download must be in progress
+    } while (!downloadItem.filename || downloadItem.state !== 'in_progress');
+    return downloadItem;
   }
 
   private async findLastFileItemByDownloadId(
@@ -366,7 +398,7 @@ export class DownloadManager {
       await this.successDownload(targetFile);
     } else if (downloadDelta.error?.current) {
       if (downloadDelta.error?.current === 'USER_CANCELED') {
-        await this.cancelDownload(targetFile);
+        await this.cancelOneDownload(targetFile);
       } else if (downloadDelta.error?.current === 'FILE_NO_SPACE') {
         await this.cancelAllDownload(targetFile);
       } else {
@@ -498,20 +530,36 @@ export class DownloadManager {
     this.startNextDownload().then();
   }
 
-  private async cancelDownload(fileItem: FileItem) {
+  private async cancelOneDownload(fileItem: FileItem) {
     // Обработчик остановки активной загрузки
     logger.info('Attempt stopped loading:', fileItem);
 
-    if (fileItem.downloadId && !loadIsCompleted(fileItem.status)) {
-      const fileItemBrowser: DownloadItem | undefined = (
-        await browser.downloads.search({
-          id: fileItem.downloadId,
-        })
-      )[0];
-
-      if (fileItemBrowser?.state === 'in_progress') {
+    if (fileItem.downloadId) {
+      const downloadItem = await this.getActiveDownloadItemFromDownloadId(
+        fileItem.downloadId,
+      );
+      if (downloadItem?.state === 'in_progress') {
         await browser.downloads.cancel(fileItem.downloadId);
       }
+
+      if (downloadItem?.filename) {
+        const extractFilename = (filename: string) =>
+          filename
+            .split(/[\\/]/)
+            .at(-1)!
+            .match(/(.*)\.\w+/)![1];
+
+        const extractedRealFilename = extractFilename(downloadItem.filename);
+        const extractedPrimaryFilename = extractFilename(fileItem.fileName);
+        if (!extractedRealFilename.startsWith(extractedPrimaryFilename)) {
+          // Если расширение не успело установить своё имя для файла, но уже начало
+          // загрузку - удаляем файл, чтоб не путать пользователя
+          await browser.downloads.erase({ id: fileItem.id });
+        }
+      }
+
+      await this.breakDownloadWithError(fileItem, LoadStatus.StoppedByUser);
+    } else if (!loadIsCompleted(fileItem.status)) {
       await this.breakDownloadWithError(fileItem, LoadStatus.StoppedByUser);
     } else {
       this.resourceLockManager.unlock({
