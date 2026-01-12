@@ -400,7 +400,8 @@ export class DownloadManager {
       if (downloadDelta.error?.current === 'USER_CANCELED') {
         await this.cancelOneDownload(targetFile);
       } else if (downloadDelta.error?.current === 'FILE_NO_SPACE') {
-        await this.cancelAllDownload(targetFile);
+        logger.critical('The disk is not enough space for uploading a file!');
+        await this.cancelAllDownloadsOneMovie(targetFile);
       } else {
         logger.error('Download failed:', downloadDelta.error.current);
         await this.attemptNewDownload(targetFile, LoadStatus.DownloadFailed);
@@ -515,10 +516,7 @@ export class DownloadManager {
         fileItem.dependentFileItemId,
       )) as FileItem;
 
-      if (
-        nextFileItem.status !== LoadStatus.StoppedByUser ||
-        !loadIsCompleted(nextFileItem.status)
-      ) {
+      if (nextFileItem.status !== LoadStatus.DownloadCandidate) {
         nextFileItem.status = LoadStatus.InitiatingDownload;
       }
 
@@ -533,6 +531,28 @@ export class DownloadManager {
       });
     }
     this.startNextDownload().then();
+  }
+
+  private async cancelAllDownload() {
+    const listToRemove = [
+      ...this.queueController.activeDownloadsList,
+      ...this.queueController.queueList.flat(2),
+    ];
+    await this.queueController.removeDownloadsFromQueue(listToRemove);
+  }
+
+  private async cancelAllDownloadsOneMovie(fileItem: FileItem) {
+    const loadItem = (await indexedDBObject.getFromIndex(
+      'loadStorage',
+      'load_id',
+      fileItem.relatedLoadItemId,
+    )) as LoadItem;
+
+    await this.breakDownloadWithError(fileItem, LoadStatus.DownloadFailed);
+    await this.queueController.stopDownload(
+      loadItem.movieId,
+      LoadStatus.InitiationError,
+    );
   }
 
   private async cancelOneDownload(fileItem: FileItem) {
@@ -595,21 +615,6 @@ export class DownloadManager {
     fileItem.status = LoadStatus.Downloading;
     await indexedDBObject.put('fileStorage', fileItem);
     await browser.downloads.resume(fileItem.downloadId!);
-  }
-
-  private async cancelAllDownload(fileItem: FileItem) {
-    logger.critical('The disk is not enough space for uploading a file!');
-    const loadItem = (await indexedDBObject.getFromIndex(
-      'loadStorage',
-      'load_id',
-      fileItem.relatedLoadItemId,
-    )) as LoadItem;
-
-    await this.breakDownloadWithError(fileItem, LoadStatus.DownloadFailed);
-    await this.queueController.stopDownload(
-      loadItem.movieId,
-      LoadStatus.InitiationError,
-    );
   }
 
   private async attemptNewDownload(fileItem: FileItem, cause: LoadStatus) {

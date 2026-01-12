@@ -154,23 +154,36 @@ export class QueueController {
     // TODO: в случае сбоя отправки сообщения добавлять ошибку в хранилище
   }
 
-  private async removeDownloadsFromQueue(
+  public async removeDownloadsFromQueue(
     groupToRemove: number[],
     cause: LoadStatus = LoadStatus.StoppedByUser,
   ) {
     // Удаляет загрузки из очереди, находящиеся в списке на удаление,
     // если есть активные загрузки - прерывает их
+
+    if (!groupToRemove.length) return;
     logger.debug('Removing from download queue:', groupToRemove);
 
-    await Promise.all(
-      groupToRemove.map((id) =>
-        this.resourceLockManager.run(
-          { type: 'loadStorage', id },
-          this.cancelDownload.bind(this, id, cause),
-          1000,
-        ),
-      ),
-    );
+    await this.resourceLockManager.massLock('loadStorage', groupToRemove, 1000);
+    try {
+      const readTx = indexedDBObject.transaction('loadStorage');
+      const loadItems = (
+        await Promise.all(groupToRemove.map((id) => readTx.store.get(id)))
+      ).filter(Boolean) as LoadItem[];
+      await readTx.done;
+
+      const updatedLoadItems = await Promise.all(
+        loadItems.map((loadItem) => this.cancelDownload(loadItem, cause)),
+      );
+
+      const writeTx = indexedDBObject.transaction('loadStorage', 'readwrite');
+      await Promise.all(
+        updatedLoadItems.map((loadItem) => writeTx.store.put(loadItem)),
+      );
+      await writeTx.done;
+    } finally {
+      await this.resourceLockManager.massUnlock('loadStorage', groupToRemove);
+    }
   }
 
   private async cancelDownload(
