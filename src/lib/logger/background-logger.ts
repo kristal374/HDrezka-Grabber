@@ -1,14 +1,41 @@
 import { LogMessage, printLog } from '@/lib/logger';
 
-export async function logCreate(message: LogMessage) {
-  printLog(message);
+const pendingUpdates: LogMessage[] = [];
+let debounceTimer: NodeJS.Timeout | null = null;
 
-  await indexedDBObject.put('logStorage', message).catch(() => {
-    // Если БД закрыта, нет смысла поднимать ошибку, просто выводим в консоль
-  });
-
-  await deleteOldLogMessage(settings.logMessageLifetime);
+export function logCreate(message: LogMessage) {
+  saveLogToDB(message);
   return true;
+}
+
+function saveLogToDB(data: LogMessage) {
+  // Функция для динамического сохранения данных в хранилище, с возможностью
+  // накопления изменений для уменьшения нагрузки на хранилище
+  pendingUpdates.push(data);
+
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+  }
+
+  debounceTimer = setTimeout(async () => {
+    const snapshot = [...pendingUpdates].sort(
+      (a, b) => a.timestamp - b.timestamp,
+    );
+    pendingUpdates.splice(0, pendingUpdates.length);
+
+    const tx = indexedDBObject.transaction('logStorage', 'readwrite');
+    const logStorage = tx.store;
+    try {
+      for (const message of snapshot) {
+        printLog(message);
+        await logStorage.put(message);
+      }
+    } finally {
+      debounceTimer = null;
+      tx.done;
+      await deleteOldLogMessage(settings.logMessageLifetime);
+    }
+  }, 200);
 }
 
 async function deleteOldLogMessage(

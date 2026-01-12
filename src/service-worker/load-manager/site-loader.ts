@@ -14,6 +14,7 @@ import type {
   FileType,
   LoadConfig,
   LoadItem,
+  Optional,
   QualityItem,
   QueryData,
   ResponseVideoData,
@@ -241,7 +242,7 @@ export class HDrezkaLoader implements SiteLoader {
       retryAttempts: 0,
       status: LoadStatus.DownloadCandidate,
       createdAt: timestamp,
-    } as Omit<FileItem, 'id'> & { id?: number | undefined };
+    } as Optional<FileItem, 'id'>;
     fileItem.id = await indexedDBObject.put('fileStorage', fileItem);
     return fileItem as FileItem;
   }

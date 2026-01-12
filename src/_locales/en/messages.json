@@ -23,6 +23,9 @@
   "popup_stub_error": {
     "message": "Oops! Something went wrong..."
   },
+  "popup_stub_splitView": {
+    "message": "The tab is open in Split View mode, you need to select the desired window to work with it."
+  },
   "popup_loadSerial": {
     "message": "Load series"
   },

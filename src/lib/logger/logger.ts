@@ -1,23 +1,37 @@
-import browser from 'webextension-polyfill';
+import browser, { Runtime } from 'webextension-polyfill';
 
 import { SourceMapParser } from '@/lib/logger/source-map';
-import { LogLevel, LogMessage } from '@/lib/logger/types';
+import {
+  LoggerEventType,
+  LogLevel,
+  LogMessage,
+  LogMetadata,
+} from '@/lib/logger/types';
+import { isBackground } from '@/lib/logger/utils';
 import { SourceMap } from 'rollup';
-import { Message } from '../types';
 
 export class Logger {
-  private sourcemap: Record<string, Promise<SourceMapParser | null>> = {};
+  private static isBackground = isBackground();
+  private static port: Runtime.Port | undefined;
+  private static sourcemap: Record<string, SourceMapParser | null> = {};
+  private readonly metadata?: LogMetadata;
 
-  private async initializeSourceMapParser(url: string) {
+  constructor(metadata?: LogMetadata) {
+    this.metadata = metadata;
+  }
+
+  private async getOrInitializeSourceMapParser(url: string) {
     // Определяем необходимый файл с картой исходного кода для текущего URL,
     // после чего пробуем вернуть соответствующий парсер, если он уже был создан
     // в противном случае создаем его перед этим
     const regexFindURL = /((?:chrome|moz)-extension:\/(?:\/.*?)+\.js):\d+:\d+/;
-    const urlSourceMap = `${url.match(regexFindURL)![1]}.map`;
+    const [_match, rawUrl] = url.match(regexFindURL)!;
 
-    if (!this.sourcemap[urlSourceMap])
-      this.sourcemap[urlSourceMap] = this.getSourceMapParser(urlSourceMap);
-    return await this.sourcemap[urlSourceMap];
+    const urlSourceMap = `${rawUrl}.map`;
+    if (typeof Logger.sourcemap[urlSourceMap] === 'undefined')
+      Logger.sourcemap[urlSourceMap] =
+        await this.getSourceMapParser(urlSourceMap);
+    return Logger.sourcemap[urlSourceMap];
   }
 
   private async getSourceMapParser(targetUrl: string) {
@@ -58,8 +72,15 @@ export class Logger {
           ? await this.getCallerInfo()
           : [context, location];
 
-      const log: LogMessage = { timestamp, level, context, message, location };
-      this.sendLogMessage(log);
+      const metadata = this.metadata;
+      this.sendLogMessage({
+        timestamp,
+        level,
+        context,
+        message,
+        location,
+        metadata,
+      });
     } catch (e) {
       // Любые ошибки в логировании не должны влиять на работу расширения
       console.error(e);
@@ -67,20 +88,23 @@ export class Logger {
   }
 
   private sendLogMessage(detail: LogMessage) {
-    const messageToSend: Message<LogMessage> = {
-      type: 'logCreate',
-      message: detail,
-    };
+    if (!Logger.isBackground) {
+      if (!Logger.port) {
+        Logger.port = browser.runtime.connect();
+      }
 
-    // catch необходим на случай, если не существует других контекстов, которые
-    // могли бы слушать сообщения, для отлова ошибок об отсутствие ответа
-    browser.runtime.sendMessage(messageToSend).catch(() => {});
+      Logger.port.postMessage(detail);
+    } else {
+      // Для отправки сообщений в контекст, из которого вызывается запись
+      // в журнал, мы должны использовать CustomEvent
+      globalThis.dispatchEvent(
+        new CustomEvent(LoggerEventType.LogCreate, { detail }),
+      );
+    }
+  }
 
-    // browser.runtime.sendMessage не отправляет сообщения в контекст,
-    // из которого вызывается, и если мы хотим так же получать сообщения
-    // в этом контексте, мы должны отправить сообщение другим способом,
-    // в данном случае это CustomEvent
-    globalThis.dispatchEvent(new CustomEvent(messageToSend.type, { detail }));
+  attachMetadata(metadata: LogMetadata) {
+    return new Logger(metadata);
   }
 
   critical(...message: any[]) {
@@ -114,7 +138,7 @@ export class Logger {
     const callerURL = urlStackTrace[3];
 
     const context = callerURL.split('/').at(-1)!.split('.')[0];
-    const sourcemap = await this.initializeSourceMapParser(callerURL);
+    const sourcemap = await this.getOrInitializeSourceMapParser(callerURL);
     const extensionDomain = browser.runtime.getURL('');
     const location =
       sourcemap === null ? callerURL : sourcemap.getOriginalURL(callerURL);

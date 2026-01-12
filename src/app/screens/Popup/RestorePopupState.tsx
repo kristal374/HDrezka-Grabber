@@ -13,12 +13,12 @@ type RestorePopupStateProps = {
 
 export function RestorePopupState({ children }: RestorePopupStateProps) {
   const dispatch = useAppDispatch();
-  const initData = useContext(PopupInitialDataContext);
+  const initData = useContext(PopupInitialDataContext)!;
 
   const [isReady, setIsReady] = useState<boolean>(false);
 
   useLayoutEffect(() => {
-    if (initData) {
+    if (initData.siteUrl) {
       const { sessionStorage, siteUrl, tabId } = initData;
       const storedUrl = sessionStorage?.mainComponentReducer?.movieInfo?.url;
 

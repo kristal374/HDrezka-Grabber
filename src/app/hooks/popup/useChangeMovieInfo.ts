@@ -24,7 +24,7 @@ export function useChangeMovieInfo() {
   useEffect(() => {
     if (movieInfo !== null) return;
     logger.info('Getting movieInfo...');
-    getMovieInfo(tabId).then((result) => {
+    getMovieInfo(tabId!).then((result) => {
       dispatch(setMovieInfoAction({ movieInfo: result }));
       if (result === null) return;
       dispatch(setSubtitleListAction({ subtitlesInfo: result.subtitle }));

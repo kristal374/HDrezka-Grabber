@@ -1,14 +1,12 @@
-import { ResourceLockManager } from '@/lib/resource-lock-manager';
 import {
-  EventMessage,
-  EventType,
-  FileItem,
-  Initiator,
-  LoadItem,
-  LoadStatus,
-} from '@/lib/types';
-import { loadIsCompleted } from '@/lib/utils';
-import { Mutex } from 'async-mutex';
+  findBrokenFileItemInActiveDownloads,
+  findBrokenLoadItemInActiveDownloads,
+  isFirstRunExtension,
+} from '@/lib/inside-state-controller';
+import { ResourceLockManager } from '@/lib/resource-lock-manager';
+import { FileItem, Initiator, LoadItem, LoadStatus } from '@/lib/types';
+import { findSomeFilesFromLoadItemIdsInDB, loadIsCompleted } from '@/lib/utils';
+import { clearCache } from '@/service-worker/cache';
 import type { Downloads } from 'webextension-polyfill';
 import { QueueController } from './queue';
 import { HDrezkaLoader, SiteLoader } from './site-loader';
@@ -22,7 +20,6 @@ type LoadManagerAsyncParams = {
 };
 
 export class DownloadManager {
-  private mutex = new Mutex();
   private resourceLockManager = new ResourceLockManager();
 
   private readonly queueController: QueueController;
@@ -52,19 +49,65 @@ export class DownloadManager {
     };
   }
 
-  async stabilizeInsideState() {
+  async stabilizeInsideState(permissionToRestore?: boolean) {
     // При непредвиденном прерывании работы браузера (например отключение электричества),
     // может быть нарушена логика работы расширения, а данные потеряют актуальность.
     // Поэтому при старте браузера проводим аудит данных и в случае необходимости
     // восстанавливаем работоспособность расширения.
-    // TODO: реализовать
+
+    logger.info('Started checking inside state of load manager.');
+    const isFirstRun = await isFirstRunExtension();
+
+    const brokenFileItems = await findBrokenFileItemInActiveDownloads(
+      isFirstRun || Boolean(permissionToRestore),
+    );
+    const brokenLoadItems = await findBrokenLoadItemInActiveDownloads();
+
+    if (isFirstRun) {
+      await clearCache();
+
+      if (!brokenFileItems.length && !brokenLoadItems.length) return;
+      await browser.storage.session.set({ needToRestoreInsideState: true });
+    }
+
+    if (typeof permissionToRestore !== 'undefined') {
+      await browser.storage.session.set({ needToRestoreInsideState: false });
+
+      logger.info(
+        `Restore inside state permission: ${permissionToRestore ? 'granted' : 'denied'}`,
+      );
+      if (permissionToRestore) {
+        for (const fileItem of brokenFileItems) {
+          await this.resourceLockManager.lock({
+            type: 'loadStorage',
+            id: fileItem.relatedLoadItemId,
+          });
+          await this.repeatDownload(fileItem, true);
+        }
+        for (const loadItem of brokenLoadItems) {
+          const target = { type: 'loadStorage', id: loadItem.id };
+          this.resourceLockManager.lock(target, 10).then(async () => {
+            loadItem.status = LoadStatus.DownloadCandidate;
+            await indexedDBObject.put('loadStorage', loadItem);
+            this.prepareDownload(loadItem.id).then();
+          });
+        }
+      } else {
+        await this.cancelAllDownload();
+      }
+    }
   }
 
   async initNewDownload(initiator: Initiator) {
     // Отвечает за добавление фильмов/сериалов в очередь на загрузку
     logger.debug('Trigger new load:', initiator);
-
-    await this.queueController.initializeNewDownload(initiator);
+    await this.resourceLockManager.run(
+      { type: 'urlDetail', id: initiator.movieId },
+      this.queueController.initializeNewDownload.bind(
+        this.queueController,
+        initiator,
+      ),
+    );
     this.startNextDownload().then();
   }
 
@@ -73,13 +116,8 @@ export class DownloadManager {
     // производиться загрузка
     logger.info('Attempt starting download.');
 
-    // Вызов getNextObjectIdForDownload должен быть исключительно
-    // последовательным, иначе количество загрузок может выходить за лимит
-    const nextLoadItemId = await this.mutex.runExclusive(
-      this.queueController.getNextObjectIdForDownload.bind(
-        this.queueController,
-      ),
-    );
+    const nextLoadItemId =
+      await this.queueController.getNextObjectIdForDownload();
 
     if (!nextLoadItemId) {
       logger.info('Currently there are no available objects for loading.');
@@ -87,11 +125,9 @@ export class DownloadManager {
     }
 
     logger.debug('Next load item id:', nextLoadItemId);
+    const targetResource = { type: 'loadStorage', id: nextLoadItemId };
     this.resourceLockManager
-      .lock({
-        type: 'loadStorage',
-        id: nextLoadItemId,
-      })
+      .lock(targetResource, 10)
       .then(() => this.prepareDownload(nextLoadItemId));
     this.startNextDownload().then();
   }
@@ -142,7 +178,7 @@ export class DownloadManager {
     logger.debug('Launching file download:', fileItem);
 
     if (fileItem.status !== LoadStatus.InitiatingDownload) {
-      logger.info(
+      logger.error(
         'File download is interrupted - incorrect status:',
         fileItem.status,
       );
@@ -157,11 +193,14 @@ export class DownloadManager {
       return;
     }
 
+    const restoreHardLock = this.resourceLockManager.markAsSoftLock({
+      type: 'loadStorage',
+      id: fileItem.relatedLoadItemId,
+    });
     try {
       const startInitiationDownloadTime = new Date().getTime();
 
-      // TODO: Тут происходит ошибка с задержкой остановки загрузки: слишком долгая инициализация
-      fileItem.downloadId = await this.callDownloadWithTimeout({
+      const downloadId = await this.callDownloadWithTimeout({
         url: fileItem.url,
         filename: fileItem.fileName,
         saveAs: fileItem.saveAs,
@@ -174,16 +213,35 @@ export class DownloadManager {
         `File item ${fileItem.id} took ${totalInitiationDownloadTime / 1_000}s to start loading.`,
       );
 
-      await indexedDBObject.put('fileStorage', fileItem);
-      logger.info('File download started successfully:', fileItem);
+      restoreHardLock().then(async (wasInterrupted) => {
+        if (wasInterrupted) {
+          logger.warning('File download start interrupted:', fileItem);
+          const updatedFileItem = (await indexedDBObject.getFromIndex(
+            'fileStorage',
+            'file_id',
+            fileItem.id,
+          )) as FileItem;
+          updatedFileItem.downloadId = downloadId;
+          await indexedDBObject.put('fileStorage', updatedFileItem);
 
-      this.resourceLockManager.unlock({
-        type: 'loadStorage',
-        id: fileItem.relatedLoadItemId,
+          if (loadIsCompleted(updatedFileItem.status)) {
+            await this.cancelOneDownload(updatedFileItem);
+          }
+        } else {
+          fileItem.downloadId = downloadId;
+          await indexedDBObject.put('fileStorage', fileItem);
+
+          logger.info('File download started successfully:', fileItem);
+          this.resourceLockManager.unlock({
+            type: 'loadStorage',
+            id: fileItem.relatedLoadItemId,
+          });
+        }
       });
     } catch (e: any) {
       const error = e as Error;
       logger.error('Download start failed:', error.toString());
+      await restoreHardLock().catch(() => {});
       await this.attemptNewDownload(fileItem, LoadStatus.InitiationError);
     }
   }
@@ -196,14 +254,14 @@ export class DownloadManager {
       browser.downloads
         .download(options)
         .then(async (downloadId) => {
-          console.log('downloadId:', downloadId);
+          logger.info('Created downloadId:', downloadId);
           if (isTimeout) {
-            try {
-              if ((await browser.downloads.search({ id: downloadId })).length) {
-                await browser.downloads.erase({ id: downloadId });
-              }
-            } catch (e) {
-              console.warn('erase failed:', e);
+            logger.error('Download timeout:', downloadId);
+            const downloadItem =
+              await this.getActiveDownloadItemFromDownloadId(downloadId);
+            if (downloadItem?.state === 'in_progress') {
+              await browser.downloads.cancel(downloadId);
+              await browser.downloads.erase({ id: downloadId });
             }
           } else {
             resolve(downloadId);
@@ -219,24 +277,152 @@ export class DownloadManager {
     });
   }
 
-  handleCreateEvent(downloadItem: DownloadItem) {
-    // Обработчик успешной инициализации загрузки браузером
-    logger.debug('Download has been created:', downloadItem);
-
-    this.eventOrchestrator({
-      type: EventType.DownloadCreated,
-      data: downloadItem,
-    });
+  private async getActiveDownloadItemFromDownloadId(downloadId: number) {
+    let downloadItem: DownloadItem | undefined;
+    do {
+      downloadItem = (await browser.downloads.search({ id: downloadId }))[0];
+      if (typeof downloadItem === 'undefined') return;
+      // Если у фала есть filename - значит файл уже начал загрузку и
+      // может быть удалён из списка загрузок, иначе, возникнет ошибка:
+      // Unchecked runtime.lastError: Download must be in progress
+    } while (!downloadItem.filename || downloadItem.state !== 'in_progress');
+    return downloadItem;
   }
 
-  handleDownloadEvent(downloadDelta: OnChangedDownloadDeltaType) {
+  private async findLastFileItemByDownloadId(
+    downloadId: number,
+  ): Promise<FileItem | null> {
+    const fileItems = (await indexedDBObject.getAllFromIndex(
+      'fileStorage',
+      'download_id',
+      downloadId,
+    )) as FileItem[];
+
+    // Если пользователь очистит историю загрузок в браузере,
+    // то браузер начнёт создавать новые загрузки с id от 1.
+    // Что потенциально может создать ситуацию, когда у нас
+    // в базе будет лежать несколько FileItem с одинаковым downloadId.
+    // В таком случае нас интересует только последний созданный FileItem.
+    return fileItems.length
+      ? fileItems.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
+      : null;
+  }
+
+  async handleCreateEvent(downloadItem: DownloadItem) {
+    // Обработчик успешной инициализации загрузки браузером
+    if (downloadItem.state !== 'in_progress') {
+      // Это сообщение о начале старой, уже законченной загрузки - игнорируем
+      logger.debug('Ignore old download creation event:', downloadItem);
+      return;
+    }
+    logger.debug('Download has been created:', downloadItem);
+
+    let targetFile = await this.findLastFileItemByDownloadId(downloadItem.id);
+    if (!targetFile) {
+      // Есть вероятность, что событие пришло раньше, чем был установлен
+      // downloadId, и, следовательно, targetFile будет равен null, однако,
+      // если загрузка была инициирована нашим расширением, мы можем попытаться
+      // найти загрузку, сравнив URL, у downloadItem и файлов активных загрузок
+      const fileItemsList = await findSomeFilesFromLoadItemIdsInDB(
+        this.queueController.activeDownloadsList,
+      );
+
+      targetFile =
+        fileItemsList.find(
+          (fileItem) =>
+            fileItem.downloadId === downloadItem.id ||
+            fileItem.url === downloadItem.url,
+        ) ?? null;
+    }
+
+    if (!targetFile) {
+      // Если нам не удалось найти целевой FileItem - игнорируем событие
+      logger.warning(
+        `The related file (${downloadItem.id}) was not found in the storage.`,
+      );
+      return;
+    }
+
+    await this.resourceLockManager.lock({
+      type: 'loadStorage',
+      id: targetFile.relatedLoadItemId,
+    });
+
+    // Пока мы ждали завершения предыдущей задачи объект мог измениться
+    targetFile = (await indexedDBObject.getFromIndex(
+      'fileStorage',
+      'file_id',
+      targetFile.id,
+    )) as FileItem;
+
+    await this.createDownload(targetFile, downloadItem);
+  }
+
+  async handleDownloadEvent(downloadDelta: OnChangedDownloadDeltaType) {
     // Отслеживает события загрузок и принимает решения на их основе
+    if (
+      ![
+        downloadDelta.paused,
+        downloadDelta.state,
+        downloadDelta.error,
+        downloadDelta.filename,
+      ].some(Boolean)
+    ) {
+      // Игнорируем не отслеживаемые события
+      logger.debug('Ignore unknown download event for:', downloadDelta);
+      return;
+    }
     logger.debug('An event occurred:', downloadDelta);
 
-    this.eventOrchestrator({
-      type: EventType.DownloadEvent,
-      data: downloadDelta,
+    let targetFile = await this.findLastFileItemByDownloadId(downloadDelta.id);
+    if (!targetFile) {
+      // Игнорируем загрузки, вызванные НЕ нашим расширением
+      logger.warning(
+        `The related file (${downloadDelta.id}) was not found in the storage.`,
+      );
+      return;
+    }
+
+    await this.resourceLockManager.lock({
+      type: 'loadStorage',
+      id: targetFile.relatedLoadItemId,
     });
+
+    // Пока мы ждали завершения предыдущей задачи объект мог измениться
+    targetFile = (await indexedDBObject.getFromIndex(
+      'fileStorage',
+      'file_id',
+      targetFile.id,
+    )) as FileItem;
+
+    if (downloadDelta.paused?.current === true) {
+      await this.pauseDownload(targetFile);
+    } else if (downloadDelta.paused?.current === false) {
+      await this.unpauseDownload(targetFile);
+    }
+
+    if (downloadDelta.state?.current === 'complete') {
+      await this.successDownload(targetFile);
+    } else if (downloadDelta.error?.current) {
+      if (downloadDelta.error?.current === 'USER_CANCELED') {
+        await this.cancelOneDownload(targetFile);
+      } else if (downloadDelta.error?.current === 'FILE_NO_SPACE') {
+        logger.critical('The disk is not enough space for uploading a file!');
+        await this.cancelAllDownloadsOneMovie(targetFile);
+      } else {
+        logger.error('Download failed:', downloadDelta.error.current);
+        await this.attemptNewDownload(targetFile, LoadStatus.DownloadFailed);
+      }
+    } else {
+      // Деблокируем объект, иначе он навсегда останется заблокированным
+      if (!downloadDelta.filename?.current) {
+        logger.warning('Unknown download event:', downloadDelta);
+      }
+      this.resourceLockManager.unlock({
+        type: 'loadStorage',
+        id: targetFile.relatedLoadItemId,
+      });
+    }
   }
 
   handleDeterminingFilenameEvent(
@@ -251,19 +437,15 @@ export class DownloadManager {
       downloadItem.byExtensionId !== browser.runtime.id ||
       !settings.trackEventsOnDeterminingFilename
     ) {
-      suggest();
-      return;
+      return suggest();
     }
 
     this.findFilenameByDownloadId(downloadItem.id).then((suggestFileName) => {
-      if (!suggestFileName) {
-        suggest();
-      } else {
-        suggest({
-          conflictAction: 'uniquify',
-          filename: suggestFileName,
-        });
-      }
+      suggest(
+        suggestFileName
+          ? { conflictAction: 'uniquify', filename: suggestFileName }
+          : undefined,
+      );
     });
 
     return true;
@@ -288,85 +470,6 @@ export class DownloadManager {
     return targetFileItem?.fileName;
   }
 
-  private async eventOrchestrator(event: EventMessage | undefined) {
-    if (event === undefined) return;
-    logger.debug('Processing of the event:', event);
-
-    const fileItems = (await indexedDBObject.getAllFromIndex(
-      'fileStorage',
-      'download_id',
-      event.data.id,
-    )) as FileItem[];
-
-    // Если пользователь очистит историю загрузок в браузере,
-    // то браузер начнёт создавать новые загрузки с id от 1.
-    // Что потенциально может создать ситуацию, когда у нас
-    // в базе будет лежать несколько FileItem с одинаковым downloadId.
-    // В таком случае нас интересует только последний созданный FileItem.
-    const targetFile = fileItems.length
-      ? fileItems.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
-      : null;
-
-    if (!targetFile) {
-      // Игнорируем загрузки, вызванные НЕ нашим расширением
-      logger.warning(
-        'The related file was not found in the storage.',
-        event.data,
-      );
-      return;
-    }
-
-    // Мы должны заблокировать работу с данным объектом для других задач.
-    // Все остальные задачи будут ожидать завершения текущей, после чего они
-    // будут запущены в порядке очереди появления
-    await this.resourceLockManager.lock({
-      type: 'loadStorage',
-      id: targetFile.relatedLoadItemId,
-    });
-
-    // Пока мы ждали завершения предыдущей задачи объект мог измениться
-    const file = (await indexedDBObject.getFromIndex(
-      'fileStorage',
-      'file_id',
-      targetFile.id,
-    )) as FileItem;
-
-    if (event.type === EventType.DownloadCreated) {
-      const downloadItem: DownloadItem = event.data;
-
-      await this.createDownload(file, downloadItem);
-    } else if (event.type === EventType.DownloadEvent) {
-      const downloadDelta: OnChangedDownloadDeltaType = event.data;
-
-      if (downloadDelta.state?.current === 'complete') {
-        await this.successDownload(file);
-      } else if (downloadDelta.error?.current === 'USER_CANCELED') {
-        await this.cancelDownload(file);
-      } else if (downloadDelta.error?.current === 'FILE_NO_SPACE') {
-        await this.cancelAllDownload(file);
-      } else if (downloadDelta.error?.current) {
-        logger.error('Download failed:', downloadDelta.error.current);
-        await this.attemptNewDownload(file, LoadStatus.DownloadFailed);
-      } else {
-        // Деблокируем объект, иначе он навсегда останется заблокированным
-        this.resourceLockManager.unlock({
-          type: 'loadStorage',
-          id: file.relatedLoadItemId,
-        });
-        logger.warning('Unknown download event:', downloadDelta);
-      }
-
-      if (downloadDelta.paused?.current === true) {
-        await this.pauseDownload(file);
-      } else if (downloadDelta.paused?.current === false) {
-        await this.unpauseDownload(file);
-      }
-    } else {
-      logger.critical('Unknown event type:', event);
-      throw new Error('Unknown event type');
-    }
-  }
-
   private async createDownload(fileItem: FileItem, downloadItem: DownloadItem) {
     if (fileItem.status === LoadStatus.StoppedByUser) {
       // Иногда старт загрузки задерживается, в то время как она уже была
@@ -375,9 +478,7 @@ export class DownloadManager {
       await browser.downloads.erase({ id: downloadItem.id });
 
       logger.warning('Download created interrupted - StoppedByUser:', fileItem);
-    } else if (downloadItem.state === 'in_progress') {
-      // Мы должны проверить статус загрузки т.к. иногда
-      // браузер отправляет устаревшие события
+    } else {
       fileItem.status = LoadStatus.Downloading;
       fileItem.url = downloadItem.url;
       await indexedDBObject.put('fileStorage', fileItem);
@@ -420,10 +521,7 @@ export class DownloadManager {
         fileItem.dependentFileItemId,
       )) as FileItem;
 
-      if (
-        nextFileItem.status !== LoadStatus.StoppedByUser ||
-        !loadIsCompleted(nextFileItem.status)
-      ) {
+      if (nextFileItem.status !== LoadStatus.DownloadCandidate) {
         nextFileItem.status = LoadStatus.InitiatingDownload;
       }
 
@@ -431,24 +529,67 @@ export class DownloadManager {
       await this.launchFileDownload(nextFileItem);
     } else {
       await this.queueController.successLoad(fileItem);
+
+      this.resourceLockManager.unlock({
+        type: 'loadStorage',
+        id: fileItem.relatedLoadItemId,
+      });
     }
     this.startNextDownload().then();
   }
 
-  private async cancelDownload(fileItem: FileItem) {
+  private async cancelAllDownload() {
+    const listToRemove = [
+      ...this.queueController.activeDownloadsList,
+      ...this.queueController.queueList.flat(2),
+    ];
+    await this.queueController.removeDownloadsFromQueue(listToRemove);
+  }
+
+  private async cancelAllDownloadsOneMovie(fileItem: FileItem) {
+    const loadItem = (await indexedDBObject.getFromIndex(
+      'loadStorage',
+      'load_id',
+      fileItem.relatedLoadItemId,
+    )) as LoadItem;
+
+    await this.breakDownloadWithError(fileItem, LoadStatus.DownloadFailed);
+    await this.queueController.stopDownload(
+      loadItem.movieId,
+      LoadStatus.InitiationError,
+    );
+  }
+
+  private async cancelOneDownload(fileItem: FileItem) {
     // Обработчик остановки активной загрузки
     logger.info('Attempt stopped loading:', fileItem);
 
-    if (fileItem.downloadId && !loadIsCompleted(fileItem.status)) {
-      const fileItemBrowser: DownloadItem | undefined = (
-        await browser.downloads.search({
-          id: fileItem.downloadId,
-        })
-      )[0];
-
-      if (fileItemBrowser?.state === 'in_progress') {
+    if (fileItem.downloadId) {
+      const downloadItem = await this.getActiveDownloadItemFromDownloadId(
+        fileItem.downloadId,
+      );
+      if (downloadItem?.state === 'in_progress') {
         await browser.downloads.cancel(fileItem.downloadId);
       }
+
+      if (downloadItem?.filename) {
+        const extractFilename = (filename: string) =>
+          filename
+            .split(/[\\/]/)
+            .at(-1)!
+            .match(/(.*)\.\w+/)![1];
+
+        const extractedRealFilename = extractFilename(downloadItem.filename);
+        const extractedPrimaryFilename = extractFilename(fileItem.fileName);
+        if (!extractedRealFilename.startsWith(extractedPrimaryFilename)) {
+          // Если расширение не успело установить своё имя для файла, но уже начало
+          // загрузку - удаляем файл, чтоб не путать пользователя
+          await browser.downloads.erase({ id: fileItem.id });
+        }
+      }
+
+      await this.breakDownloadWithError(fileItem, LoadStatus.StoppedByUser);
+    } else if (!loadIsCompleted(fileItem.status)) {
       await this.breakDownloadWithError(fileItem, LoadStatus.StoppedByUser);
     } else {
       this.resourceLockManager.unlock({
@@ -470,10 +611,6 @@ export class DownloadManager {
     fileItem.status = LoadStatus.DownloadPaused;
     await indexedDBObject.put('fileStorage', fileItem);
     await browser.downloads.pause(fileItem.downloadId!);
-    this.resourceLockManager.unlock({
-      type: 'loadStorage',
-      id: fileItem.relatedLoadItemId,
-    });
   }
 
   private async unpauseDownload(fileItem: FileItem) {
@@ -483,25 +620,6 @@ export class DownloadManager {
     fileItem.status = LoadStatus.Downloading;
     await indexedDBObject.put('fileStorage', fileItem);
     await browser.downloads.resume(fileItem.downloadId!);
-    this.resourceLockManager.unlock({
-      type: 'loadStorage',
-      id: fileItem.relatedLoadItemId,
-    });
-  }
-
-  private async cancelAllDownload(fileItem: FileItem) {
-    logger.critical('The disk is not enough space for uploading a file!');
-    const loadItem = (await indexedDBObject.getFromIndex(
-      'loadStorage',
-      'load_id',
-      fileItem.relatedLoadItemId,
-    )) as LoadItem;
-
-    await this.breakDownloadWithError(fileItem, LoadStatus.DownloadFailed);
-    await this.queueController.stopDownload(
-      loadItem.movieId,
-      LoadStatus.InitiationError,
-    );
   }
 
   private async attemptNewDownload(fileItem: FileItem, cause: LoadStatus) {
@@ -539,7 +657,7 @@ export class DownloadManager {
     this.startNextDownload().then();
   }
 
-  private async repeatDownload(fileItem: FileItem) {
+  private async repeatDownload(fileItem: FileItem, repeatNow: boolean = false) {
     logger.info('Start new load attempt:', fileItem);
 
     const oldDownloadId = fileItem.downloadId;
@@ -564,17 +682,22 @@ export class DownloadManager {
       await browser.downloads.erase({ id: oldDownloadId });
     }
 
+    if (repeatNow) {
+      // Даём небольшую задержку, чтобы при старте браузер успел инициализироваться
+      setTimeout(
+        this.executeRetry.bind(this, fileItem.relatedLoadItemId, fileItem.id),
+        5000,
+      );
+    } else {
+      const repeatKey = `repeat-download-${fileItem.relatedLoadItemId}-${fileItem.id}`;
+      const when = Date.now() + settings.timeBetweenDownloadAttempts;
+      browser.alarms.create(repeatKey, { when });
+    }
+
     this.resourceLockManager.unlock({
       type: 'loadStorage',
       id: fileItem.relatedLoadItemId,
     });
-
-    browser.alarms.create(
-      `repeat-download-${fileItem.relatedLoadItemId}-${fileItem.id}`,
-      {
-        when: Date.now() + settings.timeBetweenDownloadAttempts,
-      },
-    );
   }
 
   public async executeRetry(loadItemId: number, targetFileId: number) {

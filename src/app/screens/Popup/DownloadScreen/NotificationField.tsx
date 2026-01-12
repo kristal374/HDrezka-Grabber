@@ -18,12 +18,9 @@ export function NotificationField() {
   const notification = useAppSelector((state) => selectNotification(state));
 
   useEffect(() => {
-    eventBus.addMessageSource(
+    return eventBus.mountHandler(
       EventType.NewMessageReceived,
       browser.runtime.onMessage,
-    );
-    eventBus.on(
-      EventType.NewMessageReceived,
       (
         message: unknown,
         _sender: MessageSender,

@@ -79,7 +79,7 @@ export async function saveSessionStorage(
 const pendingUpdates: Record<string, any> = {};
 let debounceTimer: NodeJS.Timeout | null = null;
 
-export async function saveInStorage(objName: string, data: any): Promise<void> {
+export function saveInStorage(objName: string, data: any) {
   // Функция для динамического сохранения данных в хранилище, с возможностью
   // накопления изменений для уменьшения нагрузки на хранилище
   pendingUpdates[objName] = data;
@@ -100,52 +100,30 @@ export async function saveInStorage(objName: string, data: any): Promise<void> {
     } finally {
       debounceTimer = null;
     }
-  }, 0);
+  }, 150);
 }
 
-export function createProxy<T extends object>(
-  target: T,
+export type ObserverType<T> = {
+  state: T;
+  update: (fn: (draft: T) => void) => void;
+};
+
+export function createObservableStore<T extends object>(
+  initial: T,
   objName: string,
-  saveInStorage: (objName: string, data: any) => Promise<void>,
-  realTarget?: any,
-): T {
-  // Создаёт объект прокси, связывающий js объект с хранилищем
-  // расширения, что позволяет синхронизировать изменения между
-  // двумя объектами, не заботясь о ручном обновлении данных.
+  saveInStorage: (objName: string, data: any) => void,
+) {
+  // Создаёт объект проксирующий изменения и связывающий js объект
+  // с хранилищем расширения, что позволяет синхронизировать изменения
+  // между двумя объектами, не заботясь о ручном обновлении данных.
   // Так же позволяет избежать теоретического состояния гонки т.к.
   // все изменения проходят через один объект.
-  const proxiesCache = new WeakMap<object, any>();
+  const state = structuredClone(initial);
 
-  const handler: ProxyHandler<T> = {
-    set(origin, prop, value, receiver) {
-      value = value['origin'] !== undefined ? value['origin'] : value;
-      const result = Reflect.set(origin, prop, value, receiver);
-      saveInStorage(objName, realTarget || target).then();
-      return result;
-    },
-    deleteProperty(origin, prop) {
-      const result = Reflect.deleteProperty(origin, prop);
-      saveInStorage(objName, realTarget || target).then();
-      return result;
-    },
-    get(origin, prop, receiver) {
-      if (prop === 'origin') return origin;
-      const value = Reflect.get(origin, prop, receiver);
+  function update(fn: (draft: T) => void) {
+    fn(state);
+    saveInStorage(objName, state);
+  }
 
-      if (typeof value === 'object' && value !== null) {
-        if (!proxiesCache.has(value)) {
-          proxiesCache.set(
-            value,
-            createProxy(value, objName, saveInStorage, realTarget || origin),
-          );
-        }
-        return proxiesCache.get(value);
-      }
-      return value;
-    },
-  };
-
-  return new Proxy(target, handler);
+  return { state, update };
 }
-
-// TODO: Переработать модуль
