@@ -1,8 +1,8 @@
 // говнокод on
 import polyfill from 'webextension-polyfill';
 
-import { BufferedEventBus } from './event-bus';
-import { Logger } from './logger';
+import { BufferedEventBus } from '@/lib/event-bus';
+import { Logger } from '@/lib/logger';
 
 globalThis.browser = polyfill;
 globalThis.eventBus = new BufferedEventBus();
