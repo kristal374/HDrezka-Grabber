@@ -320,6 +320,11 @@ export class DownloadManager {
 
   async handleCreateEvent(downloadItem: DownloadItem) {
     // Обработчик успешной инициализации загрузки браузером
+    if (downloadItem.state !== 'in_progress') {
+      // Это сообщение о начале старой, уже законченной загрузки - игнорируем
+      logger.debug('Ignore old download creation event:', downloadItem);
+      return;
+    }
     logger.debug('Download has been created:', downloadItem);
 
     let targetFile = await this.findLastFileItemByDownloadId(downloadItem.id);
@@ -365,6 +370,18 @@ export class DownloadManager {
 
   async handleDownloadEvent(downloadDelta: OnChangedDownloadDeltaType) {
     // Отслеживает события загрузок и принимает решения на их основе
+    if (
+      ![
+        downloadDelta.paused,
+        downloadDelta.state,
+        downloadDelta.error,
+        downloadDelta.filename,
+      ].some(Boolean)
+    ) {
+      // Игнорируем не отслеживаемые события
+      logger.debug('Ignore unknown download event for:', downloadDelta);
+      return;
+    }
     logger.debug('An event occurred:', downloadDelta);
 
     let targetFile = await this.findLastFileItemByDownloadId(downloadDelta.id);
@@ -471,9 +488,7 @@ export class DownloadManager {
       await browser.downloads.erase({ id: downloadItem.id });
 
       logger.warning('Download created interrupted - StoppedByUser:', fileItem);
-    } else if (downloadItem.state === 'in_progress') {
-      // Мы должны проверить статус загрузки т.к. иногда
-      // браузер отправляет устаревшие события
+    } else {
       fileItem.status = LoadStatus.Downloading;
       fileItem.url = downloadItem.url;
       await indexedDBObject.put('fileStorage', fileItem);
