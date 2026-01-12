@@ -101,8 +101,13 @@ export class DownloadManager {
   async initNewDownload(initiator: Initiator) {
     // Отвечает за добавление фильмов/сериалов в очередь на загрузку
     logger.debug('Trigger new load:', initiator);
-
-    await this.queueController.initializeNewDownload(initiator);
+    await this.resourceLockManager.run(
+      { type: 'urlDetail', id: initiator.movieId },
+      this.queueController.initializeNewDownload.bind(
+        this.queueController,
+        initiator,
+      ),
+    );
     this.startNextDownload().then();
   }
 
