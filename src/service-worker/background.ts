@@ -2,6 +2,8 @@ import '@/lib/global-scope-init';
 import { logCreate } from '@/lib/logger/background-logger';
 
 import { doDatabaseStuff } from '@/lib/idb-storage';
+import { LogMessage } from '@/lib/logger';
+import { LoggerEventType } from '@/lib/logger/types';
 import { getSettings } from '@/lib/storage';
 import { EventType, Message, Settings } from '@/lib/types';
 import { updateVideoInfo } from '@/service-worker/response-parser';
@@ -16,6 +18,16 @@ let downloadManager: DownloadManager;
 async function main() {
   logger.info('Service worker starts...');
 
+  eventBus.mountHandler(
+    LoggerEventType.LogConnect,
+    browser.runtime.onConnect,
+    (port) => {
+      port.onMessage.addListener((message, _port) => {
+        return logCreate(message as LogMessage);
+      });
+    },
+  );
+
   eventBus.addMessageSource(
     EventType.NewMessageReceived,
     browser.runtime.onMessage,
@@ -24,7 +36,7 @@ async function main() {
     EventType.StorageChanged,
     browser.storage.onChanged,
   );
-  eventBus.addMessageSource(EventType.LogCreate, globalThis);
+  eventBus.addMessageSource(LoggerEventType.LogCreate, globalThis);
   eventBus.addMessageSource(EventType.ScheduleEvent, browser.alarms.onAlarm);
   eventBus.addMessageSource(
     EventType.DownloadEvent,
@@ -61,10 +73,8 @@ async function main() {
     }
   });
 
-  eventBus.on(EventType.LogCreate, async (message) => {
-    await logCreate(
-      JSON.parse(JSON.stringify((message as CustomEvent).detail)),
-    );
+  eventBus.on(LoggerEventType.LogCreate, (message) => {
+    logCreate(JSON.parse(JSON.stringify((message as CustomEvent).detail)));
   });
 
   eventBus.on(EventType.StorageChanged, async (changes, areaName) => {
@@ -100,8 +110,6 @@ async function messageHandler(
   const data = message as Message<any>;
 
   switch (data.type) {
-    case 'logCreate':
-      return await logCreate(data.message);
     case 'getFileSize':
       return await fetchUrlSizes(data.message);
     case 'updateVideoInfo':
@@ -121,7 +129,7 @@ const handleError = async (originalError: Error) => {
   logger.critical(originalError.toString());
 };
 
-main().catch(handleError);
 self.addEventListener('unhandledrejection', (e) => handleError(e.reason));
+main().catch(handleError);
 
 // TODO: пофиксить выбор озвучки

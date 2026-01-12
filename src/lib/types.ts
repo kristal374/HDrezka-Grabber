@@ -1,6 +1,7 @@
-import type { LogLevel } from '@/lib/logger/types';
+import { LoggerEventType, LogLevel } from '@/lib/logger/types';
 import { Alarms, Downloads, Runtime, Storage } from 'webextension-polyfill';
 
+type Port = Runtime.Port;
 type Alarm = Alarms.Alarm;
 type DownloadItem = Downloads.DownloadItem;
 type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
@@ -14,7 +15,6 @@ export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 export type RequireAllOrNone<T> = T | { [K in keyof T]?: undefined };
 
 export type MessageType =
-  | 'logCreate'
   | 'trigger'
   | 'getFileSize'
   | 'updateVideoInfo'
@@ -320,7 +320,6 @@ export enum EventType {
   DownloadEvent = 'DownloadEvent',
   ScheduleEvent = 'ScheduleEvent',
   StorageChanged = 'StorageChanged',
-  LogCreate = 'logCreate', // должна соответствовать типу в MessageType
 }
 
 export type EventBusTypes = {
@@ -333,7 +332,8 @@ export type EventBusTypes = {
   [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
   [EventType.ScheduleEvent]: Alarm;
   [EventType.StorageChanged]: [Record<string, StorageChange>, string];
-  [EventType.LogCreate]: Event;
+  [LoggerEventType.LogCreate]: Event;
+  [LoggerEventType.LogConnect]: Port;
 };
 
 export type CacheItem = {
