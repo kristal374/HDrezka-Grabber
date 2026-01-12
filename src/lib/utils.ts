@@ -118,7 +118,9 @@ function sortChain(items: FileItem[]) {
   return result;
 }
 
-export async function getActiveFileItem(activeDownloads: readonly number[]) {
+export async function getActiveFileItem(
+  activeDownloads: readonly number[],
+): Promise<FileItem[]> {
   const extensionActiveDownloads =
     await findSomeFilesFromLoadItemIdsInDB(activeDownloads);
 

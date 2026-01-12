@@ -1,5 +1,5 @@
 import { getFromStorage } from '@/lib/storage';
-import { FileItem } from '@/lib/types';
+import { FileItem, LoadItem } from '@/lib/types';
 import { getActiveFileItem } from '@/lib/utils';
 
 const STORAGE_KEY = 'isFirstRun';
@@ -16,7 +16,7 @@ export async function isFirstRunExtension() {
   return isFirstRun;
 }
 
-export async function findBrokenDownloadsInActiveDownloads(strictMode = false) {
+export async function findBrokenFileItemInActiveDownloads(strictMode = false) {
   const brokenDownloads: FileItem[] = [];
 
   // Сначала получаем объекты активных загрузок, которые отслеживает расширение
@@ -70,4 +70,26 @@ export async function findBrokenDownloadsInActiveDownloads(strictMode = false) {
   // TODO: если filteredBrowserActiveDownloadsId.length > activeDownloads.length,
   //  тогда внутреннее состояние так же сломано
   return brokenDownloads;
+}
+
+export async function findBrokenLoadItemInActiveDownloads() {
+  // Сначала получаем объекты активных загрузок, которые отслеживает расширение
+  const activeDownloads =
+    (await getFromStorage<number[]>('activeDownloads')) ?? [];
+  const extensionActiveFiles = await getActiveFileItem(activeDownloads);
+
+  const activeLoadItemIdsSet = new Set(activeDownloads);
+  const realActiveLoadItemIdsSet = new Set(
+    extensionActiveFiles.map((item) => item.relatedLoadItemId),
+  );
+  const brokenLoadItemIds = [
+    ...activeLoadItemIdsSet.difference(realActiveLoadItemIdsSet),
+  ];
+
+  const tx = indexedDBObject.transaction('loadStorage');
+  const brokenDownloads = await Promise.all(
+    brokenLoadItemIds.map((id) => tx.store.get(id)),
+  );
+  tx.done;
+  return brokenDownloads as LoadItem[];
 }
