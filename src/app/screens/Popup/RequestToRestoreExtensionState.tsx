@@ -1,14 +1,21 @@
 import { Menu } from '@/components/Menu';
 import { Button } from '@/components/ui/Button';
 import { Message } from '@/lib/types';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
 export function RequestToRestoreExtensionState() {
+  const buttonIsPressedRef = useRef(false);
+
   const requestToRestoreState = useCallback(async (value: boolean) => {
-    await browser.runtime.sendMessage<Message<boolean>>({
-      type: 'requestToRestoreState',
-      message: value,
-    });
+    if (buttonIsPressedRef.current) return;
+    buttonIsPressedRef.current = true;
+
+    browser.runtime
+      .sendMessage<Message<boolean>>({
+        type: 'requestToRestoreState',
+        message: value,
+      })
+      .then();
     window.close();
   }, []);
 
