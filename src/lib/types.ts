@@ -156,6 +156,7 @@ export type ResponseVideoData = {
 export type Initiator = {
   movieId: string;
   site_url: string;
+  site_type: SiteType;
   film_name: {
     localized: string;
     original: string | null;
@@ -230,9 +231,11 @@ export type FileItem = {
   createdAt: number;
 };
 
+export type SiteType = 'hdrezka';
+
 export type LoadItem = {
   id: number;
-  siteType: 'hdrezka';
+  siteType: SiteType;
   movieId: number;
   season: Season | null;
   episode: Episode | null;

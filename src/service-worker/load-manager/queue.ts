@@ -6,8 +6,6 @@ import {
   saveInStorage,
 } from '@/lib/storage';
 import {
-  ContentType,
-  Episode,
   FileItem,
   Initiator,
   LoadConfig,
@@ -15,11 +13,9 @@ import {
   LoadStatus,
   Message,
   Optional,
-  Season,
-  SeasonsWithEpisodesList,
-  UrlDetails,
 } from '@/lib/types';
 import { loadIsCompleted } from '@/lib/utils';
+import siteLoaderFactory from '@/service-worker/site-loader/factory';
 import type { Downloads } from 'webextension-polyfill';
 
 type DownloadItem = Downloads.DownloadItem;
@@ -268,6 +264,9 @@ export class QueueController {
 
   private async createNewDownloads(initiator: Initiator): Promise<number[]> {
     // Создаёт новые загрузки и добавляет их в хранилище
+    const movieId = parseInt(initiator.movieId);
+    const siteLoader = siteLoaderFactory[initiator.site_type];
+
     const tx = indexedDBObject.transaction(
       ['urlDetail', 'loadConfig', 'loadStorage'],
       'readwrite',
@@ -277,13 +276,13 @@ export class QueueController {
     const loadConfigStore = tx.objectStore('loadConfig');
     const loadItemsStore = tx.objectStore('loadStorage');
 
-    const movieId = parseInt(initiator.movieId);
     const currentPage =
-      (await urlDetailIndex.get(movieId)) ?? this.createUrlDetails(initiator);
-    const loadConfig = this.createLoadConfig(initiator);
+      (await urlDetailIndex.get(movieId)) ??
+      siteLoader.createUrlDetails(initiator);
+    const loadConfig = siteLoader.createLoadConfig(initiator);
     currentPage.loadRegistry.push(loadConfig.createdAt);
 
-    const loadItems = this.makeLoadItemArray(movieId, initiator.range);
+    const loadItems = this.makeLoadItemArray({ initiator, logger });
     loadConfig.loadItemIds = await Promise.all(
       loadItems.map((item) => loadItemsStore.put(item)),
     );
@@ -300,56 +299,25 @@ export class QueueController {
     range: SeasonsWithEpisodesList | null,
   ) {
     // Создаёт массив объектов, на основе которых будет производиться загрузка
+    const movieId = parseInt(initiator.movieId);
+    const siteLoader = siteLoaderFactory[initiator.site_type];
     const loadItemArray: Optional<LoadItem, 'id'>[] = [];
-    if (!(range === null)) {
-      for (const [seasonId, seasonData] of Object.entries(range)) {
+
+    if (initiator.range) {
+      for (const [seasonId, seasonData] of Object.entries(initiator.range)) {
         const season = { id: seasonId, title: seasonData.title };
         for (const episode of seasonData.episodes) {
-          loadItemArray.push(this.createLoadItem(movieId, season, episode));
+          loadItemArray.push(
+            siteLoader.createLoadItem(movieId, season, episode),
+          );
         }
       }
     } else {
-      loadItemArray.push(this.createLoadItem(movieId));
+      loadItemArray.push(siteLoader.createLoadItem(movieId));
     }
+
     logger.info(`Created ${loadItemArray.length} item for loading.`);
     return loadItemArray;
-  }
-
-  private createLoadItem(
-    movieId: number,
-    season?: Season,
-    episode?: Episode,
-  ): Optional<LoadItem, 'id'> {
-    return {
-      siteType: 'hdrezka',
-      movieId: movieId,
-      season: season ?? null,
-      episode: episode ?? null,
-      content: ContentType.both,
-      availableQualities: null,
-      availableSubtitles: null,
-      status: LoadStatus.DownloadCandidate,
-    };
-  }
-
-  private createLoadConfig(initiator: Initiator): LoadConfig {
-    return {
-      voiceOver: initiator.voice_over,
-      quality: initiator.quality,
-      subtitle: initiator.subtitle,
-      favs: initiator.favs,
-      loadItemIds: [],
-      createdAt: parseInt(initiator.timestamp),
-    };
-  }
-
-  private createUrlDetails(initiator: Initiator): UrlDetails {
-    return {
-      movieId: parseInt(initiator.movieId),
-      siteUrl: initiator.site_url,
-      filmTitle: initiator.film_name,
-      loadRegistry: [],
-    };
   }
 
   public async getNextObjectIdForDownload(): Promise<number | null> {

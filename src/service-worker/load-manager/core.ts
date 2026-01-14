@@ -7,9 +7,9 @@ import { ResourceLockManager } from '@/lib/resource-lock-manager';
 import { FileItem, Initiator, LoadItem, LoadStatus } from '@/lib/types';
 import { findSomeFilesFromLoadItemIdsInDB, loadIsCompleted } from '@/lib/utils';
 import { clearCache } from '@/service-worker/cache';
+import siteLoaderFactory from '@/service-worker/site-loader/factory';
 import type { Downloads } from 'webextension-polyfill';
 import { QueueController } from './queue';
-import { HDrezkaLoader, SiteLoader } from './site-loader';
 
 type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
 type DownloadItem = Downloads.DownloadItem;
@@ -21,14 +21,7 @@ type LoadManagerAsyncParams = {
 
 export class DownloadManager {
   private resourceLockManager = new ResourceLockManager();
-
   private readonly queueController: QueueController;
-  private siteLoaderFactory: Record<
-    string,
-    { build: (downloadItem: LoadItem) => Promise<SiteLoader> }
-  > = {
-    hdrezka: HDrezkaLoader,
-  };
 
   constructor(async_param: LoadManagerAsyncParams | undefined) {
     if (typeof async_param === 'undefined') {
@@ -152,7 +145,7 @@ export class DownloadManager {
     loadItem.status = LoadStatus.InitiatingDownload;
     await indexedDBObject.put('loadStorage', loadItem);
 
-    const siteLoader = this.siteLoaderFactory[loadItem.siteType];
+    const siteLoader = siteLoaderFactory[loadItem.siteType];
     const siteLoadItem = await siteLoader.build(loadItem);
 
     const [videoFile, subtitleFile] = await siteLoadItem.createAndGetFile();
@@ -718,7 +711,7 @@ export class DownloadManager {
       targetFileId,
     )) as FileItem;
 
-    const siteLoader = this.siteLoaderFactory[loadItem.siteType];
+    const siteLoader = siteLoaderFactory[loadItem.siteType];
     const siteLoadItem = await siteLoader.build(loadItem);
 
     targetFile.url =
