@@ -6,6 +6,7 @@ import { LogMessage } from '@/lib/logger';
 import { LoggerEventType } from '@/lib/logger/types';
 import { getSettings } from '@/lib/storage';
 import { EventType, Message, Settings } from '@/lib/types';
+import { getTraceId } from '@/lib/utils';
 import { updateVideoInfo } from '@/service-worker/response-parser';
 import type { Runtime } from 'webextension-polyfill';
 import { DownloadManager } from './load-manager/core';
@@ -16,6 +17,9 @@ type MessageSender = Runtime.MessageSender;
 let downloadManager: DownloadManager;
 
 async function main() {
+  let logger = globalThis.logger;
+  logger = logger.attachMetadata({ traceId: getTraceId() });
+
   logger.info('Service worker starts...');
 
   eventBus.mountHandler(
@@ -50,7 +54,7 @@ async function main() {
   globalThis.indexedDBObject = await doDatabaseStuff();
   globalThis.settings = await getSettings();
   downloadManager = await DownloadManager.build();
-  await downloadManager.stabilizeInsideState();
+  await downloadManager.stabilizeInsideState({ logger });
 
   eventBus.on(EventType.NewMessageReceived, messageHandler);
   eventBus.on(
@@ -66,10 +70,11 @@ async function main() {
       const [_matchString, loadItemId, targetFileId] = alarm.name.match(
         /repeat-download-(\d+)-(\d+)/,
       )!;
-      await downloadManager.executeRetry(
-        Number(loadItemId),
-        Number(targetFileId),
-      );
+      await downloadManager.executeRetry({
+        loadItemId: Number(loadItemId),
+        targetFileId: Number(targetFileId),
+        logger,
+      });
     }
   });
 
@@ -107,17 +112,25 @@ async function messageHandler(
   _sender: MessageSender,
   _sendResponse: (message: unknown) => void,
 ) {
-  const data = message as Message<any>;
+  let logger = globalThis.logger;
+  logger = logger.attachMetadata({ traceId: getTraceId() });
 
+  const data = message as Message<any>;
   switch (data.type) {
     case 'getFileSize':
-      return await fetchUrlSizes(data.message);
+      return await fetchUrlSizes({ request: data.message, logger });
     case 'updateVideoInfo':
-      return await updateVideoInfo(data.message);
+      return await updateVideoInfo({ data: data.message, logger });
     case 'trigger':
-      return await downloadManager.initNewDownload(data.message);
+      return await downloadManager.initNewDownload({
+        initiator: data.message,
+        logger,
+      });
     case 'requestToRestoreState':
-      return await downloadManager.stabilizeInsideState(data.message);
+      return await downloadManager.stabilizeInsideState({
+        permissionToRestore: data.message,
+        logger,
+      });
     default:
       logger.warning(message);
       return false;

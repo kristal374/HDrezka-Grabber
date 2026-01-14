@@ -1,9 +1,12 @@
 import { HDrezkaGrabberDB } from '@/lib/idb-storage';
+import { Logger } from '@/lib/logger';
 import { MutexWithSoftLock } from '@/lib/resource-lock-manager/mutex-with-soft-lock';
+
+type ResourceTargetType = Extract<keyof HDrezkaGrabberDB, string>;
 
 type ResourceTarget = {
   id: string | number;
-  type: Extract<keyof HDrezkaGrabberDB, string>;
+  type: ResourceTargetType;
 };
 
 export class ResourceLockManager {
@@ -22,24 +25,45 @@ export class ResourceLockManager {
     return ResourceLockManager.locks.get(resourceId)!;
   }
 
-  async lock({ type, id }: ResourceTarget, priority?: number) {
+  async lock({
+    type,
+    id,
+    priority,
+    logger = globalThis.logger,
+  }: ResourceTarget & {
+    priority?: number;
+    logger?: Logger;
+  }) {
     const mutex = this.getMutex({ type, id });
     const result = await mutex.acquire(priority ?? 1);
     logger.debug(`Lock for: ${type}:${id}.`);
     return result;
   }
 
-  markAsSoftLock({ type, id }: ResourceTarget) {
+  markAsSoftLock({
+    type,
+    id,
+    logger = globalThis.logger,
+  }: ResourceTarget & {
+    logger?: Logger;
+  }) {
     logger.debug(`Lock: ${type}:${id}, mark as soft lock.`);
     const mutex = this.getMutex({ type, id });
     return mutex.markAsSoftLock();
   }
 
-  async massLock(
-    type: Extract<keyof HDrezkaGrabberDB, string>,
-    idsList: number[],
-    priority?: number,
-  ) {
+  async massLock({
+    type,
+    idsList,
+    priority,
+    logger = globalThis.logger,
+  }: {
+    type: ResourceTargetType;
+    idsList: number[];
+    priority?: number;
+    logger?: Logger;
+  }) {
+    logger.debug(`Mass lock for type: "${type}"`, idsList);
     return Promise.all(
       idsList.map((id) => {
         const mutex = this.getMutex({ type, id });
@@ -48,16 +72,26 @@ export class ResourceLockManager {
     );
   }
 
-  unlock({ type, id }: ResourceTarget) {
+  unlock({
+    type,
+    id,
+    logger = globalThis.logger,
+  }: ResourceTarget & { logger?: Logger }) {
     logger.debug(`Unlock for: ${type}:${id}.`);
     const mutex = this.getMutex({ type, id });
     return mutex.release();
   }
 
-  async massUnlock(
-    type: Extract<keyof HDrezkaGrabberDB, string>,
-    idsList: number[],
-  ) {
+  async massUnlock({
+    type,
+    idsList,
+    logger = globalThis.logger,
+  }: {
+    type: ResourceTargetType;
+    idsList: number[];
+    logger?: Logger;
+  }) {
+    logger.debug(`Mass unlock for type: "${type}"`, idsList);
     return await Promise.all(
       idsList.map((id) => {
         const mutex = this.getMutex({ type, id });
@@ -66,11 +100,17 @@ export class ResourceLockManager {
     );
   }
 
-  async run<T>(
-    { type, id }: ResourceTarget,
-    fn: () => Promise<T> | T,
-    priority?: number,
-  ) {
+  async run<T>({
+    type,
+    id,
+    fn,
+    priority,
+    logger = globalThis.logger,
+  }: ResourceTarget & {
+    fn: () => Promise<T> | T;
+    priority?: number;
+    logger?: Logger;
+  }) {
     const mutex = this.getMutex({ type, id });
     logger.debug(`Lock for: ${type}:${id}.`);
     const result = await mutex.runExclusive<T>(fn, priority);

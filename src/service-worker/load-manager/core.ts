@@ -1,12 +1,17 @@
+import { Logger } from '@/lib/logger';
+import { ResourceLockManager } from '@/lib/resource-lock-manager';
+import { FileItem, Initiator, LoadItem, LoadStatus } from '@/lib/types';
+import {
+  findSomeFilesFromLoadItemIdsInDB,
+  getTraceId,
+  loadIsCompleted,
+} from '@/lib/utils';
+import { clearCache } from '@/service-worker/cache';
 import {
   findBrokenFileItemInActiveDownloads,
   findBrokenLoadItemInActiveDownloads,
   isFirstRunExtension,
-} from '@/lib/inside-state-controller';
-import { ResourceLockManager } from '@/lib/resource-lock-manager';
-import { FileItem, Initiator, LoadItem, LoadStatus } from '@/lib/types';
-import { findSomeFilesFromLoadItemIdsInDB, loadIsCompleted } from '@/lib/utils';
-import { clearCache } from '@/service-worker/cache';
+} from '@/service-worker/load-manager/inside-state-controller';
 import siteLoaderFactory from '@/service-worker/site-loader/factory';
 import type { Downloads } from 'webextension-polyfill';
 import { QueueController } from './queue';
@@ -23,7 +28,7 @@ export class DownloadManager {
   private resourceLockManager = new ResourceLockManager();
   private readonly queueController: QueueController;
 
-  constructor(async_param: LoadManagerAsyncParams | undefined) {
+  constructor({ async_param }: { async_param?: LoadManagerAsyncParams }) {
     if (typeof async_param === 'undefined') {
       throw new Error('Cannot be called directly');
     }
@@ -32,8 +37,8 @@ export class DownloadManager {
   }
 
   static async build() {
-    const async_result = await this.asyncConstructor();
-    return new DownloadManager(async_result);
+    const async_param = await this.asyncConstructor();
+    return new DownloadManager({ async_param });
   }
 
   private static async asyncConstructor(): Promise<LoadManagerAsyncParams> {
@@ -42,24 +47,41 @@ export class DownloadManager {
     };
   }
 
-  async stabilizeInsideState(permissionToRestore?: boolean) {
+  async stabilizeInsideState({
+    permissionToRestore,
+    logger = globalThis.logger,
+  }: {
+    permissionToRestore?: boolean;
+    logger?: Logger;
+  }) {
     // При непредвиденном прерывании работы браузера (например отключение электричества),
     // может быть нарушена логика работы расширения, а данные потеряют актуальность.
     // Поэтому при старте браузера проводим аудит данных и в случае необходимости
     // восстанавливаем работоспособность расширения.
 
-    logger.info('Started checking inside state of load manager.');
-    const isFirstRun = await isFirstRunExtension();
+    if (typeof logger.metadata.traceId === 'undefined') {
+      logger = logger.attachMetadata({ traceId: getTraceId() });
+    }
 
-    const brokenFileItems = await findBrokenFileItemInActiveDownloads(
-      isFirstRun || Boolean(permissionToRestore),
-    );
-    const brokenLoadItems = await findBrokenLoadItemInActiveDownloads();
+    logger.info('Started checking inside state of load manager.');
+    const isFirstRun = await isFirstRunExtension({ logger });
 
     if (isFirstRun) {
-      await clearCache();
+      await clearCache({ logger });
+    }
 
-      if (!brokenFileItems.length && !brokenLoadItems.length) return;
+    const brokenFileItems = await findBrokenFileItemInActiveDownloads({
+      strictMode: isFirstRun || Boolean(permissionToRestore),
+    });
+    const brokenLoadItems = await findBrokenLoadItemInActiveDownloads();
+
+    if (!brokenFileItems.length && !brokenLoadItems.length) {
+      logger.info('Inside state is stable.');
+      return;
+    }
+
+    logger.warning('Inside state is not stable. Need restoring data.');
+    if (isFirstRun) {
       await browser.storage.session.set({ needToRestoreInsideState: true });
     }
 
@@ -74,58 +96,94 @@ export class DownloadManager {
           await this.resourceLockManager.lock({
             type: 'loadStorage',
             id: fileItem.relatedLoadItemId,
+            logger,
           });
-          await this.repeatDownload(fileItem, true);
+          await this.repeatDownload({ fileItem, repeatNow: true, logger });
         }
         for (const loadItem of brokenLoadItems) {
-          const target = { type: 'loadStorage', id: loadItem.id };
-          this.resourceLockManager.lock(target, 10).then(async () => {
-            loadItem.status = LoadStatus.DownloadCandidate;
-            await indexedDBObject.put('loadStorage', loadItem);
-            this.prepareDownload(loadItem.id).then();
-          });
+          this.resourceLockManager
+            .lock({
+              type: 'loadStorage',
+              id: loadItem.id,
+              priority: 10,
+              logger,
+            })
+            .then(async () => {
+              loadItem.status = LoadStatus.DownloadCandidate;
+              await indexedDBObject.put('loadStorage', loadItem);
+              this.prepareDownload({
+                nextLoadItemId: loadItem.id,
+                logger,
+              }).then();
+            });
         }
       } else {
-        await this.cancelAllDownload();
+        await this.cancelAllDownload({ logger });
       }
     }
   }
 
-  async initNewDownload(initiator: Initiator) {
+  async initNewDownload({
+    initiator,
+    logger = globalThis.logger,
+  }: {
+    initiator: Initiator;
+    logger?: Logger;
+  }) {
     // Отвечает за добавление фильмов/сериалов в очередь на загрузку
+    if (typeof logger.metadata.traceId === 'undefined') {
+      logger = logger.attachMetadata({ traceId: getTraceId() });
+    }
+
     logger.debug('Trigger new load:', initiator);
-    await this.resourceLockManager.run(
-      { type: 'urlDetail', id: initiator.movieId },
-      this.queueController.initializeNewDownload.bind(
+    await this.resourceLockManager.run({
+      type: 'urlDetail',
+      id: initiator.movieId,
+      fn: this.queueController.initializeNewDownload.bind(
         this.queueController,
-        initiator,
+        { initiator, logger },
       ),
-    );
-    this.startNextDownload().then();
+      priority: 100,
+      logger,
+    });
+    this.startNextDownload({ logger }).then();
   }
 
-  private async startNextDownload() {
+  private async startNextDownload({
+    logger = globalThis.logger,
+  }: {
+    logger?: Logger;
+  }) {
     // Отвечает за определение объекта, на основе которого будет
     // производиться загрузка
+    if (typeof logger.metadata.targetKey !== 'undefined') {
+      logger = logger.attachMetadata({ targetKey: null });
+    }
     logger.info('Attempt starting download.');
 
     const nextLoadItemId =
-      await this.queueController.getNextObjectIdForDownload();
+      await this.queueController.getNextObjectIdForDownload({ logger });
 
     if (!nextLoadItemId) {
       logger.info('Currently there are no available objects for loading.');
       return;
     }
+    logger = logger.attachMetadata({ targetKey: nextLoadItemId });
 
     logger.debug('Next load item id:', nextLoadItemId);
-    const targetResource = { type: 'loadStorage', id: nextLoadItemId };
     this.resourceLockManager
-      .lock(targetResource, 10)
-      .then(() => this.prepareDownload(nextLoadItemId));
-    this.startNextDownload().then();
+      .lock({ type: 'loadStorage', id: nextLoadItemId, priority: 10, logger })
+      .then(() => this.prepareDownload({ nextLoadItemId, logger }));
+    this.startNextDownload({ logger }).then();
   }
 
-  private async prepareDownload(nextLoadItemId: number) {
+  private async prepareDownload({
+    nextLoadItemId,
+    logger = globalThis.logger,
+  }: {
+    nextLoadItemId: number;
+    logger?: Logger;
+  }) {
     // Подготавливает объект перед загрузкой
     const loadItem = (await indexedDBObject.getFromIndex(
       'loadStorage',
@@ -138,6 +196,7 @@ export class DownloadManager {
       this.resourceLockManager.unlock({
         type: 'loadStorage',
         id: loadItem.id,
+        logger,
       });
       return;
     }
@@ -148,7 +207,9 @@ export class DownloadManager {
     const siteLoader = siteLoaderFactory[loadItem.siteType];
     const siteLoadItem = await siteLoader.build(loadItem);
 
-    const [videoFile, subtitleFile] = await siteLoadItem.createAndGetFile();
+    const [videoFile, subtitleFile] = await siteLoadItem.createAndGetFile({
+      logger,
+    });
     const targetFile =
       settings.fileTypePriority === 'video'
         ? (videoFile ?? subtitleFile!)
@@ -162,11 +223,17 @@ export class DownloadManager {
     targetFile.status = LoadStatus.InitiatingDownload;
     await indexedDBObject.put('fileStorage', targetFile);
 
-    this.launchFileDownload(targetFile).then();
-    this.startNextDownload().then();
+    this.launchFileDownload({ fileItem: targetFile, logger }).then();
+    this.startNextDownload({ logger }).then();
   }
 
-  private async launchFileDownload(fileItem: FileItem) {
+  private async launchFileDownload({
+    fileItem,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    logger?: Logger;
+  }) {
     // Запускает загрузку конкретного файла
     logger.debug('Launching file download:', fileItem);
 
@@ -175,28 +242,41 @@ export class DownloadManager {
         'File download is interrupted - incorrect status:',
         fileItem.status,
       );
-      await this.attemptNewDownload(fileItem, LoadStatus.InitiationError);
+      await this.attemptNewDownload({
+        fileItem,
+        cause: LoadStatus.InitiationError,
+        logger,
+      });
       return;
     }
 
     // Если при запросе URL с сервера, произойдёт сбой, URL будет установлен как NULL
     if (fileItem.url === null) {
       logger.warning('File download failed - no url:', fileItem);
-      await this.attemptNewDownload(fileItem, LoadStatus.InitiationError);
+      await this.attemptNewDownload({
+        fileItem,
+        cause: LoadStatus.InitiationError,
+        logger,
+      });
       return;
     }
 
     const restoreHardLock = this.resourceLockManager.markAsSoftLock({
       type: 'loadStorage',
       id: fileItem.relatedLoadItemId,
+      logger,
     });
     try {
       const startInitiationDownloadTime = new Date().getTime();
 
-      const downloadId = await this.callDownloadWithTimeout({
+      const options: DownloadOptionsType = {
         url: fileItem.url,
         filename: fileItem.fileName,
         saveAs: fileItem.saveAs,
+      };
+      const downloadId = await this.callDownloadWithTimeout({
+        options,
+        logger,
       });
 
       const totalInitiationDownloadTime =
@@ -218,7 +298,7 @@ export class DownloadManager {
           await indexedDBObject.put('fileStorage', updatedFileItem);
 
           if (loadIsCompleted(updatedFileItem.status)) {
-            await this.cancelOneDownload(updatedFileItem);
+            await this.cancelOneDownload({ fileItem: updatedFileItem, logger });
           }
         } else {
           fileItem.downloadId = downloadId;
@@ -228,6 +308,7 @@ export class DownloadManager {
           this.resourceLockManager.unlock({
             type: 'loadStorage',
             id: fileItem.relatedLoadItemId,
+            logger,
           });
         }
       });
@@ -235,13 +316,21 @@ export class DownloadManager {
       const error = e as Error;
       logger.error('Download start failed:', error.toString());
       await restoreHardLock().catch(() => {});
-      await this.attemptNewDownload(fileItem, LoadStatus.InitiationError);
+      await this.attemptNewDownload({
+        fileItem,
+        cause: LoadStatus.InitiationError,
+        logger,
+      });
     }
   }
 
-  private async callDownloadWithTimeout(
-    options: DownloadOptionsType,
-  ): Promise<number> {
+  private async callDownloadWithTimeout({
+    options,
+    logger = globalThis.logger,
+  }: {
+    options: DownloadOptionsType;
+    logger?: Logger;
+  }): Promise<number> {
     let isTimeout = false;
     return new Promise(async (resolve, reject) => {
       browser.downloads
@@ -250,8 +339,9 @@ export class DownloadManager {
           logger.info('Created downloadId:', downloadId);
           if (isTimeout) {
             logger.error('Download timeout:', downloadId);
-            const downloadItem =
-              await this.getActiveDownloadItemFromDownloadId(downloadId);
+            const downloadItem = await this.getActiveDownloadItemFromDownloadId(
+              { downloadId, logger },
+            );
             if (downloadItem?.state === 'in_progress') {
               await browser.downloads.cancel(downloadId);
               await browser.downloads.erase({ id: downloadId });
@@ -270,7 +360,13 @@ export class DownloadManager {
     });
   }
 
-  private async getActiveDownloadItemFromDownloadId(downloadId: number) {
+  private async getActiveDownloadItemFromDownloadId({
+    downloadId,
+    logger = globalThis.logger,
+  }: {
+    downloadId: number;
+    logger?: Logger;
+  }) {
     let downloadItem: DownloadItem | undefined;
     do {
       downloadItem = (await browser.downloads.search({ id: downloadId }))[0];
@@ -279,12 +375,18 @@ export class DownloadManager {
       // может быть удалён из списка загрузок, иначе, возникнет ошибка:
       // Unchecked runtime.lastError: Download must be in progress
     } while (!downloadItem.filename || downloadItem.state !== 'in_progress');
+
+    logger.debug('Active download item:', downloadItem);
     return downloadItem;
   }
 
-  private async findLastFileItemByDownloadId(
-    downloadId: number,
-  ): Promise<FileItem | null> {
+  private async findLastFileItemByDownloadId({
+    downloadId,
+    logger = globalThis.logger,
+  }: {
+    downloadId: number;
+    logger?: Logger;
+  }): Promise<FileItem | null> {
     const fileItems = (await indexedDBObject.getAllFromIndex(
       'fileStorage',
       'download_id',
@@ -296,22 +398,37 @@ export class DownloadManager {
     // Что потенциально может создать ситуацию, когда у нас
     // в базе будет лежать несколько FileItem с одинаковым downloadId.
     // В таком случае нас интересует только последний созданный FileItem.
-    return fileItems.length
-      ? fileItems.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
-      : null;
+    if (fileItems.length > 1) {
+      logger.info('Found multiple FileItems with the same downloadId.');
+      return fileItems.reduce((a, b) => (a.createdAt > b.createdAt ? a : b));
+    }
+    return fileItems.length ? fileItems[0] : null;
   }
 
   async handleCreateEvent(downloadItem: DownloadItem) {
     // Обработчик успешной инициализации загрузки браузером
+    let logger = globalThis.logger;
     if (downloadItem.state !== 'in_progress') {
       // Это сообщение о начале старой, уже законченной загрузки - игнорируем
       logger.debug('Ignore old download creation event:', downloadItem);
       return;
     }
+
+    logger = logger.attachMetadata({
+      traceId: getTraceId(),
+    });
+
     logger.debug('Download has been created:', downloadItem);
 
-    let targetFile = await this.findLastFileItemByDownloadId(downloadItem.id);
+    let targetFile = await this.findLastFileItemByDownloadId({
+      downloadId: downloadItem.id,
+      logger,
+    });
     if (!targetFile) {
+      // TODO: Если история загрузок будет в какой-то момент очищена,
+      //  может получится так, что в БД уже будет id старой загрузки,
+      //  в то время как новый id ещё не успел создаться
+
       // Есть вероятность, что событие пришло раньше, чем был установлен
       // downloadId, и, следовательно, targetFile будет равен null, однако,
       // если загрузка была инициирована нашим расширением, мы можем попытаться
@@ -336,23 +453,29 @@ export class DownloadManager {
       return;
     }
 
+    logger = logger.attachMetadata({
+      targetKey: targetFile.relatedLoadItemId,
+    });
+
     await this.resourceLockManager.lock({
       type: 'loadStorage',
       id: targetFile.relatedLoadItemId,
+      logger,
     });
 
     // Пока мы ждали завершения предыдущей задачи объект мог измениться
-    targetFile = (await indexedDBObject.getFromIndex(
+    const fileItem = (await indexedDBObject.getFromIndex(
       'fileStorage',
       'file_id',
       targetFile.id,
     )) as FileItem;
 
-    await this.createDownload(targetFile, downloadItem);
+    await this.createDownload({ fileItem, downloadItem, logger });
   }
 
   async handleDownloadEvent(downloadDelta: OnChangedDownloadDeltaType) {
     // Отслеживает события загрузок и принимает решения на их основе
+    let logger = globalThis.logger;
     if (
       ![
         downloadDelta.paused,
@@ -365,9 +488,17 @@ export class DownloadManager {
       logger.debug('Ignore unknown download event for:', downloadDelta);
       return;
     }
+
+    logger = logger.attachMetadata({
+      traceId: getTraceId(),
+    });
+
     logger.debug('An event occurred:', downloadDelta);
 
-    let targetFile = await this.findLastFileItemByDownloadId(downloadDelta.id);
+    let targetFile = await this.findLastFileItemByDownloadId({
+      downloadId: downloadDelta.id,
+      logger,
+    });
     if (!targetFile) {
       // Игнорируем загрузки, вызванные НЕ нашим расширением
       logger.warning(
@@ -376,9 +507,14 @@ export class DownloadManager {
       return;
     }
 
+    logger = logger.attachMetadata({
+      targetKey: targetFile.relatedLoadItemId,
+    });
+
     await this.resourceLockManager.lock({
       type: 'loadStorage',
       id: targetFile.relatedLoadItemId,
+      logger,
     });
 
     // Пока мы ждали завершения предыдущей задачи объект мог измениться
@@ -389,22 +525,26 @@ export class DownloadManager {
     )) as FileItem;
 
     if (downloadDelta.paused?.current === true) {
-      await this.pauseDownload(targetFile);
+      await this.pauseDownload({ fileItem: targetFile, logger });
     } else if (downloadDelta.paused?.current === false) {
-      await this.unpauseDownload(targetFile);
+      await this.unpauseDownload({ fileItem: targetFile, logger });
     }
 
     if (downloadDelta.state?.current === 'complete') {
-      await this.successDownload(targetFile);
+      await this.successDownload({ fileItem: targetFile, logger });
     } else if (downloadDelta.error?.current) {
       if (downloadDelta.error?.current === 'USER_CANCELED') {
-        await this.cancelOneDownload(targetFile);
+        await this.cancelOneDownload({ fileItem: targetFile, logger });
       } else if (downloadDelta.error?.current === 'FILE_NO_SPACE') {
         logger.critical('The disk is not enough space for uploading a file!');
-        await this.cancelAllDownloadsOneMovie(targetFile);
+        await this.cancelAllDownloadsOneMovie({ fileItem: targetFile, logger });
       } else {
         logger.error('Download failed:', downloadDelta.error.current);
-        await this.attemptNewDownload(targetFile, LoadStatus.DownloadFailed);
+        await this.attemptNewDownload({
+          fileItem: targetFile,
+          cause: LoadStatus.DownloadFailed,
+          logger,
+        });
       }
     } else {
       // Деблокируем объект, иначе он навсегда останется заблокированным
@@ -414,6 +554,7 @@ export class DownloadManager {
       this.resourceLockManager.unlock({
         type: 'loadStorage',
         id: targetFile.relatedLoadItemId,
+        logger,
       });
     }
   }
@@ -424,46 +565,60 @@ export class DownloadManager {
   ) {
     // Функция "рекомендации" имени файла. Обязательно должна быть синхронной!
     // Возвращает true указывая, что рекомендация будет дана асинхронно.
+    let logger = globalThis.logger.attachMetadata({
+      traceId: getTraceId(),
+    });
     logger.debug('Request for defining file name:', downloadItem);
 
     if (
       downloadItem.byExtensionId !== browser.runtime.id ||
       !settings.trackEventsOnDeterminingFilename
     ) {
+      logger.info('Ignore event from other source.');
       return suggest();
     }
 
-    this.findFilenameByDownloadId(downloadItem.id).then((suggestFileName) => {
-      suggest(
-        suggestFileName
-          ? { conflictAction: 'uniquify', filename: suggestFileName }
-          : undefined,
-      );
+    // handleDeterminingFilenameEvent может быть вызван до того, как данные
+    // сохранятся в БД, поэтому мы ждём следующего фрейма, чтобы данные в БД
+    // успели точно обновиться
+    new Promise((resolve) => setTimeout(resolve, 0)).then(async () => {
+      downloadItem.id;
+      const targetFileItem = await this.findLastFileItemByDownloadId({
+        downloadId: downloadItem.id,
+        logger,
+      });
+
+      if (!targetFileItem) {
+        logger.warning(
+          'Not found target fileItem for this downloadItem:',
+          downloadItem,
+        );
+        return suggest();
+      }
+
+      logger = logger.attachMetadata({
+        targetKey: targetFileItem.relatedLoadItemId,
+      });
+
+      logger.debug('Suggested filename:', targetFileItem.fileName);
+      return suggest({
+        conflictAction: 'uniquify',
+        filename: targetFileItem.fileName,
+      });
     });
 
     return true;
   }
 
-  private async findFilenameByDownloadId(
-    downloadId: number,
-  ): Promise<string | undefined> {
-    // handleDeterminingFilenameEvent может быть вызван до того, как данные
-    // сохранятся в БД, поэтому мы ждём следующего фрейма, чтобы данные в БД
-    // успели точно обновиться
-    await new Promise((res) => setTimeout(res, 0));
-    const fileItemsList = (await indexedDBObject.getAllFromIndex(
-      'fileStorage',
-      'download_id',
-      downloadId,
-    )) as FileItem[];
-
-    const targetFileItem = fileItemsList.length
-      ? fileItemsList.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
-      : null;
-    return targetFileItem?.fileName;
-  }
-
-  private async createDownload(fileItem: FileItem, downloadItem: DownloadItem) {
+  private async createDownload({
+    fileItem,
+    downloadItem,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    downloadItem: DownloadItem;
+    logger?: Logger;
+  }) {
     if (fileItem.status === LoadStatus.StoppedByUser) {
       // Иногда старт загрузки задерживается, в то время как она уже была
       // отменена. В этом случае необходимо отменить загрузку при старте
@@ -495,10 +650,17 @@ export class DownloadManager {
     this.resourceLockManager.unlock({
       type: 'loadStorage',
       id: fileItem.relatedLoadItemId,
+      logger,
     });
   }
 
-  private async successDownload(fileItem: FileItem) {
+  private async successDownload({
+    fileItem,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    logger?: Logger;
+  }) {
     // Обработчик успешного завершения загрузки
     logger.debug('The load is completed successfully:', fileItem);
 
@@ -519,48 +681,74 @@ export class DownloadManager {
       }
 
       await indexedDBObject.put('fileStorage', nextFileItem);
-      await this.launchFileDownload(nextFileItem);
+      await this.launchFileDownload({ fileItem: nextFileItem, logger });
     } else {
-      await this.queueController.successLoad(fileItem);
+      await this.queueController.successLoad({ fileItem, logger });
 
       this.resourceLockManager.unlock({
         type: 'loadStorage',
         id: fileItem.relatedLoadItemId,
+        logger,
       });
     }
-    this.startNextDownload().then();
+    this.startNextDownload({ logger }).then();
   }
 
-  private async cancelAllDownload() {
-    const listToRemove = [
+  private async cancelAllDownload({
+    logger = globalThis.logger,
+  }: {
+    logger?: Logger;
+  }) {
+    const groupToRemove = [
       ...this.queueController.activeDownloadsList,
       ...this.queueController.queueList.flat(2),
     ];
-    await this.queueController.removeDownloadsFromQueue(listToRemove);
+    await this.queueController.removeDownloadsFromQueue({
+      groupToRemove,
+      logger,
+    });
   }
 
-  private async cancelAllDownloadsOneMovie(fileItem: FileItem) {
+  private async cancelAllDownloadsOneMovie({
+    fileItem,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    logger?: Logger;
+  }) {
     const loadItem = (await indexedDBObject.getFromIndex(
       'loadStorage',
       'load_id',
       fileItem.relatedLoadItemId,
     )) as LoadItem;
 
-    await this.breakDownloadWithError(fileItem, LoadStatus.DownloadFailed);
-    await this.queueController.stopDownload(
-      loadItem.movieId,
-      LoadStatus.InitiationError,
-    );
+    await this.breakDownloadWithError({
+      fileItem,
+      cause: LoadStatus.DownloadFailed,
+      logger,
+    });
+    await this.queueController.stopDownload({
+      movieId: loadItem.movieId,
+      cause: LoadStatus.InitiationError,
+      logger,
+    });
   }
 
-  private async cancelOneDownload(fileItem: FileItem) {
+  private async cancelOneDownload({
+    fileItem,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    logger?: Logger;
+  }) {
     // Обработчик остановки активной загрузки
     logger.info('Attempt stopped loading:', fileItem);
 
     if (fileItem.downloadId) {
-      const downloadItem = await this.getActiveDownloadItemFromDownloadId(
-        fileItem.downloadId,
-      );
+      const downloadItem = await this.getActiveDownloadItemFromDownloadId({
+        downloadId: fileItem.downloadId,
+        logger,
+      });
       if (downloadItem?.state === 'in_progress') {
         await browser.downloads.cancel(fileItem.downloadId);
       }
@@ -581,23 +769,38 @@ export class DownloadManager {
         }
       }
 
-      await this.breakDownloadWithError(fileItem, LoadStatus.StoppedByUser);
+      await this.breakDownloadWithError({
+        fileItem,
+        cause: LoadStatus.StoppedByUser,
+        logger,
+      });
     } else if (!loadIsCompleted(fileItem.status)) {
-      await this.breakDownloadWithError(fileItem, LoadStatus.StoppedByUser);
+      await this.breakDownloadWithError({
+        fileItem,
+        cause: LoadStatus.StoppedByUser,
+        logger,
+      });
     } else {
       this.resourceLockManager.unlock({
         type: 'loadStorage',
         id: fileItem.relatedLoadItemId,
+        logger,
       });
       logger.debug(
         'Attempt to stop loading interrupted - load is completed:',
         fileItem,
       );
     }
-    this.startNextDownload().then();
+    this.startNextDownload({ logger }).then();
   }
 
-  private async pauseDownload(fileItem: FileItem) {
+  private async pauseDownload({
+    fileItem,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    logger?: Logger;
+  }) {
     // Обработчик паузы загрузки
     logger.debug('Download paused:', fileItem);
 
@@ -606,7 +809,13 @@ export class DownloadManager {
     await browser.downloads.pause(fileItem.downloadId!);
   }
 
-  private async unpauseDownload(fileItem: FileItem) {
+  private async unpauseDownload({
+    fileItem,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    logger?: Logger;
+  }) {
     // Обработчик возобновления загрузки после паузы
     logger.debug('Download resumed:', fileItem);
 
@@ -615,7 +824,15 @@ export class DownloadManager {
     await browser.downloads.resume(fileItem.downloadId!);
   }
 
-  private async attemptNewDownload(fileItem: FileItem, cause: LoadStatus) {
+  private async attemptNewDownload({
+    fileItem,
+    cause,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    cause: LoadStatus;
+    logger?: Logger;
+  }) {
     // Пытается повторить загрузку в случае неожиданного прерывания
     logger.warning('New load attempt:', fileItem);
 
@@ -625,32 +842,50 @@ export class DownloadManager {
       this.resourceLockManager.unlock({
         type: 'loadStorage',
         id: fileItem.relatedLoadItemId,
+        logger,
       });
-      this.startNextDownload().then();
+      this.startNextDownload({ logger }).then();
     } else if (fileItem.retryAttempts >= settings.maxFallbackAttempts) {
       logger.error(
         'New load attempt interrupted - Max attempts reached:',
         fileItem,
       );
 
-      await this.breakDownloadWithError(fileItem, cause);
+      await this.breakDownloadWithError({ fileItem, cause, logger });
     } else {
-      await this.repeatDownload(fileItem);
+      await this.repeatDownload({ fileItem, logger });
     }
   }
 
-  private async breakDownloadWithError(fileItem: FileItem, cause: LoadStatus) {
-    await this.queueController.failLoad(fileItem, cause);
+  private async breakDownloadWithError({
+    fileItem,
+    cause,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    cause: LoadStatus;
+    logger?: Logger;
+  }) {
+    await this.queueController.failLoad({ fileItem, cause, logger });
     this.resourceLockManager.unlock({
       type: 'loadStorage',
       id: fileItem.relatedLoadItemId,
+      logger,
     });
 
     logger.error('Loading stopped with error:', cause, fileItem);
-    this.startNextDownload().then();
+    this.startNextDownload({ logger }).then();
   }
 
-  private async repeatDownload(fileItem: FileItem, repeatNow: boolean = false) {
+  private async repeatDownload({
+    fileItem,
+    repeatNow = false,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    repeatNow?: boolean;
+    logger?: Logger;
+  }) {
     logger.info('Start new load attempt:', fileItem);
 
     const oldDownloadId = fileItem.downloadId;
@@ -678,7 +913,11 @@ export class DownloadManager {
     if (repeatNow) {
       // Даём небольшую задержку, чтобы при старте браузер успел инициализироваться
       setTimeout(
-        this.executeRetry.bind(this, fileItem.relatedLoadItemId, fileItem.id),
+        this.executeRetry.bind(this, {
+          loadItemId: fileItem.relatedLoadItemId,
+          targetFileId: fileItem.id,
+          logger,
+        }),
         5000,
       );
     } else {
@@ -690,13 +929,27 @@ export class DownloadManager {
     this.resourceLockManager.unlock({
       type: 'loadStorage',
       id: fileItem.relatedLoadItemId,
+      logger,
     });
   }
 
-  public async executeRetry(loadItemId: number, targetFileId: number) {
+  public async executeRetry({
+    loadItemId,
+    targetFileId,
+    logger = globalThis.logger,
+  }: {
+    loadItemId: number;
+    targetFileId: number;
+    logger?: Logger;
+  }) {
+    if (typeof logger.metadata.traceId === 'undefined') {
+      logger = logger.attachMetadata({ traceId: getTraceId() });
+    }
+    logger.attachMetadata({ targetKey: loadItemId });
     await this.resourceLockManager.lock({
       type: 'loadStorage',
       id: loadItemId,
+      logger,
     });
 
     const loadItem = (await indexedDBObject.getFromIndex(
@@ -716,12 +969,12 @@ export class DownloadManager {
 
     targetFile.url =
       targetFile.fileType === 'video'
-        ? await siteLoadItem.getVideoUrl()
-        : await siteLoadItem.getSubtitlesUrl();
+        ? await siteLoadItem.getVideoUrl({ logger })
+        : await siteLoadItem.getSubtitlesUrl({ logger });
     targetFile.status = LoadStatus.InitiatingDownload;
 
     await indexedDBObject.put('fileStorage', targetFile);
 
-    return await this.launchFileDownload(targetFile);
+    return await this.launchFileDownload({ fileItem: targetFile, logger });
   }
 }

@@ -1,3 +1,4 @@
+import { Logger } from '@/lib/logger';
 import {
   ActualVideoData,
   DataForUpdate,
@@ -7,7 +8,7 @@ import {
 } from '@/lib/types';
 import { updateVideoData } from '@/service-worker/network-layer';
 
-async function extractSeasons(seasons: string) {
+async function extractSeasons({ seasons }: { seasons: string }) {
   const seasonsStorage: SeasonsWithEpisodesList = {};
   const seasonsList = seasons!
     .split('</li>')
@@ -19,10 +20,14 @@ async function extractSeasons(seasons: string) {
   return seasonsStorage;
 }
 
-async function extractAllEpisodes(serverResponse: ResponseVideoData) {
-  const seasonsStorage: SeasonsWithEpisodesList = await extractSeasons(
-    serverResponse.seasons!,
-  );
+async function extractAllEpisodes({
+  serverResponse,
+}: {
+  serverResponse: ResponseVideoData;
+}) {
+  const seasonsStorage: SeasonsWithEpisodesList = await extractSeasons({
+    seasons: serverResponse.seasons!,
+  });
 
   let episodesBlock = serverResponse
     .episodes!.split(`</ul>`)
@@ -45,14 +50,22 @@ async function extractAllEpisodes(serverResponse: ResponseVideoData) {
   return seasonsStorage;
 }
 
-export async function updateVideoInfo(
-  data: DataForUpdate,
-): Promise<ActualVideoData> {
+export async function updateVideoInfo({
+  data,
+  logger = globalThis.logger,
+}: {
+  data: DataForUpdate;
+  logger?: Logger;
+}): Promise<ActualVideoData> {
   logger.debug('Request to update video data:', data);
-  const serverResponse = await updateVideoData(data.siteURL, data.movieData);
+  const serverResponse = await updateVideoData({
+    siteUrl: data.siteURL,
+    data: data.movieData,
+    logger,
+  });
   return {
     seasons: serverResponse?.seasons
-      ? await extractAllEpisodes(serverResponse)
+      ? await extractAllEpisodes({ serverResponse })
       : null,
     subtitle: {
       subtitle: serverResponse.subtitle,

@@ -1,3 +1,4 @@
+import { Logger } from '@/lib/logger';
 import {
   Episode,
   FileItem,
@@ -11,7 +12,6 @@ import {
   Season,
   UrlDetails,
 } from '@/lib/types';
-import { Logger } from '@/lib/logger';
 
 export type SiteLoaderAsyncParams = {
   downloadItem: LoadItem;
@@ -26,19 +26,37 @@ export interface SiteLoaderInstance {
 
   getQueryData({ logger }: { logger?: Logger }): QueryData;
 
-  getVideoData({logger}: {logger?: Logger}): Promise<ResponseVideoData | null>;
+  getVideoData({
+    logger,
+  }: {
+    logger?: Logger;
+  }): Promise<ResponseVideoData | null>;
 
   getVideoUrl({ logger }: { logger?: Logger }): Promise<string | null>;
 
   getSubtitlesUrl({ logger }: { logger?: Logger }): Promise<string | null>;
 
-  createAndGetFile({logger}: {logger?: Logger}): Promise<readonly [FileItem | null, FileItem | null]>;
+  createAndGetFile({
+    logger,
+  }: {
+    logger?: Logger;
+  }): Promise<readonly [FileItem | null, FileItem | null]>;
 
-  makeFilename({fileType, timestamp}:{ fileType: FileType, timestamp: number }): Promise<string>;
+  makeFilename({
+    fileType,
+    timestamp,
+  }: {
+    fileType: FileType;
+    timestamp: number;
+  }): Promise<string>;
 }
 
 export interface SiteLoader {
-  new ({async_param}: {async_param?: SiteLoaderAsyncParams}): SiteLoaderInstance;
+  new ({
+    async_param,
+  }: {
+    async_param?: SiteLoaderAsyncParams;
+  }): SiteLoaderInstance;
 
   build(downloadItem: LoadItem): Promise<SiteLoaderInstance>;
 

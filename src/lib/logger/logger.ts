@@ -14,10 +14,30 @@ export class Logger {
   private static isBackground = isBackground();
   private static port: Runtime.Port | undefined;
   private static sourcemap: Record<string, SourceMapParser | null> = {};
-  private readonly metadata?: LogMetadata;
+  private readonly _metadata: LogMetadata;
 
-  constructor(metadata?: LogMetadata) {
-    this.metadata = metadata;
+  constructor(metadata: LogMetadata = {}) {
+    this._metadata = metadata;
+  }
+
+  get metadata(): LogMetadata {
+    return this._metadata;
+  }
+
+  private combinedMeta(metadata: Partial<LogMetadata>): LogMetadata {
+    const result = { ...this.metadata };
+
+    (Object.keys(metadata) as (keyof LogMetadata)[]).forEach((key) => {
+      const value = metadata[key];
+
+      if (value === null) {
+        delete result[key];
+      } else if (value !== undefined) {
+        result[key] = value;
+      }
+    });
+
+    return result;
   }
 
   private async getOrInitializeSourceMapParser(url: string) {
@@ -51,7 +71,7 @@ export class Logger {
     try {
       // Для обеспечения корректности времени вызова функции логирования
       // мы должны получать время до момента начала работы остальной логики
-      const timestamp = new Date().getTime();
+      const timestamp = Date.now();
 
       let [context, location] = ['', ''];
       if (typeof settings === 'undefined') {
@@ -103,8 +123,10 @@ export class Logger {
     }
   }
 
-  attachMetadata(metadata: LogMetadata) {
-    return new Logger(metadata);
+  attachMetadata(
+    metadata: Partial<{ [K in keyof LogMetadata]: LogMetadata[K] | null }>,
+  ) {
+    return new Logger(this.combinedMeta(metadata as LogMetadata));
   }
 
   critical(...message: any[]) {

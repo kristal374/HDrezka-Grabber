@@ -25,9 +25,9 @@ export type LogMessage = {
 };
 
 export type LogMetadata = {
-  sessionId: number;
-  processId: number;
-  targetKey: number;
+  sessionId?: number;
+  traceId?: number;
+  targetKey?: number;
 };
 
 export enum LoggerEventType {

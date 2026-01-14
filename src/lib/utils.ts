@@ -150,3 +150,14 @@ export async function getActiveFileItem(
     })[0];
   });
 }
+
+export function getTraceId() {
+  return hashCode(crypto.randomUUID());
+}
+
+function makeSession() {
+  const sessionId = getTraceId();
+  return () => sessionId;
+}
+
+export const getSessionId = makeSession();

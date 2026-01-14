@@ -1,3 +1,4 @@
+import { Logger } from '@/lib/logger';
 import { Mutex, ResourceLockManager } from '@/lib/resource-lock-manager';
 import {
   createObservableStore,
@@ -32,7 +33,7 @@ export class QueueController {
   private readonly queue: ObserverType<(number | number[])[]>;
   private readonly activeDownloads: ObserverType<number[]>;
 
-  constructor(async_param: QueueControllerAsyncParams | undefined) {
+  constructor({ async_param }: { async_param: QueueControllerAsyncParams }) {
     if (typeof async_param === 'undefined') {
       throw new Error('Cannot be called directly');
     }
@@ -50,17 +51,9 @@ export class QueueController {
     );
   }
 
-  get activeDownloadsList(): readonly number[] {
-    return this.activeDownloads.state;
-  }
-
-  get queueList(): readonly (number | number[])[] {
-    return this.queue.state;
-  }
-
   static async build() {
-    const async_result = await this.asyncConstructor();
-    return new QueueController(async_result);
+    const async_param = await this.asyncConstructor();
+    return new QueueController({ async_param });
   }
 
   private static async asyncConstructor(): Promise<QueueControllerAsyncParams> {
@@ -71,22 +64,39 @@ export class QueueController {
     };
   }
 
-  public async initializeNewDownload(initiator: Initiator) {
+  get activeDownloadsList(): readonly number[] {
+    return this.activeDownloads.state;
+  }
+
+  get queueList(): readonly (number | number[])[] {
+    return this.queue.state;
+  }
+
+  public async initializeNewDownload({
+    initiator,
+    logger = globalThis.logger,
+  }: {
+    initiator: Initiator;
+    logger?: Logger;
+  }) {
     // Отвечает за логику создания новых загрузок и добавления их в очередь
     // и за отмену активных загрузок при повторном "клике" на кнопку "Загрузить"
     logger.info('Processing of the trigger of new loading.');
 
     const movieId = parseInt(initiator.movieId);
-    const activeDownloads = await this.findActiveDownloads(movieId);
+    const activeDownloads = await this.findActiveDownloads({ movieId });
 
     if (activeDownloads.length !== 0) {
       logger.info('Cancelling active downloads.');
-      await this.removeDownloadsFromQueue(activeDownloads);
+      await this.removeDownloadsFromQueue({
+        groupToRemove: activeDownloads,
+        logger,
+      });
       return false;
     }
 
     logger.info('Creating new downloads.');
-    const loadItemIds = await this.createNewDownloads(initiator);
+    const loadItemIds = await this.createNewDownloads({ initiator, logger });
     this.queue.update((state) => {
       state.push(loadItemIds.length === 1 ? loadItemIds[0] : loadItemIds);
     });
@@ -95,7 +105,11 @@ export class QueueController {
     return true;
   }
 
-  private async findActiveDownloads(movieId: number): Promise<number[]> {
+  private async findActiveDownloads({
+    movieId,
+  }: {
+    movieId: number;
+  }): Promise<number[]> {
     // Ищет ID всех активных загрузок для заданного фильма и возвращает их
     const loadItems = (await indexedDBObject.getAllFromIndex(
       'loadStorage',
@@ -109,14 +123,23 @@ export class QueueController {
       .map((item) => item.id);
   }
 
-  async stopDownload(
-    movieId: number,
-    cause: LoadStatus = LoadStatus.StoppedByUser,
-  ) {
-    const activeDownloads = await this.findActiveDownloads(movieId);
+  async stopDownload({
+    movieId,
+    cause = LoadStatus.StoppedByUser,
+    logger = globalThis.logger,
+  }: {
+    movieId: number;
+    cause?: LoadStatus;
+    logger?: Logger;
+  }) {
+    const activeDownloads = await this.findActiveDownloads({ movieId });
     if (activeDownloads.length !== 0) {
       logger.info('Cancelling active downloads.');
-      await this.removeDownloadsFromQueue(activeDownloads, cause);
+      await this.removeDownloadsFromQueue({
+        groupToRemove: activeDownloads,
+        cause,
+        logger,
+      });
     }
 
     await browser.runtime
@@ -133,7 +156,7 @@ export class QueueController {
       .catch(() => {});
   }
 
-  private async skipDownload(movieId: number) {
+  private async skipDownload({ movieId }: { movieId: number }) {
     browser.runtime
       .sendMessage<Message<any>>({
         type: 'setNotification',
@@ -150,17 +173,27 @@ export class QueueController {
     // TODO: в случае сбоя отправки сообщения добавлять ошибку в хранилище
   }
 
-  public async removeDownloadsFromQueue(
-    groupToRemove: number[],
-    cause: LoadStatus = LoadStatus.StoppedByUser,
-  ) {
+  public async removeDownloadsFromQueue({
+    groupToRemove,
+    cause = LoadStatus.StoppedByUser,
+    logger = globalThis.logger,
+  }: {
+    groupToRemove: number[];
+    cause?: LoadStatus;
+    logger?: Logger;
+  }) {
     // Удаляет загрузки из очереди, находящиеся в списке на удаление,
     // если есть активные загрузки - прерывает их
 
     if (!groupToRemove.length) return;
     logger.debug('Removing from download queue:', groupToRemove);
 
-    await this.resourceLockManager.massLock('loadStorage', groupToRemove, 1000);
+    await this.resourceLockManager.massLock({
+      type: 'loadStorage',
+      idsList: groupToRemove,
+      priority: 1000,
+      logger,
+    });
     try {
       const readTx = indexedDBObject.transaction('loadStorage');
       const loadItems = (
@@ -169,7 +202,9 @@ export class QueueController {
       await readTx.done;
 
       const updatedLoadItems = await Promise.all(
-        loadItems.map((loadItem) => this.cancelDownload(loadItem, cause)),
+        loadItems.map((loadItem) =>
+          this.cancelDownload({ loadItem, cause, logger }),
+        ),
       );
 
       const writeTx = indexedDBObject.transaction('loadStorage', 'readwrite');
@@ -178,14 +213,23 @@ export class QueueController {
       );
       await writeTx.done;
     } finally {
-      await this.resourceLockManager.massUnlock('loadStorage', groupToRemove);
+      await this.resourceLockManager.massUnlock({
+        type: 'loadStorage',
+        idsList: groupToRemove,
+        logger,
+      });
     }
   }
 
-  private async cancelDownload(
-    loadItem: LoadItem,
-    cause: LoadStatus = LoadStatus.StoppedByUser,
-  ) {
+  private async cancelDownload({
+    loadItem,
+    cause = LoadStatus.StoppedByUser,
+    logger = globalThis.logger,
+  }: {
+    loadItem: LoadItem;
+    cause: LoadStatus;
+    logger?: Logger;
+  }) {
     logger.debug('Canceling download:', loadItem, cause);
 
     if (!loadItem || loadIsCompleted(loadItem.status)) return loadItem;
@@ -209,7 +253,7 @@ export class QueueController {
           // Вызываем failLoad перед cancel для того, чтоб установить
           // "свой" статус прерывания загрузки, вместо "StoppedByUser"
           // который будет установлен после вызова cancel
-          await this.failLoad(file, cause);
+          await this.failLoad({ fileItem: file, cause, logger });
           await browser.downloads.cancel(file.downloadId);
           return loadItem;
         }
@@ -224,7 +268,7 @@ export class QueueController {
         // Если по каким-то причинам мы не нашли загружаемый файл -
         // отменяем загрузку вслепую
         logger.warning('Failed to find downloadable file:', loadItem);
-        await this.failLoad(relatedFiles[0], cause);
+        await this.failLoad({ fileItem: relatedFiles[0], cause, logger });
       }
       return loadItem;
     } else {
@@ -262,7 +306,13 @@ export class QueueController {
     }
   }
 
-  private async createNewDownloads(initiator: Initiator): Promise<number[]> {
+  private async createNewDownloads({
+    initiator,
+    logger = globalThis.logger,
+  }: {
+    initiator: Initiator;
+    logger?: Logger;
+  }): Promise<number[]> {
     // Создаёт новые загрузки и добавляет их в хранилище
     const movieId = parseInt(initiator.movieId);
     const siteLoader = siteLoaderFactory[initiator.site_type];
@@ -294,10 +344,13 @@ export class QueueController {
     return loadConfig.loadItemIds;
   }
 
-  private makeLoadItemArray(
-    movieId: number,
-    range: SeasonsWithEpisodesList | null,
-  ) {
+  private makeLoadItemArray({
+    initiator,
+    logger = globalThis.logger,
+  }: {
+    initiator: Initiator;
+    logger?: Logger;
+  }) {
     // Создаёт массив объектов, на основе которых будет производиться загрузка
     const movieId = parseInt(initiator.movieId);
     const siteLoader = siteLoaderFactory[initiator.site_type];
@@ -320,7 +373,11 @@ export class QueueController {
     return loadItemArray;
   }
 
-  public async getNextObjectIdForDownload(): Promise<number | null> {
+  public async getNextObjectIdForDownload({
+    logger = globalThis.logger,
+  }: {
+    logger?: Logger;
+  }): Promise<number | null> {
     // Отвечает за получение объекта, на основе которого будет производиться загрузка
     logger.info('Attempt to get next object for download.');
 
@@ -382,7 +439,13 @@ export class QueueController {
     }
   }
 
-  async successLoad(fileItem: FileItem) {
+  async successLoad({
+    fileItem,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    logger?: Logger;
+  }) {
     // Находит и удаляет объект из активных загрузок
     // и помечает его как успешно загруженный
     const loadItem = (await indexedDBObject.getFromIndex(
@@ -403,7 +466,15 @@ export class QueueController {
     logger.info('Load was successful:', loadItem);
   }
 
-  async failLoad(fileItem: FileItem, cause: LoadStatus) {
+  async failLoad({
+    fileItem,
+    cause,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    cause: LoadStatus;
+    logger?: Logger;
+  }) {
     // Находит и удаляет объект из активных загрузок
     // и помечает его как сбой загрузки.
     // В зависимости от настроек пользователя определяет реакцию на сбой
@@ -456,9 +527,9 @@ export class QueueController {
           : settings.actionOnNoSubtitles;
 
       if (actionOnNoUrl === 'stop') {
-        return await this.stopDownload(loadItem.movieId);
+        return await this.stopDownload({ movieId: loadItem.movieId, logger });
       } else if (actionOnNoUrl === 'skip') {
-        return await this.skipDownload(loadItem.movieId);
+        return await this.skipDownload({ movieId: loadItem.movieId });
       } else if (
         actionOnNoUrl === 'ignore' &&
         fileItem.fileType === 'subtitle'
@@ -475,9 +546,9 @@ export class QueueController {
         : settings.actionOnLoadSubtitleError;
 
     if (action === 'stop') {
-      await this.stopDownload(loadItem.movieId);
+      await this.stopDownload({ movieId: loadItem.movieId, logger });
     } else if (action === 'skip') {
-      await this.skipDownload(loadItem.movieId);
+      await this.skipDownload({ movieId: loadItem.movieId });
     } else {
       throw new Error('Unknown action on load error');
     }

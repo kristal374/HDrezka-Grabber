@@ -1,10 +1,15 @@
+import { Logger } from '@/lib/logger';
 import { getFromStorage } from '@/lib/storage';
 import { FileItem, LoadItem } from '@/lib/types';
 import { getActiveFileItem } from '@/lib/utils';
 
 const STORAGE_KEY = 'isFirstRun';
 
-export async function isFirstRunExtension() {
+export async function isFirstRunExtension({
+  logger = globalThis.logger,
+}: {
+  logger?: Logger;
+}) {
   const storage = await browser.storage.session.get(STORAGE_KEY);
   const isFirstRun = (storage[STORAGE_KEY] as false | undefined) ?? true;
   logger.debug(`Extension is first run: ${isFirstRun}`);
@@ -16,7 +21,11 @@ export async function isFirstRunExtension() {
   return isFirstRun;
 }
 
-export async function findBrokenFileItemInActiveDownloads(strictMode = false) {
+export async function findBrokenFileItemInActiveDownloads({
+  strictMode = false,
+}: {
+  strictMode: boolean;
+}) {
   const brokenDownloads: FileItem[] = [];
 
   // Сначала получаем объекты активных загрузок, которые отслеживает расширение
