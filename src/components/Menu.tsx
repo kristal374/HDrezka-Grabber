@@ -1,4 +1,4 @@
-import { HeroiconsCogIcon } from '@/components/icons/HeroiconsCogIcon';
+import { CogIcon } from '@/components/icons/CogIcon';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { SquareTerminalIcon } from 'lucide-react';
@@ -13,8 +13,7 @@ export function Menu({ className }: MenuProps) {
       className={cn('absolute top-0 right-0 flex flex-col gap-1', className)}
     >
       <MenuButton href='/settings' openInNewTab={true} title='Настройки'>
-        {/* <SlidersHorizontalIcon className='size-8' strokeWidth={1.5} /> */}
-        <HeroiconsCogIcon
+        <CogIcon
           className='size-8 transition-transform duration-300 hover:rotate-45'
           strokeWidth={1.5}
         />
