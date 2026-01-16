@@ -1,3 +1,4 @@
+import { Logger } from '@/lib/logger';
 import {
   QualitiesList,
   QualityItem,
@@ -13,10 +14,15 @@ import { Input, InputVideoTrack, MP4, UrlSource } from 'mediabunny';
 
 const inFlightFetches = new Map<string, Promise<URLItem>>();
 
-export async function getQualityFileSize(
-  urlsContainer: QualitiesList | null,
-  siteUrl: string,
-): Promise<URLsContainer | null> {
+export async function getQualityFileSize({
+  urlsContainer,
+  siteUrl,
+  logger = globalThis.logger,
+}: {
+  urlsContainer: QualitiesList | null;
+  siteUrl: string;
+  logger?: Logger;
+}): Promise<URLsContainer | null> {
   logger.info('Attempt to get quality sizes.');
 
   if (!urlsContainer) {
@@ -25,21 +31,29 @@ export async function getQualityFileSize(
   }
 
   const urlsSizes: (readonly [QualityItem, URLItem])[] = await Promise.all(
-    Object.entries(urlsContainer).map(([key, urlsList]) =>
-      fetchUrlSizes({ urlsList, siteUrl, onlySize: true }).then(
-        (size) => [key as QualityItem, size] as const,
-      ),
-    ),
+    Object.entries(urlsContainer).map(async ([key, urlsList]) => {
+      const request: RequestUrlSize = { urlsList, siteUrl, onlySize: true };
+      const size = await fetchUrlSizes({ request, logger });
+      return [key as QualityItem, size] as const;
+    }),
   );
   return Object.fromEntries(urlsSizes);
 }
 
-export async function fetchUrlSizes(request: RequestUrlSize): Promise<URLItem> {
+export async function fetchUrlSizes({
+  request,
+  logger = globalThis.logger,
+}: {
+  request: RequestUrlSize;
+  logger?: Logger;
+}): Promise<URLItem> {
   logger.info('Fetching URL sizes.');
 
   // Проверяем есть ли хоть один из искомых URL в кэше, у которого размер > 0
   const allItemFromCache = await Promise.all(
-    request.urlsList.map(async (item) => await getFromCache<URLItem>(item)),
+    request.urlsList.map(
+      async (url) => await getFromCache<URLItem>({ url, logger }),
+    ),
   );
   const cleanCache = allItemFromCache.filter((c) => c?.rawSize) as URLItem[];
 
@@ -51,36 +65,47 @@ export async function fetchUrlSizes(request: RequestUrlSize): Promise<URLItem> {
   const promises = request.urlsList.map(async (item) => {
     // TODO: На текущий момент если один из связанных запросов корректно
     //  завершает работу, остальные не прерываются и продолжают работать
-    return await getVideoInfoOrWaitFor(item, request.siteUrl, request.onlySize);
+    return await getVideoInfoOrWaitFor({
+      videoUrl: item,
+      siteUrl: request.siteUrl,
+      onlySize: request.onlySize,
+      logger,
+    });
   });
 
   return await Promise.any(promises).catch(() => {
     return {
       url: request.urlsList[0],
-      stringSize: formatBytes(0),
+      stringSize: formatBytes({ bytes: 0 }),
       rawSize: 0,
       videoResolution: null,
     };
   });
 }
 
-async function getVideoInfoOrWaitFor(
-  videoUrl: string,
-  siteUrl: string,
-  onlySize?: boolean,
-) {
+async function getVideoInfoOrWaitFor({
+  videoUrl,
+  siteUrl,
+  onlySize,
+  logger = globalThis.logger,
+}: {
+  videoUrl: string;
+  siteUrl: string;
+  onlySize?: boolean;
+  logger?: Logger;
+}) {
   const existing = inFlightFetches.get(videoUrl);
   if (existing) return existing;
 
-  const promise = getVideoInfo(videoUrl, siteUrl, onlySize).then(
+  const promise = getVideoInfo({ videoUrl, siteUrl, onlySize, logger }).then(
     ([url, rawSize, videoResolution]) => {
       const urlItem = {
         url,
         rawSize,
-        stringSize: formatBytes(rawSize),
+        stringSize: formatBytes({ bytes: rawSize }),
         videoResolution,
       };
-      setInCache(urlItem, videoUrl).then();
+      setInCache({ data: urlItem, url: videoUrl, logger }).then();
       return urlItem;
     },
   );
@@ -89,7 +114,7 @@ async function getVideoInfoOrWaitFor(
   return promise;
 }
 
-function formatBytes(bytes: number | null) {
+function formatBytes({ bytes }: { bytes: number | null }) {
   if (!bytes) return '??? MB';
 
   const k = 1024;
@@ -99,16 +124,25 @@ function formatBytes(bytes: number | null) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-async function getVideoInfo(
-  videoUrl: string,
-  siteUrl: string,
-  onlySize?: boolean,
-): Promise<
+async function getVideoInfo({
+  videoUrl,
+  siteUrl,
+  onlySize,
+  logger = globalThis.logger,
+}: {
+  videoUrl: string;
+  siteUrl: string;
+  onlySize?: boolean;
+  logger?: Logger;
+}): Promise<
   readonly [string, number, { width: number; height: number } | null]
 > {
   logger.info('Attempt get file size.');
 
-  const [getFinallyUrl, modifiedFetch] = makeModifyFetch(siteUrl);
+  const [getFinallyUrl, modifiedFetch] = makeModifyFetch({
+    sourceUrl: siteUrl,
+    logger,
+  });
   const input = new Input({
     source: new UrlSource(videoUrl, {
       fetchFn: modifiedFetch,
@@ -153,16 +187,31 @@ async function getVideoInfo(
     .finally(() => input.dispose());
 }
 
-export async function updateVideoData(siteUrl: string, data: QueryData) {
+export async function updateVideoData({
+  siteUrl,
+  data,
+  logger = globalThis.logger,
+}: {
+  siteUrl: string;
+  data: QueryData;
+  logger?: Logger;
+}) {
   logger.info('Attempt update video data.');
 
   const time = new Date().getTime();
   const params = new URLSearchParams({ t: time.toString() });
   const fullURL = `${new URL(siteUrl).origin}/ajax/get_cdn_series/?${params}`;
   const body = new URLSearchParams(data).toString();
-  const [_getFinallyUrl, modifiedFetch] = makeModifyFetch(siteUrl);
+  const [_getFinallyUrl, modifiedFetch] = makeModifyFetch({
+    sourceUrl: siteUrl,
+    logger,
+  });
 
-  const cache = await getFromCache<ResponseVideoData>(siteUrl, body);
+  const cache = await getFromCache<ResponseVideoData>({
+    url: siteUrl,
+    body,
+    logger,
+  });
   if (cache) return cache;
 
   return modifiedFetch(fullURL, {
@@ -177,14 +226,18 @@ export async function updateVideoData(siteUrl: string, data: QueryData) {
   }).then(async (response) => {
     const serverResponse: ResponseVideoData = await response.json();
     logger.debug('Server response:', serverResponse);
-    setInCache(serverResponse, siteUrl, body).then();
+    setInCache({ data: serverResponse, url: siteUrl, body, logger }).then();
     return serverResponse;
   });
 }
 
-function makeModifyFetch(
-  sourceUrl?: string | URL,
-): [() => string, typeof fetch] {
+function makeModifyFetch({
+  sourceUrl,
+  logger = globalThis.logger,
+}: {
+  sourceUrl?: string | URL;
+  logger?: Logger;
+}): [() => string, typeof fetch] {
   let finallyUrl: string;
   return [
     () => finallyUrl,

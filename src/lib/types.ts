@@ -1,6 +1,8 @@
-import type { LogLevel } from '@/lib/logger/types';
-import type { Downloads, Runtime, Storage } from 'webextension-polyfill';
+import { LoggerEventType, LogLevel } from '@/lib/logger/types';
+import { Alarms, Downloads, Runtime, Storage } from 'webextension-polyfill';
 
+type Port = Runtime.Port;
+type Alarm = Alarms.Alarm;
 type DownloadItem = Downloads.DownloadItem;
 type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
 type MessageSender = Runtime.MessageSender;
@@ -8,11 +10,15 @@ type StorageChange = Storage.StorageChange;
 
 export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
+export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+
+export type RequireAllOrNone<T> = T | { [K in keyof T]?: undefined };
+
 export type MessageType =
-  | 'logCreate'
   | 'trigger'
   | 'getFileSize'
   | 'updateVideoInfo'
+  | 'requestToRestoreState'
   | 'setNotification';
 
 export type Message<T> = {
@@ -21,14 +27,15 @@ export type Message<T> = {
 };
 
 export type PageType =
-  | 'DEFAULT'
-  | 'FILM'
-  | 'SERIAL'
-  | 'TRAILER'
-  | 'LOCATION_FILM'
-  | 'LOCATION_SERIAL'
-  | 'UNAVAILABLE'
-  | 'ERROR';
+  | 'DEFAULT' // Любая страница, НЕ принадлежащая семейству сайтов rezka.ag
+  | 'FILM' // Страница с фильмом
+  | 'SERIAL' // Страница с сериалом
+  | 'TRAILER' // Страница с трейлером
+  | 'LOCATION_FILM' // Страница с фильмом, недоступным в этом регионе
+  | 'LOCATION_SERIAL' // Страница с сериалом, недоступным в этом регионе
+  | 'UNAVAILABLE' // Страница корректная, но отсутствуют данные плеера
+  | 'ERROR' // Не удалось определить тип страницы
+  | 'SPLIT_VIEW'; // Страница открыта в режиме split-view
 
 export type MovieInfo = {
   success: boolean;
@@ -149,6 +156,7 @@ export type ResponseVideoData = {
 export type Initiator = {
   movieId: string;
   site_url: string;
+  site_type: SiteType;
   film_name: {
     localized: string;
     original: string | null;
@@ -223,9 +231,11 @@ export type FileItem = {
   createdAt: number;
 };
 
+export type SiteType = 'hdrezka';
+
 export type LoadItem = {
   id: number;
-  siteType: 'hdrezka';
+  siteType: SiteType;
   movieId: number;
   season: Season | null;
   episode: Episode | null;
@@ -313,20 +323,9 @@ export enum EventType {
   NotificationEvent = 'NotificationEvent',
   DownloadCreated = 'DownloadCreated',
   DownloadEvent = 'DownloadEvent',
-  BrowserStartup = 'BrowserStartup',
+  ScheduleEvent = 'ScheduleEvent',
   StorageChanged = 'StorageChanged',
-  LogCreate = 'logCreate',
 }
-
-export type EventMessage =
-  | {
-      type: EventType.DownloadCreated;
-      data: DownloadItem;
-    }
-  | {
-      type: EventType.DownloadEvent;
-      data: OnChangedDownloadDeltaType;
-    };
 
 export type EventBusTypes = {
   [EventType.NewMessageReceived]: [
@@ -342,9 +341,10 @@ export type EventBusTypes = {
   [EventType.NotificationEvent]: Event;
   [EventType.DownloadCreated]: DownloadItem;
   [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
-  [EventType.BrowserStartup]: void;
+  [EventType.ScheduleEvent]: Alarm;
   [EventType.StorageChanged]: [Record<string, StorageChange>, string];
-  [EventType.LogCreate]: Event;
+  [LoggerEventType.LogCreate]: Event;
+  [LoggerEventType.LogConnect]: Port;
 };
 
 export type CacheItem = {

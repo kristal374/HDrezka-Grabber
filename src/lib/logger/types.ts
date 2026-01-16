@@ -21,4 +21,16 @@ export type LogMessage = {
   context: string;
   message: any[];
   location: string;
+  metadata?: LogMetadata;
 };
+
+export type LogMetadata = {
+  sessionId?: number;
+  traceId?: number;
+  targetKey?: number;
+};
+
+export enum LoggerEventType {
+  LogCreate = 'LogCreate',
+  LogConnect = 'LogConnect',
+}

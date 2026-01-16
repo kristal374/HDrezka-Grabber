@@ -1,18 +1,24 @@
-import { ResourceLockManager } from '@/lib/resource-lock-manager';
-import { createProxy, getFromStorage, saveInStorage } from '@/lib/storage';
+import { Logger } from '@/lib/logger';
+import { Mutex, ResourceLockManager } from '@/lib/resource-lock-manager';
 import {
-  ContentType,
-  Episode,
+  createObservableStore,
+  getFromStorage,
+  ObserverType,
+  saveInStorage,
+} from '@/lib/storage';
+import {
   FileItem,
   Initiator,
   LoadConfig,
   LoadItem,
   LoadStatus,
-  Season,
-  SeasonsWithEpisodesList,
-  UrlDetails,
+  Optional,
 } from '@/lib/types';
 import { loadIsCompleted } from '@/lib/utils';
+import siteLoaderFactory from '@/service-worker/site-loader/factory';
+import type { Downloads } from 'webextension-polyfill';
+
+type DownloadItem = Downloads.DownloadItem;
 
 type QueueControllerAsyncParams = {
   queue: (number | number[])[];
@@ -20,22 +26,24 @@ type QueueControllerAsyncParams = {
 };
 
 export class QueueController {
+  private mutex = new Mutex();
   private resourceLockManager = new ResourceLockManager();
 
-  private readonly queue: (number | number[])[];
-  private activeDownloads: number[];
+  private readonly queue: ObserverType<(number | number[])[]>;
+  private readonly activeDownloads: ObserverType<number[]>;
 
-  constructor(async_param: QueueControllerAsyncParams | undefined) {
+  constructor({ async_param }: { async_param: QueueControllerAsyncParams }) {
     if (typeof async_param === 'undefined') {
       throw new Error('Cannot be called directly');
     }
 
-    this.queue = createProxy(
+    this.queue = createObservableStore(
       async_param.queue,
       'queue',
       saveInStorage.bind(this),
     );
-    this.activeDownloads = createProxy(
+
+    this.activeDownloads = createObservableStore(
       async_param.activeDownloads,
       'activeDownloads',
       saveInStorage.bind(this),
@@ -43,8 +51,8 @@ export class QueueController {
   }
 
   static async build() {
-    const async_result = await this.asyncConstructor();
-    return new QueueController(async_result);
+    const async_param = await this.asyncConstructor();
+    return new QueueController({ async_param });
   }
 
   private static async asyncConstructor(): Promise<QueueControllerAsyncParams> {
@@ -55,50 +63,88 @@ export class QueueController {
     };
   }
 
-  public async initializeNewDownload(initiator: Initiator) {
+  get activeDownloadsList(): readonly number[] {
+    return this.activeDownloads.state;
+  }
+
+  get queueList(): readonly (number | number[])[] {
+    return this.queue.state;
+  }
+
+  public async initializeNewDownload({
+    initiator,
+    logger = globalThis.logger,
+  }: {
+    initiator: Initiator;
+    logger?: Logger;
+  }) {
     // Отвечает за логику создания новых загрузок и добавления их в очередь
     // и за отмену активных загрузок при повторном "клике" на кнопку "Загрузить"
     logger.info('Processing of the trigger of new loading.');
 
     const movieId = parseInt(initiator.movieId);
-    const activeDownloads = await this.findActiveDownloads(movieId);
+    const activeDownloads = await this.findActiveDownloads({ movieId });
 
     if (activeDownloads.length !== 0) {
-      logger.info('Cancelling active downloads.');
-      await this.removeDownloadsFromQueue(activeDownloads);
+      await this.deleteDownloadGroup({
+        groupToRemove: activeDownloads,
+        logger,
+      });
       return false;
     }
 
-    logger.info('Creating new downloads.');
-    const loadItemIds = await this.createNewDownloads(initiator);
-    this.queue.push(loadItemIds.length === 1 ? loadItemIds[0] : loadItemIds);
+    const loadItemIds = await this.createNewDownloads({ initiator, logger });
+    this.queue.update((state) => {
+      state.push(loadItemIds.length === 1 ? loadItemIds[0] : loadItemIds);
+    });
     logger.info('Loads were created:', loadItemIds);
 
     return true;
   }
 
-  private async findActiveDownloads(movieId: number): Promise<number[]> {
+  private async findActiveDownloads({
+    movieId,
+  }: {
+    movieId: number;
+  }): Promise<number[]> {
     // Ищет ID всех активных загрузок для заданного фильма и возвращает их
+    logger.info('Finding active downloads for movie:', movieId);
+
     const loadItems = (await indexedDBObject.getAllFromIndex(
       'loadStorage',
       'movie_id',
       movieId,
     )) as LoadItem[];
 
-    if (loadItems.length === 0) return [];
+    if (loadItems.length === 0) {
+      logger.debug('No active downloads found.');
+      return [];
+    }
+
     return loadItems
       .filter((item) => !loadIsCompleted(item.status))
       .map((item) => item.id);
   }
 
-  async stopDownload(
-    movieId: number,
-    cause: LoadStatus = LoadStatus.StoppedByUser,
-  ) {
-    const activeDownloads = await this.findActiveDownloads(movieId);
+  async stopDownload({
+    movieId,
+    cause = LoadStatus.StoppedByUser,
+    logger = globalThis.logger,
+  }: {
+    movieId: number;
+    cause?: LoadStatus;
+    logger?: Logger;
+  }) {
+    // Отменяет загрузку всех файлов для данного фильма/сериала
+    logger.info('Attempt to stop download for movie:', movieId, cause);
+
+    const activeDownloads = await this.findActiveDownloads({ movieId });
     if (activeDownloads.length !== 0) {
-      logger.info('Cancelling active downloads.');
-      await this.removeDownloadsFromQueue(activeDownloads, cause);
+      await this.deleteDownloadGroup({
+        groupToRemove: activeDownloads,
+        cause,
+        logger,
+      });
     }
 
     await messageBroker.sendMessage(movieId, {
@@ -109,7 +155,10 @@ export class QueueController {
     });
   }
 
-  private async skipDownload(movieId: number) {
+  private async skipDownload({ movieId }: { movieId: number }) {
+    // Пропускает загрузку одного файла
+    logger.info('Skipping download for movie:', movieId);
+
     await messageBroker.sendMessage(movieId, {
       priority: 100,
       stackable: false,
@@ -118,71 +167,157 @@ export class QueueController {
     });
   }
 
-  private async removeDownloadsFromQueue(
-    groupToRemove: number[],
-    cause: LoadStatus = LoadStatus.StoppedByUser,
-  ) {
+  public async deleteDownloadGroup({
+    groupToRemove,
+    cause = LoadStatus.StoppedByUser,
+    logger = globalThis.logger,
+  }: {
+    groupToRemove: number[];
+    cause?: LoadStatus;
+    logger?: Logger;
+  }) {
     // Удаляет загрузки из очереди, находящиеся в списке на удаление,
     // если есть активные загрузки - прерывает их
-    logger.debug('Removing from download queue:', groupToRemove);
+    logger.info('Attempt to delete download group:', groupToRemove, cause);
 
-    await Promise.all(
-      groupToRemove.map((id) =>
-        this.resourceLockManager.run(
-          { type: 'loadStorage', id },
-          this.cancelDownload.bind(this, id, cause),
-          1000,
+    if (!groupToRemove.length) {
+      logger.debug('Nothing to delete.');
+      return;
+    }
+
+    await this.resourceLockManager.massLock({
+      type: 'loadStorage',
+      idsList: groupToRemove,
+      priority: 1000,
+      logger,
+    });
+
+    try {
+      const readTx = indexedDBObject.transaction('loadStorage');
+      const loadItems = (
+        await Promise.all(groupToRemove.map((id) => readTx.store.get(id)))
+      ).filter(Boolean) as LoadItem[];
+      await readTx.done;
+
+      const updatedLoadItems = await Promise.all(
+        loadItems.map((loadItem) =>
+          this.cancelDownload({ loadItem, cause, logger }),
         ),
-      ),
-    );
-  }
+      );
 
-  private async cancelDownload(
-    id: number,
-    cause: LoadStatus = LoadStatus.StoppedByUser,
-  ) {
-    logger.debug('Canceling download:', id, cause);
-    const record = (await indexedDBObject.getFromIndex(
-      'loadStorage',
-      'load_id',
-      id,
-    )) as LoadItem | undefined;
-
-    if (!record || loadIsCompleted(record.status)) return;
-
-    if (this.activeDownloads.includes(record.id)) {
-      const relatedFiles = (await indexedDBObject.getAllFromIndex(
-        'fileStorage',
-        'load_item_id',
-        record.id,
-      )) as FileItem[];
-
-      for (const file of relatedFiles) {
-        if (file.downloadId === null) {
-          await this.failLoad(file, cause);
-        } else {
-          await browser.downloads.cancel(file.downloadId);
-        }
-      }
-    } else {
-      record.status = cause;
-      await indexedDBObject.put('loadStorage', record);
-
-      for (let i = 0; i < this.queue.length; i++) {
-        const group = this.queue[i];
-        if (
-          id === group ||
-          (Array.isArray(group) && group.includes(record.id))
-        ) {
-          this.queue.splice(i, 1);
-          break;
-        }
-      }
+      const writeTx = indexedDBObject.transaction('loadStorage', 'readwrite');
+      await Promise.all(
+        updatedLoadItems.map((loadItem) => writeTx.store.put(loadItem)),
+      );
+      await writeTx.done;
+    } finally {
+      await this.resourceLockManager.massUnlock({
+        type: 'loadStorage',
+        idsList: groupToRemove,
+        logger,
+      });
     }
   }
 
-  private async createNewDownloads(initiator: Initiator): Promise<number[]> {
+  private async cancelDownload({
+    loadItem,
+    cause = LoadStatus.StoppedByUser,
+    logger = globalThis.logger,
+  }: {
+    loadItem: LoadItem;
+    cause: LoadStatus;
+    logger?: Logger;
+  }) {
+    // Отменяет и при необходимости прерывает загрузку с удалением из очереди
+    logger.debug('Canceling download:', loadItem, cause);
+
+    if (!loadItem || loadIsCompleted(loadItem.status)) return loadItem;
+    loadItem.status = cause;
+
+    if (this.activeDownloads.state.includes(loadItem.id)) {
+      const relatedFiles = (await indexedDBObject.getAllFromIndex(
+        'fileStorage',
+        'load_item_id',
+        loadItem.id,
+      )) as FileItem[];
+
+      for (const file of relatedFiles) {
+        if (file.downloadId !== null) {
+          const browserFile = (
+            await browser.downloads.search({ id: file.downloadId })
+          )[0] as DownloadItem | undefined;
+
+          if (!browserFile) continue;
+
+          // Вызываем failLoad перед cancel для того, чтоб установить
+          // "свой" статус прерывания загрузки, вместо "StoppedByUser"
+          // который будет установлен после вызова cancel
+          await this.failLoad({ fileItem: file, cause, logger });
+          await browser.downloads.cancel(file.downloadId);
+          return loadItem;
+        }
+      }
+
+      if (relatedFiles.length === 0) {
+        const index = this.activeDownloads.state.indexOf(loadItem.id);
+        this.activeDownloads.update((state) => {
+          state.splice(index, 1);
+        });
+      } else {
+        // Если по каким-то причинам мы не нашли загружаемый файл -
+        // отменяем загрузку вслепую
+        logger.warning('Failed to find downloadable file:', loadItem);
+        await this.failLoad({ fileItem: relatedFiles[0], cause, logger });
+      }
+      return loadItem;
+    } else {
+      // Поскольку нам нужно удалить всего один единственный объект,
+      // мы можем не бояться того, что после удаления диапазон объектов
+      // внутри массива сместится
+      for (let i = 0; i < this.queue.state.length; i++) {
+        const group = this.queue.state[i];
+
+        if (group === loadItem.id) {
+          this.queue.update((state) => {
+            state.splice(i, 1);
+          });
+          return loadItem;
+        }
+
+        if (Array.isArray(group)) {
+          const idx = group.indexOf(loadItem.id);
+
+          if (idx !== -1) {
+            this.queue.update((state) => {
+              if (group.length === 1) {
+                state.splice(i, 1);
+              } else {
+                (state[i] as number[]).splice(idx, 1);
+              }
+            });
+            return loadItem;
+          }
+        }
+      }
+
+      logger.warning('Failed to find an LoadItem in queue.');
+      return loadItem;
+    }
+  }
+
+  private async createNewDownloads({
+    initiator,
+    logger = globalThis.logger,
+  }: {
+    initiator: Initiator;
+    logger?: Logger;
+  }): Promise<number[]> {
     // Создаёт новые загрузки и добавляет их в хранилище
+    logger.info('Creating new downloads:', initiator);
+
+    const movieId = parseInt(initiator.movieId);
+    const siteLoader = siteLoaderFactory[initiator.site_type];
+
     const tx = indexedDBObject.transaction(
       ['urlDetail', 'loadConfig', 'loadStorage'],
       'readwrite',
@@ -192,13 +327,13 @@ export class QueueController {
     const loadConfigStore = tx.objectStore('loadConfig');
     const loadItemsStore = tx.objectStore('loadStorage');
 
-    const movieId = parseInt(initiator.movieId);
     const currentPage =
-      (await urlDetailIndex.get(movieId)) ?? this.createUrlDetails(initiator);
-    const loadConfig = this.createLoadConfig(initiator);
+      (await urlDetailIndex.get(movieId)) ??
+      siteLoader.createUrlDetails(initiator);
+    const loadConfig = siteLoader.createLoadConfig(initiator);
     currentPage.loadRegistry.push(loadConfig.createdAt);
 
-    const loadItems = this.makeLoadItemArray(movieId, initiator.range);
+    const loadItems = this.makeLoadItemArray({ initiator, logger });
     loadConfig.loadItemIds = await Promise.all(
       loadItems.map((item) => loadItemsStore.put(item)),
     );
@@ -210,129 +345,142 @@ export class QueueController {
     return loadConfig.loadItemIds;
   }
 
-  private makeLoadItemArray(
-    movieId: number,
-    range: SeasonsWithEpisodesList | null,
-  ) {
+  private makeLoadItemArray({
+    initiator,
+    logger = globalThis.logger,
+  }: {
+    initiator: Initiator;
+    logger?: Logger;
+  }) {
     // Создаёт массив объектов, на основе которых будет производиться загрузка
-    const loadItemArray: (Omit<LoadItem, 'id'> & { id?: number })[] = [];
-    if (!(range === null)) {
-      for (const [seasonId, seasonData] of Object.entries(range)) {
+    logger.info('Creating load item array for movie:', initiator.movieId);
+
+    const movieId = parseInt(initiator.movieId);
+    const siteLoader = siteLoaderFactory[initiator.site_type];
+    const loadItemArray: Optional<LoadItem, 'id'>[] = [];
+
+    if (initiator.range) {
+      for (const [seasonId, seasonData] of Object.entries(initiator.range)) {
         const season = { id: seasonId, title: seasonData.title };
         for (const episode of seasonData.episodes) {
-          loadItemArray.push(this.createLoadItem(movieId, season, episode));
+          loadItemArray.push(
+            siteLoader.createLoadItem(movieId, season, episode),
+          );
         }
       }
     } else {
-      loadItemArray.push(this.createLoadItem(movieId));
+      loadItemArray.push(siteLoader.createLoadItem(movieId));
     }
-    logger.info(`Created ${loadItemArray.length} item for loading.`);
+
+    logger.debug(`Created ${loadItemArray.length} item for loading.`);
     return loadItemArray;
   }
 
-  private createLoadItem(
-    movieId: number,
-    season?: Season,
-    episode?: Episode,
-  ): Omit<LoadItem, 'id'> & { id?: number } {
-    return {
-      siteType: 'hdrezka',
-      movieId: movieId,
-      season: season ?? null,
-      episode: episode ?? null,
-      content: ContentType.both,
-      availableQualities: null,
-      availableSubtitles: null,
-      status: LoadStatus.DownloadCandidate,
-    };
-  }
-
-  private createLoadConfig(initiator: Initiator): LoadConfig {
-    return {
-      voiceOver: initiator.voice_over,
-      quality: initiator.quality,
-      subtitle: initiator.subtitle,
-      favs: initiator.favs,
-      loadItemIds: [],
-      createdAt: parseInt(initiator.timestamp),
-    };
-  }
-
-  private createUrlDetails(initiator: Initiator): UrlDetails {
-    return {
-      movieId: parseInt(initiator.movieId),
-      siteUrl: initiator.site_url,
-      filmTitle: initiator.film_name,
-      loadRegistry: [],
-    };
-  }
-
-  public async getNextObjectIdForDownload(): Promise<number | null> {
+  public async getNextObjectIdForDownload({
+    logger = globalThis.logger,
+  }: {
+    logger?: Logger;
+  }): Promise<number | null> {
     // Отвечает за получение объекта, на основе которого будет производиться загрузка
     logger.info('Attempt to get next object for download.');
 
-    if (this.queue.length === 0) {
-      logger.debug('Currently there are no available objects for loading.');
-      return null;
-    }
-    if (this.activeDownloads.length >= settings.maxParallelDownloads) {
-      logger.debug('Currently there are too many active downloads.');
-      return null;
-    }
-
-    for (let i = 0; i < this.queue.length; i++) {
-      const item = this.queue[i];
-      if (!Array.isArray(item)) {
-        this.queue.splice(i, 1);
-        this.activeDownloads.push(item);
-        return item;
+    // Вызов getNextObjectIdForDownload должен быть исключительно
+    // последовательным, иначе количество загрузок может выходить за лимит
+    const release = await this.mutex.acquire();
+    try {
+      if (this.queue.state.length === 0) {
+        logger.debug('Currently there are no available objects for loading.');
+        return null;
+      }
+      if (this.activeDownloads.state.length >= settings.maxParallelDownloads) {
+        logger.debug('Currently there are too many active downloads.');
+        return null;
       }
 
-      const loadConfig = (await indexedDBObject.getFromIndex(
-        'loadConfig',
-        'load_item_ids',
-        item[0],
-      )) as LoadConfig;
+      for (let i = 0; i < this.queue.state.length; i++) {
+        const item = this.queue.state[i];
+        if (!Array.isArray(item)) {
+          this.queue.update((state) => {
+            state.splice(i, 1);
+          });
+          this.activeDownloads.update((state) => {
+            state.push(item);
+          });
+          return item;
+        }
 
-      const numberActiveDownloads = this.activeDownloads.filter((id) =>
-        loadConfig.loadItemIds.includes(id),
-      ).length;
-      if (numberActiveDownloads >= settings.maxParallelDownloadsEpisodes)
-        continue;
-      if (item.length <= 1) {
-        this.queue.splice(i, 1);
+        const loadConfig = (await indexedDBObject.getFromIndex(
+          'loadConfig',
+          'load_item_ids',
+          item[0],
+        )) as LoadConfig;
+
+        const numberActiveDownloads = this.activeDownloads.state.filter((id) =>
+          loadConfig.loadItemIds.includes(id),
+        ).length;
+        if (numberActiveDownloads >= settings.maxParallelDownloadsEpisodes)
+          continue;
+
+        const targetItem = item[0];
+        this.activeDownloads.update((state) => {
+          state.push(targetItem);
+        });
+        this.queue.update((state) => {
+          if (item.length <= 1) {
+            state.splice(i, 1);
+          } else {
+            (state[i] as number[]).shift();
+          }
+        });
+
+        return targetItem;
       }
-      this.activeDownloads.push(item[0]);
-      return item.shift()!;
+      logger.debug('Failed to find an object to download.');
+      return null;
+    } finally {
+      release();
     }
-    logger.warning('Failed to find an object to download.');
-    return null;
   }
 
-  async successLoad(fileItem: FileItem) {
+  async successLoad({
+    fileItem,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    logger?: Logger;
+  }) {
     // Находит и удаляет объект из активных загрузок
     // и помечает его как успешно загруженный
+    logger.info('Mark download as successful:', fileItem);
+
     const loadItem = (await indexedDBObject.getFromIndex(
       'loadStorage',
       'load_id',
       fileItem.relatedLoadItemId,
     )) as LoadItem;
+
     loadItem.status = LoadStatus.DownloadSuccess;
     await indexedDBObject.put('loadStorage', loadItem);
 
-    this.activeDownloads.splice(
-      this.activeDownloads.indexOf(fileItem.relatedLoadItemId),
-      1,
+    const index = this.activeDownloads.state.indexOf(
+      fileItem.relatedLoadItemId,
     );
-
-    this.resourceLockManager.unlock({
-      type: 'loadStorage',
-      id: fileItem.relatedLoadItemId,
+    this.activeDownloads.update((state) => {
+      state.splice(index, 1);
     });
-    logger.info('Load was successful:', loadItem);
+
+    logger.debug('Load was successful:', loadItem);
   }
 
-  async failLoad(fileItem: FileItem, cause: LoadStatus) {
+  async failLoad({
+    fileItem,
+    cause,
+    logger = globalThis.logger,
+  }: {
+    fileItem: FileItem;
+    cause: LoadStatus;
+    logger?: Logger;
+  }) {
     // Находит и удаляет объект из активных загрузок
     // и помечает его как сбой загрузки.
     // В зависимости от настроек пользователя определяет реакцию на сбой
@@ -371,7 +519,10 @@ export class QueueController {
       }),
     );
 
-    this.activeDownloads.splice(this.activeDownloads.indexOf(loadItem.id), 1);
+    const index = this.activeDownloads.state.indexOf(loadItem.id);
+    this.activeDownloads.update((state) => {
+      state.splice(index, 1);
+    });
 
     if (cause === LoadStatus.StoppedByUser) return;
 
@@ -382,9 +533,9 @@ export class QueueController {
           : settings.actionOnNoSubtitles;
 
       if (actionOnNoUrl === 'stop') {
-        return await this.stopDownload(loadItem.movieId);
+        return await this.stopDownload({ movieId: loadItem.movieId, logger });
       } else if (actionOnNoUrl === 'skip') {
-        return await this.skipDownload(loadItem.movieId);
+        return await this.skipDownload({ movieId: loadItem.movieId });
       } else if (
         actionOnNoUrl === 'ignore' &&
         fileItem.fileType === 'subtitle'
@@ -401,9 +552,9 @@ export class QueueController {
         : settings.actionOnLoadSubtitleError;
 
     if (action === 'stop') {
-      await this.stopDownload(loadItem.movieId);
+      await this.stopDownload({ movieId: loadItem.movieId, logger });
     } else if (action === 'skip') {
-      await this.skipDownload(loadItem.movieId);
+      await this.skipDownload({ movieId: loadItem.movieId });
     } else {
       throw new Error('Unknown action on load error');
     }

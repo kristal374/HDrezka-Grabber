@@ -1,4 +1,5 @@
-export function HeroiconsCogIcon(props: React.ComponentProps<'svg'>) {
+export function CogIcon(props: React.ComponentProps<'svg'>) {
+  // Taken from: https://heroicons.com/
   return (
     <svg
       xmlns='http://www.w3.org/2000/svg'

@@ -1,3 +1,5 @@
+/* global CDNPlayerInfo, CDNPlayer */
+
 (async () => {
   const thisScript = document.currentScript;
 
@@ -70,9 +72,9 @@ async function extractQuality() {
 }
 
 async function extractCurrentTranslator() {
-  const translateElement = document.querySelector(
-    '.b-translator__item.active',
-  )?.dataset;
+  /** @type {HTMLElement|null} */
+  const el = document.querySelector('.b-translator__item.active');
+  const translateElement = el.dataset;
   if (!translateElement) return null;
   return {
     translator_id: translateElement.translator_id,
@@ -83,9 +85,11 @@ async function extractCurrentTranslator() {
 }
 
 async function extractCurrentEpisode() {
+  /** @type {HTMLElement|null} */
   const seasonID = document.querySelector(
     '.b-simple_seasons__list .b-simple_season__item.active',
   );
+  /** @type {HTMLElement|null} */
   const episodeID = document.querySelector(
     '.b-simple_episodes__list .b-simple_episode__item.active',
   );

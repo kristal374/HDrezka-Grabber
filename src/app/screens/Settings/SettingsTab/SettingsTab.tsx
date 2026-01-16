@@ -373,7 +373,7 @@ export function SettingsTab() {
           <div className='flex flex-wrap gap-3'>
             {/*TODO: реализовать обработку нажатий*/}
             {/*TODO: Добавить локализацию*/}
-            {/*<Button>Попытаться восстановить работу расширения</Button>*/}
+            <Button>Попытаться восстановить работу расширения</Button>
 
             <Button
               onClick={async () => {
@@ -383,16 +383,9 @@ export function SettingsTab() {
             >
               Восстановить настройки по умолчанию
             </Button>
-
-            {/*<Button onClick={async () => {*/}
-            {/*  await indexedDBObject.clear('cacheStorage')*/}
-            {/*  toast.success('Кэш очищен успешно!')*/}
-            {/*}}>Очистить кэш</Button>*/}
-
-            {/*<Button>Остановить все загрузки</Button>*/}
-
-            {/*<Button>Очистить историю загрузок</Button>*/}
-
+            <Button>Очистить кэш</Button>
+            <Button>Остановить все загрузки</Button>
+            <Button>Очистить историю загрузок</Button>
             <Button
               onClick={async () => {
                 await browser.storage.local.clear();

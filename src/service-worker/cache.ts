@@ -1,7 +1,17 @@
-export async function getFromCache<T>(url: string, body?: string) {
+import { Logger } from '@/lib/logger';
+
+export async function getFromCache<T>({
+  url,
+  body,
+  logger = globalThis.logger,
+}: {
+  url: string;
+  body?: string;
+  logger?: Logger;
+}) {
   await deleteOldCacheItems();
 
-  const key = `${url}${body ? `-${body}` : ''}`;
+  const key = `${url}${body ? `&${body}` : ''}`;
   const cacheItem = await indexedDBObject.getFromIndex(
     'cacheStorage',
     'key',
@@ -13,8 +23,18 @@ export async function getFromCache<T>(url: string, body?: string) {
   return cacheItem.data as T;
 }
 
-export async function setInCache<T>(data: T, url: string, body?: string) {
-  const key = `${url}${body ? `-${body}` : ''}`;
+export async function setInCache<T>({
+  data,
+  url,
+  body,
+  logger = globalThis.logger,
+}: {
+  data: T;
+  url: string;
+  body?: string;
+  logger?: Logger;
+}) {
+  const key = `${url}${body ? `&${body}` : ''}`;
   logger.debug(`Saving to cache:`, { key, data });
   const timeOfDeath = new Date().getTime() + 15 * 60 * 1000; // 15 minutes
   await indexedDBObject.put('cacheStorage', { timeOfDeath, key, data });
@@ -35,7 +55,11 @@ async function deleteOldCacheItems() {
   await tx.done;
 }
 
-export async function clearCache() {
+export async function clearCache({
+  logger = globalThis.logger,
+}: {
+  logger?: Logger;
+}) {
   logger.info('Clearing cache.');
   await indexedDBObject.clear('cacheStorage');
 }

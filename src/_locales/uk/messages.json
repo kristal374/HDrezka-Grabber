@@ -23,6 +23,9 @@
   "popup_stub_error": {
     "message": "Упс! Здається щось пішло не так..."
   },
+  "popup_stub_splitView": {
+    "message": "Вкладка відкрита в режимі Split View, для роботи з нею потрібно вибрати бажане вікно."
+  },
   "popup_loadSerial": {
     "message": "Завантажити серіал"
   },

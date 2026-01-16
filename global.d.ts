@@ -1,3 +1,5 @@
+// noinspection ES6ConvertVarToLetConst
+
 import type { BufferedEventBus } from '@/lib/event-bus';
 import { HDrezkaGrabberDB } from '@/lib/idb-storage';
 import type { Logger } from '@/lib/logger';

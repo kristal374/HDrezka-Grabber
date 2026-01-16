@@ -9,50 +9,38 @@ import {
   getQualityWeight,
   sortQualityItem,
 } from '@/lib/link-processing';
-import type {
+import { Logger } from '@/lib/logger';
+import {
+  ContentType,
+  Episode,
   FileItem,
   FileType,
+  Initiator,
   LoadConfig,
   LoadItem,
+  LoadStatus,
+  type Optional,
   QualityItem,
   QueryData,
+  RequestUrlSize,
   ResponseVideoData,
+  Season,
   Subtitle,
   SubtitleInfo,
   UrlDetails,
 } from '@/lib/types';
-import { LoadStatus } from '@/lib/types';
 import {
   fetchUrlSizes,
   getQualityFileSize,
   updateVideoData,
 } from '@/service-worker/network-layer';
+import {
+  SiteLoader,
+  SiteLoaderAsyncParams,
+  SiteLoaderInstance,
+} from '@/service-worker/site-loader/site-loader-interface';
 
-type SiteLoaderAsyncParams = {
-  downloadItem: LoadItem;
-  loadConfig: LoadConfig;
-  urlDetails: UrlDetails;
-};
-
-export interface SiteLoader {
-  downloadItem: LoadItem;
-  loadConfig: LoadConfig;
-  urlDetails: UrlDetails;
-
-  getQueryData(): QueryData;
-
-  getVideoData(): Promise<ResponseVideoData | null>;
-
-  getVideoUrl(): Promise<string | null>;
-
-  getSubtitlesUrl(): Promise<string | null>;
-
-  createAndGetFile(): Promise<readonly [FileItem | null, FileItem | null]>;
-
-  makeFilename(fileType: FileType, timestamp: number): Promise<string>;
-}
-
-export class HDrezkaLoader implements SiteLoader {
+class HDrezkaLoaderImplementation implements SiteLoaderInstance {
   public readonly downloadItem: LoadItem;
   public readonly loadConfig: LoadConfig;
   public readonly urlDetails: UrlDetails;
@@ -60,7 +48,7 @@ export class HDrezkaLoader implements SiteLoader {
   private qualitiesList: Partial<Record<QualityItem, string[]>> | null = null;
   private subtitlesList: Subtitle[] | null = null;
 
-  constructor(async_param: SiteLoaderAsyncParams | undefined) {
+  constructor({ async_param }: { async_param?: SiteLoaderAsyncParams }) {
     if (typeof async_param === 'undefined') {
       throw new Error('Cannot be called directly');
     }
@@ -69,9 +57,9 @@ export class HDrezkaLoader implements SiteLoader {
     this.urlDetails = async_param.urlDetails;
   }
 
-  static async build(downloadItem: LoadItem) {
-    const async_result = await this.asyncConstructor(downloadItem);
-    return new HDrezkaLoader(async_result);
+  static async build(downloadItem: LoadItem): Promise<SiteLoaderInstance> {
+    const async_param = await this.asyncConstructor(downloadItem);
+    return new HDrezkaLoaderImplementation({ async_param });
   }
 
   private static async asyncConstructor(
@@ -116,12 +104,21 @@ export class HDrezkaLoader implements SiteLoader {
         };
   }
 
-  async getVideoData(): Promise<ResponseVideoData | null> {
+  async getVideoData({
+    logger = globalThis.logger,
+  }: {
+    logger?: Logger;
+  }): Promise<ResponseVideoData | null> {
+    logger.info('Attempting to get video data.');
+
     if (!this.serverResponse) {
-      this.serverResponse = await updateVideoData(
-        this.urlDetails.siteUrl,
-        this.getQueryData(),
-      ).catch((e) => {
+      logger.debug('Saved request data was not found. Fetching from server.');
+
+      this.serverResponse = await updateVideoData({
+        siteUrl: this.urlDetails.siteUrl,
+        data: this.getQueryData(),
+        logger,
+      }).catch((e) => {
         const error = e as Error;
         logger.error('Server returned a bad response:', error.toString());
         return null;
@@ -146,41 +143,55 @@ export class HDrezkaLoader implements SiteLoader {
         }
 
         await indexedDBObject.put('loadStorage', this.downloadItem);
+      } else {
+        logger.error('Response success flag is false.');
       }
     }
 
     return this.serverResponse;
   }
 
-  async getVideoUrl(): Promise<string | null> {
-    const videoData = await this.getVideoData();
-    if (!videoData?.url) return null;
+  async getVideoUrl({
+    logger = globalThis.logger,
+  }: {
+    logger?: Logger;
+  }): Promise<string | null> {
+    logger.info('Attempting to get video link.');
+
+    const videoData = await this.getVideoData({ logger });
+    if (!videoData?.url) {
+      logger.warning('No video link was found.');
+      return null;
+    }
 
     if (
       this.loadConfig.subtitle &&
       settings.actionOnNoSubtitles === 'skip' &&
       !this.subtitlesList
     ) {
+      logger.error('No subtitles were found. Skipping download.');
       return null;
     }
 
     if (
       this.downloadItem.availableQualities!.includes(this.loadConfig.quality)
     ) {
-      const urlItem = await fetchUrlSizes({
+      const request: RequestUrlSize = {
         urlsList: this.qualitiesList![this.loadConfig.quality]!,
         siteUrl: this.urlDetails.siteUrl,
         onlySize: true,
-      });
+      };
+      const urlItem = await fetchUrlSizes({ request, logger });
       if (urlItem.rawSize > 0) return urlItem.url;
       logger.warning('"urlItem" is empty - skip.');
     }
 
     if (settings.actionOnNoQuality !== 'reduce_quality') return null;
-    const qualitySizes = (await getQualityFileSize(
-      this.qualitiesList,
-      this.urlDetails.siteUrl,
-    ))!;
+    const qualitySizes = (await getQualityFileSize({
+      urlsContainer: this.qualitiesList,
+      siteUrl: this.urlDetails.siteUrl,
+      logger,
+    }))!;
     const targetWeight = getQualityWeight(this.loadConfig.quality);
     for (const [qualityItem, urlItem] of Object.entries(
       sortQualityItem(qualitySizes),
@@ -194,59 +205,101 @@ export class HDrezkaLoader implements SiteLoader {
     return null;
   }
 
-  async getSubtitlesUrl(): Promise<string | null> {
-    const videoData = await this.getVideoData();
+  async getSubtitlesUrl({
+    logger = globalThis.logger,
+  }: {
+    logger?: Logger;
+  }): Promise<string | null> {
+    logger.info('Attempting to get subtitle link.');
 
-    if (!videoData?.subtitle) return null;
-
-    if (
-      this.loadConfig.subtitle &&
-      this.downloadItem.availableSubtitles!.includes(
-        this.loadConfig.subtitle.lang,
-      )
-    ) {
-      return this.subtitlesList!.find(
-        (subtitle) => subtitle.lang === this.loadConfig.subtitle!.lang,
-      )!.url;
+    if (!this.loadConfig.subtitle) {
+      logger.warning('No subtitle config was provided.');
+      return null;
     }
+
+    const videoData = await this.getVideoData({ logger });
+    if (!videoData?.subtitle) {
+      logger.warning('No subtitles link was found.');
+      return null;
+    }
+
+    for (const subtitle of this.subtitlesList!) {
+      if (subtitle.lang === this.loadConfig.subtitle.lang) return subtitle.url;
+    }
+
+    logger.warning('No suitable subtitle was found.');
     return null;
   }
 
-  async createAndGetFile(): Promise<
-    readonly [FileItem | null, FileItem | null]
-  > {
+  async createAndGetFile({
+    logger = globalThis.logger,
+  }: {
+    logger?: Logger;
+  }): Promise<readonly [FileItem | null, FileItem | null]> {
     const time = new Date().getTime();
     let [videoFile, subtitleFile] = [
-      this.loadConfig.quality ? await this.createFileItem('video', time) : null,
+      this.loadConfig.quality
+        ? await this.createFileItem({
+            fileType: 'video',
+            timestamp: time,
+            logger,
+          })
+        : null,
       this.loadConfig.subtitle
-        ? await this.createFileItem('subtitle', time)
+        ? await this.createFileItem({
+            fileType: 'subtitle',
+            timestamp: time,
+            logger,
+          })
         : null,
     ];
 
     return [videoFile, subtitleFile] as const;
   }
 
-  private async createFileItem(fileType: FileType, timestamp: number) {
+  private async createFileItem({
+    fileType,
+    timestamp,
+    logger = globalThis.logger,
+  }: {
+    fileType: FileType;
+    timestamp: number;
+    logger?: Logger;
+  }) {
+    logger.info(`Creating ${fileType} FileItem.`);
+
     const fileItem = {
       fileType: fileType,
       relatedLoadItemId: this.downloadItem.id,
       dependentFileItemId: null,
       downloadId: null,
-      fileName: await this.makeFilename(fileType, timestamp),
+      fileName: await this.makeFilename({ fileType, timestamp }),
       url:
         fileType === 'video'
-          ? await this.getVideoUrl()
-          : await this.getSubtitlesUrl(),
+          ? await this.getVideoUrl({ logger })
+          : await this.getSubtitlesUrl({ logger }),
       saveAs: false,
       retryAttempts: 0,
       status: LoadStatus.DownloadCandidate,
       createdAt: timestamp,
-    } as Omit<FileItem, 'id'> & { id?: number | undefined };
+    } as Optional<FileItem, 'id'>;
     fileItem.id = await indexedDBObject.put('fileStorage', fileItem);
+
+    logger.debug('FileItem created:', fileItem);
     return fileItem as FileItem;
   }
 
-  async makeFilename(fileType: FileType, timestamp: number): Promise<string> {
+  async makeFilename({
+    fileType,
+    timestamp,
+    logger = globalThis.logger,
+  }: {
+    fileType: FileType;
+    timestamp: number;
+    logger?: Logger;
+  }): Promise<string> {
+    logger.debug('Making filename for fileType:', fileType);
+
     const replacements: Replacements = {
       '%n%': String(
         this.loadConfig.loadItemIds.lastIndexOf(this.downloadItem.id) + 1,
@@ -274,4 +327,43 @@ export class HDrezkaLoader implements SiteLoader {
 
     return makePathAndFilename(replacements, fileType).join('');
   }
+
+  static createLoadItem(
+    movieId: number,
+    season?: Season,
+    episode?: Episode,
+  ): Optional<LoadItem, 'id'> {
+    return {
+      siteType: 'hdrezka',
+      movieId: movieId,
+      season: season ?? null,
+      episode: episode ?? null,
+      content: ContentType.both,
+      availableQualities: null,
+      availableSubtitles: null,
+      status: LoadStatus.DownloadCandidate,
+    };
+  }
+
+  static createLoadConfig(initiator: Initiator): LoadConfig {
+    return {
+      voiceOver: initiator.voice_over,
+      quality: initiator.quality,
+      subtitle: initiator.subtitle,
+      favs: initiator.favs,
+      loadItemIds: [],
+      createdAt: parseInt(initiator.timestamp),
+    };
+  }
+
+  static createUrlDetails(initiator: Initiator): UrlDetails {
+    return {
+      movieId: parseInt(initiator.movieId),
+      siteUrl: initiator.site_url,
+      filmTitle: initiator.film_name,
+      loadRegistry: [],
+    };
+  }
 }
+
+export const HDrezkaLoader: SiteLoader = HDrezkaLoaderImplementation;

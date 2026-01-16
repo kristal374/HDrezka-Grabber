@@ -1,59 +1,8 @@
-/** Нормализуем форму аргументов события в кортеж */
-type NormalizeArgs<T> = T extends undefined | void
-  ? []
-  : T extends any[]
-    ? T
-    : [T];
+import BufferedEventBusInterface from '@/lib/event-bus/event-bus-interface';
 
-/** Проверка на "тождество" типов-кортежей */
-type TupleEqual<A, B> = [A] extends [B]
-  ? [B] extends [A]
-    ? true
-    : false
-  : false;
-
-/** Пояснительный тип, дающий полезную ошибку в случае несовместимости */
-type EnsureParamsMatch<
-  EventArgs extends unknown[],
-  SourceParams extends unknown[],
-> =
-  TupleEqual<EventArgs, SourceParams> extends true
-    ? {}
-    : {
-        __INCOMPATIBLE__: [
-          'Event expects',
-          EventArgs,
-          'but source listener has',
-          SourceParams,
-        ];
-      };
-
-/** Конкретные интерфейсы источников */
-type ListenerSource<P extends unknown[]> = {
-  addListener(callback: (...args: P) => any): void;
-  removeListener(callback: (...args: P) => any): void;
-};
-
-type EventTargetSource<P extends unknown[]> = {
-  addEventListener(type: string, callback: (...args: P) => void): void;
-  removeEventListener(type: string, callback: (...args: P) => void): void;
-};
-
-type Handler<T extends Record<string, unknown>, K extends keyof T = keyof T> = (
-  ...args: NormalizeArgs<T[K]>
-) => unknown;
-
-type QueueItem<
-  T extends Record<string, unknown>,
-  K extends keyof T = keyof T,
-> = {
-  type: K;
-  args: NormalizeArgs<T[K]>;
-  resolve?: (v: any) => void;
-  reject?: (e: any) => void;
-};
-
-export class BufferedEventBus<T extends Record<string, unknown>> {
+export class BufferedEventBus<T extends Record<string, unknown>>
+  implements BufferedEventBusInterface<T>
+{
   private listeners = new Map<keyof T, Set<any>>();
   private sourceHandlers = new WeakMap<object, Map<keyof T, Handler<T>>>();
   private queue: Array<QueueItem<T>> = [];
@@ -88,7 +37,15 @@ export class BufferedEventBus<T extends Record<string, unknown>> {
     eventName: K,
     source: EventTargetSource<P> & EnsureParamsMatch<NormalizeArgs<T[K]>, P>,
   ): void;
-  public addMessageSource<K extends keyof T>(
+  public addMessageSource<K extends keyof T, P extends unknown[]>(
+    eventName: K,
+    source: (ListenerSource<P> | EventTargetSource<P>) &
+      EnsureParamsMatch<NormalizeArgs<T[K]>, P>,
+  ): void {
+    return this._addMessageSource(eventName, source);
+  }
+
+  private _addMessageSource<K extends keyof T>(
     eventName: K,
     source: ListenerSource<any> | EventTargetSource<any>,
   ): void {
@@ -122,7 +79,15 @@ export class BufferedEventBus<T extends Record<string, unknown>> {
     eventName: K,
     source: EventTargetSource<P> & EnsureParamsMatch<NormalizeArgs<T[K]>, P>,
   ): void;
-  public removeMessageSource<K extends keyof T>(
+  public removeMessageSource<K extends keyof T, P extends unknown[]>(
+    eventName: K,
+    source: (ListenerSource<P> | EventTargetSource<P>) &
+      EnsureParamsMatch<NormalizeArgs<T[K]>, P>,
+  ): void {
+    return this._removeMessageSource(eventName, source);
+  }
+
+  private _removeMessageSource<K extends keyof T>(
     eventName: K,
     source: ListenerSource<any> | EventTargetSource<any>,
   ): void {
@@ -144,6 +109,40 @@ export class BufferedEventBus<T extends Record<string, unknown>> {
 
     map.delete(eventName);
     if (map.size === 0) this.sourceHandlers.delete(source);
+  }
+
+  public mountHandler<
+    K extends keyof T,
+    P extends unknown[],
+    H extends Handler<T, K>,
+  >(
+    eventName: K,
+    source: ListenerSource<P> & EnsureParamsMatch<NormalizeArgs<T[K]>, P>,
+    handler: H,
+  ): () => void;
+
+  public mountHandler<
+    K extends keyof T,
+    P extends unknown[],
+    H extends Handler<T, K>,
+  >(
+    eventName: K,
+    source: EventTargetSource<P> & EnsureParamsMatch<NormalizeArgs<T[K]>, P>,
+    handler: H,
+  ): () => void;
+
+  public mountHandler<K extends keyof T, H extends Handler<T, K>>(
+    eventName: K,
+    source: ListenerSource<any> | EventTargetSource<any>,
+    handler: H,
+  ): () => void {
+    this._addMessageSource(eventName, source);
+    this.on(eventName, handler);
+
+    return () => {
+      this._removeMessageSource(eventName, source);
+      this.off(eventName, handler);
+    };
   }
 
   private assertIsObject(source: any): void {

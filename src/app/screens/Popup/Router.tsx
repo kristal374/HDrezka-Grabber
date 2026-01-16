@@ -1,3 +1,4 @@
+import { RequestToRestoreExtensionState } from '@/app/screens/Popup/RequestToRestoreExtensionState';
 import { OutsideLink } from '@/components/ui/OutsideLink';
 import { PopupInitialDataContext } from '@/html/popup';
 import { PageType } from '@/lib/types';
@@ -6,17 +7,13 @@ import { DefaultScreen } from './DefaultScreen';
 import { DownloadScreen } from './DownloadScreen/DownloadScreen';
 
 export function Router() {
-  const initData = useContext(PopupInitialDataContext);
+  const { pageType, needToRestoreInsideState } = useContext(
+    PopupInitialDataContext,
+  )!;
 
-  if (!initData) {
-    return (
-      <DefaultScreen vpnNotice={false}>
-        {browser.i18n.getMessage('popup_stub_default')}{' '}
-        <OutsideLink url={'https://hdrezka.ag'} text={'HDrezka.ag'} />!
-      </DefaultScreen>
-    );
+  if (needToRestoreInsideState) {
+    return <RequestToRestoreExtensionState />;
   }
-  const { pageType, siteUrl } = initData;
 
   logger.debug('Page type defined:', pageType);
   if (pageType === 'FILM' || pageType === 'SERIAL') {
@@ -31,6 +28,7 @@ export function Router() {
     LOCATION_SERIAL: browser.i18n.getMessage('popup_stub_locationSerial'),
     UNAVAILABLE: browser.i18n.getMessage('popup_stub_unavailable'),
     ERROR: browser.i18n.getMessage('popup_stub_error'),
+    SPLIT_VIEW: browser.i18n.getMessage('popup_stub_splitView'),
     DEFAULT: (
       <>
         {browser.i18n.getMessage('popup_stub_default')}{' '}

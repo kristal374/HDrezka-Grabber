@@ -1,6 +1,7 @@
-import browser from 'webextension-polyfill';
+import browser, { Manifest } from 'webextension-polyfill';
 
 import { LogLevel, LogMessage } from '@/lib/logger/types';
+import { hashCode } from '@/lib/utils';
 
 let lastCallTime: number = 0;
 
@@ -120,3 +121,47 @@ function printLogForFirefox(
     ...message.message,
   );
 }
+
+export function isBackground() {
+  const isCurrentPathname = (path: string | undefined) => {
+    if (!path) return false;
+
+    try {
+      const { pathname } = new URL(path, location.origin);
+      return pathname === location.pathname;
+    } catch {
+      return false;
+    }
+  };
+
+  const manifest = browser.runtime.getManifest();
+
+  let background = manifest.background;
+  switch (manifest.manifest_version) {
+    case 1:
+      background = background as Manifest.WebExtensionManifestBackgroundC1Type;
+      return isCurrentPathname(background.page);
+    case 2:
+      background = background as Manifest.WebExtensionManifestBackgroundC2Type;
+      return Boolean(
+        background.scripts &&
+          isCurrentPathname('/_generated_background_page.html'),
+      );
+    case 3:
+      background = background as Manifest.WebExtensionManifestBackgroundC3Type;
+      return isCurrentPathname(background.service_worker);
+    default:
+      return false;
+  }
+}
+
+export function getTraceId() {
+  return hashCode(crypto.randomUUID());
+}
+
+function makeSession() {
+  const sessionId = getTraceId();
+  return () => sessionId;
+}
+
+export const getSessionId = makeSession();

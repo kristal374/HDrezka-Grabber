@@ -17,6 +17,7 @@
     "service_worker": "src/js/background.js"
   },
   "permissions": [
+    "alarms",
     "scripting",
     "storage",
     "declarativeNetRequestWithHostAccess",

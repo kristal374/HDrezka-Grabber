@@ -83,3 +83,10 @@ export function removeBadSymbols(str: string) {
       .replaceAll(/[‪‎​]/g, '')
   );
 }
+
+export function extractFilename(filename: string) {
+  return filename
+    .split(/[\\/]/)
+    .at(-1)!
+    .match(/(.*)\.\w+/)![1];
+}

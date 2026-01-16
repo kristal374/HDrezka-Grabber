@@ -60,7 +60,7 @@ export function EpisodeRangeSelector({
   useEffect(() => {
     // Если у нас нет списка эпизодов/сезонов получаем их со страницы сайта
     if (seasons !== null) return;
-    getSeasons(tabId, pageType).then((result) => {
+    getSeasons(tabId!, pageType).then((result) => {
       dispatch(
         setDefaultSeasonsAction({
           seasons: result,

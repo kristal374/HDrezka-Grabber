@@ -109,18 +109,13 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
       const removed = [...oldSet].filter((id) => !newSet.has(id));
 
       if (!loadItemIds || !loadStatuses) {
-        if (
-          movieInfo.data.action === 'get_movie' ||
-          (range && !Object.values(range).some((s) => s.episodes.length > 1))
-        ) {
-          const [targetLoadItem, targetLoadConfig, newLoadStatuses] =
-            await getNewTarget(added, movieId);
+        const [targetLoadItem, targetLoadConfig, newLoadStatuses] =
+          await getNewTarget(added, movieId);
 
-          if (!targetLoadConfig) return;
-          setLoadItemIds(targetLoadConfig.loadItemIds);
-          setLoadStatuses(newLoadStatuses);
-          setLoadItem(targetLoadItem);
-        }
+        if (!targetLoadConfig) return;
+        setLoadItemIds(targetLoadConfig.loadItemIds);
+        setLoadStatuses(newLoadStatuses);
+        setLoadItem(targetLoadItem);
         return;
       }
 
@@ -162,10 +157,17 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
       }
 
       if (changes.initialized?.length && !loadItemIds) {
-        const [targetLoadItem, targetLoadConfig, newLoadStatuses] =
-          await getNewTarget(changes.initialized, movieId);
+        const activeDownloads =
+          await getFromStorage<number[]>('activeDownloads');
+        let [targetLoadItem, targetLoadConfig, newLoadStatuses] =
+          await getNewTarget(activeDownloads, movieId);
 
-        if (!targetLoadConfig) return;
+        if (!targetLoadConfig) {
+          [targetLoadItem, targetLoadConfig, newLoadStatuses] =
+            await getNewTarget(changes.initialized, movieId);
+          if (!targetLoadConfig) return;
+        }
+
         setLoadItemIds(targetLoadConfig.loadItemIds);
         setLoadStatuses(newLoadStatuses);
         setLoadItem(targetLoadItem);
@@ -213,7 +215,10 @@ async function setup(movieId: number) {
   return null;
 }
 
-async function getNewTarget(loadItemIdsSequence: QueueItem[], movieId: number) {
+async function getNewTarget(
+  loadItemIdsSequence: QueueItem[] | undefined,
+  movieId: number,
+) {
   for (const movie of loadItemIdsSequence ?? []) {
     const targetLoadItem = (await indexedDBObject.getFromIndex(
       'loadStorage',

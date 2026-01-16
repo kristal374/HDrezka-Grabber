@@ -38,6 +38,7 @@ export function LoadButton() {
       message: {
         movieId: movieInfo.data.id,
         site_url: movieInfo.url,
+        site_type: 'hdrezka',
         film_name: {
           localized: movieInfo.filename.local,
           original: movieInfo.filename.origin,
