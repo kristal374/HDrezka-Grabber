@@ -1,5 +1,14 @@
-import { LogLevel, LogMessage } from '@/lib/logger/types';
+import { attachTraceId } from './decorator';
 import { Logger } from './logger';
-import { printLog } from './utils';
+import { LogLevel, LogMessage } from './types';
+import { getSessionId, getTraceId, printLog } from './utils';
 
-export { Logger, LogLevel, LogMessage, printLog };
+export {
+  attachTraceId,
+  getSessionId,
+  getTraceId,
+  Logger,
+  LogLevel,
+  LogMessage,
+  printLog,
+};

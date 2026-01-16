@@ -1,12 +1,8 @@
 import { extractFilename } from '@/lib/filename-maker';
-import { Logger } from '@/lib/logger';
+import { attachTraceId, getTraceId, Logger } from '@/lib/logger';
 import { ResourceLockManager } from '@/lib/resource-lock-manager';
 import { FileItem, Initiator, LoadItem, LoadStatus } from '@/lib/types';
-import {
-  findSomeFilesFromLoadItemIdsInDB,
-  getTraceId,
-  loadIsCompleted,
-} from '@/lib/utils';
+import { findSomeFilesFromLoadItemIdsInDB, loadIsCompleted } from '@/lib/utils';
 import { clearCache } from '@/service-worker/cache';
 import {
   findBrokenFileItemInActiveDownloads,
@@ -48,6 +44,7 @@ export class DownloadManager {
     };
   }
 
+  @attachTraceId()
   async stabilizeInsideState({
     permissionToRestore,
     logger = globalThis.logger,
@@ -59,14 +56,9 @@ export class DownloadManager {
     // может быть нарушена логика работы расширения, а данные потеряют актуальность.
     // Поэтому при старте браузера проводим аудит данных и в случае необходимости
     // восстанавливаем работоспособность расширения.
-
-    if (typeof logger.metadata.traceId === 'undefined') {
-      logger = logger.attachMetadata({ traceId: getTraceId() });
-    }
-
     logger.info('Started checking inside state of load manager.');
-    const isFirstRun = await isFirstRunExtension({ logger });
 
+    const isFirstRun = await isFirstRunExtension({ logger });
     if (isFirstRun) {
       await clearCache({ logger });
     }
@@ -127,6 +119,7 @@ export class DownloadManager {
     }
   }
 
+  @attachTraceId()
   async initNewDownload({
     initiator,
     logger = globalThis.logger,
@@ -136,11 +129,8 @@ export class DownloadManager {
   }) {
     // Точка входа для добавления фильмов/сериалов в очередь на загрузку
     // или отмены их загрузки
-    if (typeof logger.metadata.traceId === 'undefined') {
-      logger = logger.attachMetadata({ traceId: getTraceId() });
-    }
-
     logger.info('Trigger new load:', initiator);
+
     await this.resourceLockManager.run({
       type: 'urlDetail',
       id: initiator.movieId,
@@ -967,6 +957,7 @@ export class DownloadManager {
     });
   }
 
+  @attachTraceId()
   public async executeRetry({
     loadItemId,
     targetFileId,
@@ -977,12 +968,9 @@ export class DownloadManager {
     logger?: Logger;
   }) {
     // Запускает повторную попытку загрузки
-    if (typeof logger.metadata.traceId === 'undefined') {
-      logger = logger.attachMetadata({ traceId: getTraceId() });
-    }
     logger.attachMetadata({ targetKey: loadItemId });
-
     logger.info('Trying to download again:', loadItemId);
+
     await this.resourceLockManager.lock({
       type: 'loadStorage',
       id: loadItemId,

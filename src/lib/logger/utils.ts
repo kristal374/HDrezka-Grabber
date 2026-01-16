@@ -1,6 +1,7 @@
 import browser, { Manifest } from 'webextension-polyfill';
 
 import { LogLevel, LogMessage } from '@/lib/logger/types';
+import { hashCode } from '@/lib/utils';
 
 let lastCallTime: number = 0;
 
@@ -153,3 +154,14 @@ export function isBackground() {
       return false;
   }
 }
+
+export function getTraceId() {
+  return hashCode(crypto.randomUUID());
+}
+
+function makeSession() {
+  const sessionId = getTraceId();
+  return () => sessionId;
+}
+
+export const getSessionId = makeSession();
