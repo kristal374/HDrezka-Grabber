@@ -57,12 +57,13 @@ export async function updateVideoInfo({
   data: DataForUpdate;
   logger?: Logger;
 }): Promise<ActualVideoData> {
-  logger.debug('Request to update video data:', data);
+  logger.info('Request to update video data:', data);
   const serverResponse = await updateVideoData({
     siteUrl: data.siteURL,
     data: data.movieData,
     logger,
   });
+
   return {
     seasons: serverResponse?.seasons
       ? await extractAllEpisodes({ serverResponse })

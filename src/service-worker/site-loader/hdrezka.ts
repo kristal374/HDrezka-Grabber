@@ -109,7 +109,11 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
   }: {
     logger?: Logger;
   }): Promise<ResponseVideoData | null> {
+    logger.info('Attempting to get video data.');
+
     if (!this.serverResponse) {
+      logger.debug('Saved request data was not found. Fetching from server.');
+
       this.serverResponse = await updateVideoData({
         siteUrl: this.urlDetails.siteUrl,
         data: this.getQueryData(),
@@ -139,6 +143,8 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
         }
 
         await indexedDBObject.put('loadStorage', this.downloadItem);
+      } else {
+        logger.error('Response success flag is false.');
       }
     }
 
@@ -150,14 +156,20 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
   }: {
     logger?: Logger;
   }): Promise<string | null> {
+    logger.info('Attempting to get video link.');
+
     const videoData = await this.getVideoData({ logger });
-    if (!videoData?.url) return null;
+    if (!videoData?.url) {
+      logger.warning('No video link was found.');
+      return null;
+    }
 
     if (
       this.loadConfig.subtitle &&
       settings.actionOnNoSubtitles === 'skip' &&
       !this.subtitlesList
     ) {
+      logger.error('No subtitles were found. Skipping download.');
       return null;
     }
 
@@ -198,20 +210,24 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
   }: {
     logger?: Logger;
   }): Promise<string | null> {
-    const videoData = await this.getVideoData({ logger });
+    logger.info('Attempting to get subtitle link.');
 
-    if (!videoData?.subtitle) return null;
-
-    if (
-      this.loadConfig.subtitle &&
-      this.downloadItem.availableSubtitles!.includes(
-        this.loadConfig.subtitle.lang,
-      )
-    ) {
-      return this.subtitlesList!.find(
-        (subtitle) => subtitle.lang === this.loadConfig.subtitle!.lang,
-      )!.url;
+    if (!this.loadConfig.subtitle) {
+      logger.warning('No subtitle config was provided.');
+      return null;
     }
+
+    const videoData = await this.getVideoData({ logger });
+    if (!videoData?.subtitle) {
+      logger.warning('No subtitles link was found.');
+      return null;
+    }
+
+    for (const subtitle of this.subtitlesList!) {
+      if (subtitle.lang === this.loadConfig.subtitle.lang) return subtitle.url;
+    }
+
+    logger.warning('No suitable subtitle was found.');
     return null;
   }
 
@@ -250,6 +266,8 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
     timestamp: number;
     logger?: Logger;
   }) {
+    logger.info(`Creating ${fileType} FileItem.`);
+
     const fileItem = {
       fileType: fileType,
       relatedLoadItemId: this.downloadItem.id,
@@ -266,16 +284,22 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
       createdAt: timestamp,
     } as Optional<FileItem, 'id'>;
     fileItem.id = await indexedDBObject.put('fileStorage', fileItem);
+
+    logger.debug('FileItem created:', fileItem);
     return fileItem as FileItem;
   }
 
   async makeFilename({
     fileType,
     timestamp,
+    logger = globalThis.logger,
   }: {
     fileType: FileType;
     timestamp: number;
+    logger?: Logger;
   }): Promise<string> {
+    logger.debug('Making filename for fileType:', fileType);
+
     const replacements: Replacements = {
       '%n%': String(
         this.loadConfig.loadItemIds.lastIndexOf(this.downloadItem.id) + 1,

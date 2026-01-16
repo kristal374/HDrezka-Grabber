@@ -11,7 +11,7 @@ export async function getFromCache<T>({
 }) {
   await deleteOldCacheItems();
 
-  const key = `${url}${body ? `-${body}` : ''}`;
+  const key = `${url}${body ? `&${body}` : ''}`;
   const cacheItem = await indexedDBObject.getFromIndex(
     'cacheStorage',
     'key',
@@ -34,7 +34,7 @@ export async function setInCache<T>({
   body?: string;
   logger?: Logger;
 }) {
-  const key = `${url}${body ? `-${body}` : ''}`;
+  const key = `${url}${body ? `&${body}` : ''}`;
   logger.debug(`Saving to cache:`, { key, data });
   const timeOfDeath = new Date().getTime() + 15 * 60 * 1000; // 15 minutes
   await indexedDBObject.put('cacheStorage', { timeOfDeath, key, data });

@@ -81,5 +81,5 @@ export function decodeSubtitleURL(subtitles: SubtitleInfo | null) {
 }
 
 export function getTargetSubtitle(subtitles: Subtitle[], codeLang: string) {
-  return subtitles.find((s) => s.code === codeLang) || null;
+  return subtitles.find((s) => s.code === codeLang) ?? null;
 }

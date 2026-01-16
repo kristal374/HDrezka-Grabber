@@ -23,9 +23,13 @@ export async function isFirstRunExtension({
 
 export async function findBrokenFileItemInActiveDownloads({
   strictMode = false,
+  logger = globalThis.logger,
 }: {
   strictMode: boolean;
+  logger?: Logger;
 }) {
+  logger.info('Finding broken FileItems in active downloads.');
+
   const brokenDownloads: FileItem[] = [];
 
   // Сначала получаем объекты активных загрузок, которые отслеживает расширение
@@ -81,7 +85,13 @@ export async function findBrokenFileItemInActiveDownloads({
   return brokenDownloads;
 }
 
-export async function findBrokenLoadItemInActiveDownloads() {
+export async function findBrokenLoadItemInActiveDownloads({
+  logger = globalThis.logger,
+}: {
+  logger?: Logger;
+}) {
+  logger.info('Finding broken LoadItems in active downloads.');
+
   // Сначала получаем объекты активных загрузок, которые отслеживает расширение
   const activeDownloads =
     (await getFromStorage<number[]>('activeDownloads')) ?? [];

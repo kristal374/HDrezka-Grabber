@@ -48,6 +48,7 @@ export interface SiteLoaderInstance {
   }: {
     fileType: FileType;
     timestamp: number;
+    logger?: Logger;
   }): Promise<string>;
 }
 
