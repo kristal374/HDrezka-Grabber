@@ -21,6 +21,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { useCallback } from 'react';
+import { toast } from 'sonner';
 import { FilenameTemplateComponent } from './FilenameTemplateComponent';
 import { SettingItem, SettingsSection } from './SettingsComponets';
 
@@ -371,12 +372,17 @@ export function SettingsTab() {
 
           <div className='flex flex-wrap gap-3'>
             {/*TODO: реализовать обработку нажатий*/}
+            {/*TODO: Добавить локализацию*/}
             <Button>Попытаться восстановить работу расширения</Button>
 
-            <Button onClick={createDefaultSettings}>
+            <Button
+              onClick={async () => {
+                await createDefaultSettings();
+                toast.success('Настройки сброшены!');
+              }}
+            >
               Восстановить настройки по умолчанию
             </Button>
-
             <Button>Очистить кэш</Button>
             <Button>Остановить все загрузки</Button>
             <Button>Очистить историю загрузок</Button>
@@ -385,6 +391,7 @@ export function SettingsTab() {
                 await browser.storage.local.clear();
                 await browser.storage.session.clear();
                 await dropDatabase();
+                toast.success('Данные расширения сброшены!');
               }}
             >
               Удалить все данные расширения

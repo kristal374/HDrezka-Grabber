@@ -1,14 +1,19 @@
+import { PopupNotification } from '@/lib/notification/message-broker';
 import { createAction, createReducer } from '@reduxjs/toolkit';
 import { AppState } from './store';
 
 export const setNotificationAction = createAction<{
-  notification: string | null;
+  notification: PopupNotification;
 }>('notification/setNotification');
 
+export const deleteNotificationsAction = createAction<{
+  notificationText: string;
+}>('notification/deleteNotificationsAction');
+
 const initialNotification: {
-  notification: string | null;
+  notifications: PopupNotification[];
 } = {
-  notification: null,
+  notifications: [],
 };
 
 export const notificationReducer = createReducer(
@@ -16,10 +21,17 @@ export const notificationReducer = createReducer(
   (builder) => {
     builder.addCase(setNotificationAction, (state, action) => {
       logger.debug('Set new notification:', action.payload.notification);
-      state.notification = action.payload.notification;
+      state.notifications.push(action.payload.notification);
+    });
+    builder.addCase(deleteNotificationsAction, (state, action) => {
+      logger.debug('Delete notifications:', action.payload.notificationText);
+      state.notifications = state.notifications.filter(
+        (notification) =>
+          notification.message !== action.payload.notificationText,
+      );
     });
   },
 );
 
-export const selectNotification = (state: AppState) =>
-  state.notificationReducer.notification;
+export const selectNotifications = (state: AppState) =>
+  state.notificationReducer.notifications;

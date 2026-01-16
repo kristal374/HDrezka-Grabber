@@ -1,5 +1,5 @@
 import { LogMessage } from '@/lib/logger';
-import { DBSchema, IDBPDatabase, openDB } from 'idb';
+import { DBSchema, deleteDB, IDBPDatabase, openDB } from 'idb';
 import {
   CacheItem,
   FileItem,
@@ -72,6 +72,14 @@ export async function doDatabaseStuff(): Promise<
     },
     terminated() {
       console.error('Database was terminated.');
+    },
+  });
+}
+
+export async function dropDatabase() {
+  return await deleteDB('HDrezkaGrabberDB', {
+    blocked(currentVersion: number, event: IDBVersionChangeEvent) {
+      logger.error('Database was blocked:', currentVersion, event);
     },
   });
 }

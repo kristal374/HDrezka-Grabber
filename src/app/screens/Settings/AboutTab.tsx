@@ -3,10 +3,8 @@ import { Panel } from '@/components/Panel';
 import { Button } from '@/components/ui/Button';
 import { OutsideLink } from '@/components/ui/OutsideLink';
 import {
-  CoffeeIcon,
   CopyCheckIcon,
   CopyIcon,
-  DollarSignIcon,
   HeartIcon,
   MailIcon,
   ScaleIcon,
