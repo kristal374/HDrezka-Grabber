@@ -141,7 +141,7 @@ export class MessageBroker {
   async clearNotificationsFromStorage(movieId: number | string) {
     const lostNotifications = await this.getLostNotifications();
 
-    if (!lostNotifications.hasOwnProperty(Number(movieId))) {
+    if (lostNotifications.hasOwnProperty(Number(movieId))) {
       delete lostNotifications[Number(movieId)];
 
       await browser.storage.session.set({

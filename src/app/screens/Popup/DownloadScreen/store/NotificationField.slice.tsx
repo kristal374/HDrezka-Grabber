@@ -7,13 +7,15 @@ export const setNotificationAction = createAction<{
 }>('notification/setNotification');
 
 export const deleteNotificationsAction = createAction<{
-  notificationText: string;
+  notificationId: number;
 }>('notification/deleteNotificationsAction');
 
 const initialNotification: {
-  notifications: PopupNotification[];
+  notifications: Array<PopupNotification & { id: number }>;
+  lastNotificationId: number;
 } = {
   notifications: [],
+  lastNotificationId: 0,
 };
 
 export const notificationReducer = createReducer(
@@ -21,13 +23,16 @@ export const notificationReducer = createReducer(
   (builder) => {
     builder.addCase(setNotificationAction, (state, action) => {
       logger.debug('Set new notification:', action.payload.notification);
-      state.notifications.push(action.payload.notification);
+      state.lastNotificationId += 1;
+      state.notifications.push({
+        ...action.payload.notification,
+        id: state.lastNotificationId,
+      });
     });
     builder.addCase(deleteNotificationsAction, (state, action) => {
-      logger.debug('Delete notifications:', action.payload.notificationText);
+      logger.debug('Delete notifications:', action.payload.notificationId);
       state.notifications = state.notifications.filter(
-        (notification) =>
-          notification.message !== action.payload.notificationText,
+        (notification) => notification.id !== action.payload.notificationId,
       );
     });
   },

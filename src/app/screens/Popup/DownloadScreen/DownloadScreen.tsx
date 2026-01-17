@@ -33,6 +33,9 @@ export function DownloadScreen() {
     return <DownloadScreenSkeleton />;
   }
 
+  const showSeparatorLine =
+    pageType === 'SERIAL' || subtitleLang || notifications.length > 0;
+
   logger.info('New render DownloadScreen component.');
   return (
     <div className='flex size-full flex-col gap-5'>
@@ -49,7 +52,7 @@ export function DownloadScreen() {
         />
 
         <SubtitleSelector />
-        {(pageType === 'SERIAL' || subtitleLang || notifications.length) && (
+        {showSeparatorLine && (
           <hr className='border-popup-border w-full border-b' />
         )}
 
