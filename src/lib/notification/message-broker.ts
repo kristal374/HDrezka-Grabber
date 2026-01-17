@@ -94,18 +94,19 @@ export class MessageBroker {
   ) {
     eventBus.on(
       EventType.NotificationMessage,
-      async (
+      (
         message: unknown,
         _sender: MessageSender,
         sendResponse: (message: unknown) => void,
       ) => {
         const data = message as Message<any>;
-        if (
-          data.type === 'setNotification' &&
-          data.message.movieId === movieId
-        ) {
-          sendResponse(this.OK_STATUS);
-          await callback(data.message.notification);
+
+        if (data.type === 'setNotification') {
+          if (data.message.movieId !== movieId) return;
+          callback(data.message.notification).then(() => {
+            sendResponse(this.OK_STATUS);
+          });
+          return true;
         } else return;
       },
     );

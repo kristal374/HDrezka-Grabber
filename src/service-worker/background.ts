@@ -90,27 +90,31 @@ async function main() {
   eventBus.setReady();
 }
 
-async function messageHandler(
+function messageHandler(
   message: unknown,
   _sender: MessageSender,
-  _sendResponse: (message: unknown) => void,
+  sendResponse: (message: unknown) => void,
 ) {
   let logger = globalThis.logger;
   logger = logger.attachMetadata({ traceId: getTraceId() });
+  const promiseResponse = <T>(promise: Promise<T>) => {
+    promise.then((response) => sendResponse(response))
+    return true
+  }
 
   const data = message as Message<any>;
   switch (data.type) {
     case 'getFileSize':
-      return await fetchUrlSizes({ request: data.message, logger });
+      return promiseResponse(fetchUrlSizes({ request: data.message, logger }));
     case 'updateVideoInfo':
-      return await updateVideoInfo({ data: data.message, logger });
+      return promiseResponse(updateVideoInfo({ data: data.message, logger }));
     case 'trigger':
-      return await downloadManager.initNewDownload({
+      return promiseResponse(downloadManager.initNewDownload({
         initiator: data.message,
         logger,
-      });
+      }));
     case 'requestToRestoreState':
-      return await downloadManager.stabilizeInsideState({
+      return promiseResponse(downloadManager.stabilizeInsideState({
         permissionToRestore: data.message,
         logger,
       });

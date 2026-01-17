@@ -327,17 +327,15 @@ export enum EventType {
   StorageChanged = 'StorageChanged',
 }
 
+type MessageReceivedHandler = [
+  unknown,
+  MessageSender,
+  (message: unknown) => void,
+];
+
 export type EventBusTypes = {
-  [EventType.NewMessageReceived]: [
-    unknown,
-    MessageSender,
-    (message: unknown) => void,
-  ];
-  [EventType.NotificationMessage]: [
-    unknown,
-    MessageSender,
-    (message: unknown) => void,
-  ];
+  [EventType.NewMessageReceived]: MessageReceivedHandler
+  [EventType.NotificationMessage]: MessageReceivedHandler;
   [EventType.NotificationEvent]: Event;
   [EventType.DownloadCreated]: DownloadItem;
   [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
