@@ -74,7 +74,7 @@ async function extractQuality() {
 async function extractCurrentTranslator() {
   /** @type {HTMLElement|null} */
   const el = document.querySelector('.b-translator__item.active');
-  const translateElement = el.dataset;
+  const translateElement = el?.dataset;
   if (!translateElement) return null;
   return {
     translator_id: translateElement.translator_id,
