@@ -11,7 +11,7 @@ import { Provider } from 'react-redux';
 
 logger.info('Popup open.');
 
-const element = document.querySelector('body')!;
+const element = document.querySelector('#root')!;
 const root = createRoot(element);
 
 export const PopupInitialDataContext = createContext<PopupInitData | null>(

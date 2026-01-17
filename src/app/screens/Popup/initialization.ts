@@ -19,7 +19,6 @@ export async function popupInit(
   setInitData: React.Dispatch<React.SetStateAction<any>>,
 ): Promise<PopupInitData> {
   globalThis.settings = await getSettings();
-  globalThis.permissions = await browser.permissions.getAll();
 
   const storage = await browser.storage.session.get('needToRestoreInsideState');
   const needToRestoreInsideState = storage['needToRestoreInsideState'] as

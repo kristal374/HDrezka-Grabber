@@ -6,7 +6,7 @@ import type { Logger } from '@/lib/logger';
 import type { MessageBroker } from '@/lib/notification/message-broker';
 import type { EventBusTypes, Settings } from '@/lib/types';
 import { IDBPDatabase } from 'idb';
-import Browser, { Permissions } from 'webextension-polyfill';
+import Browser from 'webextension-polyfill';
 import messages from './src/_locales/ru/messages.json';
 
 type OverrideBrowser = typeof Browser & {
@@ -24,8 +24,8 @@ declare global {
   var eventBus: BufferedEventBus<EventBusTypes>;
   var messageBroker: MessageBroker;
   var settings: Settings;
-  var permissions: Permissions.AnyPermissions;
   var indexedDBObject: IDBPDatabase<HDrezkaGrabberDB>;
+  var root: HTMLDivElement;
 }
 
 export {};

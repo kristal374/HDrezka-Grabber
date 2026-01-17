@@ -10,7 +10,7 @@ import { createRoot } from 'react-dom/client';
 
 logger.info('Settings open.');
 
-const element = document.querySelector('body')!;
+const element = document.querySelector('#root')!;
 const root = createRoot(element);
 
 export const SettingsInitialDataContext =
