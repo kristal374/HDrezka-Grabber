@@ -7,6 +7,7 @@ import { LoggerEventType } from '@/lib/logger/types';
 import { getTraceId } from '@/lib/logger/utils';
 import { getSettings } from '@/lib/storage';
 import { EventType, Message, Settings } from '@/lib/types';
+import { clearCache } from '@/service-worker/cache';
 import { updateVideoInfo } from '@/service-worker/response-parser';
 import { Alarms, Runtime, Storage } from 'webextension-polyfill';
 import { DownloadManager } from './load-manager/core';
@@ -98,9 +99,9 @@ function messageHandler(
   let logger = globalThis.logger;
   logger = logger.attachMetadata({ traceId: getTraceId() });
   const promiseResponse = <T>(promise: Promise<T>) => {
-    promise.then((response) => sendResponse(response))
-    return true
-  }
+    promise.then((response) => sendResponse(response));
+    return true;
+  };
 
   const data = message as Message<any>;
   switch (data.type) {
@@ -109,15 +110,29 @@ function messageHandler(
     case 'updateVideoInfo':
       return promiseResponse(updateVideoInfo({ data: data.message, logger }));
     case 'trigger':
-      return promiseResponse(downloadManager.initNewDownload({
-        initiator: data.message,
-        logger,
-      }));
+      return promiseResponse(
+        downloadManager.initNewDownload({
+          initiator: data.message,
+          logger,
+        }),
+      );
     case 'requestToRestoreState':
-      return promiseResponse(downloadManager.stabilizeInsideState({
-        permissionToRestore: data.message,
-        logger,
-      });
+      return promiseResponse(
+        downloadManager.stabilizeInsideState({
+          permissionToRestore: data.message,
+          logger,
+        }),
+      );
+    case 'clearCache':
+      return promiseResponse(clearCache({ logger }));
+    case 'stopAllDownloads':
+      return promiseResponse(downloadManager.cancelAllDownload({ logger }));
+    case 'DBDeleted':
+      return promiseResponse(
+        (async () => {
+          globalThis.indexedDBObject = await doDatabaseStuff();
+        })(),
+      );
     default:
       logger.warning(message);
       return false;

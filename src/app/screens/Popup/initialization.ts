@@ -1,8 +1,14 @@
 import { getPageType } from '@/extraction-scripts/extractPageType';
 import { doDatabaseStuff } from '@/lib/idb-storage';
 import { getSettings, loadSessionStorageSave } from '@/lib/storage';
-import { EventType, PageType, RequireAllOrNone, Settings } from '@/lib/types';
-import type { Tabs } from 'webextension-polyfill';
+import {
+  EventType,
+  Message,
+  PageType,
+  RequireAllOrNone,
+  Settings,
+} from '@/lib/types';
+import type { Runtime, Tabs } from 'webextension-polyfill';
 
 type Tab = Tabs.Tab;
 
@@ -60,7 +66,7 @@ export async function popupInit(
   }
   if (!tabId || !siteUrl) return { pageType, needToRestoreInsideState };
 
-  await openDB();
+  await setDB();
   const sessionStorage = await loadSessionStorageSave(tabId);
 
   return { tabId, siteUrl, pageType, sessionStorage, needToRestoreInsideState };
@@ -72,7 +78,25 @@ async function getCurrentTab() {
   return tabs.length ? (tabs[0] as Tab & { splitViewId?: number }) : undefined;
 }
 
-async function openDB() {
+async function setDB() {
   globalThis.indexedDBObject = await doDatabaseStuff();
-  logger.info('Database open.');
+
+  eventBus.on(
+    EventType.DBDeletedMessage,
+    (
+      message: unknown,
+      _sender: Runtime.MessageSender,
+      _sendResponse: (message: unknown) => void,
+    ) => {
+      const data = message as Message<any>;
+      if (data.type !== 'DBDeleted') return;
+      doDatabaseStuff().then((db) => {
+        globalThis.indexedDBObject = db;
+      });
+      return true;
+    },
+  );
+  eventBus.on(EventType.DBDeletedEvent, async () => {
+    globalThis.indexedDBObject = await doDatabaseStuff();
+  });
 }

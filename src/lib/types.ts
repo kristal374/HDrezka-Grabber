@@ -19,7 +19,10 @@ export type MessageType =
   | 'getFileSize'
   | 'updateVideoInfo'
   | 'requestToRestoreState'
-  | 'setNotification';
+  | 'setNotification'
+  | 'clearCache'
+  | 'stopAllDownloads'
+  | 'DBDeleted';
 
 export type Message<T> = {
   type: MessageType;
@@ -325,6 +328,8 @@ export enum EventType {
   DownloadEvent = 'DownloadEvent',
   ScheduleEvent = 'ScheduleEvent',
   StorageChanged = 'StorageChanged',
+  DBDeletedMessage = 'DBDeletedMessage',
+  DBDeletedEvent = 'DBDeletedEvent',
 }
 
 type MessageReceivedHandler = [
@@ -334,13 +339,17 @@ type MessageReceivedHandler = [
 ];
 
 export type EventBusTypes = {
-  [EventType.NewMessageReceived]: MessageReceivedHandler
+  [EventType.NewMessageReceived]: MessageReceivedHandler;
   [EventType.NotificationMessage]: MessageReceivedHandler;
   [EventType.NotificationEvent]: Event;
   [EventType.DownloadCreated]: DownloadItem;
   [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
   [EventType.ScheduleEvent]: Alarm;
   [EventType.StorageChanged]: [Record<string, StorageChange>, string];
+  [EventType.DBDeletedMessage]: MessageReceivedHandler;
+  [EventType.DBDeletedEvent]: Event;
+
+  // Logger events
   [LoggerEventType.LogCreate]: Event;
   [LoggerEventType.LogConnect]: Port;
 };

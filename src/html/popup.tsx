@@ -20,6 +20,11 @@ export const PopupInitialDataContext = createContext<PopupInitData | null>(
 
 eventBus.addMessageSource(EventType.StorageChanged, browser.storage.onChanged);
 eventBus.addMessageSource(
+  EventType.DBDeletedMessage,
+  browser.runtime.onMessage,
+);
+eventBus.addMessageSource(EventType.DBDeletedEvent, globalThis);
+eventBus.addMessageSource(
   EventType.NotificationMessage,
   browser.runtime.onMessage,
 );

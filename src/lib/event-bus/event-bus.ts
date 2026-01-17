@@ -189,7 +189,7 @@ export class BufferedEventBus<T extends Record<string, unknown>>
     }
 
     return Promise.all(results).then((resolved) => {
-      if (resolved.length > 1){
+      if (resolved.length > 1) {
         resolved = resolved.filter((r) => typeof r !== 'undefined');
       }
       return resolved.length === 1 ? resolved[0] : resolved;
