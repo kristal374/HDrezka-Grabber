@@ -33,6 +33,8 @@ interface ComboboxProps {
   onValueChange?: (value: string) => void;
   needSearch?: boolean;
   showChevron?: boolean;
+  title?: string;
+  disabled?: boolean;
 }
 
 export function Combobox({
@@ -45,6 +47,8 @@ export function Combobox({
   onValueChange,
   needSearch = true,
   showChevron,
+  title,
+  disabled,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(defaultValue);
@@ -89,6 +93,8 @@ export function Combobox({
             className,
           )}
           style={{ width }}
+          title={title}
+          disabled={disabled}
         >
           {value
             ? labelRender(

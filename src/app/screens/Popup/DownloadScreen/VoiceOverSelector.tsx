@@ -1,3 +1,4 @@
+import { selectDownloadSerial } from '@/app/screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
 import { FlagKZ } from '@/components/icons/FlagKZ';
 import { FlagUA } from '@/components/icons/FlagUA';
 import { PremiumIcon } from '@/components/icons/PremiumIcon';
@@ -34,6 +35,7 @@ export function VoiceOverSelector({
   const currentVoiceOver = useAppSelector((state) =>
     selectCurrentVoiceOver(state),
   );
+  const downloadSerial = useAppSelector((state) => selectDownloadSerial(state));
 
   useEffect(() => {
     // Если у нас нет списка озвучек - получаем его со страницы сайта
@@ -55,13 +57,15 @@ export function VoiceOverSelector({
 
   if (!voiceOverList) return null;
 
+  const disabled = !downloadSerial;
+
   logger.info('New render VoiceOverSelector component.');
+
   return (
     <div className='flex items-center gap-2.5'>
       <label htmlFor='voiceOver' className='ml-auto text-sm select-none'>
         {browser.i18n.getMessage('popup_translate')}
       </label>
-      {/*TODO: disable combobox if downloadSerial is false*/}
       <Combobox
         id='voiceOver'
         width='14.4rem'
@@ -94,6 +98,8 @@ export function VoiceOverSelector({
             }),
           )
         }
+        title={disabled ? 'No voice over to select' : undefined}
+        disabled={disabled}
       />
     </div>
   );
