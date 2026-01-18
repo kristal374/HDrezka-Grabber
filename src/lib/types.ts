@@ -101,14 +101,17 @@ export type Subtitle = {
 
 export type QualitiesList = Partial<Record<QualityItem, string[]>>;
 
+export type VideoResolution = { width: number; height: number };
+
+export type VideoInfo = {
+  filesize: number;
+  resolution: VideoResolution | null;
+};
+
 export type URLItem = {
   url: string;
-  videoResolution: {
-    height: number;
-    width: number;
-  } | null;
-  stringSize: string;
-  rawSize: number;
+  videoResolution: VideoResolution | null;
+  fileSize: number;
 };
 
 export type URLsContainer = Partial<Record<QualityItem, URLItem>>;

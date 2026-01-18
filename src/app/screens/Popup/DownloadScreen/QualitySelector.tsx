@@ -3,6 +3,7 @@ import { AnimatedLoaderIcon } from '@/components/icons/AnimatedLoaderIcon';
 import { Combobox } from '@/components/ui/Combobox';
 import { sortQualityItem } from '@/lib/link-processing';
 import { Message, QualityItem, RequestUrlSize, URLItem } from '@/lib/types';
+import { formatBytes } from '@/lib/utils';
 import { useCallback, useEffect } from 'react';
 import {
   addQualityInfoAction,
@@ -37,7 +38,7 @@ export function QualitySelector() {
       const qualityItem = key as QualityItem;
       const qualityInfo = qualitiesInfo?.[qualityItem] ?? null;
       if (
-        (qualityInfo?.rawSize || !settings.displayQualitySize) &&
+        (qualityInfo?.fileSize || !settings.displayQualitySize) &&
         (qualityInfo?.videoResolution || !settings.getRealQuality)
       )
         continue;
@@ -90,7 +91,7 @@ export function QualitySelector() {
                 {settings.displayQualitySize ? (
                   <span className='ml-auto'>
                     {qualityInfo ? (
-                      qualityInfo.stringSize
+                      formatBytes(qualityInfo.fileSize)
                     ) : (
                       <AnimatedLoaderIcon className='size-4' />
                     )}

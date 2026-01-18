@@ -1,4 +1,4 @@
-import { Logger } from '@/lib/logger';
+import type { Logger } from '@/lib/logger';
 import {
   ActualVideoData,
   DataForUpdate,
@@ -6,7 +6,7 @@ import {
   SeasonsWithEpisodesList,
   SubtitleInfo,
 } from '@/lib/types';
-import { updateVideoData } from '@/service-worker/network-layer';
+import { fetchVideoData } from '@/service-worker/network-layer/video-file-helpers';
 
 async function extractSeasons({ seasons }: { seasons: string }) {
   const seasonsStorage: SeasonsWithEpisodesList = {};
@@ -58,7 +58,7 @@ export async function updateVideoInfo({
   logger?: Logger;
 }): Promise<ActualVideoData> {
   logger.info('Request to update video data:', data);
-  const serverResponse = await updateVideoData({
+  const serverResponse = await fetchVideoData({
     siteUrl: data.siteURL,
     data: data.movieData,
     logger,

@@ -2,13 +2,14 @@ import { extractFilename } from '@/lib/filename-maker';
 import { attachTraceId, getTraceId, Logger } from '@/lib/logger';
 import { ResourceLockManager } from '@/lib/resource-lock-manager';
 import { FileItem, Initiator, LoadItem, LoadStatus } from '@/lib/types';
-import { findSomeFilesFromLoadItemIdsInDB, loadIsCompleted } from '@/lib/utils';
-import { clearCache } from '@/service-worker/cache';
+import { loadIsCompleted } from '@/lib/utils';
 import {
   findBrokenFileItemInActiveDownloads,
   findBrokenLoadItemInActiveDownloads,
+  findSomeFilesFromLoadItemIdsInDB,
   isFirstRunExtension,
 } from '@/service-worker/load-manager/inside-state-controller';
+import { clearCache } from '@/service-worker/network-layer/cache';
 import siteLoaderFactory from '@/service-worker/site-loader/factory';
 import type { Downloads } from 'webextension-polyfill';
 import { QueueController } from './queue';
