@@ -1,9 +1,15 @@
 import { selectMovieInfo } from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
 import { AnimatedLoaderIcon } from '@/components/icons/AnimatedLoaderIcon';
 import { Combobox } from '@/components/ui/Combobox';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/Tooltip';
 import { sortQualityItem } from '@/lib/link-processing';
 import { Message, QualityItem, RequestUrlSize, URLItem } from '@/lib/types';
 import { formatBytes } from '@/lib/utils';
+import { OctagonAlertIcon } from 'lucide-react';
 import { useCallback, useEffect } from 'react';
 import {
   addQualityInfoAction,
@@ -76,18 +82,51 @@ export function QualitySelector() {
         data={Object.keys(sortQualityItem(qualitiesList)).map((q) => ({
           value: q,
           label: q,
-          labelComponent({ children }) {
+          labelComponent({ children, isRenderingInPreview }) {
             const targetQuality = q as QualityItem;
             const qualityInfo = qualitiesInfo?.[targetQuality] ?? null;
             const videoResolution = qualityInfo?.videoResolution ?? null;
             const realQuality = `${videoResolution?.height}p`;
+            const realQualityPill = (
+              <span className='bg-input-active border-input ml-1.75 inline-flex items-center gap-1 rounded-md border px-1.25'>
+                {isRenderingInPreview && (
+                  <OctagonAlertIcon className='size-4' />
+                )}
+                <span className='pb-0.25'>{realQuality}</span>
+              </span>
+            );
             return (
               <>
-                {qualityInfo && settings.getRealQuality
-                  ? videoResolution && targetQuality !== realQuality
-                    ? `${targetQuality} (${realQuality})`
-                    : targetQuality
-                  : children}
+                {qualityInfo && settings.getRealQuality ? (
+                  videoResolution && targetQuality !== realQuality ? (
+                    <>
+                      {targetQuality}
+                      {isRenderingInPreview ? (
+                        <Tooltip>
+                          <TooltipTrigger>{realQualityPill}</TooltipTrigger>
+                          <TooltipContent
+                            align='center'
+                            side='top'
+                            className='flex w-58 items-center justify-between'
+                          >
+                            <p className='text-sm text-balance'>
+                              Реальное разрешение видео
+                            </p>
+                            <span className='bg-input-active w-fit shrink-0 rounded-sm px-1.25 pb-0.25 text-sm font-medium'>
+                              {videoResolution.width} x {videoResolution.height}
+                            </span>
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        realQualityPill
+                      )}
+                    </>
+                  ) : (
+                    targetQuality
+                  )
+                ) : (
+                  children
+                )}
                 {settings.displayQualitySize ? (
                   <span className='ml-auto'>
                     {qualityInfo ? (

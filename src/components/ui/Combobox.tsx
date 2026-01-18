@@ -25,7 +25,9 @@ interface ComboboxProps {
   data: Array<{
     value: string;
     label: string;
-    labelComponent?: (props: React.PropsWithChildren) => JSX.Element;
+    labelComponent?: (
+      props: React.PropsWithChildren<{ isRenderingInPreview: boolean }>,
+    ) => JSX.Element;
   }>;
   value?: string;
   onValueChange?: (value: string) => void;
@@ -63,14 +65,19 @@ export function Combobox({
     );
   }, [data]);
   const labelRender = useCallback(
-    (lookup: string, children: React.ReactNode) => {
-      return dataLookup[lookup]?.labelComponent?.({ children }) ?? children;
+    (lookup: string, children: React.ReactNode, isPreview: boolean) => {
+      return (
+        dataLookup[lookup]?.labelComponent?.({
+          children,
+          isRenderingInPreview: isPreview,
+        }) ?? children
+      );
     },
     [data],
   );
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger>
         <button
           id={id}
           role='combobox'
@@ -89,6 +96,7 @@ export function Combobox({
                 <span className='line-clamp-1 text-left'>
                   {dataLookup[value]?.label}
                 </span>,
+                true,
               )
             : browser.i18n.getMessage('combobox_placeholder')}
           {showChevron && (
@@ -137,7 +145,7 @@ export function Combobox({
                       value !== item.value && 'invisible',
                     )}
                   /> */}
-                  {labelRender(item.value, item.label)}
+                  {labelRender(item.value, item.label, false)}
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -1,4 +1,5 @@
 import { ErrorFallback } from '@/components/ErrorFallback';
+import { TooltipProvider } from '@/components/ui/Tooltip';
 import { ErrorBoundary } from 'react-error-boundary';
 import { AsyncContextProvider } from './providers/AsyncContextProvider';
 
@@ -17,7 +18,7 @@ export function App<T>({ asyncInitFunction, Context, children }: AppProps<T>) {
         asyncInitFunction={asyncInitFunction}
         Context={Context}
       >
-        {children}
+        <TooltipProvider>{children}</TooltipProvider>
       </AsyncContextProvider>
     </ErrorBoundary>
   );
