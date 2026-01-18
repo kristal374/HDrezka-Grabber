@@ -89,6 +89,8 @@
 
   --color-light-color: var(--light-color);
   --color-link-color: var(--link-color);
+
+  --animate-fast-pulse: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @utility scroll-container {

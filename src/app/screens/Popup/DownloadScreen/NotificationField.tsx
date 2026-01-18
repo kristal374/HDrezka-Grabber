@@ -8,11 +8,13 @@ import {
   deleteNotificationsAction,
   selectNotifications,
   setNotificationAction,
+  type RenderNotification,
 } from './store/NotificationField.slice';
 import { useAppDispatch, useAppSelector } from './store/store';
 
 const NOTIFICATIONS_COLLAPSE_THRESHOLD = 2;
 const NOTIFICATIONS_COLLAPSE_GAP = '0.5rem';
+const NOTIFICATIONS_COLLAPSE_DELAY = 1500;
 
 export function NotificationField() {
   const dispatch = useAppDispatch();
@@ -20,7 +22,32 @@ export function NotificationField() {
   const notifications = useAppSelector((state) => selectNotifications(state));
 
   const notificationsToShow = useMemo(() => {
-    return notifications.slice().reverse();
+    const notificationsToShow: RenderNotification[] = [];
+    const copiedNotifications: RenderNotification[] = JSON.parse(
+      JSON.stringify(notifications),
+    );
+    // keys are ids of stack, values are index of stack representer in notificationsToShow
+    const stacks = new Map<string, number>();
+    for (let i = 0; i < copiedNotifications.length; i++) {
+      const elem = copiedNotifications[i];
+      if (!elem.stackable) {
+        notificationsToShow.push(elem);
+        continue;
+      }
+      const stackId = `${elem.type}-${elem.priority}-${elem.message}`;
+      let stackIndex = stacks.get(stackId);
+      if (stackIndex === undefined) {
+        stackIndex = notificationsToShow.length;
+        stacks.set(stackId, stackIndex);
+        elem.stack = [elem.id];
+        notificationsToShow.push(elem);
+      } else {
+        const stackRepresenter = notificationsToShow[stackIndex];
+        stackRepresenter.stack?.push(elem.id);
+      }
+    }
+    notificationsToShow.reverse().sort((a, b) => b.priority - a.priority);
+    return notificationsToShow;
   }, [notifications]);
 
   useEffect(() => {
@@ -46,47 +73,79 @@ export function NotificationField() {
       });
   }, []);
 
+  const handleCloseNotification = (notification: RenderNotification) => {
+    dispatch(deleteNotificationsAction({ notification }));
+  };
+
   const amount = notificationsToShow.length;
   const shouldCollapse = amount > NOTIFICATIONS_COLLAPSE_THRESHOLD;
   const [isCollapsed, setCollapsed] = useState(shouldCollapse);
   const isCollapsedOpened = shouldCollapse && !isCollapsed;
-
   useEffect(() => {
     if (isCollapsedOpened) return;
     setCollapsed(shouldCollapse);
   }, [amount]);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const collapseClosingTimeoutRef = useRef<number | null>(null);
+  const clearCollapseClosingTimeout = () => {
+    if (collapseClosingTimeoutRef.current) {
+      clearTimeout(collapseClosingTimeoutRef.current);
+      collapseClosingTimeoutRef.current = null;
+      containerRef.current?.parentElement?.classList.remove(
+        'animate-fast-pulse',
+      );
+    }
+  };
+
+  const resolveEncodedValue = (marker: 'gap' | 'max-height') => {
+    const elem = containerRef.current?.querySelector(
+      `[data-marker="encode-${marker}"]`,
+    );
+    return elem?.clientWidth ?? 0;
+  };
+
+  const [calculatedElemHeights, setElemHeights] = useState<number[]>([]);
   const [calculatedFirstElemHeight, setFirstElemHeight] = useState(0);
   const [calculatedTotalHeight, setTotalHeight] = useState(0);
   const [calculatedTranslates, setTranslate] = useState<number[]>([]);
 
   useLayoutEffect(() => {
     if (!containerRef.current) return;
-    const gap = containerRef.current.clientHeight ?? 0;
-    const elemHeights: number[] = [];
-    const elemTranslates: number[] = [];
-    Array.from(
-      containerRef.current.querySelectorAll('& > *:not([data-marker])') ?? [],
-    ).map((elem, i) => {
-      elemHeights.push(elem.clientHeight);
-      if (i === 0) {
-        elemTranslates.push(0);
-      } else {
-        elemTranslates.push(elemTranslates[i - 1] + elemHeights[i - 1] + gap);
-      }
-    });
+    const gap = resolveEncodedValue('gap');
+    let elemHeights: number[] = [];
+    let elemTranslates: number[] = [];
+    const elems =
+      containerRef.current.querySelectorAll('& > *:not([data-marker])') ?? [];
+    if (!calculatedElemHeights.length || !isCollapsed) {
+      Array.from(elems).forEach((elem, i) => {
+        elemHeights.push(elem.clientHeight);
+        if (i > 0) {
+          elemTranslates.push(
+            (elemTranslates[i - 2] ?? 0) + elemHeights[i - 1] + gap,
+          );
+        }
+      });
+    } else if (amount === calculatedElemHeights.length + 1) {
+      const newFirstElemHeight = elems[0].clientHeight;
+      elemHeights = [newFirstElemHeight, ...calculatedElemHeights];
+      elemTranslates = [0, ...calculatedTranslates].map(
+        (value) => value + newFirstElemHeight + gap,
+      );
+    }
+    setElemHeights(elemHeights);
     setFirstElemHeight(elemHeights[0]);
     // setTotalHeight(elemHeights.reduce((acc, curr) => acc + curr + gap, 0));
     setTotalHeight(
       elemHeights.length ? elemTranslates.at(-1)! + elemHeights.at(-1)! : 0,
     );
     setTranslate(elemTranslates);
-  }, [notificationsToShow]);
+  }, [notificationsToShow.map((notification) => notification.id).join(',')]);
 
   const [maxHeight, setMaxHeight] = useState(0);
   useLayoutEffect(() => {
-    setMaxHeight(containerRef.current?.clientWidth ?? 0);
+    setMaxHeight(resolveEncodedValue('max-height'));
   }, []);
 
   const [showTopShadow, setShowTopShadow] = useState(false);
@@ -114,62 +173,77 @@ export function NotificationField() {
     return () => observer.disconnect();
   }, []);
 
-  // if (!amount) return null;
-
-  const handleCloseNotification = (notificationId: number) => {
-    dispatch(deleteNotificationsAction({ notificationId }));
-  };
-
   logger.info('New render of NotificationField component.');
   return (
-    <div className='relative'>
+    <div className='relative isolate'>
       {isCollapsedOpened && calculatedTotalHeight > maxHeight && (
         <>
           <div
             className={cn(
               showTopShadow ? 'opacity-100' : 'opacity-0',
-              'pointer-events-none absolute inset-0 z-100 transition-opacity duration-300',
+              'pointer-events-none absolute inset-0 z-1000 transition-opacity duration-300',
               'from-background bg-gradient-to-b to-transparent to-10%',
             )}
           />
           <div
             className={cn(
               showBottomShadow ? 'opacity-100' : 'opacity-0',
-              'pointer-events-none absolute inset-0 z-100 transition-opacity duration-300',
+              'pointer-events-none absolute inset-0 z-1000 transition-opacity duration-300',
               'from-background bg-gradient-to-t to-transparent to-10%',
             )}
           />
         </>
       )}
+
+      {isCollapsedOpened && (
+        <div
+          data-marker='no-collapse'
+          className='absolute h-3 w-full'
+          style={{
+            translate: `0px ${Math.min(calculatedTotalHeight, maxHeight)}px`,
+          }}
+          onMouseEnter={clearCollapseClosingTimeout}
+        />
+      )}
+
       <div
         className={cn(
-          'group relative w-full transition-all duration-300',
-          isCollapsed
-            ? 'hover:overflow-clip'
-            : 'max-h-36 overflow-x-hidden overflow-y-auto',
+          'group relative max-h-36 w-full transition-all duration-300',
+          isCollapsedOpened &&
+            'scroll-container overflow-x-hidden overflow-y-auto',
+          calculatedTotalHeight < maxHeight && 'overflow-clip',
+          isCollapsed &&
+            'overflow-visible focus-within:overflow-clip hover:overflow-clip',
         )}
         style={{
           height: isCollapsed
             ? `calc(${calculatedFirstElemHeight}px + ${NOTIFICATIONS_COLLAPSE_THRESHOLD} * ${NOTIFICATIONS_COLLAPSE_GAP})`
             : calculatedTotalHeight,
-          scrollbarWidth: 'thin',
         }}
+        onMouseEnter={clearCollapseClosingTimeout}
         onMouseLeave={() => {
-          if (isCollapsedOpened) setCollapsed(true);
+          if (isCollapsedOpened) {
+            const containerParent = containerRef.current?.parentElement;
+            containerParent?.classList.add('animate-fast-pulse');
+            const timeout = setTimeout(() => {
+              setCollapsed(true);
+              containerParent?.classList.remove('animate-fast-pulse');
+            }, NOTIFICATIONS_COLLAPSE_DELAY) as unknown as number;
+            collapseClosingTimeoutRef.current = timeout;
+          }
         }}
       >
         {isCollapsed && (
           <div
             className={cn(
-              'absolute inset-0 z-100',
-              'flex items-end justify-center',
-              'opacity-0 transition-opacity duration-200 group-hover:opacity-100',
+              'absolute inset-0 z-1000 flex items-end justify-center',
+              'opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100',
               'from-background via-background bg-gradient-to-t via-10% to-transparent',
             )}
           >
             <Button
               variant='ghost'
-              className='pointer-events-auto gap-0'
+              className='pointer-events-auto mb-1 gap-0'
               onClick={() => setCollapsed(false)}
             >
               Показать все (<NumberFlow value={amount} />)
@@ -178,12 +252,13 @@ export function NotificationField() {
         )}
 
         <div
-          // height and width used here to encode numbers to easily get calculated values in runtime
-          // height encodes gap value, width encodes max height value
-          className={cn('h-1.5 w-36', 'flex flex-col gap-1.5')}
+          className='flex flex-col gap-1.5'
           style={{ '--amount': amount } as React.CSSProperties}
           ref={containerRef}
         >
+          {/* value of width used to encode numbers to get real values in runtime */}
+          <div data-marker='encode-gap' className='absolute w-1.5' />
+          <div data-marker='encode-max-height' className='absolute w-36' />
           <div data-marker='top' className='absolute size-px' />
           {notificationsToShow.map((notification, i) => {
             const isPreview = isCollapsed ? i !== 0 : false;
@@ -191,11 +266,13 @@ export function NotificationField() {
               <div
                 key={notification.id}
                 className={cn(
-                  'bg-error text-light-color relative flex items-center gap-2 rounded-md pt-1 pr-1.25 pb-1.25 pl-2.5 text-sm',
+                  colors[notification.type ?? 'info'].primary,
+                  'text-light-color flex items-center gap-1 rounded-md pt-1 pr-1.25 pb-1.25 pl-2.5 text-sm',
+                  'absolute w-full shadow-lg transition-transform duration-300',
                   isCollapsed &&
                     i > NOTIFICATIONS_COLLAPSE_THRESHOLD &&
-                    'opacity-0',
-                  'absolute w-full shadow-lg transition-transform duration-300',
+                    'invisible duration-0',
+                  // notification.message.length > 31 && 'items-start', // this assumes that message is 2 or more lines
                 )}
                 style={
                   {
@@ -206,29 +283,44 @@ export function NotificationField() {
                         : undefined,
                     scale: isCollapsed ? 'calc(1 - var(--index) * 0.05)' : '1',
                     translate: isCollapsed
-                      ? `0px calc(var(--index) * ${NOTIFICATIONS_COLLAPSE_GAP})`
-                      : `0px ${calculatedTranslates[i]}px`,
+                      ? i > NOTIFICATIONS_COLLAPSE_THRESHOLD
+                        ? '0px'
+                        : `0px calc(var(--index) * ${NOTIFICATIONS_COLLAPSE_GAP})`
+                      : `0px ${i === 0 ? 0 : calculatedTranslates[i - 1]}px`,
                     zIndex: 'calc(var(--amount) - var(--index))',
                   } as React.CSSProperties
                 }
               >
                 <p
                   className={cn(
-                    'flex-grow text-balance',
+                    'text-balance',
                     isPreview && 'opacity-0 select-none',
                   )}
                 >
                   {notification.message}
                 </p>
+                {notification.stack?.length && (
+                  <span
+                    className={cn(
+                      'rounded-full border-2 border-transparent px-1.5 text-xs leading-[1.5] font-medium select-none',
+                      colors[notification.type ?? 'info'].secondary,
+                      (isPreview || notification.stack.length <= 1) &&
+                        'opacity-0',
+                    )}
+                  >
+                    <NumberFlow value={notification.stack.length} />
+                  </span>
+                )}
                 <Button
-                  variant='dangerous'
+                  variant='ghost'
                   size='square'
                   className={cn(
-                    'mt-0.25 !text-white not-disabled:active:scale-92',
+                    'mt-0.25 ml-auto !text-white focus-visible:bg-transparent not-disabled:active:scale-92',
+                    colors[notification.type ?? 'info'].secondaryHover,
                     // !isPreview && 'pointer-events-auto',
                   )}
                   disabled={isCollapsed}
-                  onClick={() => handleCloseNotification(notification.id)}
+                  onClick={() => handleCloseNotification(notification)}
                 >
                   <XIcon className='size-4' />
                 </Button>
@@ -249,3 +341,29 @@ export function NotificationField() {
     </div>
   );
 }
+
+const colors: Record<
+  RenderNotification['type'],
+  { primary: string; secondary: string; secondaryHover: string }
+> = {
+  info: {
+    primary: 'bg-input',
+    secondary: 'bg-input-active',
+    secondaryHover: 'not-disabled:hover:bg-input-active',
+  },
+  error: {
+    primary: 'bg-error',
+    secondary: 'bg-red-500/20',
+    secondaryHover: 'not-disabled:hover:bg-red-500/20',
+  },
+  warning: {
+    primary: 'bg-yellow-800',
+    secondary: 'bg-amber-500/30',
+    secondaryHover: 'not-disabled:hover:bg-amber-500/30',
+  },
+  success: {
+    primary: 'bg-emerald-800',
+    secondary: 'bg-emerald-500/30',
+    secondaryHover: 'not-disabled:hover:bg-emerald-500/30',
+  },
+};

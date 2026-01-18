@@ -2,16 +2,21 @@ import { PopupNotification } from '@/lib/notification/message-broker';
 import { createAction, createReducer } from '@reduxjs/toolkit';
 import { AppState } from './store';
 
+export type RenderNotification = PopupNotification & {
+  id: number;
+  stack?: number[];
+};
+
 export const setNotificationAction = createAction<{
   notification: PopupNotification;
 }>('notification/setNotification');
 
 export const deleteNotificationsAction = createAction<{
-  notificationId: number;
+  notification: RenderNotification;
 }>('notification/deleteNotificationsAction');
 
 const initialNotification: {
-  notifications: Array<PopupNotification & { id: number }>;
+  notifications: Array<RenderNotification>;
   lastNotificationId: number;
 } = {
   notifications: [],
@@ -22,17 +27,23 @@ export const notificationReducer = createReducer(
   initialNotification,
   (builder) => {
     builder.addCase(setNotificationAction, (state, action) => {
-      logger.debug('Set new notification:', action.payload.notification);
+      const notif = action.payload.notification;
+      logger.debug('Set new notification:', notif);
       state.lastNotificationId += 1;
       state.notifications.push({
-        ...action.payload.notification,
+        ...notif,
+        type: notif.type ?? 'info',
+        priority: notif.priority ?? 0,
+        message: notif.message ?? '',
         id: state.lastNotificationId,
       });
     });
     builder.addCase(deleteNotificationsAction, (state, action) => {
-      logger.debug('Delete notifications:', action.payload.notificationId);
+      const notification = action.payload.notification;
+      const toDelete = notification.stack ?? [notification.id];
+      logger.debug('Delete notifications:', toDelete);
       state.notifications = state.notifications.filter(
-        (notification) => notification.id !== action.payload.notificationId,
+        (elem) => !toDelete.includes(elem.id),
       );
     });
   },
