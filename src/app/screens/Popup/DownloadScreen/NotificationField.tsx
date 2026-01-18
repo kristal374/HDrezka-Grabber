@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import NumberFlow from '@number-flow/react';
-import { XIcon } from 'lucide-react';
+import { AlertTriangleIcon, XIcon } from 'lucide-react';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { selectMovieInfo } from './store/DownloadScreen.slice';
 import {
@@ -15,8 +15,13 @@ import { useAppDispatch, useAppSelector } from './store/store';
 const NOTIFICATIONS_COLLAPSE_THRESHOLD = 2;
 const NOTIFICATIONS_COLLAPSE_GAP = '0.5rem';
 const NOTIFICATIONS_COLLAPSE_DELAY = 1500;
+const NOTIFICATIONS_COLLAPSE_FADE_CLASS = 'animate-fast-pulse';
 
-export function NotificationField() {
+type Props = {
+  isLimitedMaxHeight?: boolean;
+};
+
+export function NotificationField({ isLimitedMaxHeight }: Props) {
   const dispatch = useAppDispatch();
   const movieInfo = useAppSelector(selectMovieInfo)!;
   const notifications = useAppSelector((state) => selectNotifications(state));
@@ -34,7 +39,7 @@ export function NotificationField() {
         notificationsToShow.push(elem);
         continue;
       }
-      const stackId = `${elem.type}-${elem.priority}-${elem.message}`;
+      const stackId = `${elem.type}-${elem.message}`;
       let stackIndex = stacks.get(stackId);
       if (stackIndex === undefined) {
         stackIndex = notificationsToShow.length;
@@ -46,8 +51,7 @@ export function NotificationField() {
         stackRepresenter.stack?.push(elem.id);
       }
     }
-    notificationsToShow.reverse().sort((a, b) => b.priority - a.priority);
-    return notificationsToShow;
+    return notificationsToShow.reverse();
   }, [notifications]);
 
   useEffect(() => {
@@ -81,10 +85,6 @@ export function NotificationField() {
   const shouldCollapse = amount > NOTIFICATIONS_COLLAPSE_THRESHOLD;
   const [isCollapsed, setCollapsed] = useState(shouldCollapse);
   const isCollapsedOpened = shouldCollapse && !isCollapsed;
-  useEffect(() => {
-    if (isCollapsedOpened) return;
-    setCollapsed(shouldCollapse);
-  }, [amount]);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -94,7 +94,7 @@ export function NotificationField() {
       clearTimeout(collapseClosingTimeoutRef.current);
       collapseClosingTimeoutRef.current = null;
       containerRef.current?.parentElement?.classList.remove(
-        'animate-fast-pulse',
+        NOTIFICATIONS_COLLAPSE_FADE_CLASS,
       );
     }
   };
@@ -111,6 +111,19 @@ export function NotificationField() {
   const [calculatedTotalHeight, setTotalHeight] = useState(0);
   const [calculatedTranslates, setTranslate] = useState<number[]>([]);
 
+  const isElementAdded = amount === calculatedElemHeights.length + 1;
+  const isElementRemoved = amount === calculatedElemHeights.length - 1;
+
+  useEffect(() => {
+    if (isCollapsedOpened) {
+      if (isElementAdded && amount === NOTIFICATIONS_COLLAPSE_THRESHOLD + 1) {
+        setCollapsed(true);
+      }
+      return;
+    }
+    setCollapsed(shouldCollapse);
+  }, [amount]);
+
   useLayoutEffect(() => {
     if (!containerRef.current) return;
     const gap = resolveEncodedValue('gap');
@@ -118,24 +131,36 @@ export function NotificationField() {
     let elemTranslates: number[] = [];
     const elems =
       containerRef.current.querySelectorAll('& > *:not([data-marker])') ?? [];
-    if (!calculatedElemHeights.length || !isCollapsed) {
+    if (!elems.length) {
+      // skip if there are no elements
+    } else if (!calculatedElemHeights.length || !isCollapsed) {
       Array.from(elems).forEach((elem, i) => {
         elemHeights.push(elem.clientHeight);
-        if (i > 0) {
-          elemTranslates.push(
-            (elemTranslates[i - 2] ?? 0) + elemHeights[i - 1] + gap,
-          );
+        if (i === 0) {
+          elemTranslates.push(0);
+        } else {
+          elemTranslates.push(elemTranslates[i - 1] + elemHeights[i - 1] + gap);
         }
       });
-    } else if (amount === calculatedElemHeights.length + 1) {
+    } else if (isElementAdded) {
       const newFirstElemHeight = elems[0].clientHeight;
       elemHeights = [newFirstElemHeight, ...calculatedElemHeights];
-      elemTranslates = [0, ...calculatedTranslates].map(
+      elemTranslates = [...calculatedTranslates].map(
         (value) => value + newFirstElemHeight + gap,
       );
+      elemTranslates.unshift(0);
+    } else if (isElementRemoved) {
+      elemHeights = [...calculatedElemHeights];
+      const firstElemHeight = elemHeights.shift();
+      if (firstElemHeight) {
+        elemTranslates = [...calculatedTranslates].map(
+          (value) => value - (firstElemHeight + gap),
+        );
+        elemTranslates.shift();
+      }
     }
     setElemHeights(elemHeights);
-    setFirstElemHeight(elemHeights[0]);
+    setFirstElemHeight(elemHeights[0] ?? 0);
     // setTotalHeight(elemHeights.reduce((acc, curr) => acc + curr + gap, 0));
     setTotalHeight(
       elemHeights.length ? elemTranslates.at(-1)! + elemHeights.at(-1)! : 0,
@@ -173,6 +198,13 @@ export function NotificationField() {
     return () => observer.disconnect();
   }, []);
 
+  const renderCount = useRef(0);
+  const isFirstRun = useRef(true);
+  useEffect(() => {
+    renderCount.current += 1;
+    if (renderCount.current === 2) isFirstRun.current = false;
+  });
+
   logger.info('New render of NotificationField component.');
   return (
     <div className='relative isolate'>
@@ -208,7 +240,8 @@ export function NotificationField() {
 
       <div
         className={cn(
-          'group relative max-h-36 w-full transition-all duration-300',
+          'group relative w-full transition-all',
+          isLimitedMaxHeight ? 'max-h-28' : 'max-h-36',
           isCollapsedOpened &&
             'scroll-container overflow-x-hidden overflow-y-auto',
           calculatedTotalHeight < maxHeight && 'overflow-clip',
@@ -224,10 +257,12 @@ export function NotificationField() {
         onMouseLeave={() => {
           if (isCollapsedOpened) {
             const containerParent = containerRef.current?.parentElement;
-            containerParent?.classList.add('animate-fast-pulse');
+            containerParent?.classList.add(NOTIFICATIONS_COLLAPSE_FADE_CLASS);
             const timeout = setTimeout(() => {
               setCollapsed(true);
-              containerParent?.classList.remove('animate-fast-pulse');
+              containerParent?.classList.remove(
+                NOTIFICATIONS_COLLAPSE_FADE_CLASS,
+              );
             }, NOTIFICATIONS_COLLAPSE_DELAY) as unknown as number;
             collapseClosingTimeoutRef.current = timeout;
           }
@@ -236,7 +271,8 @@ export function NotificationField() {
         {isCollapsed && (
           <div
             className={cn(
-              'absolute inset-0 z-1000 flex items-end justify-center',
+              'pointer-events-none absolute inset-0 z-1000',
+              'flex items-end justify-center',
               'opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100',
               'from-background via-background bg-gradient-to-t via-10% to-transparent',
             )}
@@ -258,7 +294,10 @@ export function NotificationField() {
         >
           {/* value of width used to encode numbers to get real values in runtime */}
           <div data-marker='encode-gap' className='absolute w-1.5' />
-          <div data-marker='encode-max-height' className='absolute w-36' />
+          <div
+            data-marker='encode-max-height'
+            className={cn('absolute', isLimitedMaxHeight ? 'w-28' : 'w-36')}
+          />
           <div data-marker='top' className='absolute size-px' />
           {notificationsToShow.map((notification, i) => {
             const isPreview = isCollapsed ? i !== 0 : false;
@@ -268,7 +307,8 @@ export function NotificationField() {
                 className={cn(
                   colors[notification.type ?? 'info'].primary,
                   'text-light-color flex items-center gap-1 rounded-md pt-1 pr-1.25 pb-1.25 pl-2.5 text-sm',
-                  'absolute w-full shadow-lg transition-transform duration-300',
+                  'absolute w-full origin-bottom shadow-lg transition-transform duration-300',
+                  i === 0 && 'animate-spawn',
                   isCollapsed &&
                     i > NOTIFICATIONS_COLLAPSE_THRESHOLD &&
                     'invisible duration-0',
@@ -286,14 +326,19 @@ export function NotificationField() {
                       ? i > NOTIFICATIONS_COLLAPSE_THRESHOLD
                         ? '0px'
                         : `0px calc(var(--index) * ${NOTIFICATIONS_COLLAPSE_GAP})`
-                      : `0px ${i === 0 ? 0 : calculatedTranslates[i - 1]}px`,
+                      : `0px ${calculatedTranslates[i]}px`,
                     zIndex: 'calc(var(--amount) - var(--index))',
                   } as React.CSSProperties
                 }
               >
+                {notification.type === 'critical' && (
+                  <AlertTriangleIcon
+                    className={cn('size-4', colors.critical.icon)}
+                  />
+                )}
                 <p
                   className={cn(
-                    'text-balance',
+                    'mr-auto text-balance',
                     isPreview && 'opacity-0 select-none',
                   )}
                 >
@@ -315,11 +360,11 @@ export function NotificationField() {
                   variant='ghost'
                   size='square'
                   className={cn(
-                    'mt-0.25 ml-auto !text-white focus-visible:bg-transparent not-disabled:active:scale-92',
+                    '!text-light-color mt-0.25 focus-visible:bg-transparent not-disabled:active:scale-92',
                     colors[notification.type ?? 'info'].secondaryHover,
-                    // !isPreview && 'pointer-events-auto',
+                    !isPreview && 'pointer-events-auto',
                   )}
-                  disabled={isCollapsed}
+                  disabled={isPreview}
                   onClick={() => handleCloseNotification(notification)}
                 >
                   <XIcon className='size-4' />
@@ -344,7 +389,7 @@ export function NotificationField() {
 
 const colors: Record<
   RenderNotification['type'],
-  { primary: string; secondary: string; secondaryHover: string }
+  { primary: string; secondary: string; secondaryHover: string; icon?: string }
 > = {
   info: {
     primary: 'bg-input',
@@ -355,6 +400,12 @@ const colors: Record<
     primary: 'bg-error',
     secondary: 'bg-red-500/20',
     secondaryHover: 'not-disabled:hover:bg-red-500/20',
+  },
+  critical: {
+    primary: 'bg-error',
+    secondary: 'bg-red-500/20',
+    secondaryHover: 'not-disabled:hover:bg-red-500/20',
+    icon: 'text-rose-600',
   },
   warning: {
     primary: 'bg-yellow-800',

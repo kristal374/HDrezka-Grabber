@@ -25,10 +25,9 @@ import type { Runtime } from 'webextension-polyfill';
 type MessageSender = Runtime.MessageSender;
 
 export type PopupNotification = {
-  priority: number;
   stackable: boolean;
   message: string;
-  type: 'error' | 'warning' | 'info' | 'success';
+  type: 'error' | 'critical' | 'warning' | 'info' | 'success';
 };
 
 export class MessageBroker {

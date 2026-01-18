@@ -33,7 +33,6 @@ export const notificationReducer = createReducer(
       state.notifications.push({
         ...notif,
         type: notif.type ?? 'info',
-        priority: notif.priority ?? 0,
         message: notif.message ?? '',
         id: state.lastNotificationId,
       });

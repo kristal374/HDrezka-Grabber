@@ -44,7 +44,9 @@ export function DownloadScreen() {
         <Menu />
       </div>
       <div className='flex w-full flex-col gap-3'>
-        <NotificationField />
+        <NotificationField
+          isLimitedMaxHeight={pageType === 'SERIAL' && !!subtitleLang}
+        />
 
         <EpisodeRangeSelector
           defaultSeasonStart={(movieInfo?.data as SerialData).season}
