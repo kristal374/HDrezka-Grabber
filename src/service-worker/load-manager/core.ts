@@ -301,7 +301,18 @@ export class DownloadManager {
           await indexedDBObject.put('fileStorage', updatedFileItem);
 
           if (!loadIsCompleted(updatedFileItem.status)) {
+            logger.debug('Canceling download:', downloadId);
             await this.cancelOneDownload({ fileItem: updatedFileItem, logger });
+          } else {
+            logger.debug(
+              'The file has already finished downloading',
+              updatedFileItem,
+            );
+            this.resourceLockManager.unlock({
+              type: 'loadStorage',
+              id: fileItem.relatedLoadItemId,
+              logger,
+            });
           }
         } else {
           fileItem.downloadId = downloadId;
@@ -389,10 +400,9 @@ export class DownloadManager {
     do {
       downloadItem = (await browser.downloads.search({ id: downloadId }))[0];
       if (typeof downloadItem === 'undefined') return;
-      // Если у фала есть filename - значит файл уже начал загрузку и
-      // может быть удалён из списка загрузок, иначе, возникнет ошибка:
-      // Unchecked runtime.lastError: Download must be in progress
-    } while (!downloadItem.filename || downloadItem.state !== 'in_progress');
+
+      // Продолжаем цикл, пока НЕТ filename И файл ещё в процессе загрузки
+    } while (!downloadItem.filename && downloadItem.state === 'in_progress');
 
     logger.debug('Active download item:', downloadItem);
     return downloadItem;
@@ -708,7 +718,8 @@ export class DownloadManager {
     this.startNextDownload({ logger }).then();
   }
 
-  private async cancelAllDownload({
+  @attachTraceId()
+  public async cancelAllDownload({
     logger = globalThis.logger,
   }: {
     logger?: Logger;
@@ -724,6 +735,7 @@ export class DownloadManager {
       groupToRemove,
       logger,
     });
+    return true;
   }
 
   private async cancelAllDownloadsOneMovie({

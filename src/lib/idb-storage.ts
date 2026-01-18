@@ -63,7 +63,7 @@ export interface HDrezkaGrabberDB extends DBSchema {
 export async function doDatabaseStuff(): Promise<
   IDBPDatabase<HDrezkaGrabberDB>
 > {
-  return await openDB<HDrezkaGrabberDB>('HDrezkaGrabberDB', 1, {
+  const db = await openDB<HDrezkaGrabberDB>('HDrezkaGrabberDB', 1, {
     upgrade(db, oldVersion, _newVersion, _transaction, _event) {
       switch (oldVersion) {
         case 0:
@@ -74,6 +74,14 @@ export async function doDatabaseStuff(): Promise<
       console.error('Database was terminated.');
     },
   });
+
+  db.onversionchange = () => {
+    console.info('Database version changed. Close DB connection.');
+    db.close();
+  };
+
+  logger.info('Database open.');
+  return db;
 }
 
 export async function dropDatabase() {

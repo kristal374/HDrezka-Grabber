@@ -11,7 +11,7 @@ import { Provider } from 'react-redux';
 
 logger.info('Popup open.');
 
-const element = document.querySelector('body')!;
+const element = document.querySelector('#root')!;
 const root = createRoot(element);
 
 export const PopupInitialDataContext = createContext<PopupInitData | null>(
@@ -19,6 +19,11 @@ export const PopupInitialDataContext = createContext<PopupInitData | null>(
 );
 
 eventBus.addMessageSource(EventType.StorageChanged, browser.storage.onChanged);
+eventBus.addMessageSource(
+  EventType.DBDeletedMessage,
+  browser.runtime.onMessage,
+);
+eventBus.addMessageSource(EventType.DBDeletedEvent, globalThis);
 eventBus.addMessageSource(
   EventType.NotificationMessage,
   browser.runtime.onMessage,
