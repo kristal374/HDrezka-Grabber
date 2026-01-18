@@ -14,10 +14,9 @@ import { Panel } from '@/components/Panel';
 import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { Toggle } from '@/components/ui/Toggle';
-import { dropDatabase } from '@/lib/idb-storage';
 import { LogLevel } from '@/lib/logger/types';
 import { createDefaultSettings, saveInStorage } from '@/lib/storage';
-import { EventType, Message } from '@/lib/types';
+import { Message } from '@/lib/types';
 import {
   DownloadIcon,
   FolderCogIcon,
@@ -177,23 +176,9 @@ export function SettingsTab() {
 
   const handleRemoveExtensionData = useCallback(async () => {
     await browser.runtime.sendMessage<Message<undefined>>({
-      type: 'stopAllDownloads',
+      type: 'deleteExtensionData',
       message: undefined,
     });
-
-    // Ждём 3 секунды чтоб усели обработаться все события
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    await browser.storage.local.clear();
-    await browser.storage.sync.clear();
-    await browser.storage.session.clear();
-
-    await dropDatabase();
-    await browser.runtime.sendMessage<Message<undefined>>({
-      type: 'DBDeleted',
-      message: undefined,
-    });
-    globalThis.dispatchEvent(new CustomEvent(EventType.DBDeletedEvent));
-    // browser.runtime.reload()
   }, []);
 
   return (

@@ -22,7 +22,8 @@ export type MessageType =
   | 'setNotification'
   | 'clearCache'
   | 'stopAllDownloads'
-  | 'DBDeleted';
+  | 'DBDeleted'
+  | 'deleteExtensionData';
 
 export type Message<T> = {
   type: MessageType;

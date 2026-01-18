@@ -1,8 +1,8 @@
 import '@/lib/global-scope-init';
 
-import { doDatabaseStuff } from '@/lib/idb-storage';
-import { LogMessage } from '@/lib/logger';
-import { logCreate } from '@/lib/logger/background-logger';
+import { doDatabaseStuff, dropDatabase } from '@/lib/idb-storage';
+import { Logger, LogMessage } from '@/lib/logger';
+import { clearDebounceTimer, logCreate } from '@/lib/logger/background-logger';
 import { LoggerEventType } from '@/lib/logger/types';
 import { getTraceId } from '@/lib/logger/utils';
 import { getSettings } from '@/lib/storage';
@@ -49,6 +49,8 @@ async function main() {
     browser.storage.onChanged,
     storageChangeHandler,
   );
+
+  eventBus.mountHandler(EventType.DBDeletedEvent, globalThis, restoreDB);
 
   eventBus.mountHandler(LoggerEventType.LogCreate, globalThis, newLogHandler);
 
@@ -104,6 +106,7 @@ function messageHandler(
   };
 
   const data = message as Message<any>;
+  // TODO При удалении данных расширения необходимо так же прервать fetch запросы
   switch (data.type) {
     case 'getFileSize':
       return promiseResponse(fetchUrlSizes({ request: data.message, logger }));
@@ -128,11 +131,9 @@ function messageHandler(
     case 'stopAllDownloads':
       return promiseResponse(downloadManager.cancelAllDownload({ logger }));
     case 'DBDeleted':
-      return promiseResponse(
-        (async () => {
-          globalThis.indexedDBObject = await doDatabaseStuff();
-        })(),
-      );
+      return promiseResponse(restoreDB());
+    case 'deleteExtensionData':
+      return promiseResponse(clearExtensionData({ logger }));
     default:
       logger.warning(message);
       return false;
@@ -175,6 +176,45 @@ async function newLogHandler(message: Event) {
   // Мы должны привести объект к виду, в котором мы сможем сохранить его в БД.
   // JSON, это самый простой, хоть и не самый эффективный способ
   logCreate(JSON.parse(JSON.stringify((message as CustomEvent).detail)));
+}
+
+async function restoreDB() {
+  globalThis.indexedDBObject = await doDatabaseStuff();
+}
+
+async function clearExtensionData({
+  logger = globalThis.logger,
+}: {
+  logger?: Logger;
+}) {
+  // Отключаем на время получение любых сообщений чтоб не нарушить состояние
+  eventBus.off(EventType.NewMessageReceived, messageHandler);
+
+  await downloadManager.cancelAllDownload({ logger });
+
+  // Ждём 3 секунды чтоб усели обработаться все события
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  // Очищаем на всякий случай логи ожидающие записи
+  clearDebounceTimer();
+
+  await browser.storage.local.clear();
+  await browser.storage.sync.clear();
+  await browser.storage.session.clear();
+  await dropDatabase();
+
+  // Рассылаем уведомления о том, что база данных удалена и её необходимо пересоздать
+  await browser.runtime
+    .sendMessage<Message<undefined>>({
+      type: 'DBDeleted',
+      message: undefined,
+    })
+    .catch(() => {});
+  await restoreDB();
+
+  // Не забываем снова подписаться на новые уведомления
+  eventBus.on(EventType.NewMessageReceived, messageHandler);
+  return true;
 }
 
 const handleError = async (originalError: Error) => {

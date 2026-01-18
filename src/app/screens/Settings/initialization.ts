@@ -1,4 +1,5 @@
 import { doDatabaseStuff } from '@/lib/idb-storage';
+import { clearDebounceTimer } from '@/lib/logger/background-logger';
 import { getSettings } from '@/lib/storage';
 import { EventType, Message, Settings } from '@/lib/types';
 import { Runtime } from 'webextension-polyfill';
@@ -36,12 +37,17 @@ async function setDB() {
     (
       message: unknown,
       _sender: Runtime.MessageSender,
-      _sendResponse: (message: unknown) => void,
+      sendResponse: (message: unknown) => void,
     ) => {
       const data = message as Message<any>;
       if (data.type !== 'DBDeleted') return;
+
+      // Очищаем логи ожидающие записи
+      clearDebounceTimer();
+
       doDatabaseStuff().then((db) => {
         globalThis.indexedDBObject = db;
+        sendResponse(true);
       });
       return true;
     },
