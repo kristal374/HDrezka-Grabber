@@ -182,7 +182,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
         onlySize: true,
       };
       const urlItem = await getOriginalUrlItem({ request, logger });
-      if (urlItem.fileSize > 0) return urlItem.url;
+      if ((urlItem.fileSize ?? 0) > 0) return urlItem.url;
       logger.warning('"urlItem" is empty - skip.');
     }
 
@@ -198,7 +198,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
     )) {
       const quality = qualityItem as QualityItem;
       if (getQualityWeight(quality) > targetWeight) continue;
-      if (urlItem.fileSize > 0) return urlItem.url;
+      if ((urlItem.fileSize ?? 0) > 0) return urlItem.url;
     }
 
     logger.warning('No suitable "urlItem" was found:', qualitySizes);

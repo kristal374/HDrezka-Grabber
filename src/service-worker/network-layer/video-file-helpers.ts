@@ -2,12 +2,14 @@ import { Logger } from '@/lib/logger';
 import {
   QueryData,
   ResponseVideoData,
-  VideoInfo,
+  URLItem,
   VideoResolution,
 } from '@/lib/types';
 import { getFromCache, setInCache } from '@/service-worker/network-layer/cache';
 import { makeModifyFetch } from '@/service-worker/network-layer/modify-fetch';
 import { Input, MP4, UrlSource } from 'mediabunny';
+
+const activeReader = new Map<string, Input<UrlSource>>();
 
 export async function fetchVideoData({
   siteUrl,
@@ -34,8 +36,8 @@ export async function fetchVideoData({
     body,
     logger,
   });
-  if (cache) return cache;
 
+  if (cache) return cache;
   return modifiedFetch(fullURL, {
     method: 'POST',
     credentials: 'include',
@@ -47,6 +49,7 @@ export async function fetchVideoData({
     },
   }).then(async (response) => {
     const serverResponse: ResponseVideoData = await response.json();
+
     logger.debug('Server response:', serverResponse);
     setInCache({ data: serverResponse, url: siteUrl, body, logger }).then();
     return serverResponse;
@@ -56,13 +59,15 @@ export async function fetchVideoData({
 export async function probeVideoFile({
   videoUrl,
   fetchFn,
+  onlySize,
   onSizeReceived,
   onResolutionReceived,
   logger = globalThis.logger,
 }: {
   videoUrl: string;
   fetchFn: typeof fetch;
-  onSizeReceived: (size: number) => void;
+  onlySize?: boolean;
+  onSizeReceived?: (size: number) => void;
   onResolutionReceived?: (resolution: VideoResolution | null) => void;
   logger?: Logger;
 }) {
@@ -79,21 +84,26 @@ export async function probeVideoFile({
     formats: [MP4],
   });
 
-  const readVideoInfo = async () => {
-    const videoInfo: VideoInfo = {
-      filesize: await input.source.getSize(),
-      resolution: null,
-    };
-    onSizeReceived(videoInfo.filesize);
+  activeReader.set(videoUrl, input);
 
-    const needToGetVideoResolution = typeof onResolutionReceived === 'function';
-    if (settings.getRealQuality && needToGetVideoResolution) {
+  const videoInfo: Omit<URLItem, 'url'> = {
+    fileSize: 0,
+    videoResolution: null,
+  };
+
+  const readVideoInfo = async () => {
+    videoInfo.fileSize = await input.source.getSize();
+
+    if (videoInfo.fileSize === 0) return videoInfo;
+    onSizeReceived?.(videoInfo.fileSize);
+
+    if (settings.getRealQuality && !onlySize) {
       const track = await input.getPrimaryVideoTrack();
 
-      videoInfo.resolution = track
+      videoInfo.videoResolution = track
         ? { width: track.codedWidth, height: track.codedHeight }
         : null;
-      onResolutionReceived(videoInfo.resolution);
+      onResolutionReceived?.(videoInfo.videoResolution);
     }
 
     return videoInfo;
@@ -108,5 +118,24 @@ export async function probeVideoFile({
       logger.error('Error while reading video info:', e.toString());
       throw e as Error;
     })
-    .finally(() => input.dispose());
+    .finally(() => {
+      input.dispose();
+      activeReader.delete(videoUrl);
+    });
+}
+
+export function stopAllVideoReader() {
+  logger.info('Stopping all video readers.');
+
+  activeReader.forEach((reader) => reader.dispose());
+  activeReader.clear();
+}
+
+export function stopVideoReader(url: string) {
+  const reader = activeReader.get(url);
+  if (!reader) return;
+
+  logger.info('Stopping video reader:', url);
+  reader.dispose();
+  activeReader.delete(url);
 }

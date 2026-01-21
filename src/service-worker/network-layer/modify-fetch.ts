@@ -22,7 +22,6 @@ export function makeModifyFetch({
         ? combineSignals(init.signal, controller.signal)
         : controller.signal;
 
-      // Добавляем к активным запросам новый
       inFlightFetches.set(urlToString(input), controller);
 
       const timeout = setTimeout(() => controller.abort('Timeout.'), 10_000);
@@ -60,11 +59,17 @@ export function abortFetch(input: string | URL | Request) {
   const url = urlToString(input);
   const controller = inFlightFetches.get(url);
   if (!controller || controller.signal.aborted) return;
+
+  logger.info('Aborting fetch:', url);
   controller.abort('Canceled.');
+  inFlightFetches.delete(url);
 }
 
 export function abortAllFetches(reason: string = 'Canceled.') {
+  logger.info('Aborting all active fetches.');
+
   inFlightFetches.forEach((signal) => signal.abort(reason));
+  inFlightFetches.clear();
 }
 
 function combineSignals(...signals: AbortSignal[]): AbortSignal {
@@ -144,7 +149,6 @@ export async function addHeaderModificationRule(
             },
           ],
         },
-        // TODO: Стоит использовать Regexp дабы не зависеть от домена при медиа запросах
         condition: { urlFilter: target.href },
       },
     ],

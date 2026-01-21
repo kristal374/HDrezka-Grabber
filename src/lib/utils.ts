@@ -75,7 +75,7 @@ export function loadIsCompleted(status: LoadStatus) {
   ].includes(status);
 }
 
-export function formatBytes(bytes: number | null) {
+export function formatBytes(bytes?: number) {
   if (!bytes) return '??? MB';
 
   const k = 1024;

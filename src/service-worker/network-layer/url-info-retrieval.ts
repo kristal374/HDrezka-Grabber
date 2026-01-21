@@ -1,5 +1,6 @@
 import { Logger } from '@/lib/logger';
 import {
+  Message,
   QualitiesList,
   QualityItem,
   RequestUrlSize,
@@ -11,7 +12,10 @@ import {
   abortFetch,
   makeModifyFetch,
 } from '@/service-worker/network-layer/modify-fetch';
-import { probeVideoFile } from '@/service-worker/network-layer/video-file-helpers';
+import {
+  probeVideoFile,
+  stopVideoReader,
+} from '@/service-worker/network-layer/video-file-helpers';
 
 const dedupeUrlMap = new Map<string, Promise<URLItem>>();
 
@@ -50,21 +54,25 @@ export async function getOriginalUrlItem({
 }) {
   logger.info('Fetching URL sizes.');
 
-  // Проверяем есть ли хоть один из искомых URL в кэше, у которого размер > 0
-  const allItemFromCache = await Promise.all(
-    request.urlsList.map(
-      async (url) => await getFromCache<URLItem>({ url, logger }),
-    ),
-  );
+  if (!request.cacheDisabled) {
+    // Проверяем есть ли хоть один из искомых URL в кэше, у которого размер > 0
+    const allItemFromCache = await Promise.all(
+      request.urlsList.map(
+        async (url) => await getFromCache<URLItem>({ url, logger }),
+      ),
+    );
 
-  const cleanCache = allItemFromCache.filter(Boolean) as URLItem[];
-  if (cleanCache.length) {
-    return cleanCache[0];
+    const cleanCache = allItemFromCache.filter((c) => c?.fileSize) as URLItem[];
+
+    if (cleanCache.length) {
+      logger.debug('Cached data found. Returning it.');
+      return cleanCache[0];
+    }
   }
 
   logger.debug('No cached data found. Fetching from server.');
   const promises = request.urlsList.map(async (item) => {
-    return await fetchVideoInfo({
+    return await fetchVideoInfoOrWaitFor({
       videoUrl: item,
       sourceUrl: request.siteUrl,
       onlySize: request.onlySize,
@@ -74,7 +82,10 @@ export async function getOriginalUrlItem({
 
   return await Promise.any(promises)
     .then((result) => {
-      request.urlsList.forEach((item) => abortFetch(item));
+      request.urlsList.forEach((item) => {
+        stopVideoReader(item);
+        abortFetch(item);
+      });
       return result;
     })
     .catch(() => {
@@ -86,8 +97,7 @@ export async function getOriginalUrlItem({
     });
 }
 
-// async function fetchVideoInfoOrWaitFor({
-async function fetchVideoInfo({
+async function fetchVideoInfoOrWaitFor({
   videoUrl,
   sourceUrl,
   onlySize,
@@ -102,33 +112,43 @@ async function fetchVideoInfo({
   if (existing) return existing;
 
   const [getFinallyUrl, modifiedFetch] = makeModifyFetch({ sourceUrl, logger });
-  const onSizeReceived = (size: number) => {
-    console.log('size', size);
+
+  const onSizeReceived = (fileSize: number) => {
+    browser.runtime
+      .sendMessage<Message<URLItem>>({
+        type: 'newFileSize',
+        message: { url: videoUrl, fileSize },
+      })
+      .catch(() => {});
   };
+
   const onResolutionReceived = (
-    resolution: { width: number; height: number } | null,
+    videoResolution: { width: number; height: number } | null,
   ) => {
-    console.log('resolution', resolution);
+    browser.runtime
+      .sendMessage<Message<URLItem>>({
+        type: 'newVideoResolution',
+        message: { url: videoUrl, videoResolution },
+      })
+      .catch(() => {});
   };
 
   const promise = probeVideoFile({
     videoUrl,
     fetchFn: modifiedFetch,
+    onlySize,
     onSizeReceived,
     onResolutionReceived: onlySize ? undefined : onResolutionReceived,
     logger,
-  }).then((result) => {
-    const urlItem: URLItem = {
-      url: getFinallyUrl(),
-      fileSize: result.filesize,
-      videoResolution: result.resolution,
-    };
-
-    if (urlItem.fileSize) {
-      setInCache({ data: urlItem, url: videoUrl, logger }).then();
-    }
-    return urlItem;
-  });
+  })
+    .then((result) => {
+      const urlItem: URLItem = { url: getFinallyUrl(), ...result };
+      if (urlItem.fileSize) {
+        setInCache({ data: urlItem, url: videoUrl, logger }).then();
+      }
+      return urlItem;
+    })
+    .finally(() => dedupeUrlMap.delete(videoUrl));
 
   dedupeUrlMap.set(videoUrl, promise);
   return promise;
