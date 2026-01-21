@@ -147,7 +147,7 @@ export class QueueController {
       });
     }
 
-    await messageBroker.sendMessage(movieId, {
+    await messageBroker.sendMessage(String(movieId), {
       stackable: false,
       message: 'Загрузка прервана. Не удалось загрузить файл.',
       type: 'warning',
@@ -158,7 +158,7 @@ export class QueueController {
     // Пропускает загрузку одного файла
     logger.info('Skipping download for movie:', movieId);
 
-    await messageBroker.sendMessage(movieId, {
+    await messageBroker.sendMessage(String(movieId), {
       stackable: true,
       message: 'Сбой загрузки. Не удалось загрузить файл.',
       type: 'warning',

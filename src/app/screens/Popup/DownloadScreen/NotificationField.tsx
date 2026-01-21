@@ -6,9 +6,9 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { selectMovieInfo } from './store/DownloadScreen.slice';
 import {
   deleteNotificationsAction,
+  type RenderNotification,
   selectNotifications,
   setNotificationAction,
-  type RenderNotification,
 } from './store/NotificationField.slice';
 import { useAppDispatch, useAppSelector } from './store/store';
 
@@ -69,7 +69,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
         await messageBroker.clearNotificationsFromStorage(movieInfo.data.id);
 
         messageBroker.trackNotifications(
-          Number(movieInfo.data.id),
+          movieInfo.data.id,
           async (notification) => {
             dispatch(setNotificationAction({ notification }));
           },
@@ -258,13 +258,13 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
           if (isCollapsedOpened) {
             const containerParent = containerRef.current?.parentElement;
             containerParent?.classList.add(NOTIFICATIONS_COLLAPSE_FADE_CLASS);
-            const timeout = setTimeout(() => {
+
+            collapseClosingTimeoutRef.current = setTimeout(() => {
               setCollapsed(true);
               containerParent?.classList.remove(
                 NOTIFICATIONS_COLLAPSE_FADE_CLASS,
               );
             }, NOTIFICATIONS_COLLAPSE_DELAY) as unknown as number;
-            collapseClosingTimeoutRef.current = timeout;
           }
         }}
       >
