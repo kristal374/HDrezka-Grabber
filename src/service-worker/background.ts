@@ -172,9 +172,17 @@ async function storageChangeHandler(
 }
 
 async function onConnectHandler(port: Port) {
-  port.onMessage.addListener((message, _port) => {
+  const newLogMessageHandler = (message: unknown, _port: Port) => {
     return logCreate(message as LogMessage);
-  });
+  }
+
+  const disconnectHandler = () => {
+    port.onMessage.removeListener(newLogMessageHandler);
+    port.onDisconnect.removeListener(disconnectHandler);
+  };
+
+  port.onMessage.addListener(newLogMessageHandler);
+  port.onDisconnect.addListener(disconnectHandler);
 }
 
 async function newLogHandler(message: Event) {
