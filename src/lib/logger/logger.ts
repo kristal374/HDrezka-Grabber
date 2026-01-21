@@ -111,6 +111,13 @@ export class Logger {
     if (!Logger.isBackground) {
       if (!Logger.port) {
         Logger.port = browser.runtime.connect();
+
+        const disconnectHandler = () => {
+          Logger.port?.onDisconnect.removeListener(disconnectHandler);
+          Logger.port = undefined;
+        };
+
+        Logger.port.onDisconnect.addListener(disconnectHandler);
       }
 
       Logger.port.postMessage(detail);
