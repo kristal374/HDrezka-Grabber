@@ -4,9 +4,11 @@ import { Subtitle } from '@/lib/types';
 import { useAppDispatch, useAppSelector } from './store/store';
 import {
   selectCurrentSubtitle,
+  selectDownloadOnlySubtitle,
   selectDownloadSubtitle,
   selectSubtitleList,
   setCurrentSubtitleAction,
+  setDownloadOnlySubtitleAction,
   setDownloadSubtitleAction,
 } from './store/SubtitleSelector.slice';
 
@@ -16,6 +18,9 @@ export function SubtitleSelector() {
   const subtitlesList = useAppSelector((state) => selectSubtitleList(state));
   const downloadSubtitle = useAppSelector((state) =>
     selectDownloadSubtitle(state),
+  );
+  const downloadOnlySubtitle = useAppSelector((state) =>
+    selectDownloadOnlySubtitle(state),
   );
 
   if (subtitlesList === null) return null;
@@ -36,26 +41,44 @@ export function SubtitleSelector() {
       </CheckboxWithLabel>
 
       {downloadSubtitle && (
-        <div className='flex items-center gap-2.5'>
-          <label htmlFor='subtitles' className='ml-auto text-sm select-none'>
-            {browser.i18n.getMessage('popup_subtitleLang')}
-          </label>
-          <Combobox
-            id='subtitles'
-            width='14.4rem'
-            data={subtitlesList.map((subtitle) => ({
-              value: JSON.stringify(subtitle),
-              label: subtitle.lang,
-            }))}
-            value={JSON.stringify(subtitleLang)}
-            onValueChange={(value) =>
+        <div className='flex flex-col gap-2.5'>
+          <CheckboxWithLabel
+            id='downloadOnlySubtitle'
+            className='ml-7.5'
+            checked={downloadOnlySubtitle}
+            onCheckedChange={(value) =>
               dispatch(
-                setCurrentSubtitleAction({
-                  subtitle: JSON.parse(value) as Subtitle,
+                setDownloadOnlySubtitleAction({
+                  downloadOnlySubtitle: value as boolean,
                 }),
               )
             }
-          />
+          >
+            {/*TODO: use i18n*/}
+            {'Загрузить только субтитры'}
+          </CheckboxWithLabel>
+
+          <div className='flex items-center gap-2.5'>
+            <label htmlFor='subtitles' className='ml-auto text-sm select-none'>
+              {browser.i18n.getMessage('popup_subtitleLang')}
+            </label>
+            <Combobox
+              id='subtitles'
+              width='14.4rem'
+              data={subtitlesList.map((subtitle) => ({
+                value: JSON.stringify(subtitle),
+                label: subtitle.lang,
+              }))}
+              value={JSON.stringify(subtitleLang)}
+              onValueChange={(value) =>
+                dispatch(
+                  setCurrentSubtitleAction({
+                    subtitle: JSON.parse(value) as Subtitle,
+                  }),
+                )
+              }
+            />
+          </div>
         </div>
       )}
     </>

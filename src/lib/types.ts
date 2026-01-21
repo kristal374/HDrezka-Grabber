@@ -162,6 +162,7 @@ export type Initiator = {
   movieId: string;
   site_url: string;
   site_type: SiteType;
+  content_type: ContentType;
   film_name: {
     localized: string;
     original: string | null;

@@ -4,7 +4,7 @@ import { useTrackingTotalProgressForMovie } from '@/app/hooks/popup/useTrackingT
 import { CircularProgressBar } from '@/components/CircularProgressBar';
 import { AnimatedCheckIcon } from '@/components/icons/AnimatedCheckIcon';
 import { DownloadIcon } from '@/components/icons/DownloadIcon';
-import { Initiator, Message } from '@/lib/types';
+import { ContentType, Initiator, Message } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useCallback } from 'react';
 import { selectMovieInfo } from './store/DownloadScreen.slice';
@@ -13,6 +13,7 @@ import { selectCurrentQuality } from './store/QualitySelector.slice';
 import { useAppSelector } from './store/store';
 import {
   selectCurrentSubtitle,
+  selectDownloadOnlySubtitle,
   selectDownloadSubtitle,
 } from './store/SubtitleSelector.slice';
 import { selectCurrentVoiceOver } from './store/VoiceOverSelector.slice';
@@ -24,6 +25,9 @@ export function LoadButton() {
   const subtitleLang = useAppSelector(selectCurrentSubtitle);
   const downloadSubtitle = useAppSelector((state) =>
     selectDownloadSubtitle(state),
+  );
+  const downloadOnlySubtitle = useAppSelector((state) =>
+    selectDownloadOnlySubtitle(state),
   );
 
   const quality = useAppSelector(selectCurrentQuality)!;
@@ -39,6 +43,11 @@ export function LoadButton() {
         movieId: movieInfo.data.id,
         site_url: movieInfo.url,
         site_type: 'hdrezka',
+        content_type: downloadSubtitle
+          ? downloadOnlySubtitle
+            ? ContentType.subtitle
+            : ContentType.both
+          : ContentType.video,
         film_name: {
           localized: movieInfo.filename.local,
           original: movieInfo.filename.origin,
@@ -56,7 +65,15 @@ export function LoadButton() {
         timestamp: String(new Date().getTime()),
       },
     });
-  }, [movieInfo, range, voiceOver, subtitleLang, downloadSubtitle, quality]);
+  }, [
+    movieInfo,
+    range,
+    voiceOver,
+    subtitleLang,
+    downloadSubtitle,
+    quality,
+    downloadOnlySubtitle,
+  ]);
 
   const isCompleted =
     !!progress && progress.completedLoads === progress.totalLoads;
