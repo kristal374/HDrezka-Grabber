@@ -33,9 +33,9 @@ export function QualitySelector() {
   const dispatch = useAppDispatch();
   const movieInfo = useAppSelector(selectMovieInfo)!;
 
-  const quality = useAppSelector((state) => selectCurrentQuality(state));
-  const qualitiesList = useAppSelector((state) => selectQualitiesList(state));
-  const qualitiesInfo = useAppSelector((state) => selectQualityInfo(state));
+  const quality = useAppSelector(selectCurrentQuality);
+  const qualitiesList = useAppSelector(selectQualitiesList);
+  const qualitiesInfo = useAppSelector(selectQualityInfo);
 
   const getTargetQualityInfo = useCallback(
     (qualityItem: QualityItem) => {

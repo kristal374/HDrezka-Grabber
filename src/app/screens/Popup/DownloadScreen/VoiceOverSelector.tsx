@@ -31,11 +31,9 @@ export function VoiceOverSelector({
   const dispatch = useAppDispatch();
   const { tabId, pageType } = useContext(PopupInitialDataContext)!;
 
-  const voiceOverList = useAppSelector((state) => selectVoiceOverList(state));
-  const currentVoiceOver = useAppSelector((state) =>
-    selectCurrentVoiceOver(state),
-  );
-  const downloadSerial = useAppSelector((state) => selectDownloadSerial(state));
+  const voiceOverList = useAppSelector(selectVoiceOverList);
+  const currentVoiceOver = useAppSelector(selectCurrentVoiceOver);
+  const downloadSerial = useAppSelector(selectDownloadSerial);
 
   useEffect(() => {
     // Если у нас нет списка озвучек - получаем его со страницы сайта

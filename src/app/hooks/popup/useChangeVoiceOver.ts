@@ -22,8 +22,8 @@ export function useChangeVoiceOver() {
   const dispatch = useAppDispatch();
   const { pageType } = useContext(PopupInitialDataContext)!;
 
-  const movieInfo = useAppSelector((state) => selectMovieInfo(state));
-  const voiceOver = useAppSelector((state) => selectCurrentVoiceOver(state));
+  const movieInfo = useAppSelector(selectMovieInfo);
+  const voiceOver = useAppSelector(selectCurrentVoiceOver);
   const [previewVoiceOver, setPreviewVoiceOver] = useState(voiceOver);
 
   const updateVoiceOver = useCallback(async (): Promise<ActualVideoData> => {

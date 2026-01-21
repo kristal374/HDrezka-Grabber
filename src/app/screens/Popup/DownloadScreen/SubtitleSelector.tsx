@@ -14,14 +14,10 @@ import {
 
 export function SubtitleSelector() {
   const dispatch = useAppDispatch();
-  const subtitleLang = useAppSelector((state) => selectCurrentSubtitle(state));
-  const subtitlesList = useAppSelector((state) => selectSubtitleList(state));
-  const downloadSubtitle = useAppSelector((state) =>
-    selectDownloadSubtitle(state),
-  );
-  const downloadOnlySubtitle = useAppSelector((state) =>
-    selectDownloadOnlySubtitle(state),
-  );
+  const subtitleLang = useAppSelector(selectCurrentSubtitle);
+  const subtitlesList = useAppSelector(selectSubtitleList);
+  const downloadSubtitle = useAppSelector(selectDownloadSubtitle);
+  const downloadOnlySubtitle = useAppSelector(selectDownloadOnlySubtitle);
 
   if (subtitlesList === null) return null;
 

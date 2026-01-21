@@ -20,9 +20,9 @@ import { VoiceOverSelector } from './VoiceOverSelector';
 export function DownloadScreen() {
   const { pageType } = useContext(PopupInitialDataContext)!;
 
-  const movieInfo = useAppSelector((state) => selectMovieInfo(state));
-  const notifications = useAppSelector((state) => selectNotifications(state));
-  const subtitleLang = useAppSelector((state) => selectCurrentSubtitle(state));
+  const movieInfo = useAppSelector(selectMovieInfo);
+  const notifications = useAppSelector(selectNotifications);
+  const subtitleLang = useAppSelector(selectCurrentSubtitle);
 
   useChangeVoiceOver();
   useChangeRangeEpisodes();

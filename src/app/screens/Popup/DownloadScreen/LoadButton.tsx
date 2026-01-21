@@ -23,12 +23,8 @@ export function LoadButton() {
   const range = useAppSelector(selectRange);
   const voiceOver = useAppSelector(selectCurrentVoiceOver)!;
   const subtitleLang = useAppSelector(selectCurrentSubtitle);
-  const downloadSubtitle = useAppSelector((state) =>
-    selectDownloadSubtitle(state),
-  );
-  const downloadOnlySubtitle = useAppSelector((state) =>
-    selectDownloadOnlySubtitle(state),
-  );
+  const downloadSubtitle = useAppSelector(selectDownloadSubtitle);
+  const downloadOnlySubtitle = useAppSelector(selectDownloadOnlySubtitle);
 
   const quality = useAppSelector(selectCurrentQuality)!;
 

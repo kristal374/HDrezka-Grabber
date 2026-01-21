@@ -19,7 +19,7 @@ export function useChangeMovieInfo() {
   const dispatch = useAppDispatch();
   const { tabId } = useContext(PopupInitialDataContext)!;
 
-  const movieInfo = useAppSelector((state) => selectMovieInfo(state));
+  const movieInfo = useAppSelector(selectMovieInfo);
 
   useEffect(() => {
     if (movieInfo !== null) return;
