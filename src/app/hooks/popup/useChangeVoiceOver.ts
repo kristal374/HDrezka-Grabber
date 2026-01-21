@@ -99,9 +99,8 @@ export function useChangeVoiceOver() {
         if (ignore) return;
         dispatch(setVoiceOverAction({ voiceOver: previewVoiceOver }));
         // TODO: use i18n
-        messageBroker.sendMessage(Number(movieInfo?.data.id), {
-          priority: 100,
-          stackable: false,
+        messageBroker.sendMessage(movieInfo!.data.id, {
+          stackable: true,
           message: 'Ошибка при попытке смены озвучки, попробуйте снова.',
           type: 'error',
         });

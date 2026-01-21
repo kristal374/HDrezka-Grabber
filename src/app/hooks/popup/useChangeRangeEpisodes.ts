@@ -138,9 +138,8 @@ export function useChangeRangeEpisodes() {
           dispatch(setEpisodeToAction({ value: endEpisode }));
         }
         // TODO: use i18n
-        messageBroker.sendMessage(Number(movieInfo?.data.id), {
-          priority: 100,
-          stackable: false,
+        messageBroker.sendMessage(movieInfo!.data.id, {
+          stackable: true,
           message: 'Ошибка при попытке изменить серию, попробуйте снова.',
           type: 'error',
         });

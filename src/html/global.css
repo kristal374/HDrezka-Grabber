@@ -89,6 +89,31 @@
 
   --color-light-color: var(--light-color);
   --color-link-color: var(--link-color);
+
+  --animate-fast-pulse: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-fade-out: fade-out 1.5s cubic-bezier(0.4, 0, 0.6, 1);
+  --animate-spawn: spawn 250ms cubic-bezier(0.4, 0, 0.6, 1);
+
+  @keyframes fade-out {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
+    100% {
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes spawn {
+    0% {
+      scale: 0.9;
+    }
+    100% {
+      scale: 1;
+    }
+  }
 }
 
 @utility scroll-container {
