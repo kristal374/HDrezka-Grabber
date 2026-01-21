@@ -7,11 +7,15 @@ import { LoggerEventType } from '@/lib/logger/types';
 import { getTraceId } from '@/lib/logger/utils';
 import { getSettings } from '@/lib/storage';
 import { EventType, Message, Settings } from '@/lib/types';
-import { clearCache } from '@/service-worker/cache';
-import { updateVideoInfo } from '@/service-worker/response-parser';
+import {
+  abortAllFetches,
+  clearCache,
+  getOriginalUrlItem,
+  stopAllVideoReader,
+  updateVideoInfo,
+} from '@/service-worker/network-layer';
 import { Alarms, Runtime, Storage } from 'webextension-polyfill';
 import { DownloadManager } from './load-manager/core';
-import { fetchUrlSizes } from './network-layer';
 
 type Port = Runtime.Port;
 type StorageChange = Storage.StorageChange;
@@ -106,10 +110,11 @@ function messageHandler(
   };
 
   const data = message as Message<any>;
-  // TODO При удалении данных расширения необходимо так же прервать fetch запросы
   switch (data.type) {
     case 'getFileSize':
-      return promiseResponse(fetchUrlSizes({ request: data.message, logger }));
+      return promiseResponse(
+        getOriginalUrlItem({ request: data.message, logger }),
+      );
     case 'updateVideoInfo':
       return promiseResponse(updateVideoInfo({ data: data.message, logger }));
     case 'trigger':
@@ -192,7 +197,11 @@ async function clearExtensionData({
 
   await downloadManager.cancelAllDownload({ logger });
 
-  // Ждём 3 секунды чтоб усели обработаться все события
+  // Прерываем активные запросы, иначе могут возникнуть ошибки после удаления БД
+  abortAllFetches();
+  stopAllVideoReader();
+
+  // Ждём 3 секунды чтоб усели обработаться все события в downloadManager
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
   // Очищаем на всякий случай логи ожидающие записи
@@ -224,5 +233,3 @@ const handleError = async (originalError: Error) => {
 
 self.addEventListener('unhandledrejection', (e) => handleError(e.reason));
 main().catch(handleError);
-
-// TODO: пофиксить выбор озвучки

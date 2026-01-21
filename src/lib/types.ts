@@ -23,7 +23,9 @@ export type MessageType =
   | 'clearCache'
   | 'stopAllDownloads'
   | 'DBDeleted'
-  | 'deleteExtensionData';
+  | 'deleteExtensionData'
+  | 'newFileSize'
+  | 'newVideoResolution';
 
 export type Message<T> = {
   type: MessageType;
@@ -101,14 +103,12 @@ export type Subtitle = {
 
 export type QualitiesList = Partial<Record<QualityItem, string[]>>;
 
+export type VideoResolution = { width: number; height: number };
+
 export type URLItem = {
   url: string;
-  videoResolution: {
-    height: number;
-    width: number;
-  } | null;
-  stringSize: string;
-  rawSize: number;
+  fileSize?: number;
+  videoResolution?: VideoResolution | null;
 };
 
 export type URLsContainer = Partial<Record<QualityItem, URLItem>>;
@@ -117,6 +117,7 @@ export type RequestUrlSize = {
   urlsList: string[];
   siteUrl: string;
   onlySize?: boolean;
+  cacheDisabled?: boolean;
 };
 
 export type Action = 'get_movie' | 'get_stream' | 'get_episodes';

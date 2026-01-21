@@ -1,11 +1,27 @@
 import { selectMovieInfo } from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
 import { AnimatedLoaderIcon } from '@/components/icons/AnimatedLoaderIcon';
 import { Combobox } from '@/components/ui/Combobox';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/Tooltip';
 import { sortQualityItem } from '@/lib/link-processing';
-import { Message, QualityItem, RequestUrlSize, URLItem } from '@/lib/types';
+import {
+  EventType,
+  Message,
+  QualityItem,
+  RequestUrlSize,
+  URLItem,
+  URLsContainer,
+} from '@/lib/types';
+import { formatBytes } from '@/lib/utils';
+import { OctagonAlertIcon } from 'lucide-react';
 import { useCallback, useEffect } from 'react';
+import type { Runtime } from 'webextension-polyfill';
 import {
   addQualityInfoAction,
+  deleteQualityInfoAction,
   selectCurrentQuality,
   selectQualitiesList,
   selectQualityInfo,
@@ -21,41 +37,100 @@ export function QualitySelector() {
   const qualitiesList = useAppSelector((state) => selectQualitiesList(state));
   const qualitiesInfo = useAppSelector((state) => selectQualityInfo(state));
 
-  const getQualitySize = useCallback(async (urls: string[]) => {
-    return (await browser.runtime.sendMessage<Message<RequestUrlSize>>({
-      type: 'getFileSize',
-      message: { urlsList: urls, siteUrl: movieInfo.url },
-    })) as URLItem;
-  }, []);
+  const getTargetQualityInfo = useCallback(
+    (qualityItem: QualityItem) => {
+      return dispatch((_dispatch, getState) => {
+        const currentQualitiesInfo = selectQualityInfo(getState());
+        return currentQualitiesInfo?.[qualityItem];
+      });
+    },
+    [dispatch],
+  );
+
+  const updateQualityInfo = useCallback(
+    (qualityItem: QualityItem, urlItem: URLItem) => {
+      dispatch((dispatch, getState) => {
+        const currentQualitiesInfo = selectQualityInfo(getState());
+
+        const updates = Object.fromEntries(
+          Object.entries(urlItem).filter(([, v]) => Boolean(v)),
+        );
+        const qualityInfo: URLsContainer = {
+          [qualityItem]: { ...currentQualitiesInfo?.[qualityItem], ...updates },
+        };
+        dispatch(addQualityInfoAction({ qualityInfo }));
+      });
+    },
+    [dispatch],
+  );
 
   useEffect(() => {
     const needToUpdate = settings.displayQualitySize || settings.getRealQuality;
     if (!qualitiesList || !needToUpdate) return;
 
     let ignore = false;
-    for (const [key, value] of Object.entries(qualitiesList)) {
+    Object.entries(qualitiesList).forEach(([key, value]) => {
       const qualityItem = key as QualityItem;
-      const qualityInfo = qualitiesInfo?.[qualityItem] ?? null;
-      if (
-        (qualityInfo?.rawSize || !settings.displayQualitySize) &&
-        (qualityInfo?.videoResolution || !settings.getRealQuality)
-      )
-        continue;
+      const qualityInfo = getTargetQualityInfo(qualityItem);
 
-      getQualitySize(value).then((response) => {
-        if (!ignore) {
-          dispatch(
-            addQualityInfoAction({
-              qualityInfo: { [key as QualityItem]: response },
-            }),
+      const needFileSize =
+        !qualityInfo?.fileSize && settings.displayQualitySize;
+      const needResolution =
+        !qualityInfo?.videoResolution && settings.getRealQuality;
+
+      if (!needFileSize && !needResolution) return;
+
+      dispatch(deleteQualityInfoAction({ quality: qualityItem }));
+      browser.runtime
+        .sendMessage<Message<RequestUrlSize>>({
+          type: 'getFileSize',
+          message: {
+            urlsList: value,
+            siteUrl: movieInfo.url,
+            cacheDisabled: needFileSize !== needResolution,
+          },
+        })
+        .then((response) => {
+          const urlItem = response as URLItem;
+          if (ignore) return;
+          updateQualityInfo(
+            qualityItem,
+            !urlItem.fileSize && qualityInfo ? qualityInfo : urlItem,
           );
-        }
-      });
-    }
+        });
+    });
+
     return () => {
       ignore = true;
     };
-  }, [qualitiesList]);
+  }, [qualitiesList, getTargetQualityInfo, updateQualityInfo]);
+
+  useEffect(() => {
+    if (!qualitiesList) return;
+
+    const handleMessage = (
+      message: unknown,
+      _sender: Runtime.MessageSender,
+      _sendResponse: (message: unknown) => void,
+    ) => {
+      const data = message as Message<URLItem>;
+
+      if (data.type !== 'newFileSize' && data.type !== 'newVideoResolution')
+        return false;
+
+      for (const [quality, urls] of Object.entries(qualitiesList)) {
+        if (!urls.includes(data.message.url)) continue;
+        updateQualityInfo(quality as QualityItem, data.message);
+      }
+      return true;
+    };
+
+    return eventBus.mountHandler(
+      EventType.NewMessageReceived,
+      browser.runtime.onMessage,
+      handleMessage,
+    );
+  }, [qualitiesList, updateQualityInfo]);
 
   if (!qualitiesList) return null;
   logger.info('New render QualitySelector component.');
@@ -75,22 +150,55 @@ export function QualitySelector() {
         data={Object.keys(sortQualityItem(qualitiesList)).map((q) => ({
           value: q,
           label: q,
-          labelComponent({ children }) {
+          labelComponent({ children, isRenderingInPreview }) {
             const targetQuality = q as QualityItem;
             const qualityInfo = qualitiesInfo?.[targetQuality] ?? null;
             const videoResolution = qualityInfo?.videoResolution ?? null;
             const realQuality = `${videoResolution?.height}p`;
+            const realQualityPill = (
+              <span className='bg-input-active border-input ml-1.75 inline-flex items-center gap-1 rounded-md border px-1.25'>
+                {isRenderingInPreview && (
+                  <OctagonAlertIcon className='size-4' />
+                )}
+                <span className='pb-0.25'>{realQuality}</span>
+              </span>
+            );
             return (
               <>
-                {qualityInfo && settings.getRealQuality
-                  ? videoResolution && targetQuality !== realQuality
-                    ? `${targetQuality} (${realQuality})`
-                    : targetQuality
-                  : children}
+                {qualityInfo && settings.getRealQuality ? (
+                  videoResolution && targetQuality !== realQuality ? (
+                    <>
+                      {targetQuality}
+                      {isRenderingInPreview ? (
+                        <Tooltip>
+                          <TooltipTrigger>{realQualityPill}</TooltipTrigger>
+                          <TooltipContent
+                            align='center'
+                            side='top'
+                            className='flex w-58 items-center justify-between'
+                          >
+                            <p className='text-sm text-balance'>
+                              Реальное разрешение видео
+                            </p>
+                            <span className='bg-input-active w-fit shrink-0 rounded-sm px-1.25 pb-0.25 text-sm font-medium'>
+                              {videoResolution.width} x {videoResolution.height}
+                            </span>
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        realQualityPill
+                      )}
+                    </>
+                  ) : (
+                    targetQuality
+                  )
+                ) : (
+                  children
+                )}
                 {settings.displayQualitySize ? (
                   <span className='ml-auto'>
                     {qualityInfo ? (
-                      qualityInfo.stringSize
+                      formatBytes(qualityInfo?.fileSize)
                     ) : (
                       <AnimatedLoaderIcon className='size-4' />
                     )}

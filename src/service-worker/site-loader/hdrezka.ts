@@ -30,9 +30,9 @@ import {
   UrlDetails,
 } from '@/lib/types';
 import {
-  fetchUrlSizes,
-  getQualityFileSize,
-  updateVideoData,
+  fetchVideoData,
+  getOriginalUrlItem,
+  getQualityFileSizes,
 } from '@/service-worker/network-layer';
 import {
   SiteLoader,
@@ -114,7 +114,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
     if (!this.serverResponse) {
       logger.debug('Saved request data was not found. Fetching from server.');
 
-      this.serverResponse = await updateVideoData({
+      this.serverResponse = await fetchVideoData({
         siteUrl: this.urlDetails.siteUrl,
         data: this.getQueryData(),
         logger,
@@ -181,13 +181,13 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
         siteUrl: this.urlDetails.siteUrl,
         onlySize: true,
       };
-      const urlItem = await fetchUrlSizes({ request, logger });
-      if (urlItem.rawSize > 0) return urlItem.url;
+      const urlItem = await getOriginalUrlItem({ request, logger });
+      if ((urlItem.fileSize ?? 0) > 0) return urlItem.url;
       logger.warning('"urlItem" is empty - skip.');
     }
 
     if (settings.actionOnNoQuality !== 'reduce_quality') return null;
-    const qualitySizes = (await getQualityFileSize({
+    const qualitySizes = (await getQualityFileSizes({
       urlsContainer: this.qualitiesList,
       siteUrl: this.urlDetails.siteUrl,
       logger,
@@ -198,7 +198,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
     )) {
       const quality = qualityItem as QualityItem;
       if (getQualityWeight(quality) > targetWeight) continue;
-      if (urlItem.rawSize > 0) return urlItem.url;
+      if ((urlItem.fileSize ?? 0) > 0) return urlItem.url;
     }
 
     logger.warning('No suitable "urlItem" was found:', qualitySizes);

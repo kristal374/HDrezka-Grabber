@@ -16,6 +16,10 @@ export const addQualityInfoAction = createAction<{
   qualityInfo: URLsContainer | null;
 }>('quality/addQualityInfo');
 
+export const deleteQualityInfoAction = createAction<{
+  quality: QualityItem;
+}>('quality/deleteQualityInfo');
+
 const initialQualities: {
   quality: QualityItem | null;
   qualitiesList: QualitiesList | null;
@@ -50,6 +54,11 @@ export const qualityReducer = createReducer(initialQualities, (builder) => {
       ...state.qualityInfo,
       ...action.payload.qualityInfo,
     };
+  });
+  builder.addCase(deleteQualityInfoAction, (state, action) => {
+    logger.debug('Delete qualityInfo item:', action.payload.quality);
+    if (!state.qualityInfo?.hasOwnProperty(action.payload.quality)) return;
+    delete state.qualityInfo[action.payload.quality];
   });
 });
 

@@ -25,12 +25,16 @@ interface ComboboxProps {
   data: Array<{
     value: string;
     label: string;
-    labelComponent?: (props: React.PropsWithChildren) => JSX.Element;
+    labelComponent?: (
+      props: React.PropsWithChildren<{ isRenderingInPreview: boolean }>,
+    ) => JSX.Element;
   }>;
   value?: string;
   onValueChange?: (value: string) => void;
   needSearch?: boolean;
   showChevron?: boolean;
+  title?: string;
+  disabled?: boolean;
 }
 
 export function Combobox({
@@ -43,6 +47,8 @@ export function Combobox({
   onValueChange,
   needSearch = true,
   showChevron,
+  title,
+  disabled,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(defaultValue);
@@ -63,14 +69,19 @@ export function Combobox({
     );
   }, [data]);
   const labelRender = useCallback(
-    (lookup: string, children: React.ReactNode) => {
-      return dataLookup[lookup]?.labelComponent?.({ children }) ?? children;
+    (lookup: string, children: React.ReactNode, isPreview: boolean) => {
+      return (
+        dataLookup[lookup]?.labelComponent?.({
+          children,
+          isRenderingInPreview: isPreview,
+        }) ?? children
+      );
     },
     [data],
   );
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger>
         <button
           id={id}
           role='combobox'
@@ -82,6 +93,8 @@ export function Combobox({
             className,
           )}
           style={{ width }}
+          title={title}
+          disabled={disabled}
         >
           {value
             ? labelRender(
@@ -89,6 +102,7 @@ export function Combobox({
                 <span className='line-clamp-1 text-left'>
                   {dataLookup[value]?.label}
                 </span>,
+                true,
               )
             : browser.i18n.getMessage('combobox_placeholder')}
           {showChevron && (
@@ -137,7 +151,7 @@ export function Combobox({
                       value !== item.value && 'invisible',
                     )}
                   /> */}
-                  {labelRender(item.value, item.label)}
+                  {labelRender(item.value, item.label, false)}
                 </CommandItem>
               ))}
             </CommandGroup>

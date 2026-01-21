@@ -1,0 +1,52 @@
+import { cn } from '@/lib/utils';
+import { Tooltip as TooltipPrimitive } from '@base-ui-components/react/tooltip';
+
+const TooltipProvider = TooltipPrimitive.Provider;
+
+const Tooltip = TooltipPrimitive.Root;
+
+function TooltipTrigger({
+  children,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
+  return (
+    <TooltipPrimitive.Trigger
+      // @ts-ignore
+      render={children}
+      {...props}
+    />
+  );
+}
+
+function TooltipContent({
+  className,
+  align = 'center',
+  sideOffset = 4,
+  children,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Positioner>) {
+  return (
+    <TooltipPrimitive.Portal>
+      <TooltipPrimitive.Positioner
+        align={align}
+        sideOffset={sideOffset}
+        {...props}
+      >
+        <TooltipPrimitive.Popup
+          className={cn(
+            'bg-input text-light-color border-input-active border shadow-md outline-none',
+            'z-100 w-fit rounded-md px-2 py-1.5 text-xs text-balance',
+            'origin-(--transform-origin) transition-[transform,scale,opacity]',
+            'data-ending-style:scale-90 data-ending-style:opacity-0 data-instant:transition-none',
+            'data-starting-style:scale-90 data-starting-style:opacity-0',
+            className,
+          )}
+        >
+          {children}
+        </TooltipPrimitive.Popup>
+      </TooltipPrimitive.Positioner>
+    </TooltipPrimitive.Portal>
+  );
+}
+
+export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
