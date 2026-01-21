@@ -1,5 +1,6 @@
 import { Logger } from '@/lib/logger';
 import {
+  ContentType,
   Episode,
   FileItem,
   FileType,
@@ -63,6 +64,7 @@ export interface SiteLoader {
 
   createLoadItem(
     movieId: number,
+    contentType: ContentType,
     season?: Season,
     episode?: Episode,
   ): Optional<LoadItem, 'id'>;

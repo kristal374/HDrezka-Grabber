@@ -33,11 +33,11 @@ import { useCallback, useEffect, useState } from 'react';
 export function useChangeRangeEpisodes() {
   const dispatch = useAppDispatch();
 
-  const movieInfo = useAppSelector((state) => selectMovieInfo(state));
-  const range = useAppSelector((state) => selectRange(state));
-  const seasons = useAppSelector((state) => selectSeasons(state));
-  const voiceOver = useAppSelector((state) => selectCurrentVoiceOver(state));
-  const currentEpisode = useAppSelector((state) => selectCurrentEpisode(state));
+  const movieInfo = useAppSelector(selectMovieInfo);
+  const range = useAppSelector(selectRange);
+  const seasons = useAppSelector(selectSeasons);
+  const voiceOver = useAppSelector(selectCurrentVoiceOver);
+  const currentEpisode = useAppSelector(selectCurrentEpisode);
   const [previewRange, setPreviewRange] = useState(range);
 
   const updateCurrentEpisode = useCallback(

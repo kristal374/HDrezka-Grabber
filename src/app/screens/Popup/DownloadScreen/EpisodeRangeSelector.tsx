@@ -33,13 +33,13 @@ export function EpisodeRangeSelector({
   const dispatch = useAppDispatch();
   const { tabId, pageType } = useContext(PopupInitialDataContext)!;
 
-  const downloadSerial = useAppSelector((state) => selectDownloadSerial(state));
-  const seasons = useAppSelector((state) => selectSeasons(state));
+  const downloadSerial = useAppSelector(selectDownloadSerial);
+  const seasons = useAppSelector(selectSeasons);
 
-  const seasonFrom = useAppSelector((state) => selectSeasonFrom(state));
-  const episodeFrom = useAppSelector((state) => selectEpisodeFrom(state));
-  const seasonTo = useAppSelector((state) => selectSeasonTo(state));
-  const episodeTo = useAppSelector((state) => selectEpisodeTo(state));
+  const seasonFrom = useAppSelector(selectSeasonFrom);
+  const episodeFrom = useAppSelector(selectEpisodeFrom);
+  const seasonTo = useAppSelector(selectSeasonTo);
+  const episodeTo = useAppSelector(selectEpisodeTo);
 
   const downloadToEnd = Number(seasonTo) < 0;
 

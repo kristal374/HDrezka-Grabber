@@ -24,7 +24,7 @@ type Props = {
 export function NotificationField({ isLimitedMaxHeight }: Props) {
   const dispatch = useAppDispatch();
   const movieInfo = useAppSelector(selectMovieInfo)!;
-  const notifications = useAppSelector((state) => selectNotifications(state));
+  const notifications = useAppSelector(selectNotifications);
 
   const notificationsToShow = useMemo(() => {
     const notificationsToShow: RenderNotification[] = [];

@@ -238,14 +238,16 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
   }): Promise<readonly [FileItem | null, FileItem | null]> {
     const time = new Date().getTime();
     let [videoFile, subtitleFile] = [
-      this.loadConfig.quality
+      this.loadConfig.quality &&
+      this.downloadItem.content !== ContentType.subtitle
         ? await this.createFileItem({
             fileType: 'video',
             timestamp: time,
             logger,
           })
         : null,
-      this.loadConfig.subtitle
+      this.loadConfig.subtitle &&
+      this.downloadItem.content !== ContentType.video
         ? await this.createFileItem({
             fileType: 'subtitle',
             timestamp: time,
@@ -330,6 +332,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
 
   static createLoadItem(
     movieId: number,
+    contentType: ContentType,
     season?: Season,
     episode?: Episode,
   ): Optional<LoadItem, 'id'> {
@@ -338,7 +341,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
       movieId: movieId,
       season: season ?? null,
       episode: episode ?? null,
-      content: ContentType.both,
+      content: contentType,
       availableQualities: null,
       availableSubtitles: null,
       status: LoadStatus.DownloadCandidate,

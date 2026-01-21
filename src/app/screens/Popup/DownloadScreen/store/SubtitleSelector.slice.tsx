@@ -16,12 +16,18 @@ export const setDownloadSubtitleAction = createAction<{
   downloadSubtitle: boolean;
 }>('subtitle/setDownloadSubtitle');
 
+export const setDownloadOnlySubtitleAction = createAction<{
+  downloadOnlySubtitle: boolean;
+}>('subtitle/setDownloadOnlySubtitle');
+
 const initialSubtitle: {
   downloadSubtitle: boolean;
+  downloadOnlySubtitle: boolean;
   subtitleList: Subtitle[] | null;
   subtitle: Subtitle | null;
 } = {
   downloadSubtitle: false,
+  downloadOnlySubtitle: false,
   subtitleList: null,
   subtitle: null,
 };
@@ -62,6 +68,13 @@ export const subtitleReducer = createReducer(initialSubtitle, (builder) => {
     logger.debug('Update downloadSubtitle:', action.payload.downloadSubtitle);
     state.downloadSubtitle = action.payload.downloadSubtitle;
   });
+  builder.addCase(setDownloadOnlySubtitleAction, (state, action) => {
+    logger.debug(
+      'Update downloadOnlySubtitle:',
+      action.payload.downloadOnlySubtitle,
+    );
+    state.downloadOnlySubtitle = action.payload.downloadOnlySubtitle;
+  });
 });
 
 export const selectSubtitleList = (state: AppState) =>
@@ -70,3 +83,5 @@ export const selectCurrentSubtitle = (state: AppState) =>
   state.subtitleReducer.subtitle;
 export const selectDownloadSubtitle = (state: AppState) =>
   state.subtitleReducer.downloadSubtitle;
+export const selectDownloadOnlySubtitle = (state: AppState) =>
+  state.subtitleReducer.downloadOnlySubtitle;

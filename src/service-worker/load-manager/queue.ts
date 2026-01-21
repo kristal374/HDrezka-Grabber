@@ -354,6 +354,7 @@ export class QueueController {
     logger.info('Creating load item array for movie:', initiator.movieId);
 
     const movieId = parseInt(initiator.movieId);
+    const contentType = initiator.content_type;
     const siteLoader = siteLoaderFactory[initiator.site_type];
     const loadItemArray: Optional<LoadItem, 'id'>[] = [];
 
@@ -362,12 +363,12 @@ export class QueueController {
         const season = { id: seasonId, title: seasonData.title };
         for (const episode of seasonData.episodes) {
           loadItemArray.push(
-            siteLoader.createLoadItem(movieId, season, episode),
+            siteLoader.createLoadItem(movieId, contentType, season, episode),
           );
         }
       }
     } else {
-      loadItemArray.push(siteLoader.createLoadItem(movieId));
+      loadItemArray.push(siteLoader.createLoadItem(movieId, contentType));
     }
 
     logger.debug(`Created ${loadItemArray.length} item for loading.`);
