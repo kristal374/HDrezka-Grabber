@@ -13,9 +13,7 @@ function saveLogToDB(data: LogMessage) {
   // накопления изменений для уменьшения нагрузки на хранилище
   pendingUpdates.push(data);
 
-  if (debounceTimer) {
-    clearTimeout(debounceTimer);
-  }
+  clearDebounceTimer();
 
   debounceTimer = setTimeout(async () => {
     const snapshot = [...pendingUpdates].sort(
@@ -23,19 +21,30 @@ function saveLogToDB(data: LogMessage) {
     );
     pendingUpdates.splice(0, pendingUpdates.length);
 
-    const tx = indexedDBObject.transaction('logStorage', 'readwrite');
-    const logStorage = tx.store;
     try {
+      const tx = indexedDBObject.transaction('logStorage', 'readwrite');
       for (const message of snapshot) {
         printLog(message);
-        await logStorage.put(message);
+        await tx.store.put(message);
       }
-    } finally {
       debounceTimer = null;
       tx.done;
+
       await deleteOldLogMessage(settings.logMessageLifetime);
+    } catch (error: any) {
+      console.log(error.toString());
+      for (const message of snapshot) {
+        printLog(message);
+      }
     }
   }, 200);
+}
+
+export function clearDebounceTimer() {
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+  }
+  debounceTimer = null;
 }
 
 async function deleteOldLogMessage(

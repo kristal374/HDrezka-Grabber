@@ -10,13 +10,18 @@ import { createRoot } from 'react-dom/client';
 
 logger.info('Settings open.');
 
-const element = document.querySelector('body')!;
+const element = document.querySelector('#root')!;
 const root = createRoot(element);
 
 export const SettingsInitialDataContext =
   createContext<SettingsInitData | null>(null);
 
 eventBus.addMessageSource(EventType.StorageChanged, browser.storage.onChanged);
+eventBus.addMessageSource(
+  EventType.NewMessageReceived,
+  browser.runtime.onMessage,
+);
+eventBus.addMessageSource(EventType.DBDeletedEvent, globalThis);
 
 root.render(
   <App asyncInitFunction={settingsInit} Context={SettingsInitialDataContext}>

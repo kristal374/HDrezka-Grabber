@@ -1,4 +1,8 @@
 import {
+  ConfirmationModal,
+  confirmRequest,
+} from '@/app/screens/Settings/SettingsTab/ConfirmationModal';
+import {
   MOVIE_PLACEHOLDERS,
   MOVIE_PREVIEW,
   MOVIE_READY_TEMPLATES,
@@ -10,9 +14,9 @@ import { Panel } from '@/components/Panel';
 import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { Toggle } from '@/components/ui/Toggle';
-import { dropDatabase } from '@/lib/idb-storage';
 import { LogLevel } from '@/lib/logger/types';
 import { createDefaultSettings, saveInStorage } from '@/lib/storage';
+import { Message } from '@/lib/types';
 import {
   DownloadIcon,
   FolderCogIcon,
@@ -86,8 +90,100 @@ export function SettingsTab() {
     };
   }, []);
 
+  const notificationPromise = useCallback(
+    async (promise: Promise<any>, notification: string) => {
+      return toast.promise(promise, {
+        loading: 'В обработке...',
+        success: () => notification,
+        error: (e) => {
+          console.error(e);
+          return 'Произошёл сбой.';
+        },
+      });
+    },
+    [],
+  );
+
+  const requestPermission = useCallback(
+    async ({
+      title,
+      description,
+      onConfirm,
+      notificationText,
+    }: {
+      title: string;
+      description?: string;
+      onConfirm: () => Promise<any>;
+      notificationText?: string;
+    }) => {
+      const result = await confirmRequest({ title, description });
+
+      if (result) {
+        const process = onConfirm();
+        if (notificationText) {
+          await notificationPromise(process, notificationText);
+        } else {
+          await process;
+        }
+      }
+    },
+    [],
+  );
+
+  const handleRestoreState = useCallback(async () => {
+    const process = browser.runtime.sendMessage<Message<boolean>>({
+      type: 'requestToRestoreState',
+      message: true,
+    });
+    await notificationPromise(
+      process,
+      'Завершена попытка восстановить работу расширения.',
+    );
+  }, []);
+
+  const handleClearCache = useCallback(async () => {
+    await browser.runtime.sendMessage<Message<undefined>>({
+      type: 'clearCache',
+      message: undefined,
+    });
+    await browser.storage.session.clear();
+  }, []);
+
+  const handleStopAllDownloads = useCallback(async () => {
+    await browser.runtime.sendMessage<Message<undefined>>({
+      type: 'stopAllDownloads',
+      message: undefined,
+    });
+  }, []);
+
+  const handleClearDownloadHistory = useCallback(async () => {
+    await browser.runtime.sendMessage<Message<undefined>>({
+      type: 'stopAllDownloads',
+      message: undefined,
+    });
+    const tx = indexedDBObject.transaction(
+      ['urlDetail', 'loadConfig', 'loadStorage', 'fileStorage'],
+      'readwrite',
+    );
+    await Promise.all([
+      tx.objectStore('urlDetail').clear(),
+      tx.objectStore('loadConfig').clear(),
+      tx.objectStore('loadStorage').clear(),
+      tx.objectStore('fileStorage').clear(),
+    ]);
+    await tx.done;
+  }, []);
+
+  const handleRemoveExtensionData = useCallback(async () => {
+    await browser.runtime.sendMessage<Message<undefined>>({
+      type: 'deleteExtensionData',
+      message: undefined,
+    });
+  }, []);
+
   return (
     <Panel className='bg-settings-background-primary border-0 p-0 shadow-none'>
+      <ConfirmationModal />
       <div className='flex flex-col gap-12'>
         <SettingsSection title='Настройки интерфейса' icon={Monitor}>
           <SettingsItemToggle
@@ -371,27 +467,71 @@ export function SettingsTab() {
           <hr className='border-settings-border-primary border-t' />
 
           <div className='flex flex-wrap gap-3'>
-            {/*TODO: реализовать обработку нажатий*/}
-            {/*TODO: Добавить локализацию*/}
-            <Button>Попытаться восстановить работу расширения</Button>
+            <Button onClick={handleRestoreState}>
+              Попытаться восстановить работу расширения
+            </Button>
 
             <Button
-              onClick={async () => {
-                await createDefaultSettings();
-                toast.success('Настройки сброшены!');
+              onClick={() => {
+                requestPermission({
+                  title: 'Восстановить настройки по умолчанию?',
+                  onConfirm: createDefaultSettings,
+                  notificationText: 'Настройки сброшены!',
+                });
               }}
             >
               Восстановить настройки по умолчанию
             </Button>
-            <Button>Очистить кэш</Button>
-            <Button>Остановить все загрузки</Button>
-            <Button>Очистить историю загрузок</Button>
+
             <Button
-              onClick={async () => {
-                await browser.storage.local.clear();
-                await browser.storage.session.clear();
-                await dropDatabase();
-                toast.success('Данные расширения сброшены!');
+              onClick={() => {
+                requestPermission({
+                  title: 'Очистить кэш расширения?',
+                  onConfirm: handleClearCache,
+                  notificationText: 'Кэш очищен!',
+                });
+              }}
+            >
+              Очистить кэш
+            </Button>
+
+            <Button
+              onClick={() => {
+                requestPermission({
+                  title: 'Прервать активные загрузки и очистить очередь?',
+                  onConfirm: handleStopAllDownloads,
+                  notificationText: 'Загрузки остановлены!',
+                });
+              }}
+            >
+              Остановить все загрузки
+            </Button>
+
+            <Button
+              onClick={() => {
+                requestPermission({
+                  title:
+                    'Вы действительно хотите очистить историю загрузок расширения?',
+                  description:
+                    'Все текущие загрузки будут прерваны. Это действие невозможно будет отменить позже.',
+                  onConfirm: handleClearDownloadHistory,
+                  notificationText: 'История загрузок очищена!',
+                });
+              }}
+            >
+              Очистить историю загрузок
+            </Button>
+
+            <Button
+              onClick={() => {
+                requestPermission({
+                  title:
+                    'Вы действительно хотите удалить все данные расширения?',
+                  description:
+                    'Все текущие загрузки будут прерваны. Это действие невозможно будет отменить позже.',
+                  onConfirm: handleRemoveExtensionData,
+                  notificationText: 'Данные расширения удалены!',
+                });
               }}
             >
               Удалить все данные расширения

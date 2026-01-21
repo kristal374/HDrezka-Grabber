@@ -176,7 +176,6 @@ export class BufferedEventBus<T extends Record<string, unknown>>
       try {
         return handler(...args);
       } catch (err) {
-        // представим синхронную ошибку как отклонённый Promise, чтобы унифицировать обработку
         return Promise.reject(err);
       }
     });
@@ -189,9 +188,12 @@ export class BufferedEventBus<T extends Record<string, unknown>>
       return results.length === 1 ? results[0] : results;
     }
 
-    return Promise.all(results).then((resolved) =>
-      resolved.length === 1 ? resolved[0] : resolved,
-    );
+    return Promise.all(results).then((resolved) => {
+      if (resolved.length > 1) {
+        resolved = resolved.filter((r) => typeof r !== 'undefined');
+      }
+      return resolved.length === 1 ? resolved[0] : resolved;
+    });
   }
 
   public setReady() {
