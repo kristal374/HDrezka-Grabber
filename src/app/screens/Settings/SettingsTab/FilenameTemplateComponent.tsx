@@ -125,6 +125,7 @@ function DropDownMenu({
     };
   }, [showDropdown]);
 
+  // TODO: Добавить адекватный scrollbar
   return (
     <>
       <Button
