@@ -178,7 +178,7 @@ export function QualitySelector() {
                             className='flex w-58 items-center justify-between'
                           >
                             <p className='text-sm text-balance'>
-                              Реальное разрешение видео
+                              {browser.i18n.getMessage('popup_realResolution')}
                             </p>
                             <span className='bg-input-active w-fit shrink-0 rounded-sm px-1.25 pb-0.25 text-sm font-medium'>
                               {videoResolution.width} x {videoResolution.height}

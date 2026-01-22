@@ -50,8 +50,7 @@ export function SubtitleSelector() {
               )
             }
           >
-            {/*TODO: use i18n*/}
-            {'Загрузить только субтитры'}
+            {browser.i18n.getMessage('popup_downloadOnlySubtitle')}
           </CheckboxWithLabel>
 
           <div className='flex items-center gap-2.5'>

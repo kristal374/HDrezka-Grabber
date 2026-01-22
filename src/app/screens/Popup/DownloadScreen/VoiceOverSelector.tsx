@@ -96,7 +96,7 @@ export function VoiceOverSelector({
             }),
           )
         }
-        title={disabled ? 'No voice over to select' : undefined}
+        title={disabled ? browser.i18n.getMessage('popup_voiceoverBlock_title') : undefined}
         disabled={disabled}
       />
     </div>

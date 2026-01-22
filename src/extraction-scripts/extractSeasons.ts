@@ -33,7 +33,7 @@ async function extractSeasons() {
       if (!seasons.hasOwnProperty(seasonID)) {
         const element = document.querySelector(`[data-tab_id="${seasonID}"]`);
         seasons[seasonID] = {
-          title: element!.textContent || `Сезон ${seasonID}`,
+          title: element?.textContent ?? `Сезон ${seasonID}`,
           episodes: [],
         };
       }

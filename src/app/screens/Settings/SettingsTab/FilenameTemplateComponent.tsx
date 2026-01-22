@@ -134,7 +134,7 @@ function DropDownMenu({
         size='square'
         className='absolute top-1/2 right-2 -translate-y-1/2'
         onClick={() => setShowDropdown((prev) => !prev)}
-        title='Выбрать шаблон'
+        title={browser.i18n.getMessage('settings_filenameSelectTemplate')}
         aria-expanded={showDropdown}
         aria-haspopup='listbox'
       >
@@ -154,7 +154,7 @@ function DropDownMenu({
           <ul
             className='max-h-48 overflow-y-auto text-sm'
             role='listbox'
-            aria-label='Список готовых шаблонов'
+            aria-label={browser.i18n.getMessage('settings_filenameListTemplate')}
           >
             {readyTemplates
               .filter(
@@ -193,13 +193,13 @@ function PreviewItems({ previews }: PreviewItemProps) {
   return (
     <>
       <p className='text-settings-text-tertiary mt-2 text-xs'>
-        Введите % чтобы добавить переменную
+        {browser.i18n.getMessage('settings_filenameHelpTemplate')}
       </p>
 
       <div className='mt-5'>
         <div className='mb-2 flex items-center justify-between'>
           <h3 className='text-settings-text-primary text-sm font-medium'>
-            Предпросмотр результата:
+            {browser.i18n.getMessage('settings_preview_text')}
           </h3>
           {previews.length > 1 && (
             <button
@@ -208,11 +208,13 @@ function PreviewItems({ previews }: PreviewItemProps) {
               type='button'
               aria-label={
                 showAllPreviews
-                  ? 'Скрыть дополнительные превью'
-                  : 'Показать все превью'
+                  ? browser.i18n.getMessage('settings_hidePreview_title')
+                  : browser.i18n.getMessage('settings_showPreview_title')
               }
             >
-              {showAllPreviews ? 'Скрыть' : 'Показать все'}
+              {showAllPreviews
+                ? browser.i18n.getMessage('settings_hidePreview')
+                : browser.i18n.getMessage('settings_showPreview')}
             </button>
           )}
         </div>

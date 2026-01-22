@@ -1,32 +1,119 @@
 export const MOVIE_PLACEHOLDERS = [
-  { id: '%movie_id%', display: 'ID фильма' },
-  { id: '%title%', display: 'Название фильма' },
-  { id: '%orig_title%', display: 'Оригинальное название фильма' },
-  { id: '%translate%', display: 'Озвучка' },
-  { id: '%translate_id%', display: 'ID озвучки' },
-  { id: '%quality%', display: 'Качество видео' },
-  { id: '%subtitle_code%', display: 'Код субтитров' },
-  { id: '%subtitle_lang%', display: 'Язык субтитров' },
-  { id: '%data%', display: 'Дата' },
-  { id: '%time%', display: 'Время' },
+  {
+    id: '%movie_id%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_MovieId'),
+  },
+  {
+    id: '%title%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_Title'),
+  },
+  {
+    id: '%orig_title%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_OrigTitle'),
+  },
+  {
+    id: '%translate%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_Translate'),
+  },
+  {
+    id: '%translate_id%',
+    display: browser.i18n.getMessage(
+      'settings_filenamePlaceholder_TranslateId',
+    ),
+  },
+  {
+    id: '%quality%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_Quality'),
+  },
+  {
+    id: '%subtitle_code%',
+    display: browser.i18n.getMessage(
+      'settings_filenamePlaceholder_SubtitleCode',
+    ),
+  },
+  {
+    id: '%subtitle_lang%',
+    display: browser.i18n.getMessage(
+      'settings_filenamePlaceholder_SubtitleLang',
+    ),
+  },
+  {
+    id: '%data%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_Date'),
+  },
+  {
+    id: '%time%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_Time'),
+  },
 ];
 
 export const SERIES_PLACEHOLDERS = [
-  { id: '%n%', display: 'Номер файла' },
-  { id: '%movie_id%', display: 'ID фильма' },
-  { id: '%title%', display: 'Название фильма' },
-  { id: '%orig_title%', display: 'Оригинальное название фильма' },
-  { id: '%translate%', display: 'Озвучка' },
-  { id: '%translate_id%', display: 'ID озвучки' },
-  { id: '%episode%', display: 'Эпизод' },
-  { id: '%episode_id%', display: 'ID эпизода' },
-  { id: '%season%', display: 'Сезон' },
-  { id: '%season_id%', display: 'ID сезона' },
-  { id: '%quality%', display: 'Качество видео' },
-  { id: '%subtitle_code%', display: 'Код субтитров' },
-  { id: '%subtitle_lang%', display: 'Язык субтитров' },
-  { id: '%data%', display: 'Дата' },
-  { id: '%time%', display: 'Время' },
+  {
+    id: '%n%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_N'),
+  },
+  {
+    id: '%movie_id%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_MovieId'),
+  },
+  {
+    id: '%title%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_Title'),
+  },
+  {
+    id: '%orig_title%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_OrigTitle'),
+  },
+  {
+    id: '%translate%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_Translate'),
+  },
+  {
+    id: '%translate_id%',
+    display: browser.i18n.getMessage(
+      'settings_filenamePlaceholder_TranslateId',
+    ),
+  },
+  {
+    id: '%episode%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_Episode'),
+  },
+  {
+    id: '%episode_id%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_EpisodeId'),
+  },
+  {
+    id: '%season%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_Season'),
+  },
+  {
+    id: '%season_id%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_SeasonId'),
+  },
+  {
+    id: '%quality%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_Quality'),
+  },
+  {
+    id: '%subtitle_code%',
+    display: browser.i18n.getMessage(
+      'settings_filenamePlaceholder_SubtitleCode',
+    ),
+  },
+  {
+    id: '%subtitle_lang%',
+    display: browser.i18n.getMessage(
+      'settings_filenamePlaceholder_SubtitleLang',
+    ),
+  },
+  {
+    id: '%data%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_Date'),
+  },
+  {
+    id: '%time%',
+    display: browser.i18n.getMessage('settings_filenamePlaceholder_Time'),
+  },
 ];
 
 export const SERIES_READY_TEMPLATES = [
@@ -133,7 +220,9 @@ export const MOVIE_READY_TEMPLATES = [
 
 export const MOVIE_PREVIEW = [
   {
-    label: 'Обычный фильм, без субтитров.',
+    label: browser.i18n.getMessage(
+      'settings_filenamePreview_filmWithoutSubtitle',
+    ),
     value: {
       '%n%': '1',
       '%movie_id%': '768',
@@ -153,7 +242,7 @@ export const MOVIE_PREVIEW = [
     },
   },
   {
-    label: 'Обычный фильм, с субтитрами.',
+    label: browser.i18n.getMessage('settings_filenamePreview_filmWithSubtitle'),
     value: {
       '%n%': '1',
       '%movie_id%': '1043',
@@ -173,7 +262,9 @@ export const MOVIE_PREVIEW = [
     },
   },
   {
-    label: 'Нет оригинального названия.',
+    label: browser.i18n.getMessage(
+      'settings_filenamePreview_filmWithoutOrigTitle',
+    ),
     value: {
       '%n%': '1',
       '%movie_id%': '12719',
@@ -193,7 +284,9 @@ export const MOVIE_PREVIEW = [
     },
   },
   {
-    label: 'В названии есть спец. символы которые будут обрезаны.',
+    label: browser.i18n.getMessage(
+      'settings_filenamePreview_filmWithSpecialChars',
+    ),
     value: {
       '%n%': '1',
       '%movie_id%': '5005',
@@ -213,7 +306,9 @@ export const MOVIE_PREVIEW = [
     },
   },
   {
-    label: 'Озвучка режиссёрская версия.',
+    label: browser.i18n.getMessage(
+      'settings_filenamePreview_filmWithVoiceOverDirectCut',
+    ),
     value: {
       '%n%': '1',
       '%movie_id%': '969',
@@ -236,7 +331,9 @@ export const MOVIE_PREVIEW = [
 
 export const SERIES_PREVIEW = [
   {
-    label: 'Обычный сериал, без субтитров.',
+    label: browser.i18n.getMessage(
+      'settings_filenamePreview_seriesWithoutSubtitle',
+    ),
     value: {
       '%n%': '1',
       '%movie_id%': '45',
@@ -256,7 +353,9 @@ export const SERIES_PREVIEW = [
     },
   },
   {
-    label: 'Обычный сериал, с субтитрами.',
+    label: browser.i18n.getMessage(
+      'settings_filenamePreview_seriesWithSubtitle',
+    ),
     value: {
       '%n%': '2',
       '%movie_id%': '646',
@@ -276,7 +375,9 @@ export const SERIES_PREVIEW = [
     },
   },
   {
-    label: 'Нет оригинального названия.',
+    label: browser.i18n.getMessage(
+      'settings_filenamePreview_seriesWithoutOrigTitle',
+    ),
     value: {
       '%n%': '3',
       '%movie_id%': '46346',
@@ -296,7 +397,9 @@ export const SERIES_PREVIEW = [
     },
   },
   {
-    label: 'В названии есть спец. символы которые будут обрезаны.',
+    label: browser.i18n.getMessage(
+      'settings_filenamePreview_seriesWithSpecialChars',
+    ),
     value: {
       '%n%': '4',
       '%movie_id%': '10827',
@@ -317,7 +420,9 @@ export const SERIES_PREVIEW = [
     },
   },
   {
-    label: 'Необычное название серий.',
+    label: browser.i18n.getMessage(
+      'settings_filenamePreview_seriesWithUnusualEpisodeTitle',
+    ),
     value: {
       '%n%': '5',
       '%movie_id%': '34965',
