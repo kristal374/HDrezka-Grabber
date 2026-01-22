@@ -2,7 +2,7 @@ import { selectDownloadSerial } from '@/app/screens/Popup/DownloadScreen/store/E
 import { FlagKZ } from '@/components/icons/FlagKZ';
 import { FlagUA } from '@/components/icons/FlagUA';
 import { PremiumIcon } from '@/components/icons/PremiumIcon';
-import { Combobox } from '@/components/ui/Combobox';
+import { Combobox } from '@/components/ui/ComboboxNew';
 import { getVoiceOverList } from '@/extraction-scripts/extractVoiceOverList';
 import { PopupInitialDataContext } from '@/html/popup';
 import type { VoiceOverInfo } from '@/lib/types';
