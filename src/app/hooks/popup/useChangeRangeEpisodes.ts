@@ -85,7 +85,7 @@ export function useChangeRangeEpisodes() {
 
     const episodeID = isFirstUpdate
       ? (movieInfo?.data as SerialData).episode
-      : range[seasonID].episodes[0].id;
+      : range[seasonID]?.episodes[0].id;
 
     const newCurrentEpisode: CurrentEpisode = { seasonID, episodeID };
 

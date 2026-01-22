@@ -55,7 +55,8 @@ export function VoiceOverSelector({
 
   if (!voiceOverList) return null;
 
-  const disabled = pageType === 'SERIAL' && !downloadSerial;
+  const disabled =
+    voiceOverList.length === 1 || (pageType === 'SERIAL' && !downloadSerial);
 
   logger.info('New render VoiceOverSelector component.');
 

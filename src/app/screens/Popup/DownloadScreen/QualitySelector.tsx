@@ -15,7 +15,7 @@ import {
   URLItem,
   URLsContainer,
 } from '@/lib/types';
-import { formatBytes } from '@/lib/utils';
+import { cn, formatBytes } from '@/lib/utils';
 import { OctagonAlertIcon } from 'lucide-react';
 import { useCallback, useEffect } from 'react';
 import type { Runtime } from 'webextension-polyfill';
@@ -156,11 +156,16 @@ export function QualitySelector() {
             const videoResolution = qualityInfo?.videoResolution ?? null;
             const realQuality = `${videoResolution?.height}p`;
             const realQualityPill = (
-              <span className='bg-input-active border-input ml-1.75 inline-flex items-center gap-1 rounded-md border px-1.25'>
+              <span
+                className={cn(
+                  // '[[data-selected]>&]:bg-input',
+                  'bg-input-active ml-1.75 inline-flex items-center gap-1 rounded-md px-1.25',
+                )}
+              >
                 {isRenderingInPreview && (
                   <OctagonAlertIcon className='size-4' />
                 )}
-                <span className='pb-0.25'>{realQuality}</span>
+                <span>{realQuality}</span>
               </span>
             );
             return (

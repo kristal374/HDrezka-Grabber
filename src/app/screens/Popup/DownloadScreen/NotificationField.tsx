@@ -163,7 +163,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
     setFirstElemHeight(elemHeights[0] ?? 0);
     // setTotalHeight(elemHeights.reduce((acc, curr) => acc + curr + gap, 0));
     setTotalHeight(
-      elemHeights.length ? elemTranslates.at(-1)! + elemHeights.at(-1)! : 0,
+      elemHeights.length ? elemTranslates.at(-1)! + elemHeights.at(-1)! + 1 : 0,
     );
     setTranslate(elemTranslates);
   }, [notificationsToShow.map((notification) => notification.id).join(',')]);
