@@ -21,10 +21,13 @@ export type Replacements = {
 export function makePathAndFilename(
   replacements: Replacements,
   fileType: FileType,
+  overrideTemplate?: string[],
 ): readonly [string, string] {
-  const template = !replacements['%season%']
-    ? settings.filenameFilmTemplate
-    : settings.filenameSeriesTemplate;
+  const template =
+    overrideTemplate ??
+    (!replacements['%season%']
+      ? settings.filenameFilmTemplate
+      : settings.filenameSeriesTemplate);
 
   let filename = removeBadSymbols(
     template

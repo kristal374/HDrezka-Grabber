@@ -29,10 +29,6 @@ eventBus.addMessageSource(
   browser.runtime.onMessage,
 );
 eventBus.addMessageSource(EventType.NotificationEvent, globalThis);
-eventBus.addMessageSource(
-  EventType.NewMessageReceived,
-  browser.runtime.onMessage,
-);
 
 root.render(
   <Provider store={store}>

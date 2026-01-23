@@ -37,6 +37,7 @@ export function Settings() {
     return (hash in TAB_LIST ? hash : 'settings') as keyof typeof TAB_LIST;
   });
   const ActiveComponent = TAB_LIST[activeTab].component;
+
   useEffect(() => {
     document.documentElement.className = settings.darkMode ? 'dark' : 'light';
   }, [settings.darkMode]);

@@ -49,23 +49,22 @@ export function SubtitleSelector() {
           </CheckboxWithLabel>
         </RevealTrigger>
 
-        <RevealContent>
-          <div className='mt-3 flex flex-col gap-2.5'>
-            <CheckboxWithLabel
-              id='downloadOnlySubtitle'
-              className='ml-7.5'
-              checked={downloadOnlySubtitle}
-              onCheckedChange={(value) =>
-                dispatch(
-                  setDownloadOnlySubtitleAction({
-                    downloadOnlySubtitle: value,
-                  }),
-                )
-              }
-            >
-              {/*TODO: use i18n*/}
-              {'Загрузить только субтитры'}
-            </CheckboxWithLabel>
+       <RevealContent>
+        <div className='mt-3 flex flex-col gap-2.5'>
+          <CheckboxWithLabel
+            id='downloadOnlySubtitle'
+            className='ml-7.5'
+            checked={downloadOnlySubtitle}
+            onCheckedChange={(value) =>
+              dispatch(
+                setDownloadOnlySubtitleAction({
+                  downloadOnlySubtitle: value,
+                }),
+              )
+            }
+          >
+            {browser.i18n.getMessage('popup_downloadOnlySubtitle')}
+          </CheckboxWithLabel>
 
             <div className='flex items-center gap-2.5'>
               <label

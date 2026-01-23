@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button';
+import { Combobox } from '@/components/ui/Combobox';
 import {
   cleanTitle,
   makePathAndFilename,
@@ -6,8 +7,8 @@ import {
 } from '@/lib/filename-maker';
 import { cn } from '@/lib/utils';
 import equal from 'fast-deep-equal/es6';
-import { ChevronDown } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronDownIcon } from 'lucide-react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { FilenameTemplateInput, Placeholder } from './FilenameTemplateInput';
 import { SettingItemProps } from './SettingsTab';
 
@@ -33,6 +34,7 @@ export function FilenameTemplateComponent({
   readyTemplates,
   previews,
 }: FilenameTemplateProps) {
+  const [localValue, setLocalValue] = useState(() => value);
   return (
     <div className='flex flex-col'>
       <hr className='border-settings-border-primary mb-5 border-t' />
@@ -50,11 +52,12 @@ export function FilenameTemplateComponent({
         <DropDownMenu
           value={value}
           setValue={setValue}
+          setLocalValue={setLocalValue}
           placeholders={placeholders}
           readyTemplates={readyTemplates}
         />
       </div>
-      <PreviewItems previews={previews} />
+      <PreviewItems previews={previews} localValue={localValue} />
     </div>
   );
 }
@@ -62,30 +65,34 @@ export function FilenameTemplateComponent({
 type DropDownMenuProps = {
   value: string[];
   setValue: (value: string[]) => void;
+  setLocalValue: (value: string[]) => void;
   placeholders: Placeholder[];
   readyTemplates: string[][];
 };
 
+/**
+ * Takes template array and returns array of strings with placeholders replaced by their display values
+ * Needs to be `.join('')` to get plain string
+ */
 function templateToPreview(
   template: string[],
   placeholders: Placeholder[],
-): string {
+): string[] {
   const replacements: Record<string, string> = Object.fromEntries(
     placeholders.map((item) => [item.id, item.display]),
   );
 
-  return template
-    .map((item) =>
-      item.startsWith('%') && item.endsWith('%')
-        ? (replacements[item] ?? item ?? '')
-        : (item ?? ''),
-    )
-    .join('');
+  return template.map((item) =>
+    item.startsWith('%') && item.endsWith('%')
+      ? (replacements[item] ?? item ?? '')
+      : (item ?? ''),
+  );
 }
 
 function DropDownMenu({
   value,
   setValue,
+  setLocalValue,
   placeholders,
   readyTemplates,
 }: DropDownMenuProps) {
@@ -96,35 +103,101 @@ function DropDownMenu({
   const handleTemplateSelect = useCallback(
     (template: string[]) => {
       setValue(template);
-      setShowDropdown(false);
+      setLocalValue(template);
+      // setShowDropdown(false);
     },
-    [setValue, setShowDropdown],
+    [
+      setValue,
+      // setShowDropdown
+    ],
   );
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setShowDropdown(false);
-      }
-    };
+  // useEffect(() => {
+  //   const handleKeyDown = (event: KeyboardEvent) => {
+  //     if (event.key === 'Escape') {
+  //       setShowDropdown(false);
+  //     }
+  //   };
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (event.target === buttonRef.current) return;
-      if (dropDownRef.current?.contains(event.target as Node)) return;
-      setShowDropdown(false);
-    };
+  //   const handleClickOutside = (event: MouseEvent) => {
+  //     if (event.target === buttonRef.current) return;
+  //     if (dropDownRef.current?.contains(event.target as Node)) return;
+  //     setShowDropdown(false);
+  //   };
 
-    if (!showDropdown) return;
+  //   if (!showDropdown) return;
 
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('mousedown', handleClickOutside);
+  //   document.addEventListener('keydown', handleKeyDown);
+  //   document.addEventListener('mousedown', handleClickOutside);
 
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showDropdown]);
+  //   return () => {
+  //     document.removeEventListener('keydown', handleKeyDown);
+  //     document.removeEventListener('mousedown', handleClickOutside);
+  //   };
+  // }, [showDropdown]);
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+  useLayoutEffect(() => {
+    if (!containerRef.current) return;
+    setContainerWidth(containerRef.current.clientWidth);
+  }, []);
+
+  // TODO: Добавить адекватный scrollbar
+  return (
+    <>
+      <div
+        className='pointer-events-none absolute inset-0'
+        ref={containerRef}
+      />
+      <Combobox
+        width='auto'
+        // popoverWidth={containerWidth}
+        className='absolute top-1/2 right-2 -translate-y-1/2 border-0 p-1 [&>svg]:!opacity-100'
+        itemClassName='block bg-transparent'
+        showChevron={true}
+        align='end'
+        side='top' // TODO: fix chevron
+        value=' '
+        onValueChange={(value) => {
+          handleTemplateSelect(JSON.parse(value));
+        }}
+        onValueHover={(value) => {
+          setLocalValue(JSON.parse(value));
+        }}
+        title={browser.i18n.getMessage('settings_filenameSelectTemplate')}
+        data={readyTemplates.map((template) => {
+          const preview = templateToPreview(template, placeholders);
+          return {
+            value: JSON.stringify(template),
+            label: preview.join(''),
+            labelComponent: ({ isRenderingInPreview }) => {
+              if (isRenderingInPreview) return <></>;
+              return (
+                <>
+                  {template.map((part, i) => {
+                    const isPlaceholder =
+                      part.startsWith('%') && part.endsWith('%');
+                    return (
+                      <span
+                        className={cn(
+                          isPlaceholder &&
+                            'bg-input-active [[data-selected="true"]_&]:bg-input-active/50 rounded',
+                        )}
+                      >
+                        {preview[i]}
+                      </span>
+                    );
+                  })}
+                </>
+              );
+            },
+          };
+        })}
+      />
+    </>
+  );
+  // TODO: Remove later
   return (
     <>
       <Button
@@ -133,11 +206,11 @@ function DropDownMenu({
         size='square'
         className='absolute top-1/2 right-2 -translate-y-1/2'
         onClick={() => setShowDropdown((prev) => !prev)}
-        title='Выбрать шаблон'
+        title={browser.i18n.getMessage('settings_filenameSelectTemplate')}
         aria-expanded={showDropdown}
         aria-haspopup='listbox'
       >
-        <ChevronDown
+        <ChevronDownIcon
           className={cn(
             'text-settings-text-secondary pointer-events-none size-4 transition-transform duration-200',
             showDropdown && 'rotate-180',
@@ -150,11 +223,7 @@ function DropDownMenu({
           ref={dropDownRef}
           className='border-settings-border-tertiary bg-settings-background-primary absolute z-10 mt-1 w-full rounded-lg border shadow-lg'
         >
-          <ul
-            className='max-h-48 overflow-y-auto text-sm'
-            role='listbox'
-            aria-label='Список готовых шаблонов'
-          >
+          <ul className='max-h-48 overflow-y-auto text-sm' role='listbox'>
             {readyTemplates
               .filter(
                 (template) => template.length > 0 && !equal(template, value),
@@ -179,9 +248,10 @@ function DropDownMenu({
 
 type PreviewItemProps = {
   previews: PreviewItem[];
+  localValue: string[];
 };
 
-function PreviewItems({ previews }: PreviewItemProps) {
+function PreviewItems({ previews, localValue }: PreviewItemProps) {
   const [showAllPreviews, setShowAllPreviews] = useState(false);
 
   const displayedPreviews = useMemo(
@@ -192,27 +262,28 @@ function PreviewItems({ previews }: PreviewItemProps) {
   return (
     <>
       <p className='text-settings-text-tertiary mt-2 text-xs'>
-        Введите % чтобы добавить переменную
+        {browser.i18n.getMessage('settings_filenameHelpTemplate')}
       </p>
 
       <div className='mt-5'>
         <div className='mb-2 flex items-center justify-between'>
           <h3 className='text-settings-text-primary text-sm font-medium'>
-            Предпросмотр результата:
+            {browser.i18n.getMessage('settings_preview_text')}
           </h3>
           {previews.length > 1 && (
-            <button
-              className='text-settings-text-tertiary hover:text-settings-text-secondary text-xs transition-colors hover:underline focus:underline focus:outline-none'
+            <Button
+              variant='ghost'
               onClick={() => setShowAllPreviews((prev) => !prev)}
-              type='button'
-              aria-label={
+              title={
                 showAllPreviews
-                  ? 'Скрыть дополнительные превью'
-                  : 'Показать все превью'
+                  ? browser.i18n.getMessage('settings_hidePreview_title')
+                  : browser.i18n.getMessage('settings_showPreview_title')
               }
             >
-              {showAllPreviews ? 'Скрыть' : 'Показать все'}
-            </button>
+              {showAllPreviews
+                ? browser.i18n.getMessage('settings_hidePreview')
+                : browser.i18n.getMessage('settings_showPreview')}
+            </Button>
           )}
         </div>
 
@@ -249,7 +320,7 @@ function PreviewItems({ previews }: PreviewItemProps) {
                   {preview.label}
                 </div>
                 <div className='text-settings-text-primary font-mono text-sm break-all'>
-                  {makePathAndFilename(preview.value, 'video')[1]}
+                  {makePathAndFilename(preview.value, 'video', localValue)[1]}
                 </div>
               </div>
             );

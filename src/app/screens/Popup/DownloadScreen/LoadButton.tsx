@@ -73,6 +73,9 @@ export function LoadButton() {
 
   const isCompleted =
     !!progress && progress.completedLoads === progress.totalLoads;
+  const title = !isCompleted
+    ? browser.i18n.getMessage('popup_DownloadStart')
+    : undefined;
   return (
     <button
       className={cn(
@@ -82,8 +85,8 @@ export function LoadButton() {
         isCompleted && 'cursor-not-allowed',
       )}
       type='button'
-      title={!isCompleted ? 'Начать загрузку' : undefined}
-      aria-label={!isCompleted ? 'Начать загрузку' : undefined}
+      title={title}
+      aria-label={title}
       onClick={handleClick}
       disabled={isCompleted}
     >

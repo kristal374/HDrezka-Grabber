@@ -125,10 +125,12 @@ export function ConfirmationModal() {
 
         <div className='bg-settings-background-tertiary flex items-center justify-end gap-3 px-6 py-4'>
           <Button onClick={handleCancel} variant='outline'>
-            {options.cancelText || 'Отмена'}
+            {options.cancelText ||
+              browser.i18n.getMessage('settings_modal_cancel')}
           </Button>
           <Button onClick={handleConfirm}>
-            {options.confirmText || 'Подтвердить'}
+            {options.confirmText ||
+              browser.i18n.getMessage('settings_modal_confirm')}
           </Button>
         </div>
       </div>

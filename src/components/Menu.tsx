@@ -12,17 +12,17 @@ export function Menu({ className }: MenuProps) {
     <div
       className={cn('absolute top-0 right-0 flex flex-col gap-1', className)}
     >
-      <MenuButton href='/settings' openInNewTab={true} title='Настройки'>
+      <MenuButton href='/settings' openInNewTab={true} title={browser.i18n.getMessage('popup_menu_settings')}>
         <CogIcon
           className='size-8 transition-transform duration-300 hover:rotate-45'
           strokeWidth={1.5}
         />
       </MenuButton>
-      {/* <MenuButton href='/loadManager' title='Диспетчер загрузок'>
+      {/* <MenuButton href='/loadManager' title={browser.i18n.getMessage('popup_menu_loadManager')}>
         <SquareKanbanIcon className='size-8 rotate-270' strokeWidth={1.5}  />
       </MenuButton> */}
       {settings.enableLogger && (
-        <MenuButton href='/logger' title='Журнал событий'>
+        <MenuButton href='/debugWindow' title={browser.i18n.getMessage('popup_menu_debugWindow')}>
           <SquareTerminalIcon className='size-8' strokeWidth={1.5} />
         </MenuButton>
       )}

@@ -158,9 +158,7 @@ export function FilenameTemplateInput({
         .join('');
 
       if (rawValue !== cleanedNewValue) {
-        toast.error(
-          'Имя файла не должно содержать переносов строк и следующих знаков: \\ / * ? : | < > "',
-        );
+        toast.error(browser.i18n.getMessage('settings_toast_wrongSymbol'));
       }
       if (cleanedNewValue !== rawUserTemplate) {
         setRawUserTemplate(cleanedNewValue);
