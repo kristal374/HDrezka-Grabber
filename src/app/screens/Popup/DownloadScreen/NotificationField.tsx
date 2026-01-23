@@ -282,7 +282,8 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
               className='pointer-events-auto mb-1 gap-0'
               onClick={() => setCollapsed(false)}
             >
-              Показать все (<NumberFlow value={amount} />)
+              {browser.i18n.getMessage('popup_showAllNotification')}
+              {` `}(<NumberFlow value={amount} />)
             </Button>
           </div>
         )}
@@ -312,7 +313,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
                   isCollapsed &&
                     i > NOTIFICATIONS_COLLAPSE_THRESHOLD &&
                     'invisible duration-0',
-                  // notification.message.length > 31 && 'items-start', // this assumes that message is 2 or more lines
+                  // notification.message.length > 31 && 'items-start', // this assumes that a message is 2 or more lines
                 )}
                 style={
                   {

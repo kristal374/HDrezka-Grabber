@@ -158,7 +158,7 @@ export function QualitySelector() {
             const realQualityPill = (
               <span
                 className={cn(
-                  // '[[data-selected]>&]:bg-input',
+                  '[[data-selected]_&]:bg-input',
                   'bg-input-active ml-1.75 inline-flex items-center gap-1 rounded-md px-1.25',
                 )}
               >
@@ -183,7 +183,7 @@ export function QualitySelector() {
                             className='flex w-58 items-center justify-between'
                           >
                             <p className='text-sm text-balance'>
-                              Реальное разрешение видео
+                              {browser.i18n.getMessage('popup_realResolution')}
                             </p>
                             <span className='bg-input-active w-fit shrink-0 rounded-sm px-1.25 pb-0.25 text-sm font-medium'>
                               {videoResolution.width} x {videoResolution.height}

@@ -203,23 +203,27 @@ export function ChangeLogTab({
     return (
       <EdgeCaseState
         icon={<RefreshCwIcon className='size-6 animate-spin' />}
-        title='Загрузка данных...'
+        title={browser.i18n.getMessage('settings_ChangelogProcessing')}
       />
     );
   if (hasError)
     return (
       <EdgeCaseState
         icon={<AlertCircleIcon className='size-6' />}
-        title='Ошибка загрузки'
-        description='Не удалось загрузить список изменений.'
+        title={browser.i18n.getMessage('settings_ChangelogErrorLoading_title')}
+        description={browser.i18n.getMessage(
+          'settings_ChangelogErrorLoading_description',
+        )}
       />
     );
   if (!changelogContent || changelogContent.length === 0)
     return (
       <EdgeCaseState
         icon={<PackageIcon className='size-6' />}
-        title='Нет данных'
-        description='Список изменений пуст или недоступен.'
+        title={browser.i18n.getMessage('settings_ChangelogNoData_title')}
+        description={browser.i18n.getMessage(
+          'settings_ChangelogNoData_description',
+        )}
       />
     );
 

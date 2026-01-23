@@ -142,7 +142,11 @@
 }
 
 @utility focus-ring {
-  @apply ring-link-color ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+  @apply ring-link-color ring-offset-background ring-offset-2 outline-none focus-visible:ring-2;
+}
+
+@utility focus-ring-within {
+  @apply [&:has(:focus-visible)]:ring-2;
 }
 
 @layer base {

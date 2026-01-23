@@ -14,6 +14,7 @@ import { Panel } from '@/components/Panel';
 import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { Toggle } from '@/components/ui/Toggle';
+import { SettingsInitialDataContext } from '@/html/settings';
 import { LogLevel } from '@/lib/logger/types';
 import { createDefaultSettings, saveInStorage } from '@/lib/storage';
 import { Message } from '@/lib/types';
@@ -24,7 +25,7 @@ import {
   Monitor,
   ShieldAlert,
 } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useContext } from 'react';
 import { toast } from 'sonner';
 import { FilenameTemplateComponent } from './FilenameTemplateComponent';
 import { SettingItem, SettingsSection } from './SettingsComponets';
@@ -80,24 +81,28 @@ function SettingsItemToggle({
 }
 
 export function SettingsTab() {
-  const updateSetting = useCallback(function <T>(key: string, type?: 'number') {
-    return (value: T) => {
-      const newValue = {
-        ...settings,
-        [key]: type === 'number' ? Number(value) : value,
+  const { settings } = useContext(SettingsInitialDataContext)!;
+  const updateSetting = useCallback(
+    function <T>(key: string, type?: 'number') {
+      return (value: T) => {
+        const newValue = {
+          ...settings,
+          [key]: type === 'number' ? Number(value) : value,
+        };
+        saveInStorage('settings', newValue);
       };
-      saveInStorage('settings', newValue);
-    };
-  }, []);
+    },
+    [settings],
+  );
 
   const notificationPromise = useCallback(
     async (promise: Promise<any>, notification: string) => {
       return toast.promise(promise, {
-        loading: 'В обработке...',
+        loading: browser.i18n.getMessage('settings_toast_process'),
         success: () => notification,
         error: (e) => {
           console.error(e);
-          return 'Произошёл сбой.';
+          return browser.i18n.getMessage('settings_toast_errorProcess');
         },
       });
     },
@@ -137,7 +142,7 @@ export function SettingsTab() {
     });
     await notificationPromise(
       process,
-      'Завершена попытка восстановить работу расширения.',
+      browser.i18n.getMessage('settings_restoreInsideState_notification'),
     );
   }, []);
 
@@ -185,44 +190,70 @@ export function SettingsTab() {
     <Panel className='bg-settings-background-primary border-0 p-0 shadow-none'>
       <ConfirmationModal />
       <div className='flex flex-col gap-12'>
-        <SettingsSection title='Настройки интерфейса' icon={Monitor}>
+        <SettingsSection
+          title={browser.i18n.getMessage('settings_sectionInterface')}
+          icon={Monitor}
+        >
           <SettingsItemToggle
-            title='Темная тема'
-            description='Использовать темное оформление интерфейса'
+            title={browser.i18n.getMessage('settings_itemInterfaceTheme_title')}
+            description={browser.i18n.getMessage(
+              'settings_itemInterfaceTheme_description',
+            )}
             value={settings.darkMode}
             setValue={updateSetting('darkMode')}
           />
 
           <SettingsItemToggle
-            title='Отображать в попапе размер качества'
-            description='Расширение будет получать размер файла, который будет отображаться в попапе напротив качества'
+            title={browser.i18n.getMessage('settings_itemDisplaySize_title')}
+            description={browser.i18n.getMessage(
+              'settings_itemDisplaySize_description',
+            )}
             value={settings.displayQualitySize}
             setValue={updateSetting('displayQualitySize')}
           />
 
           <SettingsItemToggle
-            title='Определять реальное качество видео'
-            description='Расширение будет определять реальное разрешение видео если сервер попытается подменить качество более низким'
+            title={browser.i18n.getMessage('settings_itemGetRealQuality_title')}
+            description={browser.i18n.getMessage(
+              'settings_itemGetRealQuality_description',
+            )}
             value={settings.getRealQuality}
             setValue={updateSetting('getRealQuality')}
           />
         </SettingsSection>
 
-        <SettingsSection title='Поведение при загрузке' icon={DownloadIcon}>
+        <SettingsSection
+          title={browser.i18n.getMessage('settings_sectionDownloadBehavior')}
+          icon={DownloadIcon}
+        >
           <SettingsItemSelect
-            title='Приоритет загрузки'
-            description='Что стоит загружать первым: видео или субтитры'
+            title={browser.i18n.getMessage(
+              'settings_itemFileTypePriority_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemFileTypePriority_description',
+            )}
             value={settings.fileTypePriority}
             setValue={updateSetting('fileTypePriority')}
             options={[
-              { value: 'video', label: 'Видео' },
-              { value: 'subtitle', label: 'Субтитры' },
+              {
+                value: 'video',
+                label: browser.i18n.getMessage('settings_valueVideo'),
+              },
+              {
+                value: 'subtitle',
+                label: browser.i18n.getMessage('settings_valueSubtitle'),
+              },
             ]}
             width='8rem'
           />
           <SettingsItemSelect
-            title='Максимальное количество одновременных загрузок'
-            description='Сколько файлов может загружаться одновременно'
+            title={browser.i18n.getMessage(
+              'settings_itemMaxParallelDownloads_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemMaxParallelDownloads_description',
+            )}
             value={String(settings.maxParallelDownloads)}
             setValue={(value) => {
               const newValue = Number(value);
@@ -247,8 +278,12 @@ export function SettingsTab() {
           />
 
           <SettingsItemSelect
-            title='Максимальное количество одновременно загружаемых серий одного сериала'
-            description='Сколько серий одного сериала сможет загружаться одновременно, позволяет загружать одновременно несколько сериалов'
+            title={browser.i18n.getMessage(
+              'settings_itemMaxParallelDownloadsEpisodes_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemMaxParallelDownloadsEpisodes_description',
+            )}
             value={String(settings.maxParallelDownloadsEpisodes)}
             setValue={updateSetting('maxParallelDownloadsEpisodes', 'number')}
             options={Array.from(
@@ -262,8 +297,12 @@ export function SettingsTab() {
           />
 
           <SettingsItemSelect
-            title='Максимальное количество попыток загрузки файла'
-            description='Максимальное количество попыток загрузки файла перед тем как загрузка будет считаться неудачной'
+            title={browser.i18n.getMessage(
+              'settings_itemMaxFallbackAttempts_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemMaxFallbackAttempts_description',
+            )}
             value={String(settings.maxFallbackAttempts)}
             setValue={updateSetting('maxFallbackAttempts', 'number')}
             options={Array.from({ length: 10 }, (_, i) => ({
@@ -274,113 +313,229 @@ export function SettingsTab() {
           />
 
           <SettingsItemSelect
-            title='Время между попытками загрузки'
-            description='Сколько ждать перед тем как снова попытаться загрузить файл'
+            title={browser.i18n.getMessage(
+              'settings_itemTimeBetweenDownloadAttempts_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemTimeBetweenDownloadAttempts_description',
+            )}
             value={String(settings.timeBetweenDownloadAttempts)}
             setValue={updateSetting('timeBetweenDownloadAttempts', 'number')}
             options={[
-              { value: String(1000), label: '1 секунда' },
-              { value: String(5 * 1000), label: '5 секунд' },
-              { value: String(10 * 1000), label: '10 секунд' },
-              { value: String(15 * 1000), label: '15 секунд' },
-              { value: String(30 * 1000), label: '30 секунд' },
-              { value: String(60 * 1000), label: '1 минута' },
-              { value: String(2 * 60 * 1000), label: '2 минуты' },
-              { value: String(5 * 60 * 1000), label: '5 минут' },
-              { value: String(10 * 60 * 1000), label: '10 минут' },
-              { value: String(15 * 60 * 1000), label: '15 минут' },
+              {
+                value: String(1000),
+                label: browser.i18n.getMessage('time_1s'),
+              },
+              {
+                value: String(5 * 1000),
+                label: browser.i18n.getMessage('time_5s'),
+              },
+              {
+                value: String(10 * 1000),
+                label: browser.i18n.getMessage('time_10s'),
+              },
+              {
+                value: String(15 * 1000),
+                label: browser.i18n.getMessage('time_15s'),
+              },
+              {
+                value: String(30 * 1000),
+                label: browser.i18n.getMessage('time_30s'),
+              },
+              {
+                value: String(60 * 1000),
+                label: browser.i18n.getMessage('time_1m'),
+              },
+              {
+                value: String(2 * 60 * 1000),
+                label: browser.i18n.getMessage('time_2m'),
+              },
+              {
+                value: String(5 * 60 * 1000),
+                label: browser.i18n.getMessage('time_5m'),
+              },
+              {
+                value: String(10 * 60 * 1000),
+                label: browser.i18n.getMessage('time_10m'),
+              },
+              {
+                value: String(15 * 60 * 1000),
+                label: browser.i18n.getMessage('time_15m'),
+              },
             ]}
             width='8rem'
           />
 
           <SettingsItemSelect
-            title='Максимальное время, отведенное для начала загрузки'
-            description='Через какой период времени запуск загрузки будет считаться неудачным, если загрузка не стартовала.'
+            title={browser.i18n.getMessage(
+              'settings_itemDownloadStartTimeLimit_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemDownloadStartTimeLimit_description',
+            )}
             value={String(settings.downloadStartTimeLimit)}
             setValue={updateSetting('downloadStartTimeLimit', 'number')}
             // Лимит времени обусловлен временем жизни неактивного service-worker-а.
             // https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle
             options={[
-              { value: String(5 * 1000), label: '5 секунд' },
-              { value: String(10 * 1000), label: '10 секунд' },
-              { value: String(15 * 1000), label: '15 секунд' },
-              { value: String(20 * 1000), label: '20 секунд' },
-              { value: String(25 * 1000), label: '25 секунд' },
+              {
+                value: String(5 * 1000),
+                label: browser.i18n.getMessage('time_5s'),
+              },
+              {
+                value: String(10 * 1000),
+                label: browser.i18n.getMessage('time_10s'),
+              },
+              {
+                value: String(15 * 1000),
+                label: browser.i18n.getMessage('time_15s'),
+              },
+              {
+                value: String(20 * 1000),
+                label: browser.i18n.getMessage('time_20s'),
+              },
+              {
+                value: String(25 * 1000),
+                label: browser.i18n.getMessage('time_25s'),
+              },
             ]}
             width='8rem'
           />
         </SettingsSection>
 
-        <SettingsSection title='Действия при сбоях' icon={ShieldAlert}>
+        <SettingsSection
+          title={browser.i18n.getMessage('settings_sectionFailureActions')}
+          icon={ShieldAlert}
+        >
           <SettingsItemSelect
-            title='Если при загрузки серии нет выбраного качества'
-            description='Что делать если у некоторых серий в сериале нет выбранного качества'
+            title={browser.i18n.getMessage(
+              'settings_itemActionOnNoQuality_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemActionOnNoQuality_description',
+            )}
             value={settings.actionOnNoQuality}
             setValue={updateSetting('actionOnNoQuality')}
             options={[
-              { value: 'skip', label: 'Пропустить серию' },
-              { value: 'reduce_quality', label: 'Понизить качество серии' },
-              { value: 'stop', label: 'Остановить загрузку сериала' },
+              {
+                value: 'skip',
+                label: browser.i18n.getMessage('settings_valueSkipEpisode'),
+              },
+              {
+                value: 'reduce_quality',
+                label: browser.i18n.getMessage('settings_valueReduceQuality'),
+              },
+              {
+                value: 'stop',
+                label: browser.i18n.getMessage('settings_valueStopDownload'),
+              },
             ]}
             width='14.5rem'
           />
           <SettingsItemSelect
-            title='Если при загрузки серии нет выбраных субтитров'
-            description='Что делать если у некоторых серий в сериале нет выбранных субтитров'
+            title={browser.i18n.getMessage(
+              'settings_itemActionOnNoSubtitles_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemActionOnNoSubtitles_description',
+            )}
             value={settings.actionOnNoSubtitles}
             setValue={updateSetting('actionOnNoSubtitles')}
             options={[
-              { value: 'skip', label: 'Пропустить серию' },
-              { value: 'ignore', label: 'Игнорировать' },
-              { value: 'stop', label: 'Остановить загрузку сериала' },
+              {
+                value: 'skip',
+                label: browser.i18n.getMessage('settings_valueSkipEpisode'),
+              },
+              {
+                value: 'ignore',
+                label: browser.i18n.getMessage('settings_valueIgnoreSubtitle'),
+              },
+              {
+                value: 'stop',
+                label: browser.i18n.getMessage('settings_valueStopDownload'),
+              },
             ]}
             width='14.5rem'
           />
           <SettingsItemSelect
-            title='Если не удалось загрузить субтитры'
-            description='Что делать если произошёл сбой при загрузки субтитров во время загрузки серии'
+            title={browser.i18n.getMessage(
+              'settings_itemActionOnLoadSubtitleError_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemActionOnLoadSubtitleError_description',
+            )}
             value={settings.actionOnLoadSubtitleError}
             setValue={updateSetting('actionOnLoadSubtitleError')}
             options={[
-              { value: 'skip', label: 'Пропустить эти субтитры' },
-              { value: 'stop', label: 'Остановить загрузку сериала' },
+              {
+                value: 'skip',
+                label: browser.i18n.getMessage(
+                  'settings_valueSkipThisSubtitle',
+                ),
+              },
+              {
+                value: 'stop',
+                label: browser.i18n.getMessage('settings_valueStopDownload'),
+              },
             ]}
             width='14.5rem'
           />
           <SettingsItemSelect
-            title='Если не удалось загрузить серию'
-            description='Что делать если произошла ошибка загрузки серии'
+            title={browser.i18n.getMessage(
+              'settings_itemActionOnLoadVideoError_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemActionOnLoadVideoError_description',
+            )}
             value={settings.actionOnLoadVideoError}
             setValue={updateSetting('actionOnLoadError')}
             options={[
-              { value: 'skip', label: 'Пропустить эту серию' },
-              { value: 'stop', label: 'Остановить загрузку сериала' },
+              {
+                value: 'skip',
+                label: browser.i18n.getMessage('settings_valueSkipThisEpisode'),
+              },
+              {
+                value: 'stop',
+                label: browser.i18n.getMessage('settings_valueStopDownload'),
+              },
             ]}
             width='14.5rem'
           />
         </SettingsSection>
 
         <SettingsSection
-          title='Настройки именования файлов'
+          title={browser.i18n.getMessage('settings_sectionFilenameTemplate')}
           icon={FolderCogIcon}
         >
           <SettingsItemToggle
-            title='Создать папку расширения в папке загрузок'
-            description='В папке загрузок будет создана новая папка "HDrezkaGrabber", в которую будут сохраняться все загруженные файлы'
+            title={browser.i18n.getMessage(
+              'settings_itemCreateExtensionFolders_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemCreateExtensionFolders_description',
+            )}
             value={settings.createExtensionFolders}
             setValue={updateSetting('createExtensionFolders')}
           />
 
           <SettingsItemToggle
-            title='Создавать отдельную папку для каждого сериала'
-            description='Для каждого сериала будет создана отдельная папка с именем сериала'
+            title={browser.i18n.getMessage(
+              'settings_itemCreateSeriesFolders_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemCreateSeriesFolders_description',
+            )}
             value={settings.createSeriesFolders}
             setValue={updateSetting('createSeriesFolders')}
           />
 
           <SettingsItemToggle
-            title='Заменять все пробелы на нижние подчёркивания (рекомендуется)'
-            description='Все пробелы в имени файла будут заменены на нижние подчёркивания'
+            title={browser.i18n.getMessage(
+              'settings_itemReplaceAllSpaces_title',
+            )}
+            description={browser.i18n.getMessage(
+              'settings_itemReplaceAllSpaces_description',
+            )}
             value={settings.replaceAllSpaces}
             setValue={updateSetting('replaceAllSpaces')}
           />
@@ -389,7 +544,7 @@ export function SettingsTab() {
             fieldId={'movie-template-editor'}
             value={settings.filenameFilmTemplate}
             setValue={updateSetting('filenameFilmTemplate')}
-            title='Шаблон имени файлов для фильмов'
+            title={browser.i18n.getMessage('settings_filenameFilms')}
             placeholders={MOVIE_PLACEHOLDERS}
             readyTemplates={MOVIE_READY_TEMPLATES}
             previews={MOVIE_PREVIEW}
@@ -399,17 +554,22 @@ export function SettingsTab() {
             fieldId={'series-template-editor'}
             value={settings.filenameSeriesTemplate}
             setValue={updateSetting('filenameSeriesTemplate')}
-            title='Шаблон имени файлов для сериалов'
+            title={browser.i18n.getMessage('settings_filenameSeries')}
             placeholders={SERIES_PLACEHOLDERS}
             readyTemplates={SERIES_READY_TEMPLATES}
             previews={SERIES_PREVIEW}
           />
         </SettingsSection>
 
-        <SettingsSection title='Отладка расширения' icon={LucideBug}>
+        <SettingsSection
+          title={browser.i18n.getMessage('settings_sectionDebug')}
+          icon={LucideBug}
+        >
           <SettingsItemToggle
-            title='Включить логирование'
-            description='Включить логирование в консоль'
+            title={browser.i18n.getMessage('settings_itemEnableLogger_title')}
+            description={browser.i18n.getMessage(
+              'settings_itemEnableLogger_description',
+            )}
             value={settings.enableLogger}
             setValue={updateSetting('enableLogger')}
           />
@@ -417,8 +577,10 @@ export function SettingsTab() {
           {settings.enableLogger && (
             <>
               <SettingsItemSelect
-                title='Уровень отладки'
-                description='Уровень логирования расширения'
+                title={browser.i18n.getMessage('settings_itemDebugLevel_title')}
+                description={browser.i18n.getMessage(
+                  'settings_itemDebugLevel_description',
+                )}
                 value={String(settings.debugLevel)}
                 setValue={updateSetting('debugLevel')}
                 options={Object.keys(LogLevel)
@@ -428,26 +590,66 @@ export function SettingsTab() {
               />
 
               <SettingsItemSelect
-                title='Время жизни сообщения в журнале'
-                description='Через сколько будет удалено лог сообщение из хранилища'
+                title={browser.i18n.getMessage(
+                  'settings_itemLogMessageLifetime_title',
+                )}
+                description={browser.i18n.getMessage(
+                  'settings_itemLogMessageLifetime_description',
+                )}
                 value={String(settings.logMessageLifetime)}
                 setValue={updateSetting('logMessageLifetime', 'number')}
                 options={[
-                  { value: String(60 * 1000), label: '1 минута' },
-                  { value: String(2 * 60 * 1000), label: '2 минуты' },
-                  { value: String(5 * 60 * 1000), label: '5 минут' },
-                  { value: String(10 * 60 * 1000), label: '10 минут' },
-                  { value: String(30 * 60 * 1000), label: '30 минут' },
-                  { value: String(60 * 60 * 1000), label: '1 час' },
-                  { value: String(2 * 60 * 60 * 1000), label: '2 часа' },
-                  { value: String(5 * 60 * 60 * 1000), label: '5 часов' },
-                  { value: String(12 * 60 * 60 * 1000), label: '12 часов' },
-                  { value: String(24 * 60 * 60 * 1000), label: '1 день' },
-                  { value: String(2 * 24 * 60 * 60 * 1000), label: '2 дня' },
-                  { value: String(7 * 24 * 60 * 60 * 1000), label: '1 неделя' },
+                  {
+                    value: String(60 * 1000),
+                    label: browser.i18n.getMessage('time_1m'),
+                  },
+                  {
+                    value: String(2 * 60 * 1000),
+                    label: browser.i18n.getMessage('time_2m'),
+                  },
+                  {
+                    value: String(5 * 60 * 1000),
+                    label: browser.i18n.getMessage('time_5m'),
+                  },
+                  {
+                    value: String(10 * 60 * 1000),
+                    label: browser.i18n.getMessage('time_10m'),
+                  },
+                  {
+                    value: String(30 * 60 * 1000),
+                    label: browser.i18n.getMessage('time_30m'),
+                  },
+                  {
+                    value: String(60 * 60 * 1000),
+                    label: browser.i18n.getMessage('time_1h'),
+                  },
+                  {
+                    value: String(2 * 60 * 60 * 1000),
+                    label: browser.i18n.getMessage('time_2h'),
+                  },
+                  {
+                    value: String(5 * 60 * 60 * 1000),
+                    label: browser.i18n.getMessage('time_5h'),
+                  },
+                  {
+                    value: String(12 * 60 * 60 * 1000),
+                    label: browser.i18n.getMessage('time_12h'),
+                  },
+                  {
+                    value: String(24 * 60 * 60 * 1000),
+                    label: browser.i18n.getMessage('time_1d'),
+                  },
+                  {
+                    value: String(2 * 24 * 60 * 60 * 1000),
+                    label: browser.i18n.getMessage('time_2d'),
+                  },
+                  {
+                    value: String(7 * 24 * 60 * 60 * 1000),
+                    label: browser.i18n.getMessage('time_1w'),
+                  },
                   {
                     value: String(2 * 7 * 24 * 60 * 60 * 1000),
-                    label: '2 недели',
+                    label: browser.i18n.getMessage('time_2w'),
                   },
                 ]}
                 width='8rem'
@@ -457,8 +659,12 @@ export function SettingsTab() {
 
           {!isFirefox && (
             <SettingsItemToggle
-              title='Отслеживать события на именование файла onDeterminingFilename'
-              description='Не изменяйте если у вас всё работает хорошо! Может помочь если есть другое расширение которое так же отслеживает события на именование фалов из-за чего возникает конфликт и файлы при загрузке имеют некорректные названия.'
+              title={browser.i18n.getMessage(
+                'settings_itemTrackEventsOnDeterminingFilename_title',
+              )}
+              description={browser.i18n.getMessage(
+                'settings_itemTrackEventsOnDeterminingFilename_description',
+              )}
               value={settings.trackEventsOnDeterminingFilename}
               setValue={updateSetting('trackEventsOnDeterminingFilename')}
             />
@@ -468,73 +674,91 @@ export function SettingsTab() {
 
           <div className='flex flex-wrap gap-3'>
             <Button onClick={handleRestoreState}>
-              Попытаться восстановить работу расширения
+              {browser.i18n.getMessage('settings_restoreInsideState')}
             </Button>
 
             <Button
               onClick={() => {
                 requestPermission({
-                  title: 'Восстановить настройки по умолчанию?',
+                  title: browser.i18n.getMessage(
+                    'settings_restoreSettings_title',
+                  ),
                   onConfirm: createDefaultSettings,
-                  notificationText: 'Настройки сброшены!',
+                  notificationText: browser.i18n.getMessage(
+                    'settings_restoreSettings_notification',
+                  ),
                 });
               }}
             >
-              Восстановить настройки по умолчанию
+              {browser.i18n.getMessage('settings_restoreSettings')}
             </Button>
 
             <Button
               onClick={() => {
                 requestPermission({
-                  title: 'Очистить кэш расширения?',
+                  title: browser.i18n.getMessage('settings_clearCache_title'),
                   onConfirm: handleClearCache,
-                  notificationText: 'Кэш очищен!',
+                  notificationText: browser.i18n.getMessage(
+                    'settings_clearCache_notification',
+                  ),
                 });
               }}
             >
-              Очистить кэш
+              {browser.i18n.getMessage('settings_clearCache')}
             </Button>
 
             <Button
               onClick={() => {
                 requestPermission({
-                  title: 'Прервать активные загрузки и очистить очередь?',
+                  title: browser.i18n.getMessage(
+                    'settings_stopAllDownloads_title',
+                  ),
                   onConfirm: handleStopAllDownloads,
-                  notificationText: 'Загрузки остановлены!',
+                  notificationText: browser.i18n.getMessage(
+                    'settings_stopAllDownloads_notification',
+                  ),
                 });
               }}
             >
-              Остановить все загрузки
+              {browser.i18n.getMessage('settings_stopAllDownloads')}
             </Button>
 
             <Button
               onClick={() => {
                 requestPermission({
-                  title:
-                    'Вы действительно хотите очистить историю загрузок расширения?',
-                  description:
-                    'Все текущие загрузки будут прерваны. Это действие невозможно будет отменить позже.',
+                  title: browser.i18n.getMessage(
+                    'settings_clearDownloadHistory_title',
+                  ),
+                  description: browser.i18n.getMessage(
+                    'settings_clearDownloadHistory_description',
+                  ),
                   onConfirm: handleClearDownloadHistory,
-                  notificationText: 'История загрузок очищена!',
+                  notificationText: browser.i18n.getMessage(
+                    'settings_clearDownloadHistory_notification',
+                  ),
                 });
               }}
             >
-              Очистить историю загрузок
+              {browser.i18n.getMessage('settings_clearDownloadHistory')}
             </Button>
 
             <Button
               onClick={() => {
                 requestPermission({
-                  title:
-                    'Вы действительно хотите удалить все данные расширения?',
-                  description:
-                    'Все текущие загрузки будут прерваны. Это действие невозможно будет отменить позже.',
+                  title: browser.i18n.getMessage(
+                    'settings_removeAllExtensionData_title',
+                  ),
+                  description: browser.i18n.getMessage(
+                    'settings_removeAllExtensionData_description',
+                  ),
                   onConfirm: handleRemoveExtensionData,
-                  notificationText: 'Данные расширения удалены!',
+                  notificationText: browser.i18n.getMessage(
+                    'settings_removeAllExtensionData_notification',
+                  ),
                 });
               }}
             >
-              Удалить все данные расширения
+              {browser.i18n.getMessage('settings_removeAllExtensionData')}
             </Button>
           </div>
         </SettingsSection>

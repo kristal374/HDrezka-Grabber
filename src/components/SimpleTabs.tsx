@@ -87,9 +87,8 @@ export function SimpleTabs<ID extends string>({
                 }}
                 onClick={() => handleTabClick(tab.id)}
                 className={cn(
-                  'relative py-3 text-xl leading-none transition-opacity outline-none',
-                  isActive ? 'font-extrabold' : 'font-bold',
-                  'hover:opacity-90 focus-visible:ring-2 focus-visible:ring-violet-400/60',
+                  'relative rounded-md py-3 text-xl leading-none',
+                  'focus-ring cursor-pointer outline-none focus-visible:ring-violet-400/60',
                 )}
                 role='tab'
                 aria-selected={isActive}
@@ -99,6 +98,8 @@ export function SimpleTabs<ID extends string>({
                     <span className='flex-shrink-0'>{tab.icon}</span>
                   )}
                   <span className='grid'>
+                    {/* Invisible span used to provide font-semibold width of the container
+                    to prevernt it from jumping in size when isActive toggles */}
                     <span className='pointer-events-none col-start-1 row-start-1 font-semibold opacity-0 select-none'>
                       {tab.label}
                     </span>

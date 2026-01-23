@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Checkbox as CheckboxPrimitive } from '@base-ui-components/react/checkbox';
+import { Checkbox as CheckboxPrimitive } from '@base-ui/react/checkbox';
 
 function Checkbox({
   className,
@@ -39,7 +39,10 @@ function CheckboxWithLabel({
   children,
 }: CheckboxWithLabelProps) {
   return (
-    <label htmlFor={id} className={cn('flex items-center gap-2.5', className)}>
+    <label
+      htmlFor={id}
+      className={cn('flex w-fit items-center gap-2.5', className)}
+    >
       <Checkbox id={id} checked={checked} onCheckedChange={onCheckedChange} />
       <span className='text-base font-bold select-none'>{children}</span>
     </label>

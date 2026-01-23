@@ -14,6 +14,7 @@ export async function setToStorage<T>(key: string, value: T) {
 }
 
 export async function createDefaultSettings() {
+  // TODO: set default settings
   const DEFAULT_SETTINGS: Settings = {
     darkMode: true,
     displayQualitySize: true,

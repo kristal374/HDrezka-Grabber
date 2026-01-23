@@ -1,8 +1,8 @@
 import BufferedEventBusInterface from '@/lib/event-bus/event-bus-interface';
 
-export class BufferedEventBus<T extends Record<string, unknown>>
-  implements BufferedEventBusInterface<T>
-{
+export class BufferedEventBus<
+  T extends Record<string, unknown>,
+> implements BufferedEventBusInterface<T> {
   private listeners = new Map<keyof T, Set<any>>();
   private sourceHandlers = new WeakMap<object, Map<keyof T, Handler<T>>>();
   private queue: Array<QueueItem<T>> = [];

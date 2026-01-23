@@ -145,7 +145,7 @@ export function isBackground() {
       background = background as Manifest.WebExtensionManifestBackgroundC2Type;
       return Boolean(
         background.scripts &&
-          isCurrentPathname('/_generated_background_page.html'),
+        isCurrentPathname('/_generated_background_page.html'),
       );
     case 3:
       background = background as Manifest.WebExtensionManifestBackgroundC3Type;

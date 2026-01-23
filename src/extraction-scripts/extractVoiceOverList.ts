@@ -22,13 +22,12 @@ async function extractVoiceOversList(): Promise<VoiceOverInfo[] | null> {
       const voiceOver: VoiceOverInfo = {
         id: itemID,
         title:
-          // TODO: useI18n
           itemTitle ||
           (itemID === '110'
-            ? 'Оригинал'
+            ? browser.i18n.getMessage('popup_translate_original')
             : itemID === '0'
-              ? 'Озвучка #1'
-              : 'Unknown Translator'),
+              ? browser.i18n.getMessage('popup_translate_numberOne')
+              : browser.i18n.getMessage('popup_translate_unknown')),
         flag_country:
           item.querySelector('img')?.src.split('/').at(-1)?.split('.')[0] ||
           null,
@@ -54,10 +53,10 @@ async function extractVoiceOversList(): Promise<VoiceOverInfo[] | null> {
       elements.length !== 0
         ? elements[0].children[1].textContent!.trim()
         : translatorID === '110'
-          ? 'Оригинал'
+          ? browser.i18n.getMessage('popup_translate_original')
           : translatorID === '0'
-            ? 'Озвучка #1'
-            : 'Unknown Translator';
+            ? browser.i18n.getMessage('popup_translate_numberOne')
+            : browser.i18n.getMessage('popup_translate_unknown');
     const voiceOver: VoiceOverInfo = {
       id: translatorID,
       title: translatorName,
