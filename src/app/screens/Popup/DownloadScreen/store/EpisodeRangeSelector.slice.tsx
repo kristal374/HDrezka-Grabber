@@ -3,10 +3,6 @@ import { createAction, createReducer } from '@reduxjs/toolkit';
 import equal from 'fast-deep-equal/es6';
 import { AppState } from './store';
 
-export const setDownloadSerialAction = createAction<{
-  downloadSerial: boolean;
-}>('serial/setDownloadSerial');
-
 export const setDefaultSeasonsAction = createAction<{
   seasons: SeasonsWithEpisodesList | null;
   defaultSeason: string;
@@ -38,7 +34,6 @@ export const setEpisodeToAction = createAction<{
 }>('serial/setEpisodeTo');
 
 const initialSerial: {
-  downloadSerial: boolean;
   seasons: SeasonsWithEpisodesList | null;
   range: SeasonsWithEpisodesList | null;
   seasonFrom: string;
@@ -46,7 +41,6 @@ const initialSerial: {
   seasonTo: string;
   episodeTo: string;
 } = {
-  downloadSerial: false,
   seasons: null,
   range: null,
   seasonFrom: '',
@@ -56,10 +50,6 @@ const initialSerial: {
 };
 
 export const serialReducer = createReducer(initialSerial, (builder) => {
-  builder.addCase(setDownloadSerialAction, (state, action) => {
-    logger.debug('Update downloadSerial:', action.payload.downloadSerial);
-    state.downloadSerial = action.payload.downloadSerial;
-  });
   builder.addCase(setDefaultSeasonsAction, (state, action) => {
     logger.debug('Set default season:', action.payload.seasons);
     state.seasons = action.payload.seasons;
@@ -131,8 +121,6 @@ export const serialReducer = createReducer(initialSerial, (builder) => {
   });
 });
 
-export const selectDownloadSerial = (state: AppState) =>
-  state.serialReducer.downloadSerial;
 export const selectSeasons = (state: AppState) => state.serialReducer.seasons;
 export const selectRange = (state: AppState) => state.serialReducer.range;
 export const selectSeasonFrom = (state: AppState) =>

@@ -33,34 +33,33 @@ export function LoadButton() {
   );
 
   const handleClick = useCallback(() => {
-    browser.runtime.sendMessage<Message<Initiator>>({
-      type: 'trigger',
-      message: {
-        movieId: movieInfo.data.id,
-        site_url: movieInfo.url,
-        site_type: 'hdrezka',
-        content_type: downloadSubtitle
-          ? downloadOnlySubtitle
-            ? ContentType.subtitle
-            : ContentType.both
-          : ContentType.video,
-        film_name: {
-          localized: movieInfo.filename.local,
-          original: movieInfo.filename.origin,
-        },
-        range: range,
-        voice_over: voiceOver,
-        quality: quality,
-        subtitle: downloadSubtitle
-          ? {
-              lang: subtitleLang!.lang,
-              code: subtitleLang!.code,
-            }
-          : null,
-        favs: movieInfo.data.favs,
-        timestamp: String(new Date().getTime()),
+    const initiator: Initiator = {
+      movieId: movieInfo.data.id,
+      site_url: movieInfo.url,
+      site_type: 'hdrezka',
+      content_type: downloadSubtitle
+        ? downloadOnlySubtitle
+          ? ContentType.subtitle
+          : ContentType.both
+        : ContentType.video,
+      film_name: {
+        localized: movieInfo.filename.local,
+        original: movieInfo.filename.origin,
       },
-    });
+      range: range,
+      voice_over: voiceOver,
+      quality: quality,
+      subtitle: downloadSubtitle
+        ? {
+            lang: subtitleLang!.lang,
+            code: subtitleLang!.code,
+          }
+        : null,
+      favs: movieInfo.data.favs,
+      timestamp: String(new Date().getTime()),
+    };
+
+    browser.runtime.sendMessage<Message<Initiator>>({ type: 'trigger', message: initiator });
   }, [
     movieInfo,
     range,

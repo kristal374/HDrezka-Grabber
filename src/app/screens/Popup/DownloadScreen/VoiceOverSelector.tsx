@@ -1,4 +1,3 @@
-import { selectDownloadSerial } from '@/app/screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
 import { FlagKZ } from '@/components/icons/FlagKZ';
 import { FlagUA } from '@/components/icons/FlagUA';
 import { PremiumIcon } from '@/components/icons/PremiumIcon';
@@ -33,7 +32,6 @@ export function VoiceOverSelector({
 
   const voiceOverList = useAppSelector(selectVoiceOverList);
   const currentVoiceOver = useAppSelector(selectCurrentVoiceOver);
-  const downloadSerial = useAppSelector(selectDownloadSerial);
 
   useEffect(() => {
     // Если у нас нет списка озвучек - получаем его со страницы сайта
@@ -55,8 +53,7 @@ export function VoiceOverSelector({
 
   if (!voiceOverList) return null;
 
-  const disabled =
-    voiceOverList.length === 1 || (pageType === 'SERIAL' && !downloadSerial);
+  const disabled = voiceOverList.length === 1;
 
   logger.info('New render VoiceOverSelector component.');
 
