@@ -69,6 +69,7 @@ export function VoiceOverSelector({
         id='voiceOver'
         width='14.4rem'
         needSearch={true}
+        value={JSON.stringify(currentVoiceOver) || ''}
         data={voiceOverList.map((voiceOver) => ({
           value: JSON.stringify(voiceOver),
           label: voiceOver.title,
@@ -89,7 +90,6 @@ export function VoiceOverSelector({
             );
           },
         }))}
-        value={JSON.stringify(currentVoiceOver) || ''}
         onValueChange={(value) =>
           dispatch(
             setVoiceOverAction({

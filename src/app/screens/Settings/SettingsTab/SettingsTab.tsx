@@ -14,6 +14,7 @@ import { Panel } from '@/components/Panel';
 import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { Toggle } from '@/components/ui/Toggle';
+import { SettingsInitialDataContext } from '@/html/settings';
 import { LogLevel } from '@/lib/logger/types';
 import { createDefaultSettings, saveInStorage } from '@/lib/storage';
 import { Message } from '@/lib/types';
@@ -24,7 +25,7 @@ import {
   Monitor,
   ShieldAlert,
 } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useContext } from 'react';
 import { toast } from 'sonner';
 import { FilenameTemplateComponent } from './FilenameTemplateComponent';
 import { SettingItem, SettingsSection } from './SettingsComponets';
@@ -80,15 +81,19 @@ function SettingsItemToggle({
 }
 
 export function SettingsTab() {
-  const updateSetting = useCallback(function <T>(key: string, type?: 'number') {
-    return (value: T) => {
-      const newValue = {
-        ...settings,
-        [key]: type === 'number' ? Number(value) : value,
+  const { settings } = useContext(SettingsInitialDataContext)!;
+  const updateSetting = useCallback(
+    function <T>(key: string, type?: 'number') {
+      return (value: T) => {
+        const newValue = {
+          ...settings,
+          [key]: type === 'number' ? Number(value) : value,
+        };
+        saveInStorage('settings', newValue);
       };
-      saveInStorage('settings', newValue);
-    };
-  }, []);
+    },
+    [settings],
+  );
 
   const notificationPromise = useCallback(
     async (promise: Promise<any>, notification: string) => {

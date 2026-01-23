@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox';
 import { ChevronDownIcon } from 'lucide-react';
-import { useCallback, type JSX } from 'react';
+import { useCallback, useState, type JSX } from 'react';
 
 type DataItem = {
   value: string;
@@ -41,6 +41,7 @@ interface ComboboxProps {
   needSearch?: boolean;
   showChevron?: boolean;
   title?: string;
+  placeholder?: string;
   disabled?: boolean;
 }
 
@@ -59,6 +60,7 @@ export function Combobox({
   needSearch,
   showChevron,
   title,
+  placeholder: placeholderProp,
   disabled,
 }: ComboboxProps) {
   const items = data;
@@ -72,12 +74,18 @@ export function Combobox({
       }) ?? children
     );
   }, []);
+
+  const [inputValue, setInputValue] = useState(!needSearch ? '' : undefined);
+
+  const placeholder =
+    placeholderProp ?? browser.i18n.getMessage('combobox_placeholder');
   return (
     <ComboboxPrimitive.Root
       items={items}
       value={selectedItem}
-      inputValue={!needSearch ? '' : undefined}
       autoHighlight={true}
+      inputValue={inputValue}
+      onInputValueChange={setInputValue}
       onValueChange={(item) => {
         if (item) onValueChange?.(item.value);
       }}
@@ -118,11 +126,16 @@ export function Combobox({
               'col-start-1 row-start-1 outline-none',
               'placeholder:text-foreground/70 selection:bg-link-color bg-transparent px-2 py-1.5',
               'not-disabled:cursor-pointer not-disabled:focus:cursor-text disabled:hidden disabled:cursor-not-allowed',
+              !inputValue && 'not-focus:opacity-0',
               className,
             )}
             style={{ width }}
+            placeholder={placeholder}
+            onClick={(e) => {
+              // @ts-ignore
+              e.target.setSelectionRange(0, -1);
+            }}
             disabled={disabled}
-            placeholder={browser.i18n.getMessage('combobox_placeholder')}
             data-combobox-adjustable-trigger-element
           />
         )}
@@ -135,14 +148,11 @@ export function Combobox({
                   'flex cursor-pointer items-center px-2 py-1.5 select-none',
                   needSearch && 'group-focus-within:invisible',
                   !item && 'text-foreground/70',
-                  !item && needSearch && 'opacity-0',
                   className,
                 )}
                 data-combobox-adjustable-trigger-element
               >
-                {item
-                  ? labelRender(item, true)
-                  : browser.i18n.getMessage('combobox_placeholder')}
+                {item ? labelRender(item, true) : placeholder}
               </div>
             );
           }}
@@ -171,13 +181,12 @@ export function Combobox({
         >
           <ComboboxPrimitive.Popup
             className={cn(
-              'max-h-[23rem] w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin)',
+              'max-h-[23rem] max-w-(--available-width) min-w-(--anchor-width) origin-(--transform-origin)',
               'transition-[transform,scale,opacity] duration-100 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
               'bg-input text-foreground border-input-active rounded-md border shadow-md outline-none',
             )}
-            style={{ minWidth: width }}
           >
-            <ComboboxPrimitive.Empty className='px-1 py-6 text-center text-sm empty:m-0 empty:p-0'>
+            <ComboboxPrimitive.Empty className='px-2.5 py-6 text-center text-sm empty:m-0 empty:p-0'>
               {browser.i18n.getMessage('combobox_empty')}
             </ComboboxPrimitive.Empty>
             <ComboboxPrimitive.List
