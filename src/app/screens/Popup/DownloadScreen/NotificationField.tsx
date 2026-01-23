@@ -282,7 +282,8 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
               className='pointer-events-auto mb-1 gap-0'
               onClick={() => setCollapsed(false)}
             >
-              {browser.i18n.getMessage('popup_showAllNotification')}{` `}(<NumberFlow value={amount} />)
+              {browser.i18n.getMessage('popup_showAllNotification')}
+              {` `}(<NumberFlow value={amount} />)
             </Button>
           </div>
         )}

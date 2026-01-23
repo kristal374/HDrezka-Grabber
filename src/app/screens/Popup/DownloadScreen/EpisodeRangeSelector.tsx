@@ -1,23 +1,16 @@
-import { CheckboxWithLabel } from '@/components/ui/Checkbox';
 import { Combobox } from '@/components/ui/Combobox';
-import {
-  Reveal,
-  RevealContent,
-  RevealTrigger,
-} from '@/components/ui/RevealAnimation';
 import { getSeasons } from '@/extraction-scripts/extractSeasons';
 import { PopupInitialDataContext } from '@/html/popup';
 import { sliceSeasons } from '@/lib/utils';
+import { ListVideoIcon } from 'lucide-react';
 import { useContext, useEffect, useMemo } from 'react';
 import {
-  selectDownloadSerial,
   selectEpisodeFrom,
   selectEpisodeTo,
   selectSeasonFrom,
   selectSeasons,
   selectSeasonTo,
   setDefaultSeasonsAction,
-  setDownloadSerialAction,
   setEpisodeFromAction,
   setEpisodeToAction,
   setRangeAction,
@@ -38,7 +31,6 @@ export function EpisodeRangeSelector({
   const dispatch = useAppDispatch();
   const { tabId, pageType } = useContext(PopupInitialDataContext)!;
 
-  const downloadSerial = useAppSelector(selectDownloadSerial);
   const seasons = useAppSelector(selectSeasons);
 
   const seasonFrom = useAppSelector(selectSeasonFrom);
@@ -53,14 +45,14 @@ export function EpisodeRangeSelector({
 
     const newRange = sliceSeasons(
       seasons,
-      downloadSerial ? seasonFrom : defaultSeasonStart,
-      downloadSerial ? episodeFrom : defaultEpisodeStart,
-      downloadSerial ? seasonTo : defaultSeasonStart,
-      downloadSerial ? episodeTo : defaultEpisodeStart,
+      seasonFrom,
+      episodeFrom,
+      seasonTo,
+      episodeTo,
     );
 
     dispatch(setRangeAction({ range: newRange }));
-  }, [seasons, downloadSerial, seasonFrom, episodeFrom, seasonTo, episodeTo]);
+  }, [seasons, seasonFrom, episodeFrom, seasonTo, episodeTo]);
 
   useEffect(() => {
     // Если у нас нет списка эпизодов/сезонов, получаем их со страницы сайта
@@ -89,30 +81,20 @@ export function EpisodeRangeSelector({
 
   if (!seasons) return null;
 
-  const onOpenChange = (open: boolean) => {
-    dispatch(
-      setDownloadSerialAction({
-        downloadSerial: open,
-      }),
-    );
-  };
-
   logger.info('New render EpisodeRangeSelector component.');
-
   return (
-    <Reveal open={downloadSerial} onOpenChange={onOpenChange}>
-      <RevealTrigger>
-        <CheckboxWithLabel
-          id='downloadSerial'
-          checked={downloadSerial}
-          onCheckedChange={onOpenChange}
-        >
+    <>
+      <label className='flex items-center gap-2.5'>
+        <div className='flex size-5 items-center justify-center'>
+          <ListVideoIcon className='size-5' />
+        </div>
+        <span className='pb-0.5 text-base font-bold select-none'>
           {browser.i18n.getMessage('popup_loadSerial')}
-        </CheckboxWithLabel>
-      </RevealTrigger>
+        </span>
+      </label>
 
-      <RevealContent className='flex flex-col gap-3'>
-        <div className='mt-3 flex items-center gap-2.5'>
+      <>
+        <div className='flex items-center gap-2.5'>
           <label
             htmlFor='seasonFrom'
             className='ml-auto text-base font-bold select-none'
@@ -231,7 +213,7 @@ export function EpisodeRangeSelector({
             </>
           )}
         </div>
-      </RevealContent>
-    </Reveal>
+      </>
+    </>
   );
 }

@@ -211,7 +211,9 @@ export function ChangeLogTab({
       <EdgeCaseState
         icon={<AlertCircleIcon className='size-6' />}
         title={browser.i18n.getMessage('settings_ChangelogErrorLoading_title')}
-        description={browser.i18n.getMessage('settings_ChangelogErrorLoading_description')}
+        description={browser.i18n.getMessage(
+          'settings_ChangelogErrorLoading_description',
+        )}
       />
     );
   if (!changelogContent || changelogContent.length === 0)
@@ -219,7 +221,9 @@ export function ChangeLogTab({
       <EdgeCaseState
         icon={<PackageIcon className='size-6' />}
         title={browser.i18n.getMessage('settings_ChangelogNoData_title')}
-        description={browser.i18n.getMessage('settings_ChangelogNoData_description')}
+        description={browser.i18n.getMessage(
+          'settings_ChangelogNoData_description',
+        )}
       />
     );
 
