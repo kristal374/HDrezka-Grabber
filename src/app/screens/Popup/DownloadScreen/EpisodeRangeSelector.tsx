@@ -1,8 +1,9 @@
 import { CheckboxWithLabel } from '@/components/ui/Checkbox';
 import { Combobox } from '@/components/ui/Combobox';
 import {
-  RevealAnimation,
-  RevealAnimationContent,
+  Reveal,
+  RevealContent,
+  RevealTrigger,
 } from '@/components/ui/RevealAnimation';
 import { getSeasons } from '@/extraction-scripts/extractSeasons';
 import { PopupInitialDataContext } from '@/html/popup';
@@ -88,23 +89,30 @@ export function EpisodeRangeSelector({
 
   if (!seasons) return null;
 
+  const onOpenChange = (open: boolean) => {
+    dispatch(
+      setDownloadSerialAction({
+        downloadSerial: open,
+      }),
+    );
+  };
+
   logger.info('New render EpisodeRangeSelector component.');
 
   return (
-    <RevealAnimation opened={downloadSerial} className='flex flex-col gap-3'>
-      <CheckboxWithLabel
-        id='downloadSerial'
-        checked={downloadSerial}
-        onCheckedChange={(value) =>
-          dispatch(
-            setDownloadSerialAction({ downloadSerial: value as boolean }),
-          )
-        }
-      >
-        {browser.i18n.getMessage('popup_loadSerial')}
-      </CheckboxWithLabel>
-      <RevealAnimationContent>
-        <div className='flex items-center gap-2.5'>
+    <Reveal open={downloadSerial} onOpenChange={onOpenChange}>
+      <RevealTrigger>
+        <CheckboxWithLabel
+          id='downloadSerial'
+          checked={downloadSerial}
+          onCheckedChange={onOpenChange}
+        >
+          {browser.i18n.getMessage('popup_loadSerial')}
+        </CheckboxWithLabel>
+      </RevealTrigger>
+
+      <RevealContent className='flex flex-col gap-3'>
+        <div className='mt-3 flex items-center gap-2.5'>
           <label
             htmlFor='seasonFrom'
             className='ml-auto text-base font-bold select-none'
@@ -219,7 +227,7 @@ export function EpisodeRangeSelector({
             </>
           )}
         </div>
-      </RevealAnimationContent>
-    </RevealAnimation>
+      </RevealContent>
+    </Reveal>
   );
 }

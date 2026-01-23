@@ -116,7 +116,7 @@ export function Combobox({
             id={id}
             className={cn(
               'col-start-1 row-start-1 outline-none',
-              'placeholder:text-foreground/70 bg-transparent px-2 py-1.5',
+              'placeholder:text-foreground/70 bg-transparent px-2 py-1.5 disabled:hidden',
               'not-disabled:cursor-pointer not-disabled:focus:cursor-text disabled:cursor-not-allowed',
               className,
             )}
