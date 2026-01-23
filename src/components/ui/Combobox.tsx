@@ -14,14 +14,18 @@ import { Popover, PopoverContent, PopoverTrigger } from './Popover';
 interface ComboboxProps {
   id?: string;
   className?: string;
+  itemClassName?: string;
   /**
    * Width of button and min width of combobox content in pixels or rem
    */
   width?: number | string;
+  popoverWidth?: number | string;
   /**
    * Max height of combobox content in pixels or rem
    */
   height?: number | string;
+  align?: 'start' | 'center' | 'end';
+  side?: 'top' | 'bottom' | 'left' | 'right';
   data: Array<{
     value: string;
     label: string;
@@ -31,6 +35,7 @@ interface ComboboxProps {
   }>;
   value?: string;
   onValueChange?: (value: string) => void;
+  onValueHover?: (value: string) => void;
   needSearch?: boolean;
   showChevron?: boolean;
   title?: string;
@@ -40,11 +45,16 @@ interface ComboboxProps {
 export function Combobox({
   id,
   className,
+  itemClassName,
   width = '14rem', // 224px
+  popoverWidth,
   height = '11.5rem', // 184px
+  align,
+  side,
   data,
   value: defaultValue = '',
   onValueChange,
+  onValueHover,
   needSearch = true,
   showChevron,
   title,
@@ -112,7 +122,9 @@ export function Combobox({
       </PopoverTrigger>
       <PopoverContent
         className='overflow-y-auto'
-        style={{ minWidth: width, maxHeight: height }}
+        style={{ minWidth: width, maxHeight: height, width: popoverWidth }}
+        align={align}
+        side={side}
       >
         <Command
           filter={(value, search) =>
@@ -143,7 +155,11 @@ export function Combobox({
                     setOpen(false);
                     onValueChange?.(currentValue);
                   }}
-                  className={cn(value === item.value && 'bg-input-active')}
+                  onMouseEnter={() => onValueHover?.(item.value)}
+                  className={cn(
+                    value === item.value && 'bg-input-active',
+                    itemClassName,
+                  )}
                 >
                   {/* <CheckIcon
                     className={cn(
