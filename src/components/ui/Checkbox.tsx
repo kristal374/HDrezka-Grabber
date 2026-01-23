@@ -16,7 +16,7 @@ function Checkbox({
       )}
       {...props}
     >
-      <CheckboxPrimitive.Indicator className='flex items-center justify-center text-current'>
+      <CheckboxPrimitive.Indicator className='flex items-center justify-center text-current select-none'>
         ✓
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
