@@ -1,5 +1,10 @@
 import { CheckboxWithLabel } from '@/components/ui/Checkbox';
 import { Combobox } from '@/components/ui/Combobox';
+import {
+  Reveal,
+  RevealContent,
+  RevealTrigger,
+} from '@/components/ui/RevealAnimation';
 import { getSeasons } from '@/extraction-scripts/extractSeasons';
 import { PopupInitialDataContext } from '@/html/popup';
 import { sliceSeasons } from '@/lib/utils';
@@ -84,137 +89,149 @@ export function EpisodeRangeSelector({
 
   if (!seasons) return null;
 
+  const onOpenChange = (open: boolean) => {
+    dispatch(
+      setDownloadSerialAction({
+        downloadSerial: open,
+      }),
+    );
+  };
+
   logger.info('New render EpisodeRangeSelector component.');
+
   return (
-    <>
-      <CheckboxWithLabel
-        id='downloadSerial'
-        checked={downloadSerial}
-        onCheckedChange={(value) =>
-          dispatch(
-            setDownloadSerialAction({ downloadSerial: value as boolean }),
-          )
-        }
-      >
-        {browser.i18n.getMessage('popup_loadSerial')}
-      </CheckboxWithLabel>
-      {downloadSerial && seasons && (
-        <>
-          <div className='flex items-center gap-2.5'>
-            <label
-              htmlFor='seasonFrom'
-              className='ml-auto text-base font-bold select-none'
-            >
-              {browser.i18n.getMessage('popup_textFrom')}
-            </label>
+    <Reveal open={downloadSerial} onOpenChange={onOpenChange}>
+      <RevealTrigger>
+        <CheckboxWithLabel
+          id='downloadSerial'
+          checked={downloadSerial}
+          onCheckedChange={onOpenChange}
+        >
+          {browser.i18n.getMessage('popup_loadSerial')}
+        </CheckboxWithLabel>
+      </RevealTrigger>
 
-            {/* Components width in pixels: [85] ">" [115] */}
-            <Combobox
-              id='seasonFrom'
-              className='py-0.5'
-              width='5.3125rem' // 85px
-              data={seasonValues}
-              value={seasonFrom}
-              onValueChange={(value) => {
-                dispatch(setSeasonFromAction({ value }));
-              }}
-            />
+      <RevealContent className='flex flex-col gap-3'>
+        <div className='mt-3 flex items-center gap-2.5'>
+          <label
+            htmlFor='seasonFrom'
+            className='ml-auto text-base font-bold select-none'
+          >
+            {browser.i18n.getMessage('popup_textFrom')}
+          </label>
 
-            <label
-              htmlFor='episodeFrom'
-              className='h-full w-[0.65rem] text-sm select-none'
-            >
-              {/* Arrow width in pixels: [10.4] */}
-              {'>'}
-            </label>
+          {/* Components width in pixels: [85] ">" [115] */}
+          <Combobox
+            id='seasonFrom'
+            className='py-0.5'
+            width='5.3125rem' // 85px
+            side='top'
+            data={seasonValues}
+            value={seasonFrom}
+            onValueChange={(value) => {
+              dispatch(setSeasonFromAction({ value }));
+            }}
+          />
 
-            <Combobox
-              id='episodeFrom'
-              className='py-0.5'
-              width='7.1875rem' // 115px
-              data={seasons[seasonFrom].episodes.map((episode) => ({
-                value: episode.id,
-                label: episode.title,
-              }))}
-              value={episodeFrom}
-              onValueChange={(value) => {
-                dispatch(setEpisodeFromAction({ value }));
-              }}
-            />
-          </div>
+          <label
+            htmlFor='episodeFrom'
+            className='w-[0.65rem] text-sm select-none'
+          >
+            {/* Arrow width in pixels: [10.4] */}
+            {'>'}
+          </label>
 
-          <div className='flex items-center gap-2.5'>
-            <label
-              htmlFor='seasonTo'
-              className='ml-auto text-base font-bold select-none'
-            >
-              {browser.i18n.getMessage('popup_textTo')}
-            </label>
+          <Combobox
+            id='episodeFrom'
+            className='py-0.5'
+            width='7.1875rem' // 115px
+            side='top'
+            needSearch={true}
+            data={seasons[seasonFrom].episodes.map((episode) => ({
+              value: episode.id,
+              label: episode.title,
+            }))}
+            value={episodeFrom}
+            onValueChange={(value) => {
+              dispatch(setEpisodeFromAction({ value }));
+            }}
+          />
+        </div>
 
-            {/* Components width in pixels: [85] ">" [115] */}
-            <Combobox
-              id='seasonTo'
-              className='py-0.5'
-              width={downloadToEnd ? '14.4rem' : '5.3125rem'}
-              data={[
-                {
-                  value: '-2',
-                  label: browser.i18n.getMessage('popup_textEndSeasons'),
-                },
-                ...(seasonValues.length > 1 &&
-                seasonFrom !== seasonValues.at(-1)?.value
-                  ? [
-                      {
-                        value: '-1',
-                        label: browser.i18n.getMessage('popup_textEndEpisodes'),
-                      },
-                    ]
-                  : []),
-                ...seasonValues.filter(
-                  (season) => Number(season.value) >= Number(seasonFrom),
-                ),
-              ]}
-              value={seasonTo}
-              onValueChange={(value) => {
-                dispatch(setSeasonToAction({ value }));
-              }}
-            />
+        <div className='flex items-center gap-2.5'>
+          <label
+            htmlFor='seasonTo'
+            className='ml-auto text-base font-bold select-none'
+          >
+            {browser.i18n.getMessage('popup_textTo')}
+          </label>
 
-            {!downloadToEnd && (
-              <>
-                <label
-                  htmlFor='episodeFrom'
-                  className='h-full w-[0.65rem] text-sm select-none'
-                >
-                  {/* Arrow width in pixels: [10.4] */}
-                  {'>'}
-                </label>
+          {/* Components width in pixels: [85] ">" [115] */}
+          <Combobox
+            id='seasonTo'
+            className='py-0.5'
+            width={downloadToEnd ? '14.4rem' : '5.3125rem'}
+            side='top'
+            data={[
+              {
+                value: '-2',
+                label: browser.i18n.getMessage('popup_textEndSeasons'),
+              },
+              ...(seasonValues.length > 1 &&
+              seasonFrom !== seasonValues.at(-1)?.value
+                ? [
+                    {
+                      value: '-1',
+                      label: browser.i18n.getMessage('popup_textEndEpisodes'),
+                    },
+                  ]
+                : []),
+              ...seasonValues.filter(
+                (season) => Number(season.value) >= Number(seasonFrom),
+              ),
+            ]}
+            value={seasonTo}
+            onValueChange={(value) => {
+              dispatch(setSeasonToAction({ value }));
+            }}
+          />
 
-                <Combobox
-                  id='episodeTo'
-                  className='py-0.5'
-                  width='7.1875rem' // 115px
-                  data={seasons[seasonTo].episodes
-                    .filter((episode) => {
-                      return !(
-                        seasonTo === seasonFrom &&
-                        Number(episode.id) < Number(episodeFrom)
-                      );
-                    })
-                    .map((episode) => ({
-                      value: episode.id,
-                      label: episode.title,
-                    }))}
-                  value={episodeTo}
-                  onValueChange={(value) => {
-                    dispatch(setEpisodeToAction({ value }));
-                  }}
-                />
-              </>
-            )}
-          </div>
-        </>
-      )}
-    </>
+          {!downloadToEnd && (
+            <>
+              <label
+                htmlFor='episodeFrom'
+                className='w-[0.65rem] text-sm select-none'
+              >
+                {/* Arrow width in pixels: [10.4] */}
+                {'>'}
+              </label>
+
+              <Combobox
+                id='episodeTo'
+                className='py-0.5'
+                width='7.1875rem' // 115px
+                side='top'
+                needSearch={true}
+                data={seasons[seasonTo].episodes
+                  .filter((episode) => {
+                    return !(
+                      seasonTo === seasonFrom &&
+                      Number(episode.id) < Number(episodeFrom)
+                    );
+                  })
+                  .map((episode) => ({
+                    value: episode.id,
+                    label: episode.title,
+                  }))}
+                value={episodeTo}
+                onValueChange={(value) => {
+                  dispatch(setEpisodeToAction({ value }));
+                }}
+              />
+            </>
+          )}
+        </div>
+      </RevealContent>
+    </Reveal>
   );
 }

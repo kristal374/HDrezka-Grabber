@@ -68,7 +68,8 @@ export function VoiceOverSelector({
       <Combobox
         id='voiceOver'
         width='14.4rem'
-        height={pageType === 'FILM' ? '9.5rem' : undefined}
+        needSearch={true}
+        value={JSON.stringify(currentVoiceOver) || ''}
         data={voiceOverList.map((voiceOver) => ({
           value: JSON.stringify(voiceOver),
           label: voiceOver.title,
@@ -89,7 +90,6 @@ export function VoiceOverSelector({
             );
           },
         }))}
-        value={JSON.stringify(currentVoiceOver) || ''}
         onValueChange={(value) =>
           dispatch(
             setVoiceOverAction({

@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Tooltip as TooltipPrimitive } from '@base-ui-components/react/tooltip';
+import { Tooltip as TooltipPrimitive } from '@base-ui/react/tooltip';
 
 const TooltipProvider = TooltipPrimitive.Provider;
 
@@ -11,6 +11,7 @@ function TooltipTrigger({
 }: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
   return (
     <TooltipPrimitive.Trigger
+      style={{ pointerEvents: 'auto' }}
       // @ts-ignore
       render={children}
       {...props}
