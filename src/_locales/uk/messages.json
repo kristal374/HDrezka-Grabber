@@ -9,10 +9,10 @@
     "message": "Схоже, що контент в очікуванні виходу.\nПоверніться сюди пізніше!"
   },
   "popup_stub_locationFilm": {
-    "message": "На жаль, але фільм не доступний з вашого місця розташування :("
+    "message": "На жаль, але фільм недоступний з вашого місцезнаходження :("
   },
   "popup_stub_locationSerial": {
-    "message": "На жаль, але серіал не доступний з вашого місця розташування :("
+    "message": "На жаль, але серіал недоступний з вашого місцезнаходження :("
   },
   "popup_stub_vpn": {
     "message": "Спробуйте скористатися VPN."
@@ -21,7 +21,7 @@
     "message": "Контент недоступний для завантаження — відсутні дані для обробки."
   },
   "popup_stub_error": {
-    "message": "Упс! Здається щось пішло не так..."
+    "message": "Упс! Здається, щось пішло не так..."
   },
   "popup_stub_splitView": {
     "message": "Вкладка відкрита в режимі Split View, для роботи з нею потрібно вибрати бажане вікно."
@@ -31,6 +31,12 @@
   },
   "popup_loadSubtitle": {
     "message": "Завантажити субтитри"
+  },
+  "popup_downloadOnlySubtitle": {
+    "message": "Завантажити тільки субтитри"
+  },
+  "popup_voiceoverBlock_title": {
+    "message": "Натисніть \"Завантажити серіал\", щоб внести зміни."
   },
   "popup_textFrom": {
     "message": "з"
@@ -53,8 +59,44 @@
   "popup_translate": {
     "message": "Озвучка"
   },
+  "popup_menu_settings": {
+    "message": "Налаштування"
+  },
+  "popup_menu_loadManager": {
+    "message": "Диспетчер завантажень"
+  },
+  "popup_menu_debugWindow": {
+    "message": "Журнал подій"
+  },
+  "popup_realResolution": {
+    "message": "Реальна роздільна здатність відео"
+  },
+  "popup_showAllNotification": {
+    "message": "Показати всі"
+  },
+  "popup_DownloadStart": {
+    "message": "Почати завантаження"
+  },
   "popup_DownloadCancel": {
-    "message": "Відмінити завантаження"
+    "message": "Скасувати завантаження"
+  },
+  "popup_translate_original": {
+    "message": "Оригінал"
+  },
+  "popup_translate_numberOne": {
+    "message": "Озвучка #1"
+  },
+  "popup_translate_unknown": {
+    "message": "Невідома озвучка"
+  },
+  "popup_requestToRestore": {
+    "message": "Робота розширення була перервана. Відновити завантаження?"
+  },
+  "popup_cancelRestore": {
+    "message": "Скасувати"
+  },
+  "popup_applyRestore": {
+    "message": "Відновити"
   },
   "combobox_placeholder": {
     "message": "Оберіть значення"
@@ -65,11 +107,23 @@
   "combobox_empty": {
     "message": "Нічого не знайдено"
   },
+  "popup_error_update_voiceover": {
+    "message": "Помилка під час спроби зміни озвучки, спробуйте знову."
+  },
+  "popup_error_update_episode": {
+    "message": "Помилка під час спроби змінити серію, спробуйте знову."
+  },
+  "popup_messageBroker_StopDownload": {
+    "message": "Завантаження перервано. Не вдалося завантажити файл."
+  },
+  "popup_messageBroker_SkipDownload": {
+    "message": "Збій завантаження. Не вдалося завантажити файл."
+  },
   "message_noDataVideo": {
-    "message": "Неможливо отримати дані відео. Перевірте інтернет-з'єднання або застосуйте VPN."
+    "message": "Не вдалося отримати дані відео. Перевірте інтернет-з'єднання або використайте VPN."
   },
   "message_errorLoad": {
-    "message": "Помилка завантаження. Перевірте інтернет-з'єднання або застосуйте VPN."
+    "message": "Помилка завантаження. Перевірте інтернет-з'єднання або використайте VPN."
   },
   "message_userBreak": {
     "message": "Ви перервали завантаження."
@@ -86,6 +140,93 @@
   "settings_TabAbout": {
     "message": "Про розширення"
   },
+  "settings_preview_text": {
+    "message": "Попередній перегляд результату:"
+  },
+  "settings_showPreview": {
+    "message": "Показати всі"
+  },
+  "settings_hidePreview": {
+    "message": "Приховати"
+  },
+  "settings_showPreview_title": {
+    "message": "Показати всі прев'ю"
+  },
+  "settings_hidePreview_title": {
+    "message": "Приховати додаткові прев'ю"
+  },
+  "settings_toast_wrongSymbol": {
+    "message": "Ім'я файлу не повинно містити переносів рядків та наступних знаків: \\ / * ? : | < > \""
+  },
+  "settings_toast_process": {
+    "message": "В обробці..."
+  },
+  "settings_toast_errorProcess": {
+    "message": "Стався збій."
+  },
+  "settings_restoreInsideState": {
+    "message": "Спробувати відновити роботу розширення"
+  },
+  "settings_restoreInsideState_notification": {
+    "message": "Завершено спробу відновити роботу розширення."
+  },
+  "settings_restoreSettings": {
+    "message": "Відновити налаштування за замовчуванням"
+  },
+  "settings_restoreSettings_title": {
+    "message": "Відновити налаштування за замовчуванням?"
+  },
+  "settings_restoreSettings_notification": {
+    "message": "Налаштування скинуто!"
+  },
+  "settings_clearCache": {
+    "message": "Очистити кеш"
+  },
+  "settings_clearCache_title": {
+    "message": "Очистити кеш розширення?"
+  },
+  "settings_clearCache_notification": {
+    "message": "Кеш очищено!"
+  },
+  "settings_stopAllDownloads": {
+    "message": "Зупинити всі завантаження"
+  },
+  "settings_stopAllDownloads_title": {
+    "message": "Перервати активні завантаження та очистити чергу?"
+  },
+  "settings_stopAllDownloads_notification": {
+    "message": "Завантаження зупинено!"
+  },
+  "settings_clearDownloadHistory": {
+    "message": "Очистити історію завантажень"
+  },
+  "settings_clearDownloadHistory_title": {
+    "message": "Ви дійсно хочете очистити історію завантажень розширення?"
+  },
+  "settings_clearDownloadHistory_description": {
+    "message": "Усі поточні завантаження будуть перервані. Цю дію неможливо буде скасувати пізніше."
+  },
+  "settings_clearDownloadHistory_notification": {
+    "message": "Історію завантажень очищено!"
+  },
+  "settings_removeAllExtensionData": {
+    "message": "Видалити всі дані розширення"
+  },
+  "settings_removeAllExtensionData_title": {
+    "message": "Ви дійсно хочете видалити всі дані розширення?"
+  },
+  "settings_removeAllExtensionData_description": {
+    "message": "Усі поточні завантаження будуть перервані. Цю дію неможливо буде скасувати пізніше."
+  },
+  "settings_removeAllExtensionData_notification": {
+    "message": "Дані розширення видалено!"
+  },
+  "settings_modal_confirm": {
+    "message": "Підтвердити"
+  },
+  "settings_modal_cancel": {
+    "message": "Скасування"
+  },
   "settings_SourceCode": {
     "message": "Вихідний код на GitHub"
   },
@@ -96,7 +237,7 @@
     "message": "Open Source розширення для завантаження фільмів та серіалів з rezka.ag!"
   },
   "settings_LongDescription": {
-    "message": "HDrezka Grabber — універсальний інструмент для завантаження улюблених фільмів і серіалів з rezka.ag! Контролюйте все: обирайте озвучку, субтитри або, якщо потрібно, завантажте цілий серіал в один клік. Налаштовуйте шаблон назв файлів для своєї медіатеки та пришвидшуйте процес за допомогою паралельного завантаження. Сучасний мінімалістичний інтерфейс із підтримкою світлої та темної теми, а також доступність для більшості браузерів роблять цей інструмент вашим ідеальним помічником."
+    "message": "HDrezka Grabber — універсальний інструмент для завантаження улюблених фільмів і серіалів з rezka.ag! Контролюйте все: обирайте озвучку, субтитри або, якщо потрібно, завантажте цілий серіал в один клік. Налаштовуйте шаблон імен файлів для своєї медіатеки та прискорюйте процес за допомогою паралельного завантаження. Сучасний мінімалістичний інтерфейс з підтримкою світлої та темної теми, а також доступність для більшості браузерів роблять цей інструмент вашим ідеальним помічником."
   },
   "settings_AboutTitle": {
     "message": "Про проєкт"
@@ -114,7 +255,7 @@
     "message": "Підтримати проєкт"
   },
   "settings_SupportDescription": {
-    "message": "Дякуємо, що користуєтеся $extensionName$. Якщо вам подобається розширення, будь ласка, подумайте про невелике пожертвування як знак вдячності.",
+    "message": "Дякуємо, що використовуєте $extensionName$. Якщо вам подобається розширення, будь ласка, подумайте про невелике пожертвування як знак подяки.",
     "placeholders": {
       "extensionName": {
         "content": "$1"
@@ -167,7 +308,7 @@
     "message": "Як працює розширення?"
   },
   "settings_FaqAnswer_4": {
-    "message": "Коли ви відкриваєте випадне меню, розширення перевіряє, чи на відповідному ви сайті. Якщо це не фільм або серіал на сайті з сімейства rezka.ag, воно просто покаже заглушку та зупиниться. Якщо сторінка підходить, розширення отримує дані плеєра (серія, озвучення, параметри тощо). Для цього на сторінку тимчасово вставляється скрипт, який збирає потрібну інформацію та передає її розширенню. Коли ви натискаєте «Завантажити», розширення формує ім'я файлу та запитує у сервера список посилань на відео різної якості. Розширення обирає потрібне посилання та передає його браузеру, який і запускає завантаження. Далі розширення просто стежить за завантаженням та реагує на його події. Також воно може керувати одразу кількома завантаженнями."
+    "message": "Коли ви відкриваєте випадне меню, розширення перевіряє, чи ви на відповідному сайті. Якщо це не фільм або серіал на сайті з сімейства rezka.ag, воно просто покаже заглушку та зупиниться. Якщо сторінка підходить, розширення отримує дані плеєра (серія, озвучка, параметри тощо). Для цього на сторінку тимчасово вставляється скрипт, який збирає потрібну інформацію та передає її розширенню. Коли ви натискаєте «Завантажити», розширення формує ім'я файлу та запитує у сервера список посилань на відео різної якості. Розширення обирає потрібне посилання та передає його браузеру, який і запускає завантаження. Далі розширення просто стежить за завантаженням та реагує на його події. Також воно може керувати одразу декількома завантаженнями."
   },
   "settings_FaqQuestion_5": {
     "message": "Навіщо розширенню потрібен доступ до всіх сайтів?"
@@ -191,13 +332,28 @@
     "message": "Чи підтримує розширення фонове завантаження?"
   },
   "settings_FaqAnswer_8": {
-    "message": "Так. Розширення підтримує завантаження у фоні, ініціатором завантаження виступає саме розширення, і доки працює браузер — розширення завантажуватиме файли."
+    "message": "Так. Розширення підтримує завантаження у фоні, ініціатором завантаження виступає саме розширення, і доки працює браузер, розширення завантажуватиме файли."
   },
   "settings_FaqQuestion_9": {
     "message": "Як відбувається завантаження файлів, чи використовується torrent-протокол?"
   },
   "settings_FaqAnswer_9": {
     "message": "Ні — torrent-протокол не використовується. Розширення імітує роботу плеєра на сайті та використовує потокову передачу даних. Якщо вас цікавлять правові аспекти використання розширення: саме розширення є лише зовнішнім інтерфейсом для завантаження з сайту, і всі правові питання слід адресувати адміністрації сайту, а не розширенню."
+  },
+  "settings_ChangelogProcessing": {
+    "message": "Завантаження даних..."
+  },
+  "settings_ChangelogErrorLoading_title": {
+    "message": "Помилка завантаження"
+  },
+  "settings_ChangelogErrorLoading_description": {
+    "message": "Не вдалося завантажити список змін."
+  },
+  "settings_ChangelogNoData_title": {
+    "message": "Немає даних"
+  },
+  "settings_ChangelogNoData_description": {
+    "message": "Список змін порожній або недоступний."
   },
   "settings_ChangelogAdded": {
     "message": "Додано"
@@ -207,5 +363,317 @@
   },
   "settings_ChangelogChanged": {
     "message": "Змінено"
+  },
+  "settings_sectionInterface": {
+    "message": "Налаштування інтерфейсу"
+  },
+  "settings_sectionDownloadBehavior": {
+    "message": "Поведінка під час завантаження"
+  },
+  "settings_sectionFailureActions": {
+    "message": "Дії при збоях"
+  },
+  "settings_sectionFilenameTemplate": {
+    "message": "Налаштування іменування файлів"
+  },
+  "settings_sectionDebug": {
+    "message": "Налагодження розширення"
+  },
+  "settings_itemInterfaceTheme_title": {
+    "message": "Темна тема"
+  },
+  "settings_itemInterfaceTheme_description": {
+    "message": "Використовувати темне оформлення інтерфейсу"
+  },
+  "settings_itemDisplaySize_title": {
+    "message": "Відображати в попапі розмір якості"
+  },
+  "settings_itemDisplaySize_description": {
+    "message": "Розширення отримуватиме розмір файлу, який відображатиметься в попапі навпроти якості"
+  },
+  "settings_itemGetRealQuality_title": {
+    "message": "Визначати реальну якість відео"
+  },
+  "settings_itemGetRealQuality_description": {
+    "message": "Розширення визначатиме реальну роздільну здатність відео, якщо сервер спробує підмінити якість на нижчу"
+  },
+  "settings_itemFileTypePriority_title": {
+    "message": "Пріоритет завантаження"
+  },
+  "settings_itemFileTypePriority_description": {
+    "message": "Що варто завантажувати першим: відео чи субтитри"
+  },
+  "settings_itemMaxParallelDownloads_title": {
+    "message": "Максимальна кількість одночасних завантажень"
+  },
+  "settings_itemMaxParallelDownloads_description": {
+    "message": "Скільки файлів може завантажуватися одночасно"
+  },
+  "settings_itemMaxParallelDownloadsEpisodes_title": {
+    "message": "Максимальна кількість одночасно завантажуваних серій одного серіалу"
+  },
+  "settings_itemMaxParallelDownloadsEpisodes_description": {
+    "message": "Скільки серій одного серіалу зможе завантажуватися одночасно, дозволяє завантажувати одночасно кілька серіалів"
+  },
+  "settings_itemMaxFallbackAttempts_title": {
+    "message": "Максимальна кількість спроб завантаження файлу"
+  },
+  "settings_itemMaxFallbackAttempts_description": {
+    "message": "Максимальна кількість спроб завантаження файлу перед тим, як завантаження вважатиметься невдалим"
+  },
+  "settings_itemTimeBetweenDownloadAttempts_title": {
+    "message": "Час між спробами завантаження"
+  },
+  "settings_itemTimeBetweenDownloadAttempts_description": {
+    "message": "Скільки чекати перед тим, як знову спробувати завантажити файл"
+  },
+  "settings_itemDownloadStartTimeLimit_title": {
+    "message": "Максимальний час, відведений для початку завантаження"
+  },
+  "settings_itemDownloadStartTimeLimit_description": {
+    "message": "Через який період часу запуск завантаження вважатиметься невдалим, якщо завантаження не стартувало."
+  },
+  "settings_itemActionOnNoQuality_title": {
+    "message": "Якщо під час завантаження серії немає обраної якості"
+  },
+  "settings_itemActionOnNoQuality_description": {
+    "message": "Що робити, якщо у деяких серій у серіалі немає обраної якості"
+  },
+  "settings_itemActionOnNoSubtitles_title": {
+    "message": "Якщо під час завантаження серії немає обраних субтитрів"
+  },
+  "settings_itemActionOnNoSubtitles_description": {
+    "message": "Що робити, якщо у деяких серій у серіалі немає обраних субтитрів"
+  },
+  "settings_itemActionOnLoadSubtitleError_title": {
+    "message": "Якщо не вдалося завантажити субтитри"
+  },
+  "settings_itemActionOnLoadSubtitleError_description": {
+    "message": "Що робити, якщо стався збій під час завантаження субтитрів під час завантаження серії"
+  },
+  "settings_itemActionOnLoadVideoError_title": {
+    "message": "Якщо не вдалося завантажити серію"
+  },
+  "settings_itemActionOnLoadVideoError_description": {
+    "message": "Що робити, якщо сталася помилка завантаження серії"
+  },
+  "settings_itemCreateExtensionFolders_title": {
+    "message": "Створити папку розширення в папці завантажень"
+  },
+  "settings_itemCreateExtensionFolders_description": {
+    "message": "У папці завантажень буде створена нова папка \"HDrezkaGrabber\", до якої зберігатимуться всі завантажені файли"
+  },
+  "settings_itemCreateSeriesFolders_title": {
+    "message": "Створювати окрему папку для кожного серіалу"
+  },
+  "settings_itemCreateSeriesFolders_description": {
+    "message": "Для кожного серіалу буде створена окрема папка з іменем серіалу"
+  },
+  "settings_itemReplaceAllSpaces_title": {
+    "message": "Замінювати всі пробіли на нижні підкреслення (рекомендується)"
+  },
+  "settings_itemReplaceAllSpaces_description": {
+    "message": "Всі пробіли в імені файлу будуть замінені на нижні підкреслення"
+  },
+  "settings_itemEnableLogger_title": {
+    "message": "Увімкнути логування"
+  },
+  "settings_itemEnableLogger_description": {
+    "message": "Увімкнути логування в консоль"
+  },
+  "settings_itemDebugLevel_title": {
+    "message": "Рівень налагодження"
+  },
+  "settings_itemDebugLevel_description": {
+    "message": "Рівень логування розширення"
+  },
+  "settings_itemLogMessageLifetime_title": {
+    "message": "Час життя повідомлення в журналі"
+  },
+  "settings_itemLogMessageLifetime_description": {
+    "message": "Через скільки буде видалено лог-повідомлення зі сховища"
+  },
+  "settings_itemTrackEventsOnDeterminingFilename_title": {
+    "message": "Відстежувати події на іменування файлу onDeterminingFilename"
+  },
+  "settings_itemTrackEventsOnDeterminingFilename_description": {
+    "message": "Не змінюйте, якщо у вас все працює добре! Може допомогти, якщо є інше розширення, яке також відстежує події на іменування файлів, через що виникає конфлікт і файли під час завантаження мають некоректні назви."
+  },
+  "settings_filenameFilms": {
+    "message": "Шаблон імені файлів для фільмів"
+  },
+  "settings_filenameSeries": {
+    "message": "Шаблон імені файлів для серіалів"
+  },
+  "settings_filenamePreview_filmWithoutSubtitle": {
+    "message": "Звичайний фільм, без субтитрів."
+  },
+  "settings_filenamePreview_filmWithSubtitle": {
+    "message": "Звичайний фільм, з субтитрами."
+  },
+  "settings_filenamePreview_filmWithoutOrigTitle": {
+    "message": "Немає оригінальної назви."
+  },
+  "settings_filenamePreview_filmWithSpecialChars": {
+    "message": "У назві є спец. символи, які будуть обрізані."
+  },
+  "settings_filenamePreview_filmWithVoiceOverDirectCut": {
+    "message": "Озвучка режисерська версія."
+  },
+  "settings_filenamePreview_seriesWithoutSubtitle": {
+    "message": "Звичайний серіал, без субтитрів."
+  },
+  "settings_filenamePreview_seriesWithSubtitle": {
+    "message": "Звичайний серіал, з субтитрами."
+  },
+  "settings_filenamePreview_seriesWithoutOrigTitle": {
+    "message": "Немає оригінальної назви."
+  },
+  "settings_filenamePreview_seriesWithSpecialChars": {
+    "message": "У назві є спец. символи, які будуть обрізані."
+  },
+  "settings_filenamePreview_seriesWithUnusualEpisodeTitle": {
+    "message": "Незвичайна назва серій."
+  },
+  "settings_filenamePlaceholder_N": {
+    "message": "Номер файлу"
+  },
+  "settings_filenamePlaceholder_MovieId": {
+    "message": "ID фільму"
+  },
+  "settings_filenamePlaceholder_Title": {
+    "message": "Назва фільму"
+  },
+  "settings_filenamePlaceholder_OrigTitle": {
+    "message": "Оригінальна назва фільму"
+  },
+  "settings_filenamePlaceholder_Translate": {
+    "message": "Озвучка"
+  },
+  "settings_filenamePlaceholder_TranslateId": {
+    "message": "ID озвучки"
+  },
+  "settings_filenamePlaceholder_Episode": {
+    "message": "Епізод"
+  },
+  "settings_filenamePlaceholder_EpisodeId": {
+    "message": "ID епізоду"
+  },
+  "settings_filenamePlaceholder_Season": {
+    "message": "Сезон"
+  },
+  "settings_filenamePlaceholder_SeasonId": {
+    "message": "ID сезону"
+  },
+  "settings_filenamePlaceholder_Quality": {
+    "message": "Якість відео"
+  },
+  "settings_filenamePlaceholder_SubtitleCode": {
+    "message": "Код субтитрів"
+  },
+  "settings_filenamePlaceholder_SubtitleLang": {
+    "message": "Мова субтитрів"
+  },
+  "settings_filenamePlaceholder_Date": {
+    "message": "Дата"
+  },
+  "settings_filenamePlaceholder_Time": {
+    "message": "Час"
+  },
+  "settings_filenameSelectTemplate": {
+    "message": "Обрати шаблон"
+  },
+  "settings_filenameListTemplate": {
+    "message": "Список готових шаблонів"
+  },
+  "settings_filenameHelpTemplate": {
+    "message": "Введіть % щоб додати змінну"
+  },
+  "settings_valueVideo": {
+    "message": "Відео"
+  },
+  "settings_valueSubtitle": {
+    "message": "Субтитри"
+  },
+  "settings_valueSkipEpisode": {
+    "message": "Пропустити серію"
+  },
+  "settings_valueReduceQuality": {
+    "message": "Знизити якість серії"
+  },
+  "settings_valueStopDownload": {
+    "message": "Зупинити завантаження серіалу"
+  },
+  "settings_valueIgnoreSubtitle": {
+    "message": "Ігнорувати"
+  },
+  "settings_valueSkipThisSubtitle": {
+    "message": "Пропустити ці субтитри"
+  },
+  "settings_valueSkipThisEpisode": {
+    "message": "Пропустити цю серію"
+  },
+  "time_1s": {
+    "message": "1 секунда"
+  },
+  "time_5s": {
+    "message": "5 секунд"
+  },
+  "time_10s": {
+    "message": "10 секунд"
+  },
+  "time_15s": {
+    "message": "15 секунд"
+  },
+  "time_20s": {
+    "message": "20 секунд"
+  },
+  "time_25s": {
+    "message": "25 секунд"
+  },
+  "time_30s": {
+    "message": "30 секунд"
+  },
+  "time_1m": {
+    "message": "1 хвилина"
+  },
+  "time_2m": {
+    "message": "2 хвилини"
+  },
+  "time_5m": {
+    "message": "5 хвилин"
+  },
+  "time_10m": {
+    "message": "10 хвилин"
+  },
+  "time_15m": {
+    "message": "15 хвилин"
+  },
+  "time_30m": {
+    "message": "30 хвилин"
+  },
+  "time_1h": {
+    "message": "1 година"
+  },
+  "time_2h": {
+    "message": "2 години"
+  },
+  "time_5h": {
+    "message": "5 годин"
+  },
+  "time_12h": {
+    "message": "12 годин"
+  },
+  "time_1d": {
+    "message": "1 день"
+  },
+  "time_2d": {
+    "message": "2 дні"
+  },
+  "time_1w": {
+    "message": "1 тиждень"
+  },
+  "time_2w": {
+    "message": "2 тижні"
   }
 }

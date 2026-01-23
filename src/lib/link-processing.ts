@@ -21,7 +21,7 @@ export function getQualityWeight(quality: QualityItem): number {
   const value = parseInt(match[1], 10);
   const unit = match[2].toLowerCase();
 
-  // 630 This is the arithmetic mean to obtain an approximate value
+  // 630 This is the arithmetic mean to get an approximate value
   // of height in pixels (p) when multiplying by "K" value.
   let rank = unit === 'k' ? value * 630 : value;
   if (quality.toLowerCase().includes('ultra')) rank++;

@@ -137,10 +137,9 @@ export function useChangeRangeEpisodes() {
           dispatch(setSeasonToAction({ value: seasonIds.at(-1)! }));
           dispatch(setEpisodeToAction({ value: endEpisode }));
         }
-        // TODO: use i18n
         messageBroker.sendMessage(movieInfo!.data.id, {
           stackable: true,
-          message: 'Ошибка при попытке изменить серию, попробуйте снова.',
+          message: browser.i18n.getMessage('popup_error_update_episodes'),
           type: 'error',
         });
       });

@@ -149,7 +149,7 @@ export class QueueController {
 
     await messageBroker.sendMessage(String(movieId), {
       stackable: false,
-      message: 'Загрузка прервана. Не удалось загрузить файл.',
+      message: browser.i18n.getMessage('popup_messageBroker_StopDownload'),
       type: 'warning',
     });
   }
@@ -160,7 +160,7 @@ export class QueueController {
 
     await messageBroker.sendMessage(String(movieId), {
       stackable: true,
-      message: 'Сбой загрузки. Не удалось загрузить файл.',
+      message: browser.i18n.getMessage('popup_messageBroker_SkipDownload'),
       type: 'warning',
     });
   }
