@@ -11,6 +11,7 @@ function TooltipTrigger({
 }: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
   return (
     <TooltipPrimitive.Trigger
+      style={{ pointerEvents: 'auto' }}
       // @ts-ignore
       render={children}
       {...props}

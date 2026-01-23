@@ -1,36 +1,43 @@
 import { cn } from '@/lib/utils';
+import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox';
 import { ChevronDownIcon } from 'lucide-react';
-import { type JSX, useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from './Command';
-import { Popover, PopoverContent, PopoverTrigger } from './Popover';
+import { useCallback, type JSX } from 'react';
+
+type DataItem = {
+  value: string;
+  label: string;
+  labelComponent?: (
+    props: React.PropsWithChildren<{ isRenderingInPreview: boolean }>,
+  ) => JSX.Element;
+};
 
 interface ComboboxProps {
+  /**
+   * Id of the combobox to activate it via <label /> element
+   */
   id?: string;
+  /**
+   * ClassName for the inner combobox elements (input, trigger button)
+   */
   className?: string;
+  /**
+   * ClassName for the items in the list
+   */
+  itemClassName?: string;
+  /**
+   * ClassName for the combobox container to change position of whole combobox
+   */
+  containerClassName?: string;
   /**
    * Width of button and min width of combobox content in pixels or rem
    */
   width?: number | string;
-  /**
-   * Max height of combobox content in pixels or rem
-   */
-  height?: number | string;
-  data: Array<{
-    value: string;
-    label: string;
-    labelComponent?: (
-      props: React.PropsWithChildren<{ isRenderingInPreview: boolean }>,
-    ) => JSX.Element;
-  }>;
+  align?: 'start' | 'center' | 'end';
+  side?: 'top' | 'bottom' | 'left' | 'right';
+  data: DataItem[];
   value?: string;
   onValueChange?: (value: string) => void;
+  onValueHover?: (value: string) => void;
   needSearch?: boolean;
   showChevron?: boolean;
   title?: string;
@@ -40,124 +47,166 @@ interface ComboboxProps {
 export function Combobox({
   id,
   className,
+  itemClassName,
+  containerClassName,
   width = '14rem', // 224px
-  height = '11.5rem', // 184px
+  align = 'center',
+  side,
   data,
-  value: defaultValue = '',
+  value = '',
   onValueChange,
-  needSearch = true,
+  onValueHover,
+  needSearch,
   showChevron,
   title,
   disabled,
 }: ComboboxProps) {
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(defaultValue);
-  useEffect(() => {
-    setValue(defaultValue);
-  }, [defaultValue]);
-  const dataLookup = useMemo(() => {
-    return Object.fromEntries(
-      data.map((item) => [
-        item.value,
-        {
-          ...item,
-          search: (item.label || item.labelComponent || item.value)
-            .toString()
-            .toLowerCase(),
-        },
-      ]),
+  const items = data;
+  const selectedItem = items.find((item) => item.value === value);
+  const labelRender = useCallback((item: DataItem, isPreview: boolean) => {
+    const children = item.label;
+    return (
+      item.labelComponent?.({
+        children,
+        isRenderingInPreview: isPreview,
+      }) ?? children
     );
-  }, [data]);
-  const labelRender = useCallback(
-    (lookup: string, children: React.ReactNode, isPreview: boolean) => {
-      return (
-        dataLookup[lookup]?.labelComponent?.({
-          children,
-          isRenderingInPreview: isPreview,
-        }) ?? children
-      );
-    },
-    [data],
-  );
+  }, []);
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger>
-        <button
-          id={id}
-          role='combobox'
-          aria-expanded={open}
-          className={cn(
-            'focus-ring flex cursor-pointer items-center rounded-md border-[0.125rem] px-2 py-1.5 text-sm',
-            'border-input bg-background not-disabled:hover:border-input-active not-disabled:hover:bg-input',
-            'placeholder:text-foreground-disabled disabled:cursor-not-allowed disabled:opacity-50',
-            className,
-          )}
-          style={{ width }}
-          title={title}
-          disabled={disabled}
-        >
-          {value
-            ? labelRender(
-                value,
-                <span className='line-clamp-1 text-left'>
-                  {dataLookup[value]?.label}
-                </span>,
-                true,
-              )
-            : browser.i18n.getMessage('combobox_placeholder')}
-          {showChevron && (
-            <ChevronDownIcon className='ml-auto size-4 shrink-0 opacity-50' />
-          )}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        className='overflow-y-auto'
-        style={{ minWidth: width, maxHeight: height }}
+    <ComboboxPrimitive.Root
+      items={items}
+      value={selectedItem}
+      inputValue={!needSearch ? '' : undefined}
+      autoHighlight={true}
+      onValueChange={(item) => {
+        if (item) onValueChange?.(item.value);
+      }}
+      onItemHighlighted={(item) => {
+        if (item) onValueHover?.(item.value);
+      }}
+      isItemEqualToValue={(item, selected) => {
+        return item?.value === selected?.value;
+      }}
+    >
+      <div
+        className={cn(
+          'group relative grid',
+          showChevron &&
+            '[&>[data-combobox-adjustable-trigger-element]]:pr-6.5',
+          // 'has-[.combobox-clear]:[&>[data-combobox-adjustable-trigger-element]]:pr-12.5',
+          'focus-ring focus-ring-within rounded-md border-[0.125rem] text-sm',
+          'text-foreground border-input bg-background aria-disabled:opacity-50',
+          'not-aria-disabled:hover:border-input-active not-aria-disabled:hover:bg-input',
+          containerClassName,
+        )}
+        style={{ width }}
+        title={title}
+        aria-disabled={disabled}
       >
-        <Command
-          filter={(value, search) =>
-            dataLookup[value]?.search.includes(search) ? 1 : 0
-          }
-          loop
-        >
-          {data.length > 12 && needSearch && (
-            <CommandInput
-              placeholder={browser.i18n.getMessage('combobox_search')}
-              // 0.5rem - scrollbar, 1rem - search icon, 0.625rem - left margin, 0.5rem - right margin
-              style={{
-                width: `calc(${width} - 0.5rem - 1rem - 0.625rem - 0.5rem)`,
-              }}
-            />
+        <ComboboxPrimitive.Trigger
+          id={!needSearch ? id : undefined}
+          className={cn(
+            'col-start-1 row-start-1 outline-none',
+            'cursor-pointer disabled:cursor-not-allowed',
           )}
-          <CommandList>
-            <CommandEmpty>
+          disabled={disabled}
+        />
+        {needSearch && (
+          <ComboboxPrimitive.Input
+            id={id}
+            className={cn(
+              'col-start-1 row-start-1 outline-none',
+              'placeholder:text-foreground/70 bg-transparent px-2 py-1.5',
+              'not-disabled:cursor-pointer not-disabled:focus:cursor-text disabled:cursor-not-allowed',
+              className,
+            )}
+            style={{ width }}
+            disabled={disabled}
+            placeholder={browser.i18n.getMessage('combobox_placeholder')}
+            data-combobox-adjustable-trigger-element
+          />
+        )}
+        <ComboboxPrimitive.Value>
+          {(item: DataItem | null) => {
+            return (
+              <div
+                className={cn(
+                  'pointer-events-none col-start-1 row-start-1',
+                  'flex cursor-pointer items-center px-2 py-1.5 select-none',
+                  needSearch && 'group-focus-within:invisible',
+                  !item && 'text-foreground/70',
+                  !item && needSearch && 'opacity-0',
+                  className,
+                )}
+                data-combobox-adjustable-trigger-element
+              >
+                {item
+                  ? labelRender(item, true)
+                  : browser.i18n.getMessage('combobox_placeholder')}
+              </div>
+            );
+          }}
+        </ComboboxPrimitive.Value>
+        <div className='pointer-events-none absolute right-0 flex h-full items-center justify-center py-1.5 pr-0.5'>
+          {/* <ComboboxPrimitive.Clear
+              className="combobox-clear flex size-6 items-center justify-center"
+              aria-label="Clear selection"
+            >
+              <XIcon className="size-4" />
+            </ComboboxPrimitive.Clear> */}
+          {showChevron && (
+            <ComboboxPrimitive.Icon className='flex size-6 items-center justify-center'>
+              <ChevronDownIcon className='size-4 opacity-50' />
+            </ComboboxPrimitive.Icon>
+          )}
+        </div>
+      </div>
+
+      <ComboboxPrimitive.Portal>
+        <ComboboxPrimitive.Positioner
+          className='outline-none'
+          align={align}
+          side={side}
+          sideOffset={4}
+        >
+          <ComboboxPrimitive.Popup
+            className={cn(
+              'max-h-[23rem] w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin)',
+              'transition-[transform,scale,opacity] duration-100 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
+              'bg-input text-foreground border-input-active rounded-md border shadow-md outline-none',
+            )}
+            style={{ minWidth: width }}
+          >
+            <ComboboxPrimitive.Empty className='px-1 py-6 text-center text-sm empty:m-0 empty:p-0'>
               {browser.i18n.getMessage('combobox_empty')}
-            </CommandEmpty>
-            <CommandGroup>
-              {data.map((item) => (
-                <CommandItem
+            </ComboboxPrimitive.Empty>
+            <ComboboxPrimitive.List
+              className={cn(
+                'scroll-container max-h-[min(23rem,var(--available-height))] scroll-py-1 overflow-y-auto overscroll-contain p-1 outline-0 data-[empty]:p-0',
+              )}
+            >
+              {(item: DataItem) => (
+                <ComboboxPrimitive.Item
                   key={item.value}
-                  value={item.value}
-                  onSelect={(currentValue) => {
-                    setValue(currentValue);
-                    setOpen(false);
-                    onValueChange?.(currentValue);
-                  }}
-                  className={cn(value === item.value && 'bg-input-active')}
+                  value={item}
+                  className={cn(
+                    'data-[selected]:bg-input-active data-[highlighted]:!bg-link-color data-[highlighted]:text-foreground',
+                    'relative flex grow cursor-default items-center rounded-sm px-2 py-1.5 text-sm select-none',
+                    'outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+                    itemClassName,
+                  )}
                 >
-                  {/* <CheckIcon
-                    className={cn(
-                      'mr-2 size-4',
-                      value !== item.value && 'invisible',
-                    )}
-                  /> */}
-                  {labelRender(item.value, item.label, false)}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+                  {/* <ComboboxPrimitive.ItemIndicator className='col-start-1'>
+                    <CheckIcon className='size-3' />
+                  </ComboboxPrimitive.ItemIndicator> */}
+                  {/* <div className='col-start-2'>{item.label}</div> */}
+                  {labelRender(item, false)}
+                </ComboboxPrimitive.Item>
+              )}
+            </ComboboxPrimitive.List>
+          </ComboboxPrimitive.Popup>
+        </ComboboxPrimitive.Positioner>
+      </ComboboxPrimitive.Portal>
+    </ComboboxPrimitive.Root>
   );
 }

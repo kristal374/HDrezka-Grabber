@@ -2,7 +2,7 @@ import { selectDownloadSerial } from '@/app/screens/Popup/DownloadScreen/store/E
 import { FlagKZ } from '@/components/icons/FlagKZ';
 import { FlagUA } from '@/components/icons/FlagUA';
 import { PremiumIcon } from '@/components/icons/PremiumIcon';
-import { Combobox } from '@/components/ui/ComboboxNew';
+import { Combobox } from '@/components/ui/Combobox';
 import { getVoiceOverList } from '@/extraction-scripts/extractVoiceOverList';
 import { PopupInitialDataContext } from '@/html/popup';
 import type { VoiceOverInfo } from '@/lib/types';
@@ -68,7 +68,7 @@ export function VoiceOverSelector({
       <Combobox
         id='voiceOver'
         width='14.4rem'
-        height={pageType === 'FILM' ? '9.5rem' : undefined}
+        needSearch={true}
         data={voiceOverList.map((voiceOver) => ({
           value: JSON.stringify(voiceOver),
           label: voiceOver.title,
