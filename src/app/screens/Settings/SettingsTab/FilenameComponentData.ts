@@ -190,19 +190,6 @@ export const SERIES_READY_TEMPLATES = [
     '%data%',
     ']',
   ],
-  [
-    '%orig_title%',
-    '.S',
-    '%season_id%',
-    'E',
-    '%episode_id%',
-    '.',
-    '%quality%',
-    '.',
-    '%translate_id%',
-    '.',
-    '%subtitle_code%',
-  ],
 ];
 
 export const MOVIE_READY_TEMPLATES = [

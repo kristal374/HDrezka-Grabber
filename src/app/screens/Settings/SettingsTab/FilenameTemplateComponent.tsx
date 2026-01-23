@@ -157,7 +157,7 @@ function DropDownMenu({
         itemClassName='block bg-transparent'
         showChevron={true}
         align='end'
-        side='bottom'
+        side='top' // TODO: fix chevron
         value=' '
         onValueChange={(value) => {
           handleTemplateSelect(JSON.parse(value));
