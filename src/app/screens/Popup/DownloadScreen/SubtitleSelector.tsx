@@ -58,7 +58,7 @@ export function SubtitleSelector() {
               onCheckedChange={(value) =>
                 dispatch(
                   setDownloadOnlySubtitleAction({
-                    downloadOnlySubtitle: value as boolean,
+                    downloadOnlySubtitle: value,
                   }),
                 )
               }

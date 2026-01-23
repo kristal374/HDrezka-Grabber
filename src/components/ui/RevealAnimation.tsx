@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { Collapsible } from '@base-ui/react/collapsible';
+import { useLayoutEffect, useRef } from 'react';
 
 const Reveal = Collapsible.Root;
 
@@ -20,13 +21,33 @@ function RevealContent({
   className,
   ...props
 }: React.ComponentProps<typeof Collapsible.Panel>) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const elem = ref.current;
+    if (!elem) return;
+    if (elem.dataset.hasOwnProperty('closed')) {
+      elem.classList.add('overflow-hidden');
+    }
+  }, []);
   return (
     <Collapsible.Panel
+      {...props}
       className={cn(
-        'h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-300 data-[ending-style]:h-0 data-[starting-style]:h-0',
+        'h-(--collapsible-panel-height) transition-[height] duration-300',
+        'data-[ending-style]:h-0 data-[ending-style]:overflow-hidden data-[starting-style]:h-0',
         className,
       )}
-      {...props}
+      ref={ref}
+      keepMounted={true}
+      onTransitionEnd={() => {
+        const elem = ref.current;
+        if (!elem) return;
+        if (elem.dataset.hasOwnProperty('open')) {
+          elem.classList.remove('overflow-hidden');
+        } else if (elem.dataset.hasOwnProperty('closed')) {
+          elem.classList.add('overflow-hidden');
+        }
+      }}
     />
   );
 }
