@@ -151,14 +151,15 @@ function DropDownMenu({
         ref={containerRef}
       />
       <Combobox
-        width='auto'
+        width='1.75rem'
         // popoverWidth={containerWidth}
-        className='absolute top-1/2 right-2 -translate-y-1/2 border-0 p-1 [&>svg]:!opacity-100'
-        itemClassName='block bg-transparent'
+        containerClassName='absolute top-1/2 right-2 -translate-y-1/2 border-0 [&>svg]:!opacity-100'
+        className='p-1'
+        itemClassName='block !bg-transparent'
         showChevron={true}
         align='end'
-        side='top' // TODO: fix chevron
-        value=' '
+        side='top'
+        value={JSON.stringify(readyTemplates[0])}
         onValueChange={(value) => {
           handleTemplateSelect(JSON.parse(value));
         }}
@@ -172,7 +173,9 @@ function DropDownMenu({
             value: JSON.stringify(template),
             label: preview.join(''),
             labelComponent: ({ isRenderingInPreview }) => {
-              if (isRenderingInPreview) return <></>;
+              if (isRenderingInPreview) {
+                return <span className='invisible'>|</span>;
+              }
               return (
                 <>
                   {template.map((part, i) => {
@@ -182,7 +185,7 @@ function DropDownMenu({
                       <span
                         className={cn(
                           isPlaceholder &&
-                            'bg-input-active [[data-selected="true"]_&]:bg-input-active/50 rounded',
+                            'bg-input-active [[data-selected]_&]:bg-input-active/50 rounded',
                         )}
                       >
                         {preview[i]}

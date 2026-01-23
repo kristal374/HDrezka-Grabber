@@ -88,7 +88,7 @@ export function SimpleTabs<ID extends string>({
                 onClick={() => handleTabClick(tab.id)}
                 className={cn(
                   'relative rounded-md py-3 text-xl leading-none',
-                  'focus-ring outline-none focus-visible:ring-violet-400/60',
+                  'focus-ring cursor-pointer outline-none focus-visible:ring-violet-400/60',
                 )}
                 role='tab'
                 aria-selected={isActive}
