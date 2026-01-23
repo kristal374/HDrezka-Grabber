@@ -2,7 +2,7 @@ import { Combobox } from '@/components/ui/Combobox';
 import { getSeasons } from '@/extraction-scripts/extractSeasons';
 import { PopupInitialDataContext } from '@/html/popup';
 import { sliceSeasons } from '@/lib/utils';
-import { ListVideo } from 'lucide-react';
+import { ListVideoIcon } from 'lucide-react';
 import { useContext, useEffect, useMemo } from 'react';
 import {
   selectEpisodeFrom,
@@ -86,7 +86,7 @@ export function EpisodeRangeSelector({
     <>
       <label className='flex items-center gap-2.5'>
         <div className='flex size-5 items-center justify-center'>
-          <ListVideo className='size-5' />
+          <ListVideoIcon className='size-5' />
         </div>
         <span className='pb-0.5 text-base font-bold select-none'>
           {browser.i18n.getMessage('popup_loadSerial')}

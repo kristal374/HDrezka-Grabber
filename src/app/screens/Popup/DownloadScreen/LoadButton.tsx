@@ -59,7 +59,10 @@ export function LoadButton() {
       timestamp: String(new Date().getTime()),
     };
 
-    browser.runtime.sendMessage<Message<Initiator>>({ type: 'trigger', message: initiator });
+    browser.runtime.sendMessage<Message<Initiator>>({
+      type: 'trigger',
+      message: initiator,
+    });
   }, [
     movieInfo,
     range,

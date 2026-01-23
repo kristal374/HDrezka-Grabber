@@ -174,7 +174,7 @@ async function storageChangeHandler(
 async function onConnectHandler(port: Port) {
   const newLogMessageHandler = (message: unknown, _port: Port) => {
     return logCreate(message as LogMessage);
-  }
+  };
 
   const disconnectHandler = () => {
     port.onMessage.removeListener(newLogMessageHandler);
