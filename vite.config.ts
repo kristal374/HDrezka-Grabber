@@ -18,7 +18,11 @@ export default defineConfig({
     minify: true,
     sourcemap: true,
     rollupOptions: {
-      input: ['src/html/popup.html', 'src/html/settings.html', 'src/html/logger.html'],
+      input: [
+        'src/html/popup.html',
+        'src/html/settings.html',
+        'src/html/logger.html',
+      ],
       output: {
         assetFileNames: 'src/[ext]/[name][extname]',
         chunkFileNames: 'src/js/[name].js',
