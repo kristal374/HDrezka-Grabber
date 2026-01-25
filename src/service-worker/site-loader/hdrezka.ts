@@ -275,7 +275,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
       relatedLoadItemId: this.downloadItem.id,
       dependentFileItemId: null,
       downloadId: null,
-      fileName: await this.makeFilename({ fileType, timestamp }),
+      fileName: await this.makeFilename({ fileType, timestamp, logger }),
       url:
         fileType === 'video'
           ? await this.getVideoUrl({ logger })
