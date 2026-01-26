@@ -149,6 +149,14 @@
   @apply [&:has(:focus-visible)]:ring-2;
 }
 
+@utility grid-stack {
+  display: grid !important;
+  & > * {
+    grid-column-start: 1;
+    grid-row-start: 1;
+  }
+}
+
 @layer base {
   body {
     @apply bg-background text-foreground;
