@@ -18,7 +18,7 @@ const platforms = fs.existsSync(PLATFORM_DIR)
   : ['all'];
 
 const argv = yargs(hideBin(process.argv))
-  .usage('Usage: $0 -b [browser] -p [package]')
+  .usage('Usage: $0 -b [browser] -zip [boolean]')
   .option('browser', {
     alias: 'b',
     type: 'string',
@@ -26,10 +26,28 @@ const argv = yargs(hideBin(process.argv))
     choices: platforms,
     default: 'all',
   })
-  .option('package', {
-    alias: 'p',
+  .option('zip', {
+    alias: 'z',
     type: 'boolean',
     description: 'Pack the result into an archive',
+    default: false,
+  })
+  .option('keep-dist-dir', {
+    alias: 'k',
+    type: 'boolean',
+    description: 'Keep the "dist" directory after archiving',
+    default: false,
+  })
+  .option('build-version', {
+    alias: 'v',
+    type: 'number',
+    description: 'Number of the build',
+    default: 1,
+  })
+  .option('production', {
+    alias: 'p',
+    type: 'boolean',
+    description: 'Is production build',
     default: false,
   })
   .option('silent', {
@@ -43,7 +61,10 @@ const argv = yargs(hideBin(process.argv))
   .example([
     ['$0', 'Build for all browsers'],
     ['$0 -b all', 'Build for all browsers'],
-    ['$0 -b chromium -p', 'Build for Chrome and pack the result into archive'],
+    [
+      '$0 -b chromium -zip',
+      'Build for Chrome and pack the result into archive',
+    ],
   ])
   .parse();
 
@@ -53,7 +74,13 @@ function buildPackage(silent) {
   console.log('HDrezka-Grabber.build: npm build completed');
 }
 
-function buildForPlatforms(browser, version, shouldPackage) {
+function buildForPlatforms(
+  browser,
+  version,
+  build,
+  shouldPackage,
+  keepDistDir,
+) {
   platforms.forEach((platform) => {
     if (platform === 'all' || (browser !== 'all' && platform !== browser)) {
       return;
@@ -70,7 +97,7 @@ function buildForPlatforms(browser, version, shouldPackage) {
       return;
     }
     execSync(
-      `node ${targetScript} -o ${targetOutputDir} -v "${version}" -p ${shouldPackage}`,
+      `node ${targetScript} --output-dir ${targetOutputDir} --version "${version}" --zip ${shouldPackage} --keep-dist-dir ${keepDistDir} --build-version ${build}`,
       { stdio: 'inherit' },
     );
     console.log(
@@ -80,20 +107,37 @@ function buildForPlatforms(browser, version, shouldPackage) {
 }
 
 function main() {
-  const { browser, package: shouldPackage, silent } = argv;
+  const {
+    browser,
+    zip: shouldPackage,
+    'keep-dist-dir': keepDistDir,
+    silent,
+    production,
+    'build-version': buildVersion,
+  } = argv;
+
+  process.env.NODE_ENV = production ? 'production' : 'development';
+
   const version = packageJson.version;
   const versionString = version.replace(' alpha', 'a').replace(' beta', 'b');
+  const buildId = `HDrezka-Grabber-v${versionString}`;
 
   const startTime = new Date();
   console.log(
-    `*** HDrezka-Grabber-v${versionString}: run building packages ${startTime.toLocaleString()} ***\n`,
+    `*** ${buildId}: run building packages ${startTime.toLocaleString()} ***\n`,
   );
   try {
     fs.rmSync(BUILD_DIR, { recursive: true, force: true });
     fs.mkdirSync(BUILD_DIR, { recursive: true });
 
     buildPackage(silent);
-    buildForPlatforms(browser, version, shouldPackage);
+    buildForPlatforms(
+      browser,
+      version,
+      buildVersion,
+      shouldPackage,
+      keepDistDir,
+    );
 
     if (fs.existsSync(TEMP_BUILD_DIR)) {
       fs.rmSync(TEMP_BUILD_DIR, { recursive: true, force: true });
@@ -102,7 +146,7 @@ function main() {
     const endTime = new Date();
     const spentTime = (endTime.getTime() - startTime.getTime()) / 1000;
     console.log(
-      `\n*** HDrezka-Grabber-v${versionString}: build packages was successful ${spentTime}s ***`,
+      `\n*** ${buildId}: build packages was successful ${endTime.toLocaleString()} (${spentTime}s) ***`,
     );
   } catch (error) {
     console.error(`Error during build process: ${error.message}`);

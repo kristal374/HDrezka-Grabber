@@ -1,8 +1,10 @@
 import commonjs from '@rollup/plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
-// import terser from '@rollup/plugin-terser';
+import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import copy from 'rollup-plugin-copy';
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 export default [
   {
@@ -10,7 +12,7 @@ export default [
     input: 'src/service-worker/background.ts',
     output: {
       file: 'dist/build/HDrezka-Grabber.build/src/js/background.js',
-      sourcemap: true,
+      sourcemap: !isProduction,
     },
     onwarn(warning, warn) {
       // Suppress "Circular dependencies" warnings from node_modules
@@ -26,7 +28,7 @@ export default [
       nodeResolve({ browser: true, preferBuiltins: false }),
       commonjs(),
       typescript(),
-      // terser(),
+      !isProduction ? terser() : undefined,
       copy({
         targets: [
           {

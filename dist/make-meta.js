@@ -7,7 +7,8 @@ const argv = yargs(hideBin(process.argv))
   .option('version', {
     alias: 'v',
     type: 'string',
-    description: 'Build version',
+    description:
+      'Extension version. Format: "x.x.x" or "x.x.x additional-info"',
     demandOption: true,
   })
   .option('manifest-path', {
@@ -16,31 +17,46 @@ const argv = yargs(hideBin(process.argv))
     description: 'Path to manifest file',
     demandOption: true,
   })
+  .option('build-version', {
+    alias: 'b',
+    type: 'number',
+    description: 'Number of the build',
+    default: 1,
+  })
   .help('h')
   .alias('h', 'help')
   .parse();
 
 function validateVersion(version) {
-  const versionMatch = version.match(/^(\d+(\.\d+){1,3})(?:\s(.+))?$/);
+  const versionMatch = version.match(/^(\d+(\.\d+){2})(?:\s(.+))?$/);
   if (!versionMatch) {
     throw new Error(
       `Invalid version format: "${version}". Expected format: "x.x.x" or "x.x.x additional-info".`,
     );
   }
+  const isValidNumbers = versionMatch[1]
+    .split('.')
+    .map((part) => 0 <= Number(part) && Number(part) <= 65535)
+    .every(Boolean);
+  if (!isValidNumbers) {
+    throw new Error(
+      `Invalid version number: "${versionMatch[1]}". Version must be between 0 and 65535.`,
+    );
+  }
   return versionMatch;
 }
 
-function updateManifest(manifestPath, version) {
+function updateManifest(manifestPath, version, build) {
   if (!existsSync(manifestPath)) {
     throw new Error(`Manifest file does not exist at path: ${manifestPath}`);
   }
 
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 
-  console.log(`Updating manifest version to: "${version}"`);
+  console.log(`Updating manifest version to: "${version}", build: "${build}"`);
   const versionMatch = validateVersion(version);
 
-  manifest.version = versionMatch[1];
+  manifest.version = `${versionMatch[1]}.${build}`;
   if (manifest.manifest_version > 2) {
     manifest.version_name = versionMatch[0];
   }
@@ -49,10 +65,14 @@ function updateManifest(manifestPath, version) {
 }
 
 function main() {
-  const { version: buildVersion, 'manifest-path': manifestPath } = argv;
+  const {
+    version: extensionVersion,
+    'manifest-path': manifestPath,
+    'build-version': buildVersion,
+  } = argv;
 
   try {
-    updateManifest(manifestPath, buildVersion);
+    updateManifest(manifestPath, extensionVersion, buildVersion);
   } catch (error) {
     console.error(`Error: ${error.message}`);
     process.exit(1);
