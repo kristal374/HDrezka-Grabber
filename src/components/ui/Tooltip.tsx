@@ -1,5 +1,9 @@
 import { cn } from '@/lib/utils';
-import { Tooltip as TooltipPrimitive } from '@base-ui/react/tooltip';
+import {
+  TooltipPositionerProps,
+  Tooltip as TooltipPrimitive,
+  TooltipTriggerProps,
+} from '@base-ui/react/tooltip';
 
 const TooltipProvider = TooltipPrimitive.Provider;
 
@@ -8,11 +12,10 @@ const Tooltip = TooltipPrimitive.Root;
 function TooltipTrigger({
   children,
   ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
+}: TooltipTriggerProps & { children: React.ReactElement }) {
   return (
     <TooltipPrimitive.Trigger
       style={{ pointerEvents: 'auto' }}
-      // @ts-ignore
       render={children}
       {...props}
     />
@@ -25,7 +28,7 @@ function TooltipContent({
   sideOffset = 4,
   children,
   ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Positioner>) {
+}: TooltipPositionerProps) {
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Positioner

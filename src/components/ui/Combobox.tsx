@@ -11,6 +11,8 @@ type DataItem = {
   ) => JSX.Element;
 };
 
+export { DataItem as ComboboxItem };
+
 interface ComboboxProps {
   /**
    * Id of the combobox to activate it via <label /> element
@@ -99,8 +101,7 @@ export function Combobox({
       <div
         className={cn(
           'group relative grid',
-          showChevron &&
-            '[&>[data-combobox-adjustable-trigger-element]]:pr-6.5',
+          showChevron && '&>[data-combobox-adjustable-trigger-element]:pr-6.5',
           // 'has-[.combobox-clear]:[&>[data-combobox-adjustable-trigger-element]]:pr-12.5',
           'focus-ring focus-ring-within rounded-md border-[0.125rem] text-sm',
           'text-foreground border-input bg-background aria-disabled:opacity-50',
@@ -182,7 +183,7 @@ export function Combobox({
           <ComboboxPrimitive.Popup
             className={cn(
               'max-h-[23rem] max-w-(--available-width) min-w-(--anchor-width) origin-(--transform-origin)',
-              'transition-[transform,scale,opacity] duration-100 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
+              'transition-[transform,scale,opacity] duration-100 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
               'bg-input text-foreground border-input-active rounded-md border shadow-md outline-none',
             )}
           >
@@ -191,7 +192,7 @@ export function Combobox({
             </ComboboxPrimitive.Empty>
             <ComboboxPrimitive.List
               className={cn(
-                'scroll-container max-h-[min(23rem,var(--available-height))] scroll-py-1 overflow-y-auto overscroll-contain p-1 outline-0 data-[empty]:p-0',
+                'scroll-container max-h-[min(23rem,var(--available-height))] scroll-py-1 overflow-y-auto overscroll-contain p-1 outline-0 data-empty:p-0',
               )}
             >
               {(item: DataItem) => (
@@ -199,9 +200,9 @@ export function Combobox({
                   key={item.value}
                   value={item}
                   className={cn(
-                    'data-[selected]:bg-input-active data-[highlighted]:!bg-link-color data-[highlighted]:text-foreground',
+                    'data-selected:bg-input-active data-highlighted:bg-link-color! data-highlighted:text-foreground',
                     'relative flex grow cursor-default items-center rounded-sm px-2 py-1.5 text-sm select-none',
-                    'outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+                    'outline-none data-disabled:pointer-events-none data-disabled:opacity-50',
                     itemClassName,
                   )}
                 >

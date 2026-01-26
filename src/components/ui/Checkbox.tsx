@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { Checkbox as CheckboxPrimitive } from '@base-ui/react/checkbox';
+import { useId } from 'react';
 
 function Checkbox({
   className,
@@ -24,7 +25,7 @@ function Checkbox({
 }
 
 type CheckboxWithLabelProps = {
-  id: string;
+  id?: string;
   checked: boolean;
   onCheckedChange: (value: boolean) => void;
   className?: string;
@@ -32,12 +33,14 @@ type CheckboxWithLabelProps = {
 };
 
 function CheckboxWithLabel({
-  id,
+  id: idProp,
   checked,
   onCheckedChange,
   className,
   children,
 }: CheckboxWithLabelProps) {
+  const genId = useId();
+  const id = idProp ?? genId;
   return (
     <label
       htmlFor={id}
