@@ -5,14 +5,15 @@ import { hashCode } from '@/lib/utils';
 
 let lastCallTime: number = 0;
 
-function toFormatTime(time: number): string {
-  // Подготавливает строку времени в удобочитаемый формат -
-  // количество времени прошедшего с момента последнего вызова
+/**
+ * Подготавливает строку времени в удобочитаемый формат -
+ * количество времени прошедшего с момента последнего вызова
+ */
+export function toFormatTime(time: number, base: number): string {
   const pad = (value: number, length: number): string =>
     value.toString().padStart(length, '0');
 
-  const diff = lastCallTime ? time - lastCallTime : null;
-  lastCallTime = time;
+  const diff = !!base ? time - base : null;
 
   if (diff === null || diff < 0 || diff >= 60 * 1000) {
     const hour = Math.floor(time / (60 * 60 * 1000)) % 24;
@@ -34,7 +35,7 @@ function toFormatTime(time: number): string {
 
 export function printLog(message: LogMessage) {
   // Вывод цветного сообщения в консоль
-  const timestamp = toFormatTime(message.timestamp);
+  const timestamp = toFormatTime(message.timestamp, lastCallTime);
   const extensionDomain = browser.runtime.getURL('');
   const location = `${extensionDomain}${message.location}`;
 
@@ -43,6 +44,7 @@ export function printLog(message: LogMessage) {
   } else {
     printLogForChrome(message, timestamp, location);
   }
+  lastCallTime = message.timestamp;
 }
 
 function printLogForChrome(

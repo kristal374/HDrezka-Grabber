@@ -1,7 +1,7 @@
 import { attachTraceId } from './decorator';
 import { Logger } from './logger';
 import { LogLevel, LogMessage } from './types';
-import { getSessionId, getTraceId, printLog } from './utils';
+import { getSessionId, getTraceId, printLog, toFormatTime } from './utils';
 
 export {
   attachTraceId,
@@ -11,4 +11,5 @@ export {
   LogLevel,
   LogMessage,
   printLog,
+  toFormatTime,
 };

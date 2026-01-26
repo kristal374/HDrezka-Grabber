@@ -3,16 +3,18 @@ import { useEffect, useRef, useState } from 'react';
 
 export type LogMessageWithId = LogMessage & { id: number };
 
-export function useUpdateLogArray() {
+export function useUpdateLogArray(isRealtime: boolean) {
   const dataStore = useRef<LogMessageWithId[]>([]);
-  const [_revision, setRevision] = useState(0);
+  const [newestData, setNewestData] = useState<LogMessageWithId[]>([]);
+  const [totalData, setTotalData] = useState<LogMessageWithId[]>([]);
 
   useEffect(() => {
+    if (!isRealtime) return;
     const readDB = async () => {
       dataStore.current = (await indexedDBObject.getAll(
         'logStorage',
       )) as LogMessageWithId[];
-      setRevision((prev) => prev + 1);
+      setNewestData(dataStore.current.slice(-100));
     };
 
     let interval: NodeJS.Timeout;
@@ -27,15 +29,20 @@ export function useUpdateLogArray() {
           'timestamp',
           range,
         )) as LogMessageWithId[];
+        if (newLogMessages.length === 0) return;
         dataStore.current.push(...newLogMessages);
-        setRevision((prev) => prev + 1);
-      }, 500);
+        setNewestData(dataStore.current.slice(-100));
+      }, 250);
     });
 
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [isRealtime]);
 
-  return dataStore;
+  useEffect(() => {
+    setTotalData(isRealtime ? [] : dataStore.current);
+  }, [isRealtime]);
+
+  return [newestData, totalData] as const;
 }
