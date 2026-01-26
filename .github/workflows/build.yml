@@ -9,8 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      files: ${{ steps.files.outputs.paths }}
 
     steps:
       - name: Checkout repo
@@ -22,57 +20,9 @@ jobs:
       - name: Build app
         run: npm run build:prod
 
-      - name: Get files
-        id: files
-        uses: tj-actions/glob@v22
-        with:
-          files: dist/build/*
-          separator: ","
-
-      - name: Convert to JSON array
-        id: convert-to-json
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const paths = '${{ steps.files.outputs.paths }}';
-            if (!paths) return '[]';
-            const pathArray = paths.split(',').filter(p => p.trim());
-            return JSON.stringify(pathArray);
-          result-encoding: string
-
-      - name: Upload build directory
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: builds
-          path: dist/build/
-          retention-days: 1
-
-  upload-artifacts:
-    needs: build
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        filepath: ${{ fromJson(needs.build.outputs.files) }}
-    steps:
-      - name: Download build directory
-        uses: actions/download-artifact@v4
-        with:
-          name: builds
-          path: dist/build/
-
-      - name: Get filename
-        id: filename
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const path = require('path');
-            return path.basename('${{ matrix.filepath }}');
-          result-encoding: string
-
-      - name: Upload individual artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.filename.outputs.result }}
-          path: ${{ matrix.filepath }}
+          name: my-artifact
+          path: dist/build/**
           retention-days: 30
