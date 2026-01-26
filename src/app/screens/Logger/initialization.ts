@@ -4,9 +4,7 @@ import { getSettings } from '@/lib/storage';
 import { EventType, Message, Settings } from '@/lib/types';
 import { Runtime } from 'webextension-polyfill';
 
-export type LoggerInitData = Required<
-  Awaited<ReturnType<typeof loggerInit>>
->;
+export type LoggerInitData = Required<Awaited<ReturnType<typeof loggerInit>>>;
 
 export async function loggerInit(
   setInitData: React.Dispatch<React.SetStateAction<any>>,

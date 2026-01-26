@@ -136,7 +136,8 @@ export function isBackground() {
 
   const manifest = browser.runtime.getManifest();
 
-  let background = manifest.background as Manifest.WebExtensionManifestBackgroundType;
+  let background =
+    manifest.background as Manifest.WebExtensionManifestBackgroundType;
   switch (manifest.manifest_version) {
     case 1:
       return isCurrentPathname(background.page);
