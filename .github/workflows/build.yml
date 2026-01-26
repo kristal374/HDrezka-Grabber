@@ -2,7 +2,7 @@ name: Build extension
 
 on:
   push:
-    branches: ['developer', 'github-build']
+    branches: ['developer']
 
   workflow_dispatch:
 
@@ -24,5 +24,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: my-artifact
-          path: dist/build/
+          path: dist/build/*
           retention-days: 30
