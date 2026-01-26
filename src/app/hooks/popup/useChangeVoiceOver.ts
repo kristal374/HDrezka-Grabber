@@ -95,8 +95,10 @@ export function useChangeVoiceOver() {
         }
         setPreviewVoiceOver(voiceOver);
       })
-      .catch(() => {
+      .catch((error) => {
         if (ignore) return;
+        logger.error('Error update voice over:', error.toString());
+
         dispatch(setVoiceOverAction({ voiceOver: previewVoiceOver }));
         messageBroker.sendMessage(movieInfo!.data.id, {
           stackable: true,

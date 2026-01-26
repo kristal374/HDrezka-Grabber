@@ -530,9 +530,12 @@ export class QueueController {
         state.splice(index, 1);
       });
     } else {
-      logger.critical('Failed to find an active download:', loadItem, this.activeDownloads.state);
+      logger.critical(
+        'Failed to find an active download:',
+        loadItem,
+        this.activeDownloads.state,
+      );
     }
-
 
     if (cause === LoadStatus.StoppedByUser) return;
 

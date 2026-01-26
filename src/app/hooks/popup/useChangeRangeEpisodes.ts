@@ -113,8 +113,10 @@ export function useChangeRangeEpisodes() {
         dispatch(setQualitiesListAction({ stream: response.streams }));
         setPreviewRange(range);
       })
-      .catch(() => {
+      .catch((error) => {
         if (ignore) return;
+        logger.error('Error update episodes info:', error.toString());
+
         const seasonIds = Object.keys(previewRange);
         const startEpisode = previewRange[seasonIds[0]].episodes[0].id;
         const endEpisode = previewRange[seasonIds.at(-1)!].episodes.at(-1)!.id;

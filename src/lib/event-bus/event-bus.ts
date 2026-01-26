@@ -173,11 +173,13 @@ export class BufferedEventBus<
                 // отказа от обработки будет принята как ответ обработчика,
                 // и поскольку мы не можем асинхронно отказаться от обработки
                 // вместо этого мы поднимаем ошибку в качестве отказа
-                throw new Error('Cannot opt out of processing in an asynchronous response.');
+                throw new Error(
+                  'Cannot opt out of processing in an asynchronous response.',
+                );
               } else {
                 originResolve(value);
               }
-            }
+            };
           }
 
           this.queue.push({ type, args, resolve, reject });
