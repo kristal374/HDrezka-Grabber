@@ -2,7 +2,9 @@ name: Build extension
 
 on:
   push:
-    branches: ['developer']
+    branches: ['developer', 'github-build']
+
+  workflow_dispatch:
 
 jobs:
   build:
