@@ -2,13 +2,15 @@ name: Build extension
 
 on:
   push:
-    branches: ['developer', 'github-build']
+    branches: [ 'developer', 'github-build' ]
 
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      files: ${{ steps.files.outputs.paths }}
 
     steps:
       - name: Checkout repo
@@ -20,9 +22,47 @@ jobs:
       - name: Build app
         run: npm run build:prod
 
-      - name: Upload build artifact
+      - name: Get files
+        id: files
+        uses: tj-actions/glob@v22
+        with:
+          files: dist/build/*
+          separator: "\n"
+          files-separator: "\n"
+
+      - name: Upload build directory
         uses: actions/upload-artifact@v4
         with:
-          name: my-artifact
-          path: dist/build/**
+          name: builds
+          path: dist/build/
+          retention-days: 1
+
+  upload-artifacts:
+    needs: build
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        filepath: ${{ fromJson(needs.build.outputs.files) }}
+    steps:
+      - name: Download build directory
+        uses: actions/download-artifact@v4
+        with:
+          name: builds
+          path: dist/build/
+
+      - name: Get filename
+        id: filename
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const path = require('path');
+            return path.basename('${{ matrix.filepath }}');
+          result-encoding: string
+
+      - name: Upload individual artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.filename.outputs.result }}
+          path: ${{ matrix.filepath }}
           retention-days: 30
