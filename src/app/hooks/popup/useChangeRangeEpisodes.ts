@@ -139,7 +139,7 @@ export function useChangeRangeEpisodes() {
         }
         messageBroker.sendMessage(movieInfo!.data.id, {
           stackable: true,
-          message: browser.i18n.getMessage('popup_error_update_episodes'),
+          message: browser.i18n.getMessage('popup_error_update_episode'),
           type: 'error',
         });
       });

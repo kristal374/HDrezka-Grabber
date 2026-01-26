@@ -36,7 +36,7 @@
     "message": "Download subtitles only"
   },
   "popup_voiceoverBlock_title": {
-    "message": "Click \"Load series\" to apply changes."
+    "message": "Only one voice is available for selection."
   },
   "popup_textFrom": {
     "message": "from"
