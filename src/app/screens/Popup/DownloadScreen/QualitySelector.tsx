@@ -158,7 +158,7 @@ export function QualitySelector() {
             const realQualityPill = (
               <span
                 className={cn(
-                  '[[data-selected]_&]:bg-input',
+                  'in-data-selected:bg-input',
                   'bg-input-active ml-1.75 inline-flex items-center gap-1 rounded-md px-1.25',
                 )}
               >

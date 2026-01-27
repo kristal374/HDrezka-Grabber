@@ -49,7 +49,8 @@ export function Toolbar<TData extends Record<string, any>>({
           </span>
           <NumberFlow value={currentShownRows} className='ml-auto' />
         </span>
-        /<NumberFlow value={totalRows} /> rows
+        /<NumberFlow value={totalRows} />
+        <span className='ml-1.5'>rows</span>
       </p>
       {searchBy && <SearchInput table={table} />}
     </div>,
@@ -85,7 +86,7 @@ function SearchInput<TData extends Record<string, any>>({
   return (
     <Tooltip open={!!regexError}>
       <TooltipTrigger>
-        <div className='flex w-64'>
+        <div className='isolate flex w-64'>
           <Input
             value={search}
             onChange={(e) => {
@@ -94,7 +95,7 @@ function SearchInput<TData extends Record<string, any>>({
               setFilterValue(value, enableRegex);
             }}
             placeholder={`Search ${String(searchBy)}`}
-            className={cn('grow', allowRegex && 'rounded-r-none')}
+            className={cn('grow focus:z-1', allowRegex && 'rounded-r-none')}
           />
           {allowRegex && (
             <Button

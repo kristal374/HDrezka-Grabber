@@ -5,6 +5,7 @@ import {
   FilterValueCell,
   FilterValueHeader,
 } from '@/components/data-table/Filters';
+import { ResizeHeader } from '@/components/data-table/HeaderCell';
 import { LogLevel, toFormatTime } from '@/lib/logger';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -38,6 +39,7 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
   {
     accessorKey: 'level',
     size: 90,
+    enableResizing: false,
     filterFn: facetsFilter,
     meta: {
       Render({ children }: React.PropsWithChildren) {
@@ -78,7 +80,8 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
   },
   {
     accessorKey: 'context',
-    size: 90,
+    size: 100,
+    enableResizing: false,
     filterFn: facetsFilter,
     meta: {
       Render({ children }: React.PropsWithChildren) {
@@ -107,7 +110,6 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
   },
   {
     accessorKey: 'message',
-    header: 'Message',
     size: 500,
     filterFn: (row, _columnId, filterValue) => {
       return row.original.message
@@ -120,6 +122,9 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
             : value.includes(filterValue);
         })
         .some((elem) => elem === true);
+    },
+    header({ header }) {
+      return <ResizeHeader header={header}>Message</ResizeHeader>;
     },
     cell({ row, table }) {
       let isExpanded = false;
@@ -151,14 +156,18 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
   },
   {
     id: 'location',
-    size: 270,
+    size: 265,
     accessorFn: (data) => {
       const [src] = data.location.replace('src/', '').split(':');
       return src;
     },
     filterFn: facetsFilter,
-    header({ column }) {
-      return <FacetedFilterHeader column={column} title='Location' />;
+    header({ header, column }) {
+      return (
+        <ResizeHeader header={header}>
+          <FacetedFilterHeader column={column} title='Location' />
+        </ResizeHeader>
+      );
     },
     cell({ row }) {
       return (
@@ -173,8 +182,9 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     accessorFn: (data) => {
       return data.metadata?.sessionId;
     },
-    filterFn: 'equals',
     size: 105,
+    enableResizing: false,
+    filterFn: 'equals',
     header({ column }) {
       return <FilterValueHeader column={column} title='Session ID' />;
     },
@@ -188,8 +198,9 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     accessorFn: (data) => {
       return data.metadata?.traceId;
     },
-    filterFn: 'equals',
     size: 100,
+    enableResizing: false,
+    filterFn: 'equals',
     header({ column }) {
       return <FilterValueHeader column={column} title='Trace ID' />;
     },
@@ -203,8 +214,9 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     accessorFn: (data) => {
       return data.metadata?.targetKey;
     },
-    filterFn: 'equals',
     size: 85,
+    enableResizing: false,
+    filterFn: 'equals',
     header({ column }) {
       return <FilterValueHeader column={column} title='Key' />;
     },

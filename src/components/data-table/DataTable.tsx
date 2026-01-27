@@ -64,6 +64,7 @@ export function RealtimeTable<TData extends Record<string, any>>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
     onColumnFiltersChange: setFilters,
     onColumnVisibilityChange: setColumnVisibility,
+    columnResizeMode: 'onChange',
     state: {
       columnFilters: filters,
       columnVisibility,
@@ -217,6 +218,7 @@ export function StableTable<TData extends Record<string, any>>({
     // onPaginationChange: setPagination,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    columnResizeMode: 'onChange',
     state: {
       sorting,
       columnFilters: filters,
