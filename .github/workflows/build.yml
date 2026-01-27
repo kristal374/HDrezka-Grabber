@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      files: ${{ steps.list-files.outputs.files }}   # job output — JSON array
+      files: ${{ steps.list-files.outputs.files }}
 
     steps:
       - name: Clone repository
@@ -53,10 +53,11 @@ jobs:
           path: dist/build/**
           retention-days: 30
 
+
   upload-per-file:
+    name: ${{ matrix.file.name }}
     needs: build
     runs-on: ubuntu-latest
-    # matrix.file will be an object with keys "path" and "name"
     strategy:
       fail-fast: false
       matrix:
