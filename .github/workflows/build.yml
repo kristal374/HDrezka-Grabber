@@ -2,15 +2,42 @@ name: Build extension
 
 on:
   push:
-    branches: [ 'developer', 'github-build' ]
-
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: build-counter
 
     steps:
+      - name: Get and increment build number
+        id: build_number
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const environment = 'build-counter';
+            const variableName = 'BUILD_NUMBER';
+
+            const { data: { variables } } = await github.rest.actions.getEnvironmentVariables({
+              repository_id: context.repo.repo_id,
+              environment_name: environment,
+            });
+
+            let currentBuild = parseInt(variables.find(v => v.name === variableName)?.value || '0');
+
+            currentBuild++;
+
+            await github.rest.actions.updateEnvironmentVariable({
+              repository_id: context.repo.repo_id,
+              environment_name: environment,
+              name: variableName,
+              value: currentBuild.toString()
+            });
+
+            return currentBuild;
+          result-encoding: number
+
+
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -18,11 +45,11 @@ jobs:
         run: npm ci
 
       - name: Build app
-        run: npm run build:prod
+        run: node run-build.js --browser all --production true --zip true --keep-dist-dir false --build-version ${{ steps.build_number.outputs.result }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: my-artifact
+          name: builds
           path: dist/build/**
           retention-days: 30
