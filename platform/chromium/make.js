@@ -17,8 +17,15 @@ const argv = yargs(hideBin(process.argv))
   .option('version', {
     alias: 'v',
     type: 'string',
-    description: 'Build version',
+    description:
+      'Extension version. Format: "x.x.x" or "x.x.x additional-info"',
     demandOption: true,
+  })
+  .option('build-version', {
+    alias: 'b',
+    type: 'number',
+    description: 'Number of the build',
+    default: 1,
   })
   .option('output-dir', {
     alias: 'o',
@@ -26,10 +33,16 @@ const argv = yargs(hideBin(process.argv))
     description: 'Output directory',
     demandOption: true,
   })
-  .option('package', {
-    alias: 'p',
+  .option('zip', {
+    alias: 'z',
     type: 'boolean',
     description: 'Pack the result into an archive',
+    default: false,
+  })
+  .option('keep-dist-dir', {
+    alias: 'k',
+    type: 'boolean',
+    description: 'Keep the "dist" directory after archiving',
     default: false,
   })
   .help('h')
@@ -68,23 +81,30 @@ function generateSpecificFiles(distDir) {
   );
 }
 
-function generateManifestMeta(distDir, version) {
+function generateManifestMeta(distDir, version, build) {
   log(`Generating meta files`);
 
   const metaScript = path.join(BASE_DIR, 'dist', 'make-meta.js');
   const manifestPath = path.join(distDir, 'manifest.json');
 
-  execSync(`node ${metaScript} -m ${manifestPath} -v "${version}"`, {
-    stdio: 'inherit',
-  });
+  execSync(
+    `node ${metaScript} -m ${manifestPath} -v "${version}" -b "${build}"`,
+    {
+      stdio: 'inherit',
+    },
+  );
 }
 
-function makePackage(distDir, shouldPackage) {
+function makePackage(distDir, shouldPackage, keepDistDir) {
   if (shouldPackage) {
     log(`Creating archive`);
     try {
       zipper.sync.zip(distDir).compress().save(`${distDir}.zip`);
       log(`Archive created at: ${distDir}.zip`);
+      if (!keepDistDir) {
+        fs.rmSync(distDir, { recursive: true, force: true });
+        log(`The build directory has been deleted`);
+      }
     } catch (error) {
       throw new Error(`Failed to create archive: ${error.message}`);
     }
@@ -95,9 +115,11 @@ function makePackage(distDir, shouldPackage) {
 
 const main = () => {
   const {
-    version: buildVersion,
-    package: shouldPackage,
+    version: extensionVersion,
+    zip: shouldPackage,
+    'keep-dist-dir': keepDistDir,
     'output-dir': outputDir,
+    'build-version': buildVersion,
   } = argv;
 
   try {
@@ -105,8 +127,8 @@ const main = () => {
     prepareDistDir(outputDir);
     generateCommonFiles(outputDir);
     generateSpecificFiles(outputDir);
-    generateManifestMeta(outputDir, buildVersion);
-    makePackage(outputDir, shouldPackage);
+    generateManifestMeta(outputDir, extensionVersion, buildVersion);
+    makePackage(outputDir, shouldPackage, keepDistDir);
     log(`Build completed successfully`);
     process.exit(0);
   } catch (error) {

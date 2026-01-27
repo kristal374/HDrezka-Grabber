@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 export default defineConfig({
   plugins: [
     react({
@@ -13,10 +15,13 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
   ],
+  root: './src/html/',
   build: {
     target: 'es2022',
-    minify: true,
-    sourcemap: true,
+    minify: isProduction,
+    sourcemap: !isProduction,
+    outDir: '../../dist/build/HDrezka-Grabber.build',
+    emptyOutDir: false,
     rollupOptions: {
       input: ['src/html/popup.html', 'src/html/settings.html'],
       output: {

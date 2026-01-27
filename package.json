@@ -3,13 +3,13 @@
   "version": "1.0.0 alpha",
   "type": "module",
   "scripts": {
-    "build:popup": "vite -c vite.config.ts build ./src/html/ --outDir ../../dist/build/HDrezka-Grabber.build --logLevel error",
+    "build:popup": "vite -c vite.config.ts build",
     "build:background": "rollup -c rollup.config.js",
     "build": "concurrently \"npm run build:popup\" \"npm run build:background\"",
-    "build:chromium": "node run-build.js -b chromium",
-    "build:firefox": "node run-build.js -b firefox",
-    "build:dev": "node run-build.js -b all -s false",
-    "build:prod": "node run-build.js -b all -p",
+    "build:chromium": "node run-build.js --browser chromium",
+    "build:firefox": "node run-build.js --browser firefox",
+    "build:dev": "node run-build.js --browser all --production false --silent false",
+    "build:prod": "node run-build.js --browser all --production true --zip true --keep-dist-dir false",
     "format": "prettier --write --cache ."
   },
   "dependencies": {
