@@ -36,14 +36,12 @@ interface DataTableProps<TData extends Record<string, any>> {
   columns: ColumnDef<TData>[];
   data: TData[];
   showToolbar?: boolean;
-  searchBy?: keyof TData;
   className?: string;
 }
 
 export function RealtimeTable<TData extends Record<string, any>>({
   columns,
   data,
-  searchBy,
   showToolbar,
   resetScrollFromBottom,
   onScrollStart,
@@ -118,8 +116,12 @@ export function RealtimeTable<TData extends Record<string, any>>({
         }
       }}
     >
-      {showToolbar && <Toolbar table={table} searchBy={searchBy} />}
-      <Table id='realtime' style={{ ...getColumnWidths(table) }}>
+      {showToolbar && <Toolbar table={table} />}
+      <Table
+        id='realtime'
+        className='isolate'
+        style={{ ...getColumnWidths(table) }}
+      >
         <TableHeader className='sticky top-0 z-1'>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className='flex'>
@@ -187,7 +189,6 @@ export function RealtimeTable<TData extends Record<string, any>>({
 export function StableTable<TData extends Record<string, any>>({
   columns,
   data,
-  searchBy,
   showToolbar,
   scrollFromBottom,
   className,
@@ -232,7 +233,7 @@ export function StableTable<TData extends Record<string, any>>({
   //dynamic row height virtualization - alternatively you could use a simpler fixed row height strategy without the need for `measureElement`
   const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
     count: rows.length,
-    estimateSize: () => 238, //estimate row height for accurate scrollbar dragging
+    estimateSize: () => 45, //estimate row height for accurate scrollbar dragging
     getScrollElement: () => tableContainerRef.current,
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
@@ -252,14 +253,14 @@ export function StableTable<TData extends Record<string, any>>({
     });
   }, [data.length, scrollFromBottom]);
 
-  console.log('rendering stable table');
+  // console.log('rendering stable table');
 
   return (
     <div
       className={cn('relative grid h-full w-full overflow-auto', className)}
       ref={tableContainerRef}
     >
-      {showToolbar && <Toolbar table={table} searchBy={searchBy} />}
+      {showToolbar && <Toolbar table={table} />}
       <Table
         id='stable'
         style={{

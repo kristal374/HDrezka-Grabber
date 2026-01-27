@@ -3,7 +3,7 @@ import {
   loggerInit,
   LoggerInitData,
 } from '@/app/screens/Logger/initialization';
-import { MyApp } from '@/app/screens/Logger/Logger';
+import { Logger } from '@/app/screens/Logger/Logger';
 import { EventType } from '@/lib/types';
 import { createContext } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -22,6 +22,6 @@ eventBus.addMessageSource(EventType.DBDeletedEvent, globalThis);
 
 root.render(
   <App asyncInitFunction={loggerInit} Context={LoggerInitialDataContext}>
-    <MyApp />
+    <Logger />
   </App>,
 );

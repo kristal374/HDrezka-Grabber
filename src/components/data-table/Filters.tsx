@@ -84,7 +84,12 @@ interface FilterButtonProps extends ButtonProps {
 
 function FilterButton({ amount, ...props }: FilterButtonProps) {
   return (
-    <Button variant='secondary' size='square' className='relative' {...props}>
+    <Button
+      variant={!amount ? 'secondary' : 'primary'}
+      size='square'
+      className='relative'
+      {...props}
+    >
       <ListFilterIcon
         className={cn('size-4 transition-opacity', !!amount && 'opacity-0')}
       />

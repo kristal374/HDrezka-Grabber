@@ -1,7 +1,7 @@
 import { RealtimeTable, StableTable } from '@/components/data-table/DataTable';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Activity, useEffect, useState } from 'react';
+import { Activity, useEffect, useMemo, useState } from 'react';
 
 interface DynamicTableProps<TData extends Record<string, any>> {
   isRealtime: boolean;
@@ -10,7 +10,6 @@ interface DynamicTableProps<TData extends Record<string, any>> {
   setSwitchToStable: React.Dispatch<React.SetStateAction<boolean>>;
   forceRealtime?: boolean;
   columns: ColumnDef<TData>[];
-  searchBy?: keyof TData;
   realtimeData: TData[];
   stableData: TData[];
   className?: string;
@@ -22,17 +21,19 @@ export function DynamicTable<TData extends Record<string, any>>({
   isRealtime,
   setIsRealtime,
   forceRealtime,
-  columns,
-  searchBy,
+  columns: originalColumns,
   realtimeData,
   stableData,
   className,
 }: DynamicTableProps<TData>) {
+  const columns = useMemo(() => originalColumns, []);
+
   const [scrollFromBottom, setScrollFromBottom] = useState(0);
   useEffect(() => {
     setIsRealtime(true);
     setSwitchToStable(false);
   }, [forceRealtime]);
+
   useEffect(() => {
     if (isRealtime && switchToStable) setSwitchToStable(false);
   }, [isRealtime]);
@@ -42,7 +43,6 @@ export function DynamicTable<TData extends Record<string, any>>({
         <RealtimeTable
           columns={columns}
           data={realtimeData}
-          searchBy={searchBy}
           showToolbar={false}
           resetScrollFromBottom={isRealtime}
           onScrollStart={() => {
@@ -61,7 +61,6 @@ export function DynamicTable<TData extends Record<string, any>>({
         <StableTable
           columns={columns}
           data={stableData}
-          searchBy={searchBy}
           showToolbar={switchToStable}
           scrollFromBottom={scrollFromBottom}
           className={cn(className, !switchToStable && 'invisible')}

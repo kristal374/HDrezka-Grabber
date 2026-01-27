@@ -34,12 +34,13 @@ function TooltipContent({
       <TooltipPrimitive.Positioner
         align={align}
         sideOffset={sideOffset}
+        className='z-100'
         {...props}
       >
         <TooltipPrimitive.Popup
           className={cn(
             'bg-input text-light-color border-input-active border shadow-md outline-none',
-            'z-100 w-fit rounded-md px-2 py-1.5 text-xs text-balance',
+            'w-fit rounded-md px-2 py-1.5 text-xs text-balance',
             'origin-(--transform-origin) transition-[transform,scale,opacity]',
             'data-ending-style:scale-90 data-ending-style:opacity-0 data-instant:transition-none',
             'data-starting-style:scale-90 data-starting-style:opacity-0',

@@ -13,10 +13,10 @@ import { chromeDark, ObjectInspector } from 'react-inspector';
 export const columns: ColumnDef<LogMessageWithId>[] = [
   {
     accessorKey: 'timestamp',
+    size: 100,
     header() {
       return <span className='ml-auto'>Timestamp</span>;
     },
-    size: 100,
     cell({ row, table }) {
       if (row.index === 0) return toFormatTime(row.original.timestamp, 0);
       let prev = table.getRow(String(row.index - 1)).original.timestamp;
@@ -112,10 +112,12 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     filterFn: (row, _columnId, filterValue) => {
       return row.original.message
         .map((elem) => {
-          if (typeof elem === 'object') {
-            return JSON.stringify(elem).toLowerCase().includes(filterValue);
-          }
-          return String(elem).toLowerCase().includes(filterValue);
+          const value = (
+            typeof elem === 'object' ? JSON.stringify(elem) : String(elem)
+          ).toLowerCase();
+          return filterValue.startsWith('regex:')
+            ? new RegExp(filterValue.replace('regex:', '')).test(value)
+            : value.includes(filterValue);
         })
         .some((elem) => elem === true);
     },

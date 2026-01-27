@@ -1,15 +1,14 @@
 import { useUpdateLogArray } from '@/app/hooks/logger/useUpdateLogArray';
-import { columns as loggerDataColumns } from '@/app/screens/Logger/columns';
+import { columns } from '@/app/screens/Logger/columns';
 import { DynamicTable } from '@/components/data-table/DynamicTable';
+import { DataTableFeatures } from '@/components/data-table/FeaturesContext';
 import { Button } from '@/components/ui/Button';
 import { CheckboxWithLabel } from '@/components/ui/Checkbox';
 import { cn } from '@/lib/utils';
 import { TimerResetIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
-export function MyApp() {
-  const columns = useMemo(() => loggerDataColumns, []);
-
+export function Logger() {
   const [isRealtime, setIsRealtime] = useState(true);
   const [forceRealtime, setForceRealtime] = useState(false);
   const [switchToStable, setSwitchToStable] = useState(false);
@@ -51,18 +50,19 @@ export function MyApp() {
           Force Realtime
         </CheckboxWithLabel>
       </div>
-      <DynamicTable
-        isRealtime={isRealtime}
-        setIsRealtime={setIsRealtime}
-        switchToStable={switchToStable}
-        setSwitchToStable={setSwitchToStable}
-        forceRealtime={forceRealtime}
-        columns={columns}
-        realtimeData={newestData}
-        stableData={totalData}
-        searchBy='message'
-        className='col-start-1 row-start-2'
-      />
+      <DataTableFeatures searchBy='message' allowRegex={true}>
+        <DynamicTable
+          isRealtime={isRealtime}
+          setIsRealtime={setIsRealtime}
+          switchToStable={switchToStable}
+          setSwitchToStable={setSwitchToStable}
+          forceRealtime={forceRealtime}
+          columns={columns}
+          realtimeData={newestData}
+          stableData={totalData}
+          className='col-start-1 row-start-2'
+        />
+      </DataTableFeatures>
     </div>
   );
 }

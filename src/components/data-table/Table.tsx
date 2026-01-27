@@ -15,7 +15,10 @@ function Table({ className, ...props }: React.ComponentProps<'table'>) {
 function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
   return (
     <thead
-      className={cn('bg-input border-input-active [&_tr]:border-b', className)}
+      className={cn(
+        'bg-input [&_tr]:border-input-active [&_tr]:border-b',
+        className,
+      )}
       {...props}
     />
   );
