@@ -235,7 +235,14 @@ export class QueueController {
     // Отменяет и при необходимости прерывает загрузку с удалением из очереди
     logger.debug('Canceling download:', loadItem, cause);
 
-    if (!loadItem || loadIsCompleted(loadItem.status)) return loadItem;
+    if (
+      !loadItem ||
+      (loadIsCompleted(loadItem.status) &&
+        !this.activeDownloads.state.includes(loadItem.id))
+    ) {
+      return loadItem;
+    }
+
     loadItem.status = cause;
 
     if (this.activeDownloads.state.includes(loadItem.id)) {
