@@ -1,4 +1,4 @@
-import browser, { Manifest } from 'webextension-polyfill';
+import browser from 'webextension-polyfill';
 
 import { LogLevel, LogMessage } from '@/lib/logger/types';
 import { hashCode } from '@/lib/utils';
@@ -138,18 +138,17 @@ export function isBackground() {
 
   const manifest = browser.runtime.getManifest();
 
-  let background =
-    manifest.background as Manifest.WebExtensionManifestBackgroundType;
+  let background = manifest.background;
   switch (manifest.manifest_version) {
     case 1:
-      return isCurrentPathname(background.page);
+      return isCurrentPathname(background?.page);
     case 2:
       return Boolean(
-        background.scripts &&
+        background?.scripts &&
         isCurrentPathname('/_generated_background_page.html'),
       );
     case 3:
-      return isCurrentPathname(background.service_worker);
+      return isCurrentPathname(background?.service_worker);
     default:
       return false;
   }
