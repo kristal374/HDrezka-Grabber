@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      files: ${{ steps.list-files.outputs.files }}   # job output — JSON array
 
     steps:
       - name: Clone repository
@@ -30,9 +32,51 @@ jobs:
       - name: Build app
         run: node run-build.js --browser all --production true --zip true --keep-dist-dir false --build-number ${{ github.run_number }}
 
-      - name: Upload build artifact
+      - name: List dist/build files and set job output
+        id: list-files
+        run: |
+          python - <<'PY' > /tmp/files.json
+          import json, glob, os
+          files = sorted([f for f in glob.glob('dist/build/*') if os.path.isfile(f)])
+          out = [{"path": f, "name": os.path.basename(f)} for f in files]
+          print(json.dumps(out))
+          PY
+
+          FILES_JSON=$(cat /tmp/files.json)
+          echo "files=$FILES_JSON" >> $GITHUB_OUTPUT
+
+
+      - name: Upload combined artifact (all files)
         uses: actions/upload-artifact@v4
         with:
-          name: builds
+          name: all-builds
           path: dist/build/**
+          retention-days: 30
+
+  upload-per-file:
+    needs: build
+    runs-on: ubuntu-latest
+    # matrix.file will be an object with keys "path" and "name"
+    strategy:
+      fail-fast: false
+      matrix:
+        file: ${{ fromJson(needs.build.outputs.files) }}
+
+    steps:
+      - name: Checkout (needed if you rely on repo files; optional)
+        uses: actions/checkout@v4
+
+      - name: Download combined artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: all-builds
+          path: extracted
+
+      - name: Upload single file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # имя артефакта — имя файла (можете модифицировать, если нужно префикс/версия)
+          name: ${{ matrix.file.name }}
+          # путь к файлу внутри распакованного артефакта
+          path: extracted/${{ matrix.file.path }}
           retention-days: 30
