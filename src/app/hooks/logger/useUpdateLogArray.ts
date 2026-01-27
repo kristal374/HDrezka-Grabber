@@ -44,5 +44,5 @@ export function useUpdateLogArray(isRealtime: boolean) {
     setTotalData(isRealtime ? [] : dataStore.current);
   }, [isRealtime]);
 
-  return [newestData, totalData] as const;
+  return [newestData, totalData, dataStore] as const;
 }

@@ -20,16 +20,19 @@ interface ToolbarProps<TData extends Record<string, any>> {
 export function Toolbar<TData extends Record<string, any>>({
   table,
 }: ToolbarProps<TData>) {
-  const { searchBy, allowRegex } = useDataTableFeatures();
-
-  const [search, setSearch] = useState('');
-  const [enableRegex, setEnableRegex] = useState(false);
-  const [regexError, setRegexError] = useState('');
+  const { searchBy } = useDataTableFeatures();
 
   const [currentShownRows, setCurrentShownRows] = useState(0);
   useEffect(() => {
     setCurrentShownRows(table.getRowModel().rows.length);
   });
+  const [totalRows, setTotalRows] = useState(0);
+  useEffect(() => {
+    setTotalRows(table.getCoreRowModel().rows.length);
+  });
+  const totalRowsString = totalRows.toString();
+  // const numberOfSpaces = Math.floor(totalRowsString.length / 3);
+  // const spaces = new Array(numberOfSpaces).fill(' ').join();
 
   const [portalHost, setPortalHost] = useState<Element | null>(null);
   useLayoutEffect(() => {
@@ -37,7 +40,31 @@ export function Toolbar<TData extends Record<string, any>>({
   }, []);
   if (!portalHost) return null;
 
-  const totalRowsString = String(table.getCoreRowModel().rows.length);
+  return createPortal(
+    <div className='flex items-center gap-3'>
+      <p className='mr-auto flex text-base font-medium'>
+        <span className='grid-stack'>
+          <span className='invisible select-none'>
+            {`4 ${totalRowsString.replaceAll(/\d/g, '4').slice(0, -1)}`}
+          </span>
+          <NumberFlow value={currentShownRows} className='ml-auto' />
+        </span>
+        /<NumberFlow value={totalRows} /> rows
+      </p>
+      {searchBy && <SearchInput table={table} />}
+    </div>,
+    portalHost,
+  );
+}
+
+function SearchInput<TData extends Record<string, any>>({
+  table,
+}: ToolbarProps<TData>) {
+  const { searchBy, allowRegex } = useDataTableFeatures();
+
+  const [search, setSearch] = useState('');
+  const [enableRegex, setEnableRegex] = useState(false);
+  const [regexError, setRegexError] = useState('');
 
   const setFilterValue = (value: string, useRegex: boolean) => {
     const lowerCase = value.toLowerCase();
@@ -55,55 +82,39 @@ export function Toolbar<TData extends Record<string, any>>({
       ?.setFilterValue(useRegex ? `regex:${lowerCase}` : lowerCase);
   };
 
-  return createPortal(
-    <div className='flex items-center gap-3'>
-      <p className='mr-auto flex text-base font-medium'>
-        <span className='grid-stack'>
-          <span className='invisible select-none'>
-            {`4${new Array(Math.floor(totalRowsString.length / 3))
-              .fill(' ')
-              .join()}${totalRowsString.replaceAll(/\d/g, '4').slice(0, -1)}`}
-          </span>
-          <NumberFlow value={currentShownRows} className='ml-auto' />
-        </span>
-        /{totalRowsString} rows
-      </p>
-      {searchBy && (
-        <Tooltip open={!!regexError}>
-          <TooltipTrigger>
-            <div className='flex w-64'>
-              <Input
-                value={search}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setSearch(value);
-                  setFilterValue(value, enableRegex);
-                }}
-                placeholder={`Search ${String(searchBy)}`}
-                className={cn('grow', allowRegex && 'rounded-r-none')}
-              />
-              {allowRegex && (
-                <Button
-                  variant={enableRegex ? 'primary' : 'secondary'}
-                  className='rounded-l-none px-2.5 py-2'
-                  onClick={() => {
-                    const newEnableRegex = !enableRegex;
-                    setEnableRegex(newEnableRegex);
-                    setFilterValue(search, newEnableRegex);
-                  }}
-                  title={'Use regular expression to search'}
-                >
-                  <RegexIcon className='size-4' />
-                </Button>
-              )}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent align='start' side='bottom' className='bg-red-900'>
-            <p className='text-sm'>{regexError}</p>
-          </TooltipContent>
-        </Tooltip>
-      )}
-    </div>,
-    portalHost,
+  return (
+    <Tooltip open={!!regexError}>
+      <TooltipTrigger>
+        <div className='flex w-64'>
+          <Input
+            value={search}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearch(value);
+              setFilterValue(value, enableRegex);
+            }}
+            placeholder={`Search ${String(searchBy)}`}
+            className={cn('grow', allowRegex && 'rounded-r-none')}
+          />
+          {allowRegex && (
+            <Button
+              variant={enableRegex ? 'primary' : 'secondary'}
+              className='rounded-l-none px-2.5 py-2'
+              onClick={() => {
+                const newEnableRegex = !enableRegex;
+                setEnableRegex(newEnableRegex);
+                setFilterValue(search, newEnableRegex);
+              }}
+              title={'Use regular expression to search'}
+            >
+              <RegexIcon className='size-4' />
+            </Button>
+          )}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent align='start' side='bottom' className='bg-red-900'>
+        <p className='text-sm'>{regexError}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 }

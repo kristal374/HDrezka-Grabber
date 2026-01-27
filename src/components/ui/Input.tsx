@@ -17,7 +17,7 @@ function Input({
       id={id || name}
       className={cn(
         'bg-background border-input not-disabled:hover:border-input-active not-disabled:hover:bg-input',
-        'flex w-full rounded-md border-[0.125rem] px-3 pt-1.25 pb-1.5 text-sm',
+        'flex w-full rounded-md border-[0.125rem] px-2.5 pt-1.25 pb-1.5 text-sm',
         'focus-ring placeholder:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}

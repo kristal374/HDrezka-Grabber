@@ -1,54 +1,79 @@
 import { useUpdateLogArray } from '@/app/hooks/logger/useUpdateLogArray';
 import { columns } from '@/app/screens/Logger/columns';
+import { DownloadLogsButton } from '@/app/screens/Logger/DownloadLogsButton';
+import {
+  UploadLogsButton,
+  type UploadFileData,
+} from '@/app/screens/Logger/UploadLogsButton';
 import { DynamicTable } from '@/components/data-table/DynamicTable';
 import { DataTableFeatures } from '@/components/data-table/FeaturesContext';
 import { Button } from '@/components/ui/Button';
 import { CheckboxWithLabel } from '@/components/ui/Checkbox';
 import { cn } from '@/lib/utils';
-import { TimerResetIcon } from 'lucide-react';
+import { TimerResetIcon, XIcon } from 'lucide-react';
 import { useState } from 'react';
+import { Toaster } from 'sonner';
 
 export function Logger() {
   const [isRealtime, setIsRealtime] = useState(true);
   const [forceRealtime, setForceRealtime] = useState(false);
   const [switchToStable, setSwitchToStable] = useState(false);
 
-  const [newestData, totalData] = useUpdateLogArray(isRealtime);
+  const [newestData, totalData, dataStore] = useUpdateLogArray(isRealtime);
+  const [file, setFile] = useState<UploadFileData | null>(null);
 
   // console.log('is realtime', isRealtime);
 
   return (
     <div className='grid h-screen w-full grid-cols-1 grid-rows-[auto_1fr]'>
       <div className='flex items-center gap-3 px-3 py-2 *:shrink-0'>
-        <div id='toolbar' className='grid-stack w-full shrink!' />
-        <Button
-          variant={isRealtime ? 'outline' : 'primary'}
-          onClick={() => {
-            setIsRealtime(true);
-            setSwitchToStable(false);
+        <DownloadLogsButton dataStore={dataStore} />
+        <UploadLogsButton
+          setFile={setFile}
+          onFileUploaded={() => {
+            setIsRealtime(false);
+            setSwitchToStable(true);
           }}
-          disabled={!switchToStable}
-          className={cn(
-            'grid-stack border-[0.125rem] *:flex *:items-center *:gap-2',
-            !isRealtime && 'border-transparent',
-            isRealtime && 'disabled:cursor-default disabled:opacity-100',
-          )}
-        >
-          <div className={cn(!isRealtime && 'invisible')}>
-            <div className='mt-0.25 mr-1 size-3 animate-pulse rounded-full bg-red-700 ring-3 ring-red-700/50' />
-            Realtime data
+        />
+        <div id='toolbar' className='grid-stack w-full shrink!' />
+        <div className='relative'>
+          <div className={cn('flex items-center gap-3', !!file && 'invisible')}>
+            <RealtimeIndicator
+              isRealtime={isRealtime}
+              setIsRealtime={setIsRealtime}
+              switchToStable={switchToStable}
+              setSwitchToStable={setSwitchToStable}
+            />
+            <CheckboxWithLabel
+              checked={forceRealtime}
+              onCheckedChange={setForceRealtime}
+            >
+              Force Realtime
+            </CheckboxWithLabel>
           </div>
-          <div className={cn(isRealtime && 'invisible')}>
-            <TimerResetIcon className='size-4' />
-            Return to realtime
+          <div
+            className={cn(
+              'absolute inset-0 flex items-center gap-3',
+              !file && 'invisible',
+            )}
+          >
+            <p className='line-clamp-2 text-sm text-ellipsis'>
+              Reading: <span className='font-semibold'>{file?.name}</span>
+            </p>
+            <Button
+              variant='dangerous'
+              size='square'
+              title='Quit reading file'
+              onClick={() => {
+                setFile(null);
+                setIsRealtime(true);
+                setSwitchToStable(false);
+              }}
+            >
+              <XIcon className='size-4' />
+            </Button>
           </div>
-        </Button>
-        <CheckboxWithLabel
-          checked={forceRealtime}
-          onCheckedChange={setForceRealtime}
-        >
-          Force Realtime
-        </CheckboxWithLabel>
+        </div>
       </div>
       <DataTableFeatures searchBy='message' allowRegex={true}>
         <DynamicTable
@@ -59,10 +84,56 @@ export function Logger() {
           forceRealtime={forceRealtime}
           columns={columns}
           realtimeData={newestData}
-          stableData={totalData}
+          stableData={file ? file.data : totalData}
           className='col-start-1 row-start-2'
         />
       </DataTableFeatures>
+      <Toaster
+        position='bottom-right'
+        expand={true}
+        richColors
+        duration={10_000} // ms
+        theme={settings.darkMode ? 'light' : 'dark'}
+      />
     </div>
+  );
+}
+
+interface RealtimeIndicatorProps {
+  isRealtime: boolean;
+  setIsRealtime: React.Dispatch<React.SetStateAction<boolean>>;
+  switchToStable: boolean;
+  setSwitchToStable: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function RealtimeIndicator({
+  isRealtime,
+  setIsRealtime,
+  switchToStable,
+  setSwitchToStable,
+}: RealtimeIndicatorProps) {
+  return (
+    <Button
+      variant={isRealtime ? 'outline' : 'primary'}
+      onClick={() => {
+        setIsRealtime(true);
+        setSwitchToStable(false);
+      }}
+      disabled={!switchToStable}
+      className={cn(
+        'grid-stack border-[0.125rem] *:flex *:items-center *:gap-2',
+        !isRealtime && 'border-transparent',
+        isRealtime && 'disabled:cursor-default disabled:opacity-100',
+      )}
+    >
+      <div className={cn(!isRealtime && 'invisible')}>
+        <div className='mt-0.25 mr-1 size-3 animate-pulse rounded-full bg-red-700 ring-3 ring-red-700/50' />
+        Realtime data
+      </div>
+      <div className={cn(isRealtime && 'invisible')}>
+        <TimerResetIcon className='size-4' />
+        Return to realtime
+      </div>
+    </Button>
   );
 }
