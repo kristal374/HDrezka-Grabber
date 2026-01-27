@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Clone repository
         uses: actions/checkout@v4
 
       - name: Cache npm dependencies
@@ -28,7 +28,7 @@ jobs:
         if: steps.npm-cache.outputs.cache-hit != 'true'
 
       - name: Build app
-        run: node run-build.js --browser all --production true --zip true --keep-dist-dir false --build-version ${{ github.run_number }}
+        run: node run-build.js --browser all --production true --zip true --keep-dist-dir false --build-number ${{ github.run_number }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
