@@ -35,15 +35,8 @@ jobs:
       - name: List dist/build files and set job output
         id: list-files
         run: |
-          python - <<'PY' > /tmp/files.json
-          import json, glob, os
-          files = sorted([f for f in glob.glob('dist/build/*') if os.path.isfile(f)])
-          out = [{"path": f, "name": os.path.basename(f)} for f in files]
-          print(json.dumps(out))
-          PY
-
-          FILES_JSON=$(cat /tmp/files.json)
-          echo "files=$FILES_JSON" >> $GITHUB_OUTPUT
+          FILES=$(find dist/build -maxdepth 1 -type f -printf '%f\n' \
+          | jq -R -s -c 'split("\n")[:-1] | map({path: ("dist/build/" + .), name: .})')
 
 
       - name: Upload combined artifact (all files)
