@@ -1,5 +1,5 @@
 import { Toolbar } from '@/components/data-table/Toolbar';
-import { cn } from '@/lib/utils';
+import { cn, IS_FIREFOX } from '@/lib/utils';
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -43,11 +43,13 @@ export function RealtimeTable<TData extends Record<string, any>>({
   columns,
   data,
   showToolbar,
+  forceRealtime,
   resetScrollFromBottom,
   onScrollStart,
   onScrollEnd,
   className,
 }: DataTableProps<TData> & {
+  forceRealtime?: boolean;
   resetScrollFromBottom?: boolean;
   onScrollStart?: () => void;
   onScrollEnd?: (scrollFromBottom: number) => void;
@@ -64,7 +66,7 @@ export function RealtimeTable<TData extends Record<string, any>>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
     onColumnFiltersChange: setFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    columnResizeMode: 'onChange',
+    columnResizeMode: IS_FIREFOX ? 'onEnd' : 'onChange',
     state: {
       columnFilters: filters,
       columnVisibility,
@@ -93,13 +95,13 @@ export function RealtimeTable<TData extends Record<string, any>>({
     requestAnimationFrame(() => {
       container.scrollTop = container.scrollHeight;
     });
-  }, [data.length, resetScrollFromBottom, data.at(-1)]);
+  }, [data.length, resetScrollFromBottom, forceRealtime ? null : data.at(-1)]);
 
   return (
     <div
       className={cn(
         'scrollbar-thumb-check-box scrollbar-background-background',
-        'relative grid h-full w-full overflow-auto',
+        'relative h-full w-full overflow-auto',
         className,
       )}
       ref={tableContainerRef}
@@ -108,6 +110,7 @@ export function RealtimeTable<TData extends Record<string, any>>({
         if (ignoreScrollEndRef.current) return;
         if (isScrollInProgressRef.current) return;
         isScrollInProgressRef.current = true;
+        if (forceRealtime) return;
         onScrollStart?.();
       }}
       onScrollEnd={() => {
@@ -117,6 +120,7 @@ export function RealtimeTable<TData extends Record<string, any>>({
         const container = tableContainerRef.current;
         if (!container) return;
         if (container.scrollTop < container.scrollHeight) {
+          if (forceRealtime) return;
           onScrollEnd?.(container.scrollHeight - container.scrollTop);
         }
       }}
@@ -153,6 +157,7 @@ export function RealtimeTable<TData extends Record<string, any>>({
         </TableHeader>
         <TableBody
           onClick={() => {
+            if (forceRealtime) return;
             const container = tableContainerRef.current;
             if (!container) return;
             onScrollStart?.();
@@ -222,7 +227,7 @@ export function StableTable<TData extends Record<string, any>>({
     // onPaginationChange: setPagination,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    columnResizeMode: 'onChange',
+    columnResizeMode: IS_FIREFOX ? 'onEnd' : 'onChange',
     state: {
       sorting,
       columnFilters: filters,
@@ -242,11 +247,9 @@ export function StableTable<TData extends Record<string, any>>({
     estimateSize: () => 45, //estimate row height for accurate scrollbar dragging
     getScrollElement: () => tableContainerRef.current,
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
-    measureElement:
-      typeof window !== 'undefined' &&
-      navigator.userAgent.indexOf('Firefox') === -1
-        ? (element) => element?.getBoundingClientRect().height
-        : undefined,
+    measureElement: !IS_FIREFOX
+      ? (element) => element?.getBoundingClientRect().height
+      : undefined,
     overscan: 25,
   });
 
@@ -265,7 +268,7 @@ export function StableTable<TData extends Record<string, any>>({
     <div
       className={cn(
         'scrollbar-thumb-check-box scrollbar-background-background',
-        'relative grid h-full w-full overflow-auto',
+        'relative h-full w-full overflow-auto',
         className,
       )}
       ref={tableContainerRef}

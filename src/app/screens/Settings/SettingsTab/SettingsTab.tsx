@@ -18,6 +18,7 @@ import { SettingsInitialDataContext } from '@/html/settings';
 import { LogLevel } from '@/lib/logger/types';
 import { createDefaultSettings, saveInStorage } from '@/lib/storage';
 import { Message } from '@/lib/types';
+import { IS_FIREFOX } from '@/lib/utils';
 import {
   DownloadIcon,
   FolderCogIcon,
@@ -29,8 +30,6 @@ import { useCallback, useContext } from 'react';
 import { toast } from 'sonner';
 import { FilenameTemplateComponent } from './FilenameTemplateComponent';
 import { SettingItem, SettingsSection } from './SettingsComponets';
-
-const isFirefox = typeof browser.runtime.getBrowserInfo === 'function';
 
 export type SettingItemProps<T> = {
   value: T;
@@ -657,7 +656,7 @@ export function SettingsTab() {
             </>
           )}
 
-          {!isFirefox && (
+          {!IS_FIREFOX && (
             <SettingsItemToggle
               title={browser.i18n.getMessage(
                 'settings_itemTrackEventsOnDeterminingFilename_title',

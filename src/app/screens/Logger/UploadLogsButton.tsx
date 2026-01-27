@@ -17,7 +17,6 @@ type Props = {
 export function UploadLogsButton({ setFile, onFileUploaded }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const handleFiles = async (files: FileList | null) => {
-    console.log('files', files);
     if (!files) return;
     const arrayBuffer = await files[0].arrayBuffer();
     const json = pako.ungzip(arrayBuffer, { to: 'string' });

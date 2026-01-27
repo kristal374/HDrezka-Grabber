@@ -43,14 +43,13 @@ export function DynamicTable<TData extends Record<string, any>>({
         <RealtimeTable
           columns={columns}
           data={realtimeData}
-          showToolbar={false}
+          showToolbar={forceRealtime}
+          forceRealtime={forceRealtime}
           resetScrollFromBottom={isRealtime}
           onScrollStart={() => {
-            if (forceRealtime) return;
             setIsRealtime(false);
           }}
           onScrollEnd={(scrollFromBottom) => {
-            if (forceRealtime) return;
             setSwitchToStable(true);
             setScrollFromBottom(scrollFromBottom);
           }}

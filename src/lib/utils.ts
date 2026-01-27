@@ -6,6 +6,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const IS_FIREFOX =
+  typeof globalThis.browser?.runtime.getBrowserInfo === 'function' ||
+  (typeof window !== 'undefined' &&
+    navigator.userAgent.indexOf('Firefox') !== -1);
+
 export function sliceSeasons(
   seasons: SeasonsWithEpisodesList,
   seasonFrom: string,

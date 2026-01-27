@@ -123,8 +123,8 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
         })
         .some((elem) => elem === true);
     },
-    header({ header }) {
-      return <ResizeHeader header={header}>Message</ResizeHeader>;
+    header(props) {
+      return <ResizeHeader {...props}>Message</ResizeHeader>;
     },
     cell({ row, table }) {
       let isExpanded = false;
@@ -162,9 +162,9 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
       return src;
     },
     filterFn: facetsFilter,
-    header({ header, column }) {
+    header({ header, column, table }) {
       return (
-        <ResizeHeader header={header}>
+        <ResizeHeader header={header} table={table}>
           <FacetedFilterHeader column={column} title='Location' />
         </ResizeHeader>
       );

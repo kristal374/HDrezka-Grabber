@@ -1,7 +1,11 @@
 import { LogMessage } from '@/lib/logger';
+import { IS_FIREFOX } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 
 export type LogMessageWithId = LogMessage & { id: number };
+
+const NEWEST_DATA_LIMIT = IS_FIREFOX ? 500 : 100;
+const REALTIME_INTERVAL = IS_FIREFOX ? 1000 : 250;
 
 export function useUpdateLogArray(isRealtime: boolean) {
   const dataStore = useRef<LogMessageWithId[]>([]);
@@ -14,7 +18,7 @@ export function useUpdateLogArray(isRealtime: boolean) {
       dataStore.current = (await indexedDBObject.getAll(
         'logStorage',
       )) as LogMessageWithId[];
-      setNewestData(dataStore.current.slice(-100));
+      setNewestData(dataStore.current.slice(-NEWEST_DATA_LIMIT));
     };
 
     let interval: NodeJS.Timeout;
@@ -31,8 +35,8 @@ export function useUpdateLogArray(isRealtime: boolean) {
         )) as LogMessageWithId[];
         if (newLogMessages.length === 0) return;
         dataStore.current.push(...newLogMessages);
-        setNewestData(dataStore.current.slice(-100));
-      }, 250);
+        setNewestData(dataStore.current.slice(-NEWEST_DATA_LIMIT));
+      }, REALTIME_INTERVAL);
     });
 
     return () => {

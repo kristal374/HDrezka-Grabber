@@ -9,14 +9,16 @@ import { DynamicTable } from '@/components/data-table/DynamicTable';
 import { DataTableFeatures } from '@/components/data-table/FeaturesContext';
 import { Button } from '@/components/ui/Button';
 import { CheckboxWithLabel } from '@/components/ui/Checkbox';
-import { cn } from '@/lib/utils';
+import { cn, IS_FIREFOX } from '@/lib/utils';
 import { TimerResetIcon, XIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Toaster } from 'sonner';
 
+const FORCE_REALTIME_ONLY = IS_FIREFOX;
+
 export function Logger() {
   const [isRealtime, setIsRealtime] = useState(true);
-  const [forceRealtime, setForceRealtime] = useState(false);
+  const [forceRealtime, setForceRealtime] = useState(FORCE_REALTIME_ONLY);
   const [switchToStable, setSwitchToStable] = useState(false);
 
   const [newestData, totalData, dataStore] = useUpdateLogArray(isRealtime);
@@ -28,13 +30,15 @@ export function Logger() {
     <div className='grid h-screen w-full grid-cols-1 grid-rows-[auto_1fr]'>
       <div className='flex items-center gap-3 px-3 py-2 *:shrink-0'>
         <DownloadLogsButton dataStore={dataStore} />
-        <UploadLogsButton
-          setFile={setFile}
-          onFileUploaded={() => {
-            setIsRealtime(false);
-            setSwitchToStable(true);
-          }}
-        />
+        {!IS_FIREFOX && (
+          <UploadLogsButton
+            setFile={setFile}
+            onFileUploaded={() => {
+              setIsRealtime(false);
+              setSwitchToStable(true);
+            }}
+          />
+        )}
         <div id='toolbar' className='grid-stack w-full shrink!' />
         <div className='relative'>
           <div className={cn('flex items-center gap-3', !!file && 'invisible')}>
@@ -47,6 +51,7 @@ export function Logger() {
             <CheckboxWithLabel
               checked={forceRealtime}
               onCheckedChange={setForceRealtime}
+              disabled={FORCE_REALTIME_ONLY}
             >
               Force Realtime
             </CheckboxWithLabel>
@@ -116,6 +121,7 @@ function RealtimeIndicator({
     <Button
       variant={isRealtime ? 'outline' : 'primary'}
       onClick={() => {
+        if (FORCE_REALTIME_ONLY) return;
         setIsRealtime(!isRealtime);
         setSwitchToStable(isRealtime);
       }}
