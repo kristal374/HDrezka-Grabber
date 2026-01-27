@@ -64,9 +64,6 @@ jobs:
         file: ${{ fromJson(needs.build.outputs.files) }}
 
     steps:
-      - name: Checkout (needed if you rely on repo files; optional)
-        uses: actions/checkout@v4
-
       - name: Download combined artifact
         uses: actions/download-artifact@v4
         with:
