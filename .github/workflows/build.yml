@@ -10,34 +10,6 @@ jobs:
     environment: build-counter
 
     steps:
-      - name: Get and increment build number
-        id: build_number
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const environment = 'build-counter';
-            const variableName = 'BUILD_NUMBER';
-
-            const { data: { variables } } = await github.rest.actions.getEnvironmentVariables({
-              repository_id: context.repo.repo_id,
-              environment_name: environment,
-            });
-
-            let currentBuild = parseInt(variables.find(v => v.name === variableName)?.value || '0');
-
-            currentBuild++;
-
-            await github.rest.actions.updateEnvironmentVariable({
-              repository_id: context.repo.repo_id,
-              environment_name: environment,
-              name: variableName,
-              value: currentBuild.toString()
-            });
-
-            return currentBuild;
-          result-encoding: number
-
-
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -45,7 +17,7 @@ jobs:
         run: npm ci
 
       - name: Build app
-        run: node run-build.js --browser all --production true --zip true --keep-dist-dir false --build-version ${{ steps.build_number.outputs.result }}
+        run: node run-build.js --browser all --production true --zip true --keep-dist-dir false --build-version ${{ github.run_number }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
