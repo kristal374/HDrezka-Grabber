@@ -9,7 +9,7 @@ import {
 import { cn } from '@/lib/utils';
 import NumberFlow from '@number-flow/react';
 import { type Table as TanstackTable } from '@tanstack/react-table';
-import { RegexIcon } from 'lucide-react';
+import { RegexIcon, XCircleIcon } from 'lucide-react';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -86,21 +86,39 @@ function SearchInput<TData extends Record<string, any>>({
   return (
     <Tooltip open={!!regexError}>
       <TooltipTrigger>
-        <div className='isolate flex w-64'>
-          <Input
-            value={search}
-            onChange={(e) => {
-              const value = e.target.value;
-              setSearch(value);
-              setFilterValue(value, enableRegex);
-            }}
-            placeholder={`Search ${String(searchBy)}`}
-            className={cn('grow focus:z-1', allowRegex && 'rounded-r-none')}
-          />
+        <div className='flex w-72'>
+          <div className='relative isolate grow focus-within:z-1'>
+            <Input
+              value={search}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSearch(value);
+                setFilterValue(value, enableRegex);
+              }}
+              placeholder={`Search ${String(searchBy)}`}
+              className={cn('w-full', allowRegex && 'rounded-r-none')}
+            />
+            {!!search && (
+              <Button
+                variant='ghost'
+                className={cn(
+                  'absolute top-0 right-0 h-full p-2.5',
+                  allowRegex ? 'rounded-none' : 'rounded-l-none',
+                )}
+                onClick={() => {
+                  setSearch('');
+                  setFilterValue('', enableRegex);
+                }}
+                title='Clear search'
+              >
+                <XCircleIcon className='size-4' />
+              </Button>
+            )}
+          </div>
           {allowRegex && (
             <Button
               variant={enableRegex ? 'primary' : 'secondary'}
-              className='rounded-l-none px-2.5 py-2'
+              className='relative rounded-l-none px-2.5 py-2'
               onClick={() => {
                 const newEnableRegex = !enableRegex;
                 setEnableRegex(newEnableRegex);

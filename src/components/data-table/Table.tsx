@@ -70,7 +70,8 @@ function TableCell({ className, ...props }: React.ComponentProps<'td'>) {
   return (
     <td
       className={cn(
-        'scrollbar-thin flex overflow-auto p-3 align-middle whitespace-nowrap [&:has([data-slim="left"])]:pl-0 [&:has([data-slim="right"])]:pr-0',
+        'scrollbar-thin scrollbar-thumb-check-box overflow-auto',
+        'flex p-3 align-middle whitespace-nowrap [&:has([data-slim="left"])]:pl-0 [&:has([data-slim="right"])]:pr-0',
         className,
       )}
       {...props}

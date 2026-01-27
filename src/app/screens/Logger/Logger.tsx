@@ -116,14 +116,13 @@ function RealtimeIndicator({
     <Button
       variant={isRealtime ? 'outline' : 'primary'}
       onClick={() => {
-        setIsRealtime(true);
-        setSwitchToStable(false);
+        setIsRealtime(!isRealtime);
+        setSwitchToStable(isRealtime);
       }}
-      disabled={!switchToStable}
+      disabled={!isRealtime && !switchToStable}
       className={cn(
         'grid-stack border-[0.125rem] *:flex *:items-center *:gap-2',
         !isRealtime && 'border-transparent',
-        isRealtime && 'disabled:cursor-default disabled:opacity-100',
       )}
     >
       <div className={cn(!isRealtime && 'invisible')}>

@@ -97,7 +97,11 @@ export function RealtimeTable<TData extends Record<string, any>>({
 
   return (
     <div
-      className={cn('relative grid h-full w-full overflow-auto', className)}
+      className={cn(
+        'scrollbar-thumb-check-box scrollbar-background-background',
+        'relative grid h-full w-full overflow-auto',
+        className,
+      )}
       ref={tableContainerRef}
       onScroll={() => {
         // console.log('scroll event, ignore', ignoreScrollEndRef.current);
@@ -259,7 +263,11 @@ export function StableTable<TData extends Record<string, any>>({
 
   return (
     <div
-      className={cn('relative grid h-full w-full overflow-auto', className)}
+      className={cn(
+        'scrollbar-thumb-check-box scrollbar-background-background',
+        'relative grid h-full w-full overflow-auto',
+        className,
+      )}
       ref={tableContainerRef}
     >
       {showToolbar && <Toolbar table={table} />}

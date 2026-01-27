@@ -143,7 +143,18 @@
 
 @utility scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: var(--check-box) transparent;
+}
+
+@utility scrollbar-thumb-* {
+  --tw-scrollbar-thumb: --value(--color-*);
+  scrollbar-color: var(--tw-scrollbar-thumb)
+    var(--tw-scrollbar-background, transparent);
+}
+
+@utility scrollbar-background-* {
+  --tw-scrollbar-background: --value(--color-*);
+  scrollbar-color: var(--tw-scrollbar-thumb, transparent)
+    var(--tw-scrollbar-background);
 }
 
 @utility focus-ring {
