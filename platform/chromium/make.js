@@ -21,8 +21,8 @@ const argv = yargs(hideBin(process.argv))
       'Extension version. Format: "x.x.x" or "x.x.x additional-info"',
     demandOption: true,
   })
-  .option('build-version', {
-    alias: 'b',
+  .option('build-number', {
+    alias: 'n',
     type: 'number',
     description: 'Number of the build',
     default: 1,
@@ -119,7 +119,7 @@ const main = () => {
     zip: shouldPackage,
     'keep-dist-dir': keepDistDir,
     'output-dir': outputDir,
-    'build-version': buildVersion,
+    'build-number': buildNumber,
   } = argv;
 
   try {
@@ -127,7 +127,7 @@ const main = () => {
     prepareDistDir(outputDir);
     generateCommonFiles(outputDir);
     generateSpecificFiles(outputDir);
-    generateManifestMeta(outputDir, extensionVersion, buildVersion);
+    generateManifestMeta(outputDir, extensionVersion, buildNumber);
     makePackage(outputDir, shouldPackage, keepDistDir);
     log(`Build completed successfully`);
     process.exit(0);

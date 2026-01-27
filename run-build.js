@@ -38,8 +38,8 @@ const argv = yargs(hideBin(process.argv))
     description: 'Keep the "dist" directory after archiving',
     default: false,
   })
-  .option('build-version', {
-    alias: 'v',
+  .option('build-number', {
+    alias: 'n',
     type: 'number',
     description: 'Number of the build',
     default: 1,
@@ -97,7 +97,7 @@ function buildForPlatforms(
       return;
     }
     execSync(
-      `node ${targetScript} --output-dir ${targetOutputDir} --version "${version}" --zip ${shouldPackage} --keep-dist-dir ${keepDistDir} --build-version ${build}`,
+      `node ${targetScript} --output-dir ${targetOutputDir} --version "${version}" --zip ${shouldPackage} --keep-dist-dir ${keepDistDir} --build-number ${build}`,
       { stdio: 'inherit' },
     );
     console.log(
@@ -113,7 +113,7 @@ function main() {
     'keep-dist-dir': keepDistDir,
     silent,
     production,
-    'build-version': buildVersion,
+    'build-number': buildNumber,
   } = argv;
 
   process.env.NODE_ENV = production ? 'production' : 'development';
@@ -134,7 +134,7 @@ function main() {
     buildForPlatforms(
       browser,
       version,
-      buildVersion,
+      buildNumber,
       shouldPackage,
       keepDistDir,
     );
