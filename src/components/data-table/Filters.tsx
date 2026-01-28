@@ -31,15 +31,20 @@ function FacetedFilterHeader<TData extends Record<string, any>>({
   useEffect(() => {
     setFacets(column.getFacetedUniqueValues());
   });
-  const data: DropdownItem[] = Array.from(facets.entries()).map(
-    ([value, count]) => {
+  const data: DropdownItem[] = Array.from(facets.entries())
+    .map(([value, count]) => {
       return {
         value,
         label: value,
         labelComponent,
       };
-    },
-  );
+    })
+    .sort((a, b) => {
+      if (isFinite(parseInt(a.label)) || isFinite(parseInt(b.label))) {
+        return a.label > b.label ? -1 : a.label < b.label ? 1 : 0;
+      }
+      return a.label < b.label ? -1 : a.label > b.label ? 1 : 0;
+    });
   return (
     <>
       <span>{title}</span>
@@ -106,14 +111,15 @@ function FilterButton({ amount, ...props }: FilterButtonProps) {
 }
 
 interface FilterValueCellProps<TData extends Record<string, any>> {
+  row: Row<TData>;
   column: Column<TData>;
-  value: any;
 }
 
 function FilterValueCell<TData extends Record<string, any>>({
+  row,
   column,
-  value,
 }: FilterValueCellProps<TData>) {
+  const value = row.getValue(column.id);
   if (!value) return null;
   return (
     <Button
@@ -125,7 +131,7 @@ function FilterValueCell<TData extends Record<string, any>>({
       className='mb-auto px-1 py-0'
       data-slim='right'
     >
-      {value}
+      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
     </Button>
   );
 }

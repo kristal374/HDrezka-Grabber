@@ -53,7 +53,7 @@ export function Logger() {
               onCheckedChange={setForceRealtime}
               disabled={FORCE_REALTIME_ONLY}
             >
-              Force Realtime
+              {browser.i18n.getMessage('logger_dataTable_forceRealtime')}
             </CheckboxWithLabel>
           </div>
           <div
@@ -63,17 +63,18 @@ export function Logger() {
             )}
           >
             <p className='line-clamp-2 text-sm text-ellipsis'>
-              Reading: <span className='font-semibold'>{file?.name}</span>
+              {browser.i18n.getMessage('logger_uploadLogs_reading')}:{' '}
+              <span className='font-semibold'>{file?.name}</span>
             </p>
             <Button
               variant='dangerous'
               size='square'
-              title='Quit reading file'
               onClick={() => {
                 setFile(null);
                 setIsRealtime(true);
                 setSwitchToStable(false);
               }}
+              title={browser.i18n.getMessage('logger_uploadLogs_quitFile')}
             >
               <XIcon className='size-4' />
             </Button>
@@ -133,11 +134,11 @@ function RealtimeIndicator({
     >
       <div className={cn(!isRealtime && 'invisible')}>
         <div className='mt-0.25 mr-1 size-3 animate-pulse rounded-full bg-red-700 ring-3 ring-red-700/50' />
-        Realtime data
+        {browser.i18n.getMessage('logger_dataTable_isRealtime')}
       </div>
       <div className={cn(isRealtime && 'invisible')}>
         <TimerResetIcon className='size-4' />
-        Return to realtime
+        {browser.i18n.getMessage('logger_dataTable_backToRealtime')}
       </div>
     </Button>
   );

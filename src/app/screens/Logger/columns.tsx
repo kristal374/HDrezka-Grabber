@@ -8,17 +8,58 @@ import {
 import { ResizeHeader } from '@/components/data-table/HeaderCell';
 import { LogLevel, toFormatTime } from '@/lib/logger';
 import { cn } from '@/lib/utils';
-import type { ColumnDef } from '@tanstack/react-table';
+import type {
+  CellContext,
+  Column,
+  ColumnDef,
+  ColumnMeta,
+  RowData,
+} from '@tanstack/react-table';
 import { chromeDark, ObjectInspector } from 'react-inspector';
+
+declare module '@tanstack/react-table' {
+  interface ColumnMeta<TData extends RowData, TValue> {
+    /**
+     * Header name to display in column visibility menu
+     */
+    headerName: string;
+    /**
+     * Component to render value for the column
+     */
+    Render?: (props: React.PropsWithChildren) => React.ReactNode;
+  }
+}
+
+/**
+ * Get `meta` object for the column
+ */
+function meta<TData extends Record<string, any>>(column: Column<TData>) {
+  return column.columnDef.meta ?? ({} as ColumnMeta<TData, unknown>);
+}
+
+/**
+ * Component to render value for the column if it has a `meta.Render` function
+ */
+function RenderValue<TData extends Record<string, any>>(
+  props: CellContext<TData, unknown>,
+) {
+  return meta(props.column).Render?.({
+    children: props.row.getValue(props.column.id),
+  });
+}
 
 export const columns: ColumnDef<LogMessageWithId>[] = [
   {
     accessorKey: 'timestamp',
     size: 100,
-    header() {
-      return <span className='ml-auto'>Timestamp</span>;
+    enableHiding: false,
+    meta: {
+      headerName: 'Timestamp',
     },
-    cell({ row, table }) {
+    header: ({ column }) => (
+      <span className='ml-auto'>{meta(column).headerName}</span>
+    ),
+    cell: ({ row, table, column }) => {
       if (row.index === 0) return toFormatTime(row.original.timestamp, 0);
       let prev = table.getRow(String(row.index - 1)).original.timestamp;
       const current = row.original.timestamp;
@@ -42,7 +83,8 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     enableResizing: false,
     filterFn: facetsFilter,
     meta: {
-      Render({ children }: React.PropsWithChildren) {
+      headerName: 'Level',
+      Render: ({ children }) => {
         const level = children as LogLevel;
         return (
           <span
@@ -62,21 +104,14 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
         );
       },
     },
-    header({ column }) {
-      return (
-        <FacetedFilterHeader
-          column={column}
-          title='Level' // @ts-expect-error
-          labelComponent={column.columnDef.meta.Render}
-        />
-      );
-    },
-    cell({ row, column }) {
-      // @ts-expect-error
-      return column.columnDef.meta.Render({
-        children: row.original.level,
-      });
-    },
+    header: ({ column }) => (
+      <FacetedFilterHeader
+        column={column}
+        title={meta(column).headerName}
+        labelComponent={meta(column).Render}
+      />
+    ),
+    cell: RenderValue,
   },
   {
     accessorKey: 'context',
@@ -84,33 +119,26 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     enableResizing: false,
     filterFn: facetsFilter,
     meta: {
-      Render({ children }: React.PropsWithChildren) {
-        return (
-          <span className='font-medium capitalize' data-slim='right'>
-            {children}
-          </span>
-        );
-      },
+      headerName: 'Context',
+      Render: ({ children }) => (
+        <span className='font-medium capitalize' data-slim='right'>
+          {children}
+        </span>
+      ),
     },
-    header({ column }) {
-      return (
-        <FacetedFilterHeader
-          column={column}
-          title='Context' // @ts-expect-error
-          labelComponent={column.columnDef.meta.Render}
-        />
-      );
-    },
-    cell({ row, column }) {
-      // @ts-expect-error
-      return column.columnDef.meta.Render({
-        children: row.original.context,
-      });
-    },
+    header: ({ column }) => (
+      <FacetedFilterHeader
+        column={column}
+        title={meta(column).headerName}
+        labelComponent={meta(column).Render}
+      />
+    ),
+    cell: RenderValue,
   },
   {
     accessorKey: 'message',
     size: 500,
+    enableHiding: false,
     filterFn: (row, _columnId, filterValue) => {
       return row.original.message
         .map((elem) => {
@@ -123,10 +151,13 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
         })
         .some((elem) => elem === true);
     },
-    header(props) {
-      return <ResizeHeader {...props}>Message</ResizeHeader>;
+    meta: {
+      headerName: 'Message',
     },
-    cell({ row, table }) {
+    header: (props) => (
+      <ResizeHeader {...props}>{meta(props.column).headerName}</ResizeHeader>
+    ),
+    cell: ({ row, table }) => {
       let isExpanded = false;
       // if (
       //   table.getColumn('message')?.getIsFiltered() &&
@@ -162,20 +193,22 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
       return src;
     },
     filterFn: facetsFilter,
-    header({ header, column, table }) {
-      return (
-        <ResizeHeader header={header} table={table}>
-          <FacetedFilterHeader column={column} title='Location' />
-        </ResizeHeader>
-      );
+    meta: {
+      headerName: 'Location',
     },
-    cell({ row }) {
-      return (
-        <span className='font-medium'>
-          {row.original.location.replace('src/', '')}
-        </span>
-      );
-    },
+    header: (props) => (
+      <ResizeHeader {...props}>
+        <FacetedFilterHeader
+          column={props.column}
+          title={meta(props.column).headerName}
+        />
+      </ResizeHeader>
+    ),
+    cell: ({ row }) => (
+      <span className='font-medium'>
+        {row.original.location.replace('src/', '')}
+      </span>
+    ),
   },
   {
     id: 'sessionId',
@@ -185,13 +218,13 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     size: 105,
     enableResizing: false,
     filterFn: 'equals',
-    header({ column }) {
-      return <FilterValueHeader column={column} title='Session ID' />;
+    meta: {
+      headerName: 'Session ID',
     },
-    cell({ row, column }) {
-      const value = row.getValue('sessionId') as number | undefined;
-      return <FilterValueCell column={column} value={value} />;
-    },
+    header: ({ column }) => (
+      <FilterValueHeader column={column} title={meta(column).headerName} />
+    ),
+    cell: FilterValueCell,
   },
   {
     id: 'traceId',
@@ -201,13 +234,13 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     size: 100,
     enableResizing: false,
     filterFn: 'equals',
-    header({ column }) {
-      return <FilterValueHeader column={column} title='Trace ID' />;
+    meta: {
+      headerName: 'Trace ID',
     },
-    cell({ row, column }) {
-      const value = row.getValue('traceId') as number | undefined;
-      return <FilterValueCell column={column} value={value} />;
-    },
+    header: ({ column }) => (
+      <FilterValueHeader column={column} title={meta(column).headerName} />
+    ),
+    cell: FilterValueCell,
   },
   {
     id: 'targetKey',
@@ -217,12 +250,12 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     size: 85,
     enableResizing: false,
     filterFn: 'equals',
-    header({ column }) {
-      return <FilterValueHeader column={column} title='Key' />;
+    meta: {
+      headerName: 'Key',
     },
-    cell({ row, column }) {
-      const value = row.getValue('targetKey') as number | undefined;
-      return <FilterValueCell column={column} value={value} />;
-    },
+    header: ({ column }) => (
+      <FilterValueHeader column={column} title={meta(column).headerName} />
+    ),
+    cell: FilterValueCell,
   },
 ];

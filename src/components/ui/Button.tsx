@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 export interface ButtonProps extends React.ComponentProps<'button'> {
-  size?: 'default' | 'square';
+  size?: 'default' | 'square' | 'square-large';
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'dangerous';
 }
 
@@ -21,6 +21,7 @@ export function Button({
         'disabled:cursor-not-allowed disabled:opacity-50',
         size === 'default' && 'px-3 pt-1.25 pb-1.5',
         size === 'square' && 'p-1',
+        size === 'square-large' && 'px-2.5 py-2.25',
         variant === 'primary' &&
           'bg-link-color not-disabled:hover:bg-link-color/75 text-white',
         variant === 'secondary' &&

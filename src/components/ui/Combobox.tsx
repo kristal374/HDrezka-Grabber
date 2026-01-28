@@ -1,14 +1,14 @@
 import { cn } from '@/lib/utils';
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox';
 import { ChevronDownIcon } from 'lucide-react';
-import { useCallback, useState, type JSX } from 'react';
+import { useCallback, useState } from 'react';
 
 type DataItem = {
   value: string;
   label: string;
   labelComponent?: (
     props: React.PropsWithChildren<{ isRenderingInPreview: boolean }>,
-  ) => JSX.Element;
+  ) => React.ReactNode;
 };
 
 export { DataItem as ComboboxItem };
@@ -62,7 +62,7 @@ export function Combobox({
   needSearch,
   showChevron,
   title,
-  placeholder: placeholderProp,
+  placeholder,
   disabled,
 }: ComboboxProps) {
   const items = data;
@@ -79,8 +79,6 @@ export function Combobox({
 
   const [inputValue, setInputValue] = useState(!needSearch ? '' : undefined);
 
-  const placeholder =
-    placeholderProp ?? browser.i18n.getMessage('combobox_placeholder');
   return (
     <ComboboxPrimitive.Root
       items={items}
@@ -131,7 +129,7 @@ export function Combobox({
               className,
             )}
             style={{ width }}
-            placeholder={placeholder}
+            placeholder={placeholder ?? browser.i18n.getMessage('ui_search')}
             onClick={(e) => {
               // @ts-ignore
               e.target.setSelectionRange(0, -1);
@@ -153,7 +151,9 @@ export function Combobox({
                 )}
                 data-combobox-adjustable-trigger-element
               >
-                {item ? labelRender(item, true) : placeholder}
+                {item
+                  ? labelRender(item, true)
+                  : (placeholder ?? browser.i18n.getMessage('ui_selectValue'))}
               </div>
             );
           }}
@@ -188,7 +188,7 @@ export function Combobox({
             )}
           >
             <ComboboxPrimitive.Empty className='px-2.5 py-6 text-center text-sm empty:m-0 empty:p-0'>
-              {browser.i18n.getMessage('combobox_empty')}
+              {browser.i18n.getMessage('ui_noResults')}
             </ComboboxPrimitive.Empty>
             <ComboboxPrimitive.List
               className={cn(

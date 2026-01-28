@@ -25,7 +25,9 @@ import {
 } from './Table';
 
 function getColumnWidths(table: TanstackTable<any>) {
-  const tableColumns = table.getAllColumns();
+  const tableColumns = table
+    .getAllColumns()
+    .filter((column) => column.getIsVisible());
   const columnWidths = Object.fromEntries(
     tableColumns.map((column, i) => [`--column-${i}`, `${column.getSize()}px`]),
   ) as React.CSSProperties;
@@ -186,7 +188,7 @@ export function RealtimeTable<TData extends Record<string, any>>({
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className='p-10 text-center'>
-                No results
+                {browser.i18n.getMessage('ui_noResults')}
               </TableCell>
             </TableRow>
           )}
@@ -338,7 +340,7 @@ export function StableTable<TData extends Record<string, any>>({
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className='p-10 text-center'>
-                No results
+                {browser.i18n.getMessage('ui_noResults')}
               </TableCell>
             </TableRow>
           )}

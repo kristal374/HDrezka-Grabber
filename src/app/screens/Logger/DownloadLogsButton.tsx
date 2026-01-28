@@ -31,11 +31,11 @@ export function DownloadLogsButton({ dataStore }: Props) {
       setLoading(false);
     };
     toast.promise(startDownloadLog(), {
-      loading: 'Подготавливаем отчёт для загрузки...',
-      success: () => 'Журнал событий загружен.',
+      loading: browser.i18n.getMessage('logger_downloadLogs_loading'),
+      success: browser.i18n.getMessage('logger_downloadLogs_success'),
       error: (e) => {
         console.error(e);
-        return 'Произошёл непредвиденный сбой, при попытке сформировать отчёт';
+        return browser.i18n.getMessage('logger_downloadLogs_error');
       },
     });
   };
@@ -43,7 +43,7 @@ export function DownloadLogsButton({ dataStore }: Props) {
   return (
     <Button onClick={downloadLogsFile} disabled={loading}>
       <DownloadIcon className='size-4' />
-      Download logs
+      {browser.i18n.getMessage('logger_downloadLogs_button')}
     </Button>
   );
 }

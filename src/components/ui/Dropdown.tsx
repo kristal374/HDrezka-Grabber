@@ -2,12 +2,13 @@ import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox';
 import { CheckIcon, XCircleIcon } from 'lucide-react';
-import { useCallback, useEffect, useState, type JSX } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 type DataItem = {
   value: string;
   label: string;
-  labelComponent?: (props: React.PropsWithChildren) => JSX.Element;
+  disabled?: boolean;
+  labelComponent?: (props: React.PropsWithChildren) => React.ReactNode;
 };
 
 export { DataItem as DropdownItem };
@@ -23,6 +24,7 @@ interface DropdownProps {
   values?: string[];
   onValuesChange?: (values: string[]) => void;
   onValueHover?: (value: string) => void;
+  onValueClick?: (value: string) => void;
   needSearch?: boolean;
   clearSelection?: boolean;
   children: React.ReactElement;
@@ -36,6 +38,7 @@ export function Dropdown({
   values,
   onValuesChange,
   onValueHover,
+  onValueClick,
   needSearch,
   clearSelection,
   children,
@@ -83,13 +86,13 @@ export function Dropdown({
         >
           <ComboboxPrimitive.Popup
             className={cn(
-              'max-h-[26rem] max-w-(--available-width) min-w-(--anchor-width) origin-(--transform-origin)',
+              'max-h-[26rem] max-w-(--available-width) min-w-[max(9.5rem,var(--anchor-width))] origin-(--transform-origin)',
               'transition-[transform,scale,opacity] duration-300 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
               'bg-input text-foreground border-input-active rounded-md border shadow-md outline-none',
             )}
           >
             <ComboboxPrimitive.Empty className='px-2.5 py-6 text-center text-sm empty:m-0 empty:p-0'>
-              {browser.i18n.getMessage('combobox_empty')}
+              {browser.i18n.getMessage('ui_noResults')}
             </ComboboxPrimitive.Empty>
             <ComboboxPrimitive.List
               className={cn(
@@ -106,6 +109,8 @@ export function Dropdown({
                     'outline-none data-disabled:pointer-events-none data-disabled:opacity-50',
                     itemClassName,
                   )}
+                  disabled={item.disabled}
+                  onClick={() => onValueClick?.(item.value)}
                 >
                   <ComboboxPrimitive.ItemIndicator className='invisible col-start-1 data-selected:visible'>
                     <CheckIcon className='size-4' />
@@ -127,7 +132,7 @@ export function Dropdown({
                   }}
                 >
                   <XCircleIcon className='size-4' />
-                  Clear selection
+                  {browser.i18n.getMessage('ui_clearSelection')}
                 </Button>
               </div>
             )}

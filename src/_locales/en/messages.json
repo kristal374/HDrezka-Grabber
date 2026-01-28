@@ -98,15 +98,6 @@
   "popup_applyRestore": {
     "message": "Resume"
   },
-  "combobox_placeholder": {
-    "message": "Select value"
-  },
-  "combobox_search": {
-    "message": "Search..."
-  },
-  "combobox_empty": {
-    "message": "No results found"
-  },
   "popup_error_update_voiceover": {
     "message": "Error while trying to change voiceover, please try again."
   },
@@ -675,5 +666,59 @@
   },
   "time_2w": {
     "message": "2 weeks"
+  },
+  "ui_selectValue": {
+    "message": "Select value"
+  },
+  "ui_search": {
+    "message": "Search"
+  },
+  "ui_noResults": {
+    "message": "No results found"
+  },
+  "ui_clearSelection": {
+    "message": "Clear selection"
+  },
+  "logger_downloadLogs_button": {
+    "message": "Download logs"
+  },
+  "logger_downloadLogs_loading": {
+    "message": "Generating logs file to download..."
+  },
+  "logger_downloadLogs_success": {
+    "message": "Logs file downloaded"
+  },
+  "logger_downloadLogs_error": {
+    "message": "An error occurred while generating logs file"
+  },
+  "logger_uploadLogs_button": {
+    "message": "Upload logs from file"
+  },
+  "logger_uploadLogs_reading": {
+    "message": "Reading"
+  },
+  "logger_uploadLogs_quitFile": {
+    "message": "Quit reading file"
+  },
+  "logger_dataTable_rows": {
+    "message": "rows"
+  },
+  "logger_dataTable_clearSearch": {
+    "message": "Clear search"
+  },
+  "logger_dataTable_useRegex": {
+    "message": "Use regular expression to search"
+  },
+  "logger_dataTable_columnVisibility": {
+    "message": "Change column visibility"
+  },
+  "logger_dataTable_isRealtime": {
+    "message": "Realtime data"
+  },
+  "logger_dataTable_backToRealtime": {
+    "message": "Return to realtime"
+  },
+  "logger_dataTable_forceRealtime": {
+    "message": "Force Realtime"
   }
 }

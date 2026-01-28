@@ -33,7 +33,7 @@ export function UploadLogsButton({ setFile, onFileUploaded }: Props) {
       }}
     >
       <UploadIcon className='size-4' />
-      Upload logs from file
+      {browser.i18n.getMessage('logger_uploadLogs_button')}
       <input
         ref={inputRef}
         type='file'

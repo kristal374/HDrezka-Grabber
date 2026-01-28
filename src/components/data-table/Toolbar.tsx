@@ -1,5 +1,6 @@
 import { useDataTableFeatures } from '@/components/data-table/FeaturesContext';
 import { Button } from '@/components/ui/Button';
+import { Dropdown, type DropdownItem } from '@/components/ui/Dropdown';
 import { Input } from '@/components/ui/Input';
 import {
   Tooltip,
@@ -9,7 +10,7 @@ import {
 import { cn } from '@/lib/utils';
 import NumberFlow from '@number-flow/react';
 import { type Table as TanstackTable } from '@tanstack/react-table';
-import { RegexIcon, XCircleIcon } from 'lucide-react';
+import { RegexIcon, Settings2Icon, XCircleIcon } from 'lucide-react';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -23,11 +24,9 @@ export function Toolbar<TData extends Record<string, any>>({
   const { searchBy } = useDataTableFeatures();
 
   const [currentShownRows, setCurrentShownRows] = useState(0);
-  useEffect(() => {
-    setCurrentShownRows(table.getRowModel().rows.length);
-  });
   const [totalRows, setTotalRows] = useState(0);
   useEffect(() => {
+    setCurrentShownRows(table.getRowModel().rows.length);
     setTotalRows(table.getCoreRowModel().rows.length);
   });
   const totalRowsString = totalRows.toString();
@@ -50,9 +49,12 @@ export function Toolbar<TData extends Record<string, any>>({
           <NumberFlow value={currentShownRows} className='ml-auto' />
         </span>
         /<NumberFlow value={totalRows} />
-        <span className='ml-1.5'>rows</span>
+        <span className='ml-1.5'>
+          {browser.i18n.getMessage('logger_dataTable_rows')}
+        </span>
       </p>
       {searchBy && <SearchInput table={table} />}
+      <ColumnVisibilityMenu table={table} />
     </div>,
     portalHost,
   );
@@ -83,6 +85,9 @@ function SearchInput<TData extends Record<string, any>>({
       ?.setFilterValue(useRegex ? `regex:${lowerCase}` : lowerCase);
   };
 
+  const columnName =
+    table.getColumn(searchBy as string)?.columnDef.meta?.headerName ?? '';
+
   return (
     <Tooltip open={!!regexError}>
       <TooltipTrigger>
@@ -95,21 +100,22 @@ function SearchInput<TData extends Record<string, any>>({
                 setSearch(value);
                 setFilterValue(value, enableRegex);
               }}
-              placeholder={`Search ${String(searchBy)}`}
+              placeholder={`${browser.i18n.getMessage('ui_search')} ${columnName}`}
               className={cn('w-full', allowRegex && 'rounded-r-none')}
             />
             {!!search && (
               <Button
                 variant='ghost'
+                size='square-large'
                 className={cn(
-                  'absolute top-0 right-0 h-full p-2.5',
+                  'absolute top-0 right-0 h-full',
                   allowRegex ? 'rounded-none' : 'rounded-l-none',
                 )}
                 onClick={() => {
                   setSearch('');
                   setFilterValue('', enableRegex);
                 }}
-                title='Clear search'
+                title={browser.i18n.getMessage('logger_dataTable_clearSearch')}
               >
                 <XCircleIcon className='size-4' />
               </Button>
@@ -118,13 +124,14 @@ function SearchInput<TData extends Record<string, any>>({
           {allowRegex && (
             <Button
               variant={enableRegex ? 'primary' : 'secondary'}
-              className='relative rounded-l-none px-2.5 py-2'
+              size='square-large'
+              className='relative rounded-l-none'
               onClick={() => {
                 const newEnableRegex = !enableRegex;
                 setEnableRegex(newEnableRegex);
                 setFilterValue(search, newEnableRegex);
               }}
-              title={'Use regular expression to search'}
+              title={browser.i18n.getMessage('logger_dataTable_useRegex')}
             >
               <RegexIcon className='size-4' />
             </Button>
@@ -135,5 +142,36 @@ function SearchInput<TData extends Record<string, any>>({
         <p className='text-sm'>{regexError}</p>
       </TooltipContent>
     </Tooltip>
+  );
+}
+
+function ColumnVisibilityMenu<TData extends Record<string, any>>({
+  table,
+}: ToolbarProps<TData>) {
+  const data: DropdownItem[] = table.getAllColumns().map((column) => {
+    return {
+      value: column.id,
+      label: column.columnDef.meta?.headerName ?? column.id,
+      disabled: !column.getCanHide(),
+    };
+  });
+  const initialValues = table
+    .getAllColumns()
+    .filter((column) => column.getIsVisible())
+    .map((column) => column.id);
+  return (
+    <Dropdown
+      data={data}
+      values={initialValues}
+      onValueClick={(value) => table.getColumn(value)?.toggleVisibility()}
+    >
+      <Button
+        variant='secondary'
+        size='square-large'
+        title={browser.i18n.getMessage('logger_dataTable_columnVisibility')}
+      >
+        <Settings2Icon className='size-4' />
+      </Button>
+    </Dropdown>
   );
 }

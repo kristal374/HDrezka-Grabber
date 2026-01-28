@@ -98,15 +98,6 @@
   "popup_applyRestore": {
     "message": "Відновити"
   },
-  "combobox_placeholder": {
-    "message": "Оберіть значення"
-  },
-  "combobox_search": {
-    "message": "Пошук..."
-  },
-  "combobox_empty": {
-    "message": "Нічого не знайдено"
-  },
   "popup_error_update_voiceover": {
     "message": "Помилка під час спроби зміни озвучки, спробуйте знову."
   },
@@ -675,5 +666,65 @@
   },
   "time_2w": {
     "message": "2 тижні"
+  },
+  "ui_selectValue": {
+    "message": "Оберіть значення"
+  },
+  "ui_search": {
+    "message": "Пошук"
+  },
+  "ui_noResults": {
+    "message": "Нічого не знайдено"
+  },
+  "ui_clearSelection": {
+    "message": "Clear selection"
+  },
+  "logger_downloadLogs_button": {
+    "message": "Download logs"
+  },
+  "logger_downloadLogs_loading": {
+    "message": "Подготавливаем отчёт для загрузки..."
+  },
+  "logger_downloadLogs_success": {
+    "message": "Журнал событий загружен"
+  },
+  "logger_downloadLogs_error": {
+    "message": "Произошёл непредвиденный сбой при попытке сформировать отчёт"
+  },
+  "logger_uploadLogs_button": {
+    "message": "Upload logs from file"
+  },
+  "logger_uploadLogs_reading": {
+    "message": "Reading"
+  },
+  "logger_uploadLogs_quitFile": {
+    "message": "Quit reading file"
+  },
+  "logger_dataTable_rows": {
+    "message": "rows"
+  },
+  "logger_dataTable_clearSearch": {
+    "message": "Clear search"
+  },
+  "logger_dataTable_useRegex": {
+    "message": "Use regular expression to search"
+  },
+  "logger_dataTable_columnVisibility": {
+    "message": "Change column visibility"
+  },
+  "logger_dataTable_isRealtime": {
+    "message": "Realtime data"
+  },
+  "logger_dataTable_backToRealtime": {
+    "message": "Return to realtime"
+  },
+  "logger_dataTable_forceRealtime": {
+    "message": "Force Realtime"
+  },
+  "logger_dataTable_fileReading": {
+    "message": "Reading"
+  },
+  "logger_dataTable_fileQuit": {
+    "message": "Quit reading file"
   }
 }
