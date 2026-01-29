@@ -33,10 +33,10 @@ async function extractVoiceOversList(): Promise<VoiceOverInfo[] | null> {
         title:
           itemTitle ||
           (itemID === '110'
-            ? browser.i18n.getMessage('popup_translate_original')
+            ? 'popup_translate_original'
             : itemID === '0'
-              ? browser.i18n.getMessage('popup_translate_numberOne')
-              : browser.i18n.getMessage('popup_translate_unknown')),
+              ? 'popup_translate_numberOne'
+              : 'popup_translate_unknown'),
         flag_country:
           item.querySelector('img')?.src.split('/').at(-1)?.split('.')[0] ||
           null,

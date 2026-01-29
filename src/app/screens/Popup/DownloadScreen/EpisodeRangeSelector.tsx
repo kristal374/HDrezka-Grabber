@@ -128,7 +128,7 @@ export function EpisodeRangeSelector({
             className='py-0.5'
             width='7.1875rem' // 115px
             side='top'
-            needSearch={true}
+            needSearch={seasons[seasonFrom].episodes.length > 12}
             data={seasons[seasonFrom].episodes.map((episode) => ({
               value: episode.id,
               label: episode.title,
@@ -181,7 +181,7 @@ export function EpisodeRangeSelector({
           {!downloadToEnd && (
             <>
               <label
-                htmlFor='episodeFrom'
+                htmlFor='episodeTo'
                 className='w-[0.65rem] text-sm select-none'
               >
                 {/* Arrow width in pixels: [10.4] */}
@@ -193,7 +193,7 @@ export function EpisodeRangeSelector({
                 className='py-0.5'
                 width='7.1875rem' // 115px
                 side='top'
-                needSearch={true}
+                needSearch={seasons[seasonTo].episodes.length > 12}
                 data={seasons[seasonTo].episodes
                   .filter((episode) => {
                     return !(

@@ -65,7 +65,7 @@ export function VoiceOverSelector({
       <Combobox
         id='voiceOver'
         width='14.4rem'
-        needSearch={true}
+        needSearch={voiceOverList.length > 12}
         value={JSON.stringify(currentVoiceOver) || ''}
         data={voiceOverList.map((voiceOver) => ({
           value: JSON.stringify(voiceOver),

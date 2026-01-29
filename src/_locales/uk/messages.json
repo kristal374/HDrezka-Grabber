@@ -36,7 +36,7 @@
     "message": "Завантажити тільки субтитри"
   },
   "popup_voiceoverBlock_title": {
-    "message": "Для вибору доступна тільки одна озвучка."
+    "message": "Для вибору доступна лише одна озвучка"
   },
   "popup_textFrom": {
     "message": "з"
@@ -677,40 +677,40 @@
     "message": "Нічого не знайдено"
   },
   "ui_clearSelection": {
-    "message": "Clear selection"
+    "message": "Очистити вибір"
+  },
+  "ui_clearSearch": {
+    "message": "Очистити пошук"
   },
   "logger_downloadLogs_button": {
-    "message": "Download logs"
+    "message": "Завантажити логи"
   },
   "logger_downloadLogs_loading": {
-    "message": "Подготавливаем отчёт для загрузки..."
+    "message": "Готуємо звіт для завантаження..."
   },
   "logger_downloadLogs_success": {
-    "message": "Журнал событий загружен"
+    "message": "Журнал подій завантажено"
   },
   "logger_downloadLogs_error": {
-    "message": "Произошёл непредвиденный сбой при попытке сформировать отчёт"
+    "message": "Відбувся непередбачуваний збій при спробі сформувати звіт"
   },
   "logger_uploadLogs_button": {
-    "message": "Upload logs from file"
+    "message": "Відкрити логи з файлу"
   },
   "logger_uploadLogs_reading": {
-    "message": "Reading"
+    "message": "Файл"
   },
   "logger_uploadLogs_quitFile": {
-    "message": "Quit reading file"
+    "message": "Закртити файл"
   },
   "logger_dataTable_rows": {
-    "message": "rows"
-  },
-  "logger_dataTable_clearSearch": {
-    "message": "Clear search"
+    "message": "рядків"
   },
   "logger_dataTable_useRegex": {
-    "message": "Use regular expression to search"
+    "message": "Використовувати регулярний вираз для пошуку"
   },
   "logger_dataTable_columnVisibility": {
-    "message": "Change column visibility"
+    "message": "Змінити відображення колонок"
   },
   "logger_dataTable_isRealtime": {
     "message": "Realtime data"
@@ -721,10 +721,40 @@
   "logger_dataTable_forceRealtime": {
     "message": "Force Realtime"
   },
-  "logger_dataTable_fileReading": {
-    "message": "Reading"
+  "logger_globalFilter_create": {
+    "message": "Створити глобальний фільтр"
   },
-  "logger_dataTable_fileQuit": {
-    "message": "Quit reading file"
+  "logger_globalFilter_applyFilter": {
+    "message": "Застосувати фільтр"
+  },
+  "logger_globalFilter_removeFilter": {
+    "message": "Вимкнути фільтр"
+  },
+  "logger_globalFilter_expand": {
+    "message": "Розгорнути опції глобального фільтра"
+  },
+  "logger_globalFilter_collapse": {
+    "message": "Згорнути опції глобального фільтра"
+  },
+  "logger_globalFilter_addNode": {
+    "message": ""
+  },
+  "logger_globalFilter_group": {
+    "message": "Група"
+  },
+  "logger_globalFilter_condition": {
+    "message": "Умова"
+  },
+  "logger_globalFilter_deleteGroup": {
+    "message": "Видалити групу"
+  },
+  "logger_globalFilter_deleteCondition": {
+    "message": "Видалити умову"
+  },
+  "logger_globalFilter_enableCondition": {
+    "message": "Увімкнути умову"
+  },
+  "logger_globalFilter_disableCondition": {
+    "message": "Вимкнути умову"
   }
 }

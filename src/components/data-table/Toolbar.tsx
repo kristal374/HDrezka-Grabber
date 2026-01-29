@@ -116,7 +116,7 @@ function SearchInput<TData extends Record<string, any>>({
                   setSearch('');
                   setFilterValue('', enableRegex);
                 }}
-                title={browser.i18n.getMessage('logger_dataTable_clearSearch')}
+                title={browser.i18n.getMessage('ui_clearSearch')}
               >
                 <XCircleIcon className='size-4' />
               </Button>

@@ -36,7 +36,7 @@
     "message": "Загрузить только субтитры"
   },
   "popup_voiceoverBlock_title": {
-    "message": "Для выбора доступна только одна озвучка."
+    "message": "Для выбора доступна только одна озвучка"
   },
   "popup_textFrom": {
     "message": "с"
@@ -677,10 +677,13 @@
     "message": "Ничего не найдено"
   },
   "ui_clearSelection": {
-    "message": "Clear selection"
+    "message": "Очистить выбор"
+  },
+  "ui_clearSearch": {
+    "message": "Очистить поиск"
   },
   "logger_downloadLogs_button": {
-    "message": "Download logs"
+    "message": "Скачать логи"
   },
   "logger_downloadLogs_loading": {
     "message": "Подготавливаем отчёт для загрузки..."
@@ -692,25 +695,22 @@
     "message": "Произошёл непредвиденный сбой при попытке сформировать отчёт"
   },
   "logger_uploadLogs_button": {
-    "message": "Upload logs from file"
+    "message": "Открыть логи из файла"
   },
   "logger_uploadLogs_reading": {
-    "message": "Reading"
+    "message": "Файл"
   },
   "logger_uploadLogs_quitFile": {
-    "message": "Quit reading file"
+    "message": "Закрыть файл"
   },
   "logger_dataTable_rows": {
-    "message": "rows"
-  },
-  "logger_dataTable_clearSearch": {
-    "message": "Clear search"
+    "message": "строк"
   },
   "logger_dataTable_useRegex": {
-    "message": "Use regular expression to search"
+    "message": "Использовать регулярное выражение для поиска"
   },
   "logger_dataTable_columnVisibility": {
-    "message": "Change column visibility"
+    "message": "Изменить отображение колонок"
   },
   "logger_dataTable_isRealtime": {
     "message": "Realtime data"
@@ -721,10 +721,40 @@
   "logger_dataTable_forceRealtime": {
     "message": "Force Realtime"
   },
-  "logger_dataTable_fileReading": {
-    "message": "Reading"
+  "logger_globalFilter_create": {
+    "message": "Создать глобальный фильтр"
   },
-  "logger_dataTable_fileQuit": {
-    "message": "Quit reading file"
+  "logger_globalFilter_applyFilter": {
+    "message": "Применить фильтр"
+  },
+  "logger_globalFilter_removeFilter": {
+    "message": "Отключить фильтр"
+  },
+  "logger_globalFilter_expand": {
+    "message": "Раскрыть опции глобального фильтра"
+  },
+  "logger_globalFilter_collapse": {
+    "message": "Скрыть опции глобального фильтра"
+  },
+  "logger_globalFilter_addNode": {
+    "message": ""
+  },
+  "logger_globalFilter_group": {
+    "message": "Группа"
+  },
+  "logger_globalFilter_condition": {
+    "message": "Условие"
+  },
+  "logger_globalFilter_deleteGroup": {
+    "message": "Удалить группу"
+  },
+  "logger_globalFilter_deleteCondition": {
+    "message": "Удалить условие"
+  },
+  "logger_globalFilter_enableCondition": {
+    "message": "Включить условие"
+  },
+  "logger_globalFilter_disableCondition": {
+    "message": "Отключить условие"
   }
 }

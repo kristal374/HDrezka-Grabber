@@ -129,7 +129,7 @@ export function GlobalFilter<TData extends Record<string, any>>({
               }}
             >
               <FunnelIcon className='size-4' />
-              Create global filter
+              {browser.i18n.getMessage('logger_globalFilter_create')}
             </Button>
           </div>
         ) : (
@@ -154,12 +154,12 @@ export function GlobalFilter<TData extends Record<string, any>>({
               onClick={() => table.resetGlobalFilter()}
             >
               <XIcon className='size-4' />
-              Remove filter
+              {browser.i18n.getMessage('logger_globalFilter_removeFilter')}
             </Button>
           )}
           <Button onClick={() => table.setGlobalFilter(filter)}>
             <FunnelIcon className='size-4' />
-            Apply filter
+            {browser.i18n.getMessage('logger_globalFilter_applyFilter')}
           </Button>
           <Button
             variant='secondary'
@@ -168,8 +168,8 @@ export function GlobalFilter<TData extends Record<string, any>>({
             onClick={() => setIsExpanded((prev) => !prev)}
             title={
               !isExpanded
-                ? 'Expand global filter options'
-                : 'Collapse global filter options'
+                ? browser.i18n.getMessage('logger_globalFilter_expand')
+                : browser.i18n.getMessage('logger_globalFilter_collapse')
             }
           >
             <ChevronDownIcon
@@ -217,10 +217,17 @@ function AddFilterNodeButton({ index }: { index: string }) {
   const context = use(GlobalFilterContext)!;
   const { defaultFilterGroup, mutateFilter } = context;
   const data: DropdownItem[] = [
-    { value: 'condition', label: 'Condition' },
-    { value: 'group', label: 'Group' },
+    {
+      value: 'condition',
+      label: browser.i18n.getMessage('logger_globalFilter_condition'),
+    },
+    {
+      value: 'group',
+      label: browser.i18n.getMessage('logger_globalFilter_group'),
+    },
   ];
   const [value, setValue] = useState(data[0].value);
+  const label = data.find((item) => item.value === value)!.label!;
   return (
     <SplitElement>
       <Button
@@ -236,7 +243,8 @@ function AddFilterNodeButton({ index }: { index: string }) {
         }}
       >
         <PlusIcon className='size-4' />
-        Add {value}
+        {browser.i18n.getMessage('logger_globalFilter_addNode')}{' '}
+        {label.toLowerCase()}
       </Button>
       <div className='bg-settings-border-primary h-full w-px' />
       <Dropdown
@@ -326,7 +334,7 @@ function FilterGroupRender({
             onBlur={() => setIsHighlighted(false)}
           >
             <Trash2Icon className='size-4' />
-            Delete group
+            {browser.i18n.getMessage('logger_globalFilter_deleteGroup')}
           </Button>
         )}
       </div>
@@ -411,7 +419,11 @@ function FilterConditionRender({
             item.skip = !item.skip;
           });
         }}
-        title={condition.skip ? 'Enable condition' : 'Disable condition'}
+        title={
+          condition.skip
+            ? browser.i18n.getMessage('logger_globalFilter_enableCondition')
+            : browser.i18n.getMessage('logger_globalFilter_disableCondition')
+        }
       >
         {condition.skip ? (
           <EyeOffIcon className='size-4' />
@@ -426,7 +438,7 @@ function FilterConditionRender({
           onClick={() => {
             mutateFilter((_getItem, removeItem) => removeItem(index));
           }}
-          title={'Delete condition'}
+          title={browser.i18n.getMessage('logger_globalFilter_deleteCondition')}
         >
           <Trash2Icon className='size-4' />
         </Button>

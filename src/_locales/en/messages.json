@@ -36,7 +36,7 @@
     "message": "Download subtitles only"
   },
   "popup_voiceoverBlock_title": {
-    "message": "Only one voice is available for selection."
+    "message": "Only one voiceover is available"
   },
   "popup_textFrom": {
     "message": "from"
@@ -679,6 +679,9 @@
   "ui_clearSelection": {
     "message": "Clear selection"
   },
+  "ui_clearSearch": {
+    "message": "Clear search"
+  },
   "logger_downloadLogs_button": {
     "message": "Download logs"
   },
@@ -703,9 +706,6 @@
   "logger_dataTable_rows": {
     "message": "rows"
   },
-  "logger_dataTable_clearSearch": {
-    "message": "Clear search"
-  },
   "logger_dataTable_useRegex": {
     "message": "Use regular expression to search"
   },
@@ -720,5 +720,41 @@
   },
   "logger_dataTable_forceRealtime": {
     "message": "Force Realtime"
+  },
+  "logger_globalFilter_create": {
+    "message": "Create global filter"
+  },
+  "logger_globalFilter_applyFilter": {
+    "message": "Apply filter"
+  },
+  "logger_globalFilter_removeFilter": {
+    "message": "Remove filter"
+  },
+  "logger_globalFilter_expand": {
+    "message": "Expand global filter options"
+  },
+  "logger_globalFilter_collapse": {
+    "message": "Collapse global filter options"
+  },
+  "logger_globalFilter_addNode": {
+    "message": "Add"
+  },
+  "logger_globalFilter_group": {
+    "message": "Group"
+  },
+  "logger_globalFilter_condition": {
+    "message": "Condition"
+  },
+  "logger_globalFilter_deleteGroup": {
+    "message": "Delete group"
+  },
+  "logger_globalFilter_deleteCondition": {
+    "message": "Delete condition"
+  },
+  "logger_globalFilter_enableCondition": {
+    "message": "Enable condition"
+  },
+  "logger_globalFilter_disableCondition": {
+    "message": "Disable condition"
   }
 }
