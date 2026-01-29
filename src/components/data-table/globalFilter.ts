@@ -1,28 +1,37 @@
-import  { type BuiltInFilterFn, type Row, filterFns } from '@tanstack/react-table';
+import {
+  type BuiltInFilterFn,
+  type Row,
+  filterFns,
+} from '@tanstack/react-table';
 
-type FilterCondition<TData extends Record<string, any>> = {
+export type FilterCondition = {
   type: 'condition';
-  columnId: keyof TData;
+  columnId: string;
   filterFn: BuiltInFilterFn;
   filterValue: any;
 };
 
-type FilterGroup<TData extends Record<string, any>> = {
+export type FilterGroup = {
   type: 'group';
   operator: 'AND' | 'OR';
-  children: FilterNode<TData>[];
+  children: FilterNode[];
 };
 
-type FilterNode<TData extends Record<string, any>> = FilterCondition<TData> | FilterGroup<TData>;
+export type FilterNode = FilterCondition | FilterGroup;
 
-export function buildLogFilter<TData extends Record<string, any>>(root: FilterNode<TData>) {
-  return (row: Row<TData>): boolean => {
+export function buildGlobalFilter(root: FilterNode) {
+  return (row: Row<any>): boolean => {
     if (root.type === 'condition') {
       const fn = filterFns[root.filterFn];
-      return fn(row, root.columnId as string, root.filterValue, () => undefined);
+      return fn(
+        row,
+        root.columnId as string,
+        root.filterValue,
+        () => undefined,
+      );
     }
 
-    const results = root.children.map((child) => buildLogFilter(child)(row));
+    const results = root.children.map((child) => buildGlobalFilter(child)(row));
 
     return root.operator === 'AND'
       ? results.every(Boolean)
@@ -33,7 +42,7 @@ export function buildLogFilter<TData extends Record<string, any>>(root: FilterNo
 export function globalFilter<TData extends Record<string, any>>(
   row: Row<TData>,
   _columnId: string,
-  match: (row: Row<TData>) => boolean,
+  filterValue: FilterNode,
 ) {
-  return match(row)
+  return buildGlobalFilter(filterValue)(row);
 }

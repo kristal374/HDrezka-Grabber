@@ -1,8 +1,11 @@
+import { globalFilter } from '@/components/data-table/globalFilter';
+import { GlobalFilter } from '@/components/data-table/GlobalFilterComposer';
 import { Toolbar } from '@/components/data-table/Toolbar';
 import { cn, IS_FIREFOX } from '@/lib/utils';
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type GlobalFilterTableState,
   type Table as TanstackTable,
   type VisibilityState,
   flexRender,
@@ -212,6 +215,8 @@ export function StableTable<TData extends Record<string, any>>({
     [],
   );
   const [filters, setFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilterValue, setGlobalFilterValue] =
+    useState<GlobalFilterTableState>();
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
@@ -226,13 +231,16 @@ export function StableTable<TData extends Record<string, any>>({
     // getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setFilters,
+    onGlobalFilterChange: setGlobalFilterValue,
     // onPaginationChange: setPagination,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     columnResizeMode: IS_FIREFOX ? 'onEnd' : 'onChange',
+    globalFilterFn: globalFilter,
     state: {
       sorting,
       columnFilters: filters,
+      globalFilter: globalFilterValue,
       // pagination,
       columnVisibility,
       rowSelection,
@@ -270,12 +278,13 @@ export function StableTable<TData extends Record<string, any>>({
     <div
       className={cn(
         'scrollbar-thumb-check-box scrollbar-background-background',
-        'relative h-full w-full overflow-auto',
+        'relative isolate h-full w-full overflow-auto',
         className,
       )}
       ref={tableContainerRef}
     >
       {showToolbar && <Toolbar table={table} />}
+      <GlobalFilter table={table} />
       <Table
         id='stable'
         style={{

@@ -1,9 +1,11 @@
 import type { LogMessageWithId } from '@/app/hooks/logger/useUpdateLogArray';
 import {
   FacetedFilterHeader,
+  FacetedFilterValueInput,
   facetsFilter,
   FilterValueCell,
   FilterValueHeader,
+  type FilterValueInputProps,
 } from '@/components/data-table/Filters';
 import { ResizeHeader } from '@/components/data-table/HeaderCell';
 import { LogLevel, toFormatTime } from '@/lib/logger';
@@ -27,6 +29,9 @@ declare module '@tanstack/react-table' {
      * Component to render value for the column
      */
     Render?: (props: React.PropsWithChildren) => React.ReactNode;
+    GlobalFilterValueInput?: <TData extends Record<string, any>>(
+      props: FilterValueInputProps<TData>,
+    ) => React.ReactNode;
   }
 }
 
@@ -103,6 +108,7 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
           </span>
         );
       },
+      GlobalFilterValueInput: FacetedFilterValueInput,
     },
     header: ({ column }) => (
       <FacetedFilterHeader
@@ -125,6 +131,7 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
           {children}
         </span>
       ),
+      GlobalFilterValueInput: FacetedFilterValueInput,
     },
     header: ({ column }) => (
       <FacetedFilterHeader
@@ -195,6 +202,7 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     filterFn: facetsFilter,
     meta: {
       headerName: 'Location',
+      GlobalFilterValueInput: FacetedFilterValueInput,
     },
     header: (props) => (
       <ResizeHeader {...props}>

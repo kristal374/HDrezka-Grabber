@@ -28,7 +28,7 @@ export function Logger() {
   // console.log('is realtime', isRealtime);
 
   return (
-    <div className='grid h-screen w-full grid-cols-1 grid-rows-[auto_1fr]'>
+    <div className='grid h-screen w-full grid-cols-1 grid-rows-[auto_1fr_auto]'>
       <div className='flex items-center gap-3 px-3 py-2 *:shrink-0'>
         <DownloadLogsButton dataStore={dataStore} />
         {!IS_FIREFOX && (
@@ -96,6 +96,7 @@ export function Logger() {
           className='col-start-1 row-start-2'
         />
       </DataTableFeatures>
+      <div id='global-filter' className='w-full' />
       <Toaster
         position='bottom-right'
         expand={true}
