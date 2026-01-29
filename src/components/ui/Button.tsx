@@ -25,7 +25,7 @@ export function Button({
         variant === 'primary' &&
           'bg-link-color not-disabled:hover:bg-link-color/75 text-white',
         variant === 'secondary' &&
-          'bg-input-active not-disabled:hover:bg-settings-border-primary',
+          'bg-input-active not-disabled:hover:bg-settings-border-primary in-[.bg-settings-border-primary]:not-disabled:hover:bg-background',
         variant === 'outline' &&
           'border-settings-border-primary bg-settings-background-secondary text-settings-text-primary not-disabled:hover:bg-input focus-visible:bg-input border',
         variant === 'ghost' &&

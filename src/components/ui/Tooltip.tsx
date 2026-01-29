@@ -39,7 +39,7 @@ function TooltipContent({
       >
         <TooltipPrimitive.Popup
           className={cn(
-            'bg-input text-light-color border-input-active border shadow-md outline-none',
+            'bg-settings-border-primary text-light-color border-input-active border shadow-md outline-none',
             'w-fit rounded-md px-2 py-1.5 text-xs text-balance',
             'origin-(--transform-origin) transition-[transform,scale,opacity]',
             'data-ending-style:scale-90 data-ending-style:opacity-0 data-instant:transition-none',

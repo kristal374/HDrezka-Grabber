@@ -51,7 +51,7 @@ function FacetedFilterHeader<TData extends Record<string, any>>({
       <Dropdown
         data={data}
         clearSelection={true}
-        onValuesChange={(values) => {
+        onValueChange={(values) => {
           column.setFilterValue(values.length ? values : undefined);
           setSelectedValues(values);
         }}

@@ -9,6 +9,7 @@ import { DynamicTable } from '@/components/data-table/DynamicTable';
 import { DataTableFeatures } from '@/components/data-table/FeaturesContext';
 import { Button } from '@/components/ui/Button';
 import { CheckboxWithLabel } from '@/components/ui/Checkbox';
+import type { SetState } from '@/lib/types';
 import { cn, IS_FIREFOX } from '@/lib/utils';
 import { TimerResetIcon, XIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -47,6 +48,7 @@ export function Logger() {
               setIsRealtime={setIsRealtime}
               switchToStable={switchToStable}
               setSwitchToStable={setSwitchToStable}
+              setForceRealtime={setForceRealtime}
             />
             <CheckboxWithLabel
               checked={forceRealtime}
@@ -107,9 +109,10 @@ export function Logger() {
 
 interface RealtimeIndicatorProps {
   isRealtime: boolean;
-  setIsRealtime: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsRealtime: SetState<boolean>;
   switchToStable: boolean;
-  setSwitchToStable: React.Dispatch<React.SetStateAction<boolean>>;
+  setSwitchToStable: SetState<boolean>;
+  setForceRealtime: SetState<boolean>;
 }
 
 function RealtimeIndicator({
@@ -117,6 +120,7 @@ function RealtimeIndicator({
   setIsRealtime,
   switchToStable,
   setSwitchToStable,
+  setForceRealtime,
 }: RealtimeIndicatorProps) {
   return (
     <Button
@@ -125,6 +129,7 @@ function RealtimeIndicator({
         if (FORCE_REALTIME_ONLY) return;
         setIsRealtime(!isRealtime);
         setSwitchToStable(isRealtime);
+        setForceRealtime(false);
       }}
       disabled={!isRealtime && !switchToStable}
       className={cn(

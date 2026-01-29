@@ -1,13 +1,14 @@
 import { RealtimeTable, StableTable } from '@/components/data-table/DataTable';
+import type { SetState } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Activity, useEffect, useMemo, useState } from 'react';
 
 interface DynamicTableProps<TData extends Record<string, any>> {
   isRealtime: boolean;
-  setIsRealtime: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsRealtime: SetState<boolean>;
   switchToStable: boolean;
-  setSwitchToStable: React.Dispatch<React.SetStateAction<boolean>>;
+  setSwitchToStable: SetState<boolean>;
   forceRealtime?: boolean;
   columns: ColumnDef<TData>[];
   realtimeData: TData[];

@@ -13,33 +13,48 @@ type DataItem = {
 
 export { DataItem as DropdownItem };
 
-interface DropdownProps {
+type DropdownProps = {
   /**
    * ClassName for the items in the list
    */
   itemClassName?: string;
   align?: 'start' | 'center' | 'end';
   side?: 'top' | 'bottom' | 'left' | 'right';
+  /**
+   * Allow multiple selection
+   * @default true
+   */
+  multiple?: boolean;
   data: DataItem[];
-  values?: string[];
-  onValuesChange?: (values: string[]) => void;
   onValueHover?: (value: string) => void;
   onValueClick?: (value: string) => void;
-  needSearch?: boolean;
+  // needSearch?: boolean;
   clearSelection?: boolean;
   children: React.ReactElement;
-}
+} & (
+  | {
+      multiple?: true;
+      value?: string[];
+      onValueChange?: (values: string[]) => void;
+    }
+  | {
+      multiple: false;
+      value?: string;
+      onValueChange?: (value: string) => void;
+    }
+);
 
 export function Dropdown({
   itemClassName,
   align = 'end',
   side,
+  multiple = true,
   data,
-  values,
-  onValuesChange,
+  value,
+  onValueChange,
   onValueHover,
   onValueClick,
-  needSearch,
+  // needSearch,
   clearSelection,
   children,
 }: DropdownProps) {
@@ -47,9 +62,9 @@ export function Dropdown({
   const [selectedItems, setSelectedItems] = useState<DataItem[]>([]);
   useEffect(() => {
     setSelectedItems(
-      values ? items.filter((item) => values.includes(item.value)) : [],
+      value ? items.filter((item) => value.includes(item.value)) : [],
     );
-  }, [values]);
+  }, [value]);
   const labelRender = useCallback((item: DataItem, isPreview: boolean) => {
     const children = item.label;
     return (
@@ -62,12 +77,20 @@ export function Dropdown({
   return (
     <ComboboxPrimitive.Root
       items={items}
-      value={selectedItems}
-      multiple={true}
+      value={multiple ? selectedItems : (selectedItems[0] ?? null)}
+      multiple={multiple}
       autoHighlight={true}
       onValueChange={(values) => {
-        setSelectedItems(values);
-        onValuesChange?.(values.map((item) => item.value));
+        const isMulti = Array.isArray(values);
+        // prettier-ignore
+        const newValues = isMulti
+          ? values : !!values ? [values] : [];
+        setSelectedItems(newValues);
+        if (!values) return;
+        onValueChange?.(
+          // @ts-expect-error
+          isMulti ? values.map((item) => item.value) : values.value,
+        );
       }}
       onItemHighlighted={(item) => {
         if (item) onValueHover?.(item.value);
@@ -87,7 +110,7 @@ export function Dropdown({
           <ComboboxPrimitive.Popup
             className={cn(
               'max-h-[26rem] max-w-(--available-width) min-w-[max(9.5rem,var(--anchor-width))] origin-(--transform-origin)',
-              'transition-[transform,scale,opacity] duration-300 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
+              'transition-[transform,scale,opacity] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
               'bg-input text-foreground border-input-active rounded-md border shadow-md outline-none',
             )}
           >
@@ -128,7 +151,9 @@ export function Dropdown({
                   className='grow pl-2'
                   onClick={() => {
                     setSelectedItems([]);
-                    onValuesChange?.([]);
+                    if (!multiple) return;
+                    // @ts-expect-error
+                    onValueChange?.([]);
                   }}
                 >
                   <XCircleIcon className='size-4' />

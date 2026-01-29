@@ -173,6 +173,12 @@
   }
 }
 
+@custom-variant interactive {
+  &:where(div, button, input:not([aria-hidden]):not([hidden])) {
+    @slot;
+  }
+}
+
 @layer base {
   body {
     @apply bg-background text-foreground;

@@ -2,6 +2,7 @@ import { useDataTableFeatures } from '@/components/data-table/FeaturesContext';
 import { Button } from '@/components/ui/Button';
 import { Dropdown, type DropdownItem } from '@/components/ui/Dropdown';
 import { Input } from '@/components/ui/Input';
+import { SplitElement } from '@/components/ui/SplitElement';
 import {
   Tooltip,
   TooltipContent,
@@ -41,7 +42,7 @@ export function Toolbar<TData extends Record<string, any>>({
 
   return createPortal(
     <div className='flex items-center gap-3'>
-      <p className='mr-auto flex text-base font-medium'>
+      <p className='mr-auto flex items-baseline text-base font-medium'>
         <span className='grid-stack'>
           <span className='invisible select-none'>
             {`4 ${totalRowsString.replaceAll(/\d/g, '4').slice(0, -1)}`}
@@ -91,8 +92,8 @@ function SearchInput<TData extends Record<string, any>>({
   return (
     <Tooltip open={!!regexError}>
       <TooltipTrigger>
-        <div className='flex w-72'>
-          <div className='relative isolate grow focus-within:z-1'>
+        <SplitElement className='w-72'>
+          <div className='grow'>
             <Input
               value={search}
               onChange={(e) => {
@@ -125,7 +126,6 @@ function SearchInput<TData extends Record<string, any>>({
             <Button
               variant={enableRegex ? 'primary' : 'secondary'}
               size='square-large'
-              className='relative rounded-l-none'
               onClick={() => {
                 const newEnableRegex = !enableRegex;
                 setEnableRegex(newEnableRegex);
@@ -136,7 +136,7 @@ function SearchInput<TData extends Record<string, any>>({
               <RegexIcon className='size-4' />
             </Button>
           )}
-        </div>
+        </SplitElement>
       </TooltipTrigger>
       <TooltipContent align='start' side='bottom' className='bg-red-900'>
         <p className='text-sm'>{regexError}</p>
@@ -162,7 +162,7 @@ function ColumnVisibilityMenu<TData extends Record<string, any>>({
   return (
     <Dropdown
       data={data}
-      values={initialValues}
+      value={initialValues}
       onValueClick={(value) => table.getColumn(value)?.toggleVisibility()}
     >
       <Button
