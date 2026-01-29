@@ -154,7 +154,13 @@ export class QueueController {
     });
   }
 
-  private async skipDownload({ movieId }: { movieId: number }) {
+  private async skipDownload({
+    movieId,
+    logger = globalThis.logger,
+  }: {
+    movieId: number;
+    logger?: Logger;
+  }) {
     // Пропускает загрузку одного файла
     logger.info('Skipping download for movie:', movieId);
 
@@ -229,7 +235,14 @@ export class QueueController {
     // Отменяет и при необходимости прерывает загрузку с удалением из очереди
     logger.debug('Canceling download:', loadItem, cause);
 
-    if (!loadItem || loadIsCompleted(loadItem.status)) return loadItem;
+    if (
+      !loadItem ||
+      (loadIsCompleted(loadItem.status) &&
+        !this.activeDownloads.state.includes(loadItem.id))
+    ) {
+      return loadItem;
+    }
+
     loadItem.status = cause;
 
     if (this.activeDownloads.state.includes(loadItem.id)) {
@@ -519,9 +532,17 @@ export class QueueController {
     );
 
     const index = this.activeDownloads.state.indexOf(loadItem.id);
-    this.activeDownloads.update((state) => {
-      state.splice(index, 1);
-    });
+    if (index !== -1) {
+      this.activeDownloads.update((state) => {
+        state.splice(index, 1);
+      });
+    } else {
+      logger.critical(
+        'Failed to find an active download:',
+        loadItem,
+        this.activeDownloads.state,
+      );
+    }
 
     if (cause === LoadStatus.StoppedByUser) return;
 
@@ -534,7 +555,7 @@ export class QueueController {
       if (actionOnNoUrl === 'stop') {
         return await this.stopDownload({ movieId: loadItem.movieId, logger });
       } else if (actionOnNoUrl === 'skip') {
-        return await this.skipDownload({ movieId: loadItem.movieId });
+        return await this.skipDownload({ movieId: loadItem.movieId, logger });
       } else if (
         actionOnNoUrl === 'ignore' &&
         fileItem.fileType === 'subtitle'
@@ -553,7 +574,7 @@ export class QueueController {
     if (action === 'stop') {
       await this.stopDownload({ movieId: loadItem.movieId, logger });
     } else if (action === 'skip') {
-      await this.skipDownload({ movieId: loadItem.movieId });
+      await this.skipDownload({ movieId: loadItem.movieId, logger });
     } else {
       throw new Error('Unknown action on load error');
     }

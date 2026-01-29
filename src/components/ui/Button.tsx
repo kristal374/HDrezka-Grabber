@@ -1,8 +1,8 @@
 import { cn } from '@/lib/utils';
 
-interface ButtonProps extends React.ComponentProps<'button'> {
-  size?: 'default' | 'square';
-  variant?: 'primary' | 'outline' | 'ghost' | 'dangerous';
+export interface ButtonProps extends React.ComponentProps<'button'> {
+  size?: 'default' | 'square' | 'square-large';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'dangerous';
 }
 
 export function Button({
@@ -21,14 +21,17 @@ export function Button({
         'disabled:cursor-not-allowed disabled:opacity-50',
         size === 'default' && 'px-3 pt-1.25 pb-1.5',
         size === 'square' && 'p-1',
+        size === 'square-large' && 'px-2.5 py-2.25',
         variant === 'primary' &&
           'bg-link-color not-disabled:hover:bg-link-color/75 text-white',
+        variant === 'secondary' &&
+          'bg-input-active not-disabled:hover:bg-settings-border-primary in-[.bg-settings-border-primary]:not-disabled:hover:bg-background',
         variant === 'outline' &&
           'border-settings-border-primary bg-settings-background-secondary text-settings-text-primary not-disabled:hover:bg-input focus-visible:bg-input border',
         variant === 'ghost' &&
           'not-disabled:hover:bg-input focus-visible:bg-input',
         variant === 'dangerous' &&
-          'text-settings-text-tertiary not-disabled:hover:bg-red-500/10 not-disabled:hover:text-red-400 focus-visible:bg-red-500/10 focus-visible:text-red-400',
+          'bg-red-500/15 text-red-500 not-disabled:hover:bg-red-500/40 not-disabled:hover:text-red-200 focus-visible:bg-red-500/40 focus-visible:text-red-200',
         className,
       )}
       type='button'

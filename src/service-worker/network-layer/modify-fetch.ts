@@ -55,7 +55,13 @@ export function urlToString(input: string | URL | Request) {
     : input.url;
 }
 
-export function abortFetch(input: string | URL | Request) {
+export function abortFetch({
+  input,
+  logger = globalThis.logger,
+}: {
+  input: string | URL | Request;
+  logger: Logger;
+}) {
   const url = urlToString(input);
   const controller = inFlightFetches.get(url);
   if (!controller || controller.signal.aborted) return;
@@ -65,7 +71,13 @@ export function abortFetch(input: string | URL | Request) {
   inFlightFetches.delete(url);
 }
 
-export function abortAllFetches(reason: string = 'Canceled.') {
+export function abortAllFetches({
+  reason = 'Canceled.',
+  logger = globalThis.logger,
+}: {
+  reason?: string;
+  logger?: Logger;
+}) {
   logger.info('Aborting all active fetches.');
 
   inFlightFetches.forEach((signal) => signal.abort(reason));

@@ -206,8 +206,8 @@ async function clearExtensionData({
   await downloadManager.cancelAllDownload({ logger });
 
   // Прерываем активные запросы, иначе могут возникнуть ошибки после удаления БД
-  abortAllFetches();
-  stopAllVideoReader();
+  abortAllFetches({ logger });
+  stopAllVideoReader({ logger });
 
   // Ждём 3 секунды чтоб усели обработаться все события в downloadManager
   await new Promise((resolve) => setTimeout(resolve, 3000));

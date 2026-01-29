@@ -923,7 +923,7 @@ export class DownloadManager {
     const oldDownloadId = fileItem.downloadId;
 
     fileItem.retryAttempts++;
-    fileItem.status = LoadStatus.DownloadFailed;
+    fileItem.status = LoadStatus.InitiatingDownload;
 
     // Мы должны удалить старую связь с объектом загрузки браузера,
     // ибо, когда загрузка будет удалена из истории: браузер вызовет
@@ -943,25 +943,13 @@ export class DownloadManager {
       await browser.downloads.erase({ id: oldDownloadId });
     }
 
-    if (repeatNow) {
-      // Даём небольшую задержку, чтобы при старте браузер успел инициализироваться
-      logger.debug('Starting download again immediately.');
-      setTimeout(
-        this.executeRetry.bind(this, {
-          loadItemId: fileItem.relatedLoadItemId,
-          targetFileId: fileItem.id,
-          logger,
-        }),
-        5000,
-      );
-    } else {
-      logger.debug(
-        `Download is scheduled to repeat in ${settings.timeBetweenDownloadAttempts / 1000}s`,
-      );
-      const taskName = `repeat-download-${fileItem.relatedLoadItemId}-${fileItem.id}`;
-      const when = Date.now() + settings.timeBetweenDownloadAttempts;
-      browser.alarms.create(taskName, { when });
-    }
+    // Если запускаем загрузку мгновенно, всё равно даём небольшую задержку,
+    // чтобы при старте браузер успел инициализироваться полностью
+    const delayValue = repeatNow ? 3000 : settings.timeBetweenDownloadAttempts;
+    logger.debug(`Download is scheduled to repeat in ${delayValue / 1000}s`);
+    const taskName = `repeat-download-${fileItem.relatedLoadItemId}-${fileItem.id}`;
+    const when = Date.now() + delayValue;
+    browser.alarms.create(taskName, { when }).then();
 
     this.resourceLockManager.unlock({
       type: 'loadStorage',
@@ -981,7 +969,7 @@ export class DownloadManager {
     logger?: Logger;
   }) {
     // Запускает повторную попытку загрузки
-    logger.attachMetadata({ targetKey: loadItemId });
+    logger = logger.attachMetadata({ targetKey: loadItemId });
     logger.info('Trying to download again:', loadItemId);
 
     await this.resourceLockManager.lock({
@@ -1002,6 +990,16 @@ export class DownloadManager {
       targetFileId,
     )) as FileItem;
 
+    if (loadIsCompleted(targetFile.status)) {
+      logger.warning('Retry failed. Target file is already completed.');
+      this.resourceLockManager.unlock({
+        type: 'loadStorage',
+        id: loadItemId,
+        logger,
+      });
+      return;
+    }
+
     const siteLoader = siteLoaderFactory[loadItem.siteType];
     const siteLoadItem = await siteLoader.build(loadItem);
 
@@ -1009,7 +1007,6 @@ export class DownloadManager {
       targetFile.fileType === 'video'
         ? await siteLoadItem.getVideoUrl({ logger })
         : await siteLoadItem.getSubtitlesUrl({ logger });
-    targetFile.status = LoadStatus.InitiatingDownload;
 
     await indexedDBObject.put('fileStorage', targetFile);
 

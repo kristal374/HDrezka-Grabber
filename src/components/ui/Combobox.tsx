@@ -1,15 +1,17 @@
 import { cn } from '@/lib/utils';
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox';
 import { ChevronDownIcon } from 'lucide-react';
-import { useCallback, useState, type JSX } from 'react';
+import { useCallback, useState } from 'react';
 
 type DataItem = {
   value: string;
   label: string;
   labelComponent?: (
     props: React.PropsWithChildren<{ isRenderingInPreview: boolean }>,
-  ) => JSX.Element;
+  ) => React.ReactNode;
 };
+
+export { DataItem as ComboboxItem };
 
 interface ComboboxProps {
   /**
@@ -60,7 +62,7 @@ export function Combobox({
   needSearch,
   showChevron,
   title,
-  placeholder: placeholderProp,
+  placeholder,
   disabled,
 }: ComboboxProps) {
   const items = data;
@@ -71,14 +73,12 @@ export function Combobox({
       item.labelComponent?.({
         children,
         isRenderingInPreview: isPreview,
-      }) ?? children
+      }) ?? <span className='line-clamp-1 text-ellipsis'>{children}</span>
     );
   }, []);
 
   const [inputValue, setInputValue] = useState(!needSearch ? '' : undefined);
 
-  const placeholder =
-    placeholderProp ?? browser.i18n.getMessage('combobox_placeholder');
   return (
     <ComboboxPrimitive.Root
       items={items}
@@ -99,9 +99,8 @@ export function Combobox({
       <div
         className={cn(
           'group relative grid',
-          showChevron &&
-            '[&>[data-combobox-adjustable-trigger-element]]:pr-6.5',
-          // 'has-[.combobox-clear]:[&>[data-combobox-adjustable-trigger-element]]:pr-12.5',
+          showChevron && '*:data-combobox-trigger-element:pr-6.5',
+          // 'has-[.combobox-clear]:[&>[data-combobox-trigger-element]]:pr-12.5',
           'focus-ring focus-ring-within rounded-md border-[0.125rem] text-sm',
           'text-foreground border-input bg-background aria-disabled:opacity-50',
           'not-aria-disabled:hover:border-input-active not-aria-disabled:hover:bg-input',
@@ -130,13 +129,13 @@ export function Combobox({
               className,
             )}
             style={{ width }}
-            placeholder={placeholder}
+            placeholder={placeholder ?? browser.i18n.getMessage('ui_search')}
             onClick={(e) => {
               // @ts-ignore
               e.target.setSelectionRange(0, -1);
             }}
             disabled={disabled}
-            data-combobox-adjustable-trigger-element
+            data-combobox-trigger-element
           />
         )}
         <ComboboxPrimitive.Value>
@@ -145,14 +144,17 @@ export function Combobox({
               <div
                 className={cn(
                   'pointer-events-none col-start-1 row-start-1',
-                  'flex cursor-pointer items-center px-2 py-1.5 select-none',
+                  'flex cursor-pointer items-center overflow-hidden px-2 py-1.5 select-none',
                   needSearch && 'group-focus-within:invisible',
                   !item && 'text-foreground/70',
                   className,
                 )}
-                data-combobox-adjustable-trigger-element
+                style={{ maxWidth: width }}
+                data-combobox-trigger-element
               >
-                {item ? labelRender(item, true) : placeholder}
+                {item
+                  ? labelRender(item, true)
+                  : (placeholder ?? browser.i18n.getMessage('ui_selectValue'))}
               </div>
             );
           }}
@@ -182,16 +184,16 @@ export function Combobox({
           <ComboboxPrimitive.Popup
             className={cn(
               'max-h-[23rem] max-w-(--available-width) min-w-(--anchor-width) origin-(--transform-origin)',
-              'transition-[transform,scale,opacity] duration-100 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
+              'transition-[transform,scale,opacity] duration-100 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
               'bg-input text-foreground border-input-active rounded-md border shadow-md outline-none',
             )}
           >
             <ComboboxPrimitive.Empty className='px-2.5 py-6 text-center text-sm empty:m-0 empty:p-0'>
-              {browser.i18n.getMessage('combobox_empty')}
+              {browser.i18n.getMessage('ui_noResults')}
             </ComboboxPrimitive.Empty>
             <ComboboxPrimitive.List
               className={cn(
-                'scroll-container max-h-[min(23rem,var(--available-height))] scroll-py-1 overflow-y-auto overscroll-contain p-1 outline-0 data-[empty]:p-0',
+                'scroll-container max-h-[min(23rem,var(--available-height))] scroll-py-1 overflow-y-auto overscroll-contain p-1 outline-0 data-empty:p-0',
               )}
             >
               {(item: DataItem) => (
@@ -199,9 +201,9 @@ export function Combobox({
                   key={item.value}
                   value={item}
                   className={cn(
-                    'data-[selected]:bg-input-active data-[highlighted]:!bg-link-color data-[highlighted]:text-foreground',
+                    'data-selected:bg-input-active data-highlighted:bg-link-color! data-highlighted:text-foreground',
                     'relative flex grow cursor-default items-center rounded-sm px-2 py-1.5 text-sm select-none',
-                    'outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+                    'outline-none data-disabled:pointer-events-none data-disabled:opacity-50',
                     itemClassName,
                   )}
                 >

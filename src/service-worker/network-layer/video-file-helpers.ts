@@ -124,14 +124,24 @@ export async function probeVideoFile({
     });
 }
 
-export function stopAllVideoReader() {
+export function stopAllVideoReader({
+  logger = globalThis.logger,
+}: {
+  logger?: Logger;
+}) {
   logger.info('Stopping all video readers.');
 
   activeReader.forEach((reader) => reader.dispose());
   activeReader.clear();
 }
 
-export function stopVideoReader(url: string) {
+export function stopVideoReader({
+  url,
+  logger = globalThis.logger,
+}: {
+  url: string;
+  logger?: Logger;
+}) {
   const reader = activeReader.get(url);
   if (!reader) return;
 

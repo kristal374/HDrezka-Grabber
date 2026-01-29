@@ -1,19 +1,17 @@
 import { cn } from '@/lib/utils';
-import { Popover as PopoverPrimitive } from '@base-ui/react/popover';
+import {
+  PopoverPositionerProps,
+  Popover as PopoverPrimitive,
+  PopoverTriggerProps,
+} from '@base-ui/react/popover';
 
 const Popover = PopoverPrimitive.Root;
 
 function PopoverTrigger({
   children,
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
-  return (
-    <PopoverPrimitive.Trigger
-      // @ts-ignore
-      render={children}
-      {...props}
-    />
-  );
+}: PopoverTriggerProps & { children: React.ReactElement }) {
+  return <PopoverPrimitive.Trigger render={children} {...props} />;
 }
 
 function PopoverContent({
@@ -23,7 +21,7 @@ function PopoverContent({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Positioner>) {
+}: PopoverPositionerProps) {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner

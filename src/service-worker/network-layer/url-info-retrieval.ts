@@ -83,8 +83,8 @@ export async function getOriginalUrlItem({
   return await Promise.any(promises)
     .then((result) => {
       request.urlsList.forEach((item) => {
-        stopVideoReader(item);
-        abortFetch(item);
+        stopVideoReader({ url: item, logger });
+        abortFetch({ input: item, logger });
       });
       return result;
     })

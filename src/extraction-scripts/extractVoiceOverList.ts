@@ -7,7 +7,16 @@ export async function getVoiceOverList(tabId: number) {
       func: extractVoiceOversList,
     })
     .then((response) => {
-      return response[0].result as VoiceOverInfo[] | null;
+      let result = response[0].result as VoiceOverInfo[] | null;
+      if (!!result) {
+        result = result.map((item) => {
+          if (item.title.startsWith('popup_translate_')) {
+            item.title = browser.i18n.getMessage(item.title);
+          }
+          return item;
+        });
+      }
+      return result;
     });
 }
 
@@ -53,10 +62,10 @@ async function extractVoiceOversList(): Promise<VoiceOverInfo[] | null> {
       elements.length !== 0
         ? elements[0].children[1].textContent!.trim()
         : translatorID === '110'
-          ? browser.i18n.getMessage('popup_translate_original')
+          ? 'popup_translate_original'
           : translatorID === '0'
-            ? browser.i18n.getMessage('popup_translate_numberOne')
-            : browser.i18n.getMessage('popup_translate_unknown');
+            ? 'popup_translate_numberOne'
+            : 'popup_translate_unknown';
     const voiceOver: VoiceOverInfo = {
       id: translatorID,
       title: translatorName,

@@ -23,7 +23,11 @@ export default defineConfig({
     outDir: '../../dist/build/HDrezka-Grabber.build',
     emptyOutDir: false,
     rollupOptions: {
-      input: ['src/html/popup.html', 'src/html/settings.html'],
+      input: [
+        'src/html/popup.html',
+        'src/html/settings.html',
+        'src/html/logger.html',
+      ],
       output: {
         assetFileNames: 'src/[ext]/[name][extname]',
         chunkFileNames: 'src/js/[name].js',

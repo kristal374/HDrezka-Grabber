@@ -1,18 +1,19 @@
-import browser, { Manifest } from 'webextension-polyfill';
+import browser from 'webextension-polyfill';
 
 import { LogLevel, LogMessage } from '@/lib/logger/types';
 import { hashCode } from '@/lib/utils';
 
 let lastCallTime: number = 0;
 
-function toFormatTime(time: number): string {
-  // Подготавливает строку времени в удобочитаемый формат -
-  // количество времени прошедшего с момента последнего вызова
+/**
+ * Подготавливает строку времени в удобочитаемый формат -
+ * количество времени прошедшего с момента последнего вызова
+ */
+export function toFormatTime(time: number, base: number): string {
   const pad = (value: number, length: number): string =>
     value.toString().padStart(length, '0');
 
-  const diff = lastCallTime ? time - lastCallTime : null;
-  lastCallTime = time;
+  const diff = !!base ? time - base : null;
 
   if (diff === null || diff < 0 || diff >= 60 * 1000) {
     const hour = Math.floor(time / (60 * 60 * 1000)) % 24;
@@ -34,7 +35,7 @@ function toFormatTime(time: number): string {
 
 export function printLog(message: LogMessage) {
   // Вывод цветного сообщения в консоль
-  const timestamp = toFormatTime(message.timestamp);
+  const timestamp = toFormatTime(message.timestamp, lastCallTime);
   const extensionDomain = browser.runtime.getURL('');
   const location = `${extensionDomain}${message.location}`;
 
@@ -43,6 +44,7 @@ export function printLog(message: LogMessage) {
   } else {
     printLogForChrome(message, timestamp, location);
   }
+  lastCallTime = message.timestamp;
 }
 
 function printLogForChrome(
@@ -139,17 +141,14 @@ export function isBackground() {
   let background = manifest.background;
   switch (manifest.manifest_version) {
     case 1:
-      background = background as Manifest.WebExtensionManifestBackgroundC1Type;
-      return isCurrentPathname(background.page);
+      return isCurrentPathname(background?.page);
     case 2:
-      background = background as Manifest.WebExtensionManifestBackgroundC2Type;
       return Boolean(
-        background.scripts &&
+        background?.scripts &&
         isCurrentPathname('/_generated_background_page.html'),
       );
     case 3:
-      background = background as Manifest.WebExtensionManifestBackgroundC3Type;
-      return isCurrentPathname(background.service_worker);
+      return isCurrentPathname(background?.service_worker);
     default:
       return false;
   }

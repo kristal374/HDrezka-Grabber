@@ -27,7 +27,7 @@ export function Menu({ className }: MenuProps) {
       </MenuButton> */}
       {settings.enableLogger && (
         <MenuButton
-          href='/debugWindow'
+          href='/logger'
           title={browser.i18n.getMessage('popup_menu_debugWindow')}
         >
           <SquareTerminalIcon className='size-8' strokeWidth={1.5} />

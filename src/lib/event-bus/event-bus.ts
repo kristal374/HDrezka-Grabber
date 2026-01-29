@@ -56,7 +56,7 @@ export class BufferedEventBus<
       new Map<keyof T, Handler<T, keyof T>>();
     if (map.has(eventName)) return;
 
-    const handler = this.modifyHandler(eventName);
+    const handler = this.modifyHandler(eventName, source);
     map.set(eventName, handler as Handler<T>);
 
     if ('addListener' in source) {
@@ -153,14 +153,38 @@ export class BufferedEventBus<
     }
   }
 
-  private modifyHandler<K extends keyof T>(type: K): Handler<T, K> {
+  private modifyHandler<K extends keyof T>(
+    type: K,
+    source: ListenerSource<any> | EventTargetSource<any>,
+  ): Handler<T, K> {
     return (...args) => {
       if (this.isReady && this.listeners.get(type)?.size) {
         return this.callHandlersAndCollect(type, args);
       } else {
-        return new Promise((resolve, reject) => {
+        const promise = new Promise((originResolve, reject) => {
+          let resolve: (value: unknown) => void = originResolve;
+          if (source === browser.runtime.onMessage) {
+            resolve = (value: unknown) => {
+              if (value === true) {
+                // Мы уже пометили, что ответ будет дан асинхронно через sendResponse
+              } else if (value === undefined || value === false) {
+                // Поскольку мы уже сказали, что ответ будет дан через
+                // sendResponse, попытка вернуть false или undefined в качестве
+                // отказа от обработки будет принята как ответ обработчика,
+                // и поскольку мы не можем асинхронно отказаться от обработки
+                // вместо этого мы поднимаем ошибку в качестве отказа
+                throw new Error(
+                  'Cannot opt out of processing in an asynchronous response.',
+                );
+              } else {
+                originResolve(value);
+              }
+            };
+          }
+
           this.queue.push({ type, args, resolve, reject });
         });
+        return source === browser.runtime.onMessage ? true : promise;
       }
     };
   }
