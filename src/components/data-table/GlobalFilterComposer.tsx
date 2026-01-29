@@ -1,5 +1,6 @@
 import { DefaultFilterValueInput } from '@/components/data-table/Filters';
 import {
+  filterFunctions,
   type FilterCondition,
   type FilterGroup,
 } from '@/components/data-table/globalFilter';
@@ -8,9 +9,11 @@ import { Combobox } from '@/components/ui/Combobox';
 import { Dropdown, type DropdownItem } from '@/components/ui/Dropdown';
 import { SplitElement } from '@/components/ui/SplitElement';
 import { cn } from '@/lib/utils';
-import { filterFns, type Table as TanstackTable } from '@tanstack/react-table';
+import type { Table as TanstackTable } from '@tanstack/react-table';
 import {
   ChevronDownIcon,
+  EyeIcon,
+  EyeOffIcon,
   FunnelIcon,
   PlusIcon,
   Trash2Icon,
@@ -163,7 +166,11 @@ export function GlobalFilter<TData extends Record<string, any>>({
             size='square'
             className='border-input-active ml-1 border-[0.125rem]'
             onClick={() => setIsExpanded((prev) => !prev)}
-            title={'Expand global filter options'}
+            title={
+              !isExpanded
+                ? 'Expand global filter options'
+                : 'Collapse global filter options'
+            }
           >
             <ChevronDownIcon
               className={cn(
@@ -249,9 +256,11 @@ function AddFilterNodeButton({ index }: { index: string }) {
 function FilterGroupRender({
   group,
   index,
+  isOnly,
 }: {
   group: FilterGroup;
   index: string;
+  isOnly?: boolean;
 }) {
   const [isHighlighted, setIsHighlighted] = useState(false);
   const context = use(GlobalFilterContext)!;
@@ -283,16 +292,21 @@ function FilterGroupRender({
         />
         <FilterGroupOneToManyElement group={group} />
         <div className='flex flex-col'>
-          {group.children.map((condition, i) => {
+          {group.children.map((condition, i, arr) => {
             const childIndex = isFirst ? String(i) : `${index}-${i}`;
             return condition.type === 'group' ? (
-              <FilterGroupRender key={i} group={condition} index={childIndex} />
+              <FilterGroupRender
+                key={i}
+                group={condition}
+                index={childIndex}
+                isOnly={arr.length === 1}
+              />
             ) : (
               <FilterConditionRender
                 key={i}
                 condition={condition}
                 index={childIndex}
-                isFirst={i === 0}
+                isOnly={arr.length === 1}
               />
             );
           })}
@@ -300,7 +314,7 @@ function FilterGroupRender({
       </div>
       <div className='ml-[5.5rem] flex gap-2 py-1'>
         <AddFilterNodeButton index={index} />
-        {!isFirst && (
+        {!(isFirst || isOnly) && (
           <Button
             variant='dangerous'
             onClick={() => {
@@ -323,11 +337,11 @@ function FilterGroupRender({
 function FilterConditionRender({
   condition,
   index,
-  isFirst,
+  isOnly,
 }: {
   condition: FilterCondition;
   index: string;
-  isFirst: boolean;
+  isOnly?: boolean;
 }) {
   const context = use(GlobalFilterContext)!;
   const { table, mutateFilter } = context;
@@ -358,10 +372,11 @@ function FilterConditionRender({
           });
         }}
         showChevron
+        disabled={condition.skip}
       />
       <Combobox
         width={'11rem'}
-        data={Object.keys(filterFns).map((filterFn) => {
+        data={Object.keys(filterFunctions).map((filterFn) => {
           return { value: filterFn, label: filterFn };
         })}
         value={condition.filterFn}
@@ -372,6 +387,7 @@ function FilterConditionRender({
           });
         }}
         showChevron
+        disabled={condition.skip}
       />
       {!!FilterValueInput && !!column && (
         <FilterValueInput
@@ -383,9 +399,27 @@ function FilterConditionRender({
               getItem(index, 'condition').filterValue = filterValue;
             });
           }}
+          disabled={condition.skip}
         />
       )}
-      {!isFirst && (
+      <Button
+        variant='secondary'
+        size='square'
+        onClick={() => {
+          mutateFilter((getItem) => {
+            const item = getItem(index, 'condition');
+            item.skip = !item.skip;
+          });
+        }}
+        title={condition.skip ? 'Enable condition' : 'Disable condition'}
+      >
+        {condition.skip ? (
+          <EyeOffIcon className='size-4' />
+        ) : (
+          <EyeIcon className='size-4' />
+        )}
+      </Button>
+      {!isOnly && (
         <Button
           variant='dangerous'
           size='square'

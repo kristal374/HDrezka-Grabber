@@ -73,7 +73,7 @@ export function Combobox({
       item.labelComponent?.({
         children,
         isRenderingInPreview: isPreview,
-      }) ?? children
+      }) ?? <span className='line-clamp-1 text-ellipsis'>{children}</span>
     );
   }, []);
 
@@ -99,8 +99,8 @@ export function Combobox({
       <div
         className={cn(
           'group relative grid',
-          showChevron && '&>[data-combobox-adjustable-trigger-element]:pr-6.5',
-          // 'has-[.combobox-clear]:[&>[data-combobox-adjustable-trigger-element]]:pr-12.5',
+          showChevron && '*:data-combobox-trigger-element:pr-6.5',
+          // 'has-[.combobox-clear]:[&>[data-combobox-trigger-element]]:pr-12.5',
           'focus-ring focus-ring-within rounded-md border-[0.125rem] text-sm',
           'text-foreground border-input bg-background aria-disabled:opacity-50',
           'not-aria-disabled:hover:border-input-active not-aria-disabled:hover:bg-input',
@@ -135,7 +135,7 @@ export function Combobox({
               e.target.setSelectionRange(0, -1);
             }}
             disabled={disabled}
-            data-combobox-adjustable-trigger-element
+            data-combobox-trigger-element
           />
         )}
         <ComboboxPrimitive.Value>
@@ -144,12 +144,13 @@ export function Combobox({
               <div
                 className={cn(
                   'pointer-events-none col-start-1 row-start-1',
-                  'flex cursor-pointer items-center px-2 py-1.5 select-none',
+                  'flex cursor-pointer items-center overflow-hidden px-2 py-1.5 select-none',
                   needSearch && 'group-focus-within:invisible',
                   !item && 'text-foreground/70',
                   className,
                 )}
-                data-combobox-adjustable-trigger-element
+                style={{ maxWidth: width }}
+                data-combobox-trigger-element
               >
                 {item
                   ? labelRender(item, true)

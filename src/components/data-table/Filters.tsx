@@ -16,14 +16,10 @@ function facetsFilter<TData extends Record<string, any>>(
   return value.includes(row.getValue(columnId));
 }
 
-function useFacetedColumnData<TData extends Record<string, any>>(
-  column: Column<TData>,
+function getFacetedColumnData(
+  facets: Map<any, number>,
   labelComponent?: DropdownItem['labelComponent'],
 ) {
-  const [facets, setFacets] = useState(() => column.getFacetedUniqueValues());
-  useEffect(() => {
-    setFacets(column.getFacetedUniqueValues());
-  });
   const data = Array.from(facets.entries())
     .map(([value, count]) => {
       return {
@@ -54,7 +50,11 @@ function FacetedFilterHeader<TData extends Record<string, any>>({
   labelComponent?: DropdownItem['labelComponent'];
 }) {
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
-  const data = useFacetedColumnData(column, labelComponent);
+  const [facets, setFacets] = useState(() => column.getFacetedUniqueValues());
+  useEffect(() => {
+    setFacets(column.getFacetedUniqueValues());
+  });
+  const data = getFacetedColumnData(facets, labelComponent);
   return (
     <>
       <span>{title}</span>
@@ -150,17 +150,20 @@ interface FilterValueInputProps<TData extends Record<string, any>> {
   column: Column<TData>;
   value: any;
   onValueChange: (value: any) => void;
+  disabled?: boolean;
 }
 
 function DefaultFilterValueInput({
   value,
   onValueChange,
+  disabled,
 }: FilterValueInputProps<any>) {
   return (
     <Input
       style={{ width: '14rem' }}
       value={value}
       onChange={(e) => onValueChange(e.target.value)}
+      disabled={disabled}
     />
   );
 }
@@ -169,14 +172,17 @@ function FacetedFilterValueInput<TData extends Record<string, any>>({
   column,
   value,
   onValueChange,
+  disabled,
 }: FilterValueInputProps<TData>) {
-  const data = useFacetedColumnData(column, column.columnDef.meta?.Render);
+  const facets = column.getFacetedUniqueValues();
+  const data = getFacetedColumnData(facets, column.columnDef.meta?.Render);
   return (
     <Combobox
       data={data}
       value={value}
       onValueChange={onValueChange}
       showChevron
+      disabled={disabled}
     />
   );
 }
