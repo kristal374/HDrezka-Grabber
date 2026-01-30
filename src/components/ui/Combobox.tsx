@@ -123,15 +123,14 @@ export function Combobox({
             id={id}
             className={cn(
               'col-start-1 row-start-1 outline-none',
-              'placeholder:text-foreground/70 selection:bg-link-color bg-transparent px-2 py-1.5',
+              'placeholder:text-foreground/70 selection:bg-link-color px-2 py-1.5 not-focus:opacity-0',
               'not-disabled:cursor-pointer not-disabled:focus:cursor-text disabled:hidden disabled:cursor-not-allowed',
-              !inputValue && 'not-focus:opacity-0',
               className,
             )}
             style={{ width }}
             placeholder={placeholder ?? browser.i18n.getMessage('ui_search')}
             onClick={(e) => {
-              // @ts-ignore
+              // @ts-expect-error
               e.target.setSelectionRange(0, -1);
             }}
             disabled={disabled}

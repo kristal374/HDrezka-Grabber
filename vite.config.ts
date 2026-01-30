@@ -15,9 +15,9 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
   ],
-  root: './src/html/',
+  root: 'src/html/',
   build: {
-    target: 'es2022',
+    target: 'es2024',
     minify: isProduction,
     sourcemap: !isProduction,
     outDir: '../../dist/build/HDrezka-Grabber.build',

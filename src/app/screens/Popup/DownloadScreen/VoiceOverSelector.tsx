@@ -73,7 +73,7 @@ export function VoiceOverSelector({
           labelComponent({ children }) {
             return (
               <>
-                {children}
+                <span className='line-clamp-1 text-ellipsis'>{children}</span>
                 {voiceOver.flag_country && (
                   <FlagIcon
                     country={voiceOver.flag_country}
