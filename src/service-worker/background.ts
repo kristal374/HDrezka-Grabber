@@ -92,6 +92,27 @@ async function main() {
     );
   }
 
+  const manifest = browser.runtime.getManifest();
+  if (
+    manifest.version.endsWith('.1') &&
+    !Object.values(manifest.icons ?? {})[0].includes('dev')
+  ) {
+    // Устанавливаем спец. иконку, если определяем, что это дев сборка
+    const browserAction = browser.browserAction ?? browser.action;
+    await browserAction.setIcon({
+      path: {
+        '512': '/img/icons/dev/512.png',
+        '256': '/img/icons/dev/256.png',
+        '128': '/img/icons/dev/128.png',
+        '96': '/img/icons/dev/96.png',
+        '64': '/img/icons/dev/64.png',
+        '48': '/img/icons/dev/48.png',
+        '32': '/img/icons/dev/32.png',
+        '16': '/img/icons/dev/16.png',
+      },
+    });
+  }
+
   logger.info('Service worker is ready.');
 
   eventBus.setReady();
