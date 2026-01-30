@@ -114,8 +114,7 @@ export function GlobalFilter<TData extends Record<string, any>>({
       <div
         className={cn(
           'max-h-[min(70vh,35rem)] w-full overflow-auto p-2',
-          'border-input bg-settings-border-primary border-t',
-          'scrollbar-thumb-check-box scrollbar-background-transparent',
+          'border-input bg-settings-border-primary scrollbar-transparent border-t',
           !isExpanded && 'h-14 overflow-hidden',
         )}
       >

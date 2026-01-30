@@ -46,7 +46,7 @@ function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
   return (
     <tr
       className={cn(
-        'hover:bg-input data-[state=selected]:bg-muted border-input border-b transition-colors',
+        'group/row hover:bg-input data-[state=selected]:bg-popup-border border-input border-b transition-colors',
         className,
       )}
       {...props}
@@ -70,7 +70,7 @@ function TableCell({ className, ...props }: React.ComponentProps<'td'>) {
   return (
     <td
       className={cn(
-        'scrollbar-thin scrollbar-thumb-check-box overflow-auto',
+        'scrollbar-thin scrollbar-transparent overflow-auto',
         'flex p-3 align-middle whitespace-nowrap [&:has([data-slim="left"])]:pl-0 [&:has([data-slim="right"])]:pr-0',
         className,
       )}

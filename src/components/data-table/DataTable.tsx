@@ -72,6 +72,9 @@ export function RealtimeTable<TData extends Record<string, any>>({
     onColumnFiltersChange: setFilters,
     onColumnVisibilityChange: setColumnVisibility,
     columnResizeMode: IS_FIREFOX ? 'onEnd' : 'onChange',
+    defaultColumn: {
+      minSize: 135,
+    },
     state: {
       columnFilters: filters,
       columnVisibility,
@@ -105,8 +108,7 @@ export function RealtimeTable<TData extends Record<string, any>>({
   return (
     <div
       className={cn(
-        'scrollbar-thumb-check-box scrollbar-background-background',
-        'relative h-full w-full overflow-auto',
+        'scrollbar-solid relative h-full w-full overflow-auto',
         className,
       )}
       ref={tableContainerRef}
@@ -237,6 +239,9 @@ export function StableTable<TData extends Record<string, any>>({
     onRowSelectionChange: setRowSelection,
     columnResizeMode: IS_FIREFOX ? 'onEnd' : 'onChange',
     globalFilterFn: globalFilter,
+    defaultColumn: {
+      minSize: 135,
+    },
     state: {
       sorting,
       columnFilters: filters,
@@ -277,8 +282,7 @@ export function StableTable<TData extends Record<string, any>>({
   return (
     <div
       className={cn(
-        'scrollbar-thumb-check-box scrollbar-background-background',
-        'relative isolate h-full w-full overflow-auto',
+        'scrollbar-solid relative isolate h-full w-full overflow-auto',
         className,
       )}
       ref={tableContainerRef}

@@ -145,16 +145,12 @@
   scrollbar-width: thin;
 }
 
-@utility scrollbar-thumb-* {
-  --tw-scrollbar-thumb: --value(--color-*);
-  scrollbar-color: var(--tw-scrollbar-thumb)
-    var(--tw-scrollbar-background, transparent);
+@utility scrollbar-solid {
+  scrollbar-color: var(--check-box) var(--background);
 }
 
-@utility scrollbar-background-* {
-  --tw-scrollbar-background: --value(--color-*);
-  scrollbar-color: var(--tw-scrollbar-thumb, transparent)
-    var(--tw-scrollbar-background);
+@utility scrollbar-transparent {
+  scrollbar-color: var(--check-box) transparent;
 }
 
 @utility focus-ring {

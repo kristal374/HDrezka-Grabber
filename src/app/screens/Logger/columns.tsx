@@ -57,6 +57,7 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
   {
     accessorKey: 'timestamp',
     size: 100,
+    minSize: 100,
     enableHiding: false,
     meta: {
       headerName: 'Timestamp',
@@ -85,6 +86,7 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
   {
     accessorKey: 'level',
     size: 90,
+    minSize: 90,
     enableResizing: false,
     filterFn: facetsFilter,
     meta: {
@@ -113,7 +115,6 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     header: ({ column }) => (
       <FacetedFilterHeader
         column={column}
-        title={meta(column).headerName}
         labelComponent={meta(column).Render}
       />
     ),
@@ -122,6 +123,7 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
   {
     accessorKey: 'context',
     size: 100,
+    minSize: 100,
     enableResizing: false,
     filterFn: facetsFilter,
     meta: {
@@ -136,7 +138,6 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     header: ({ column }) => (
       <FacetedFilterHeader
         column={column}
-        title={meta(column).headerName}
         labelComponent={meta(column).Render}
       />
     ),
@@ -206,10 +207,7 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     },
     header: (props) => (
       <ResizeHeader {...props}>
-        <FacetedFilterHeader
-          column={props.column}
-          title={meta(props.column).headerName}
-        />
+        <FacetedFilterHeader column={props.column} />
       </ResizeHeader>
     ),
     cell: ({ row }) => (
@@ -223,14 +221,15 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     accessorFn: (data) => {
       return data.metadata?.sessionId;
     },
-    size: 105,
-    enableResizing: false,
+    size: 135,
     filterFn: 'equals',
     meta: {
       headerName: 'Session ID',
     },
-    header: ({ column }) => (
-      <FilterValueHeader column={column} title={meta(column).headerName} />
+    header: (props) => (
+      <ResizeHeader {...props}>
+        <FilterValueHeader column={props.column} />
+      </ResizeHeader>
     ),
     cell: FilterValueCell,
   },
@@ -239,14 +238,15 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     accessorFn: (data) => {
       return data.metadata?.traceId;
     },
-    size: 100,
-    enableResizing: false,
+    size: 135,
     filterFn: 'equals',
     meta: {
       headerName: 'Trace ID',
     },
-    header: ({ column }) => (
-      <FilterValueHeader column={column} title={meta(column).headerName} />
+    header: (props) => (
+      <ResizeHeader {...props}>
+        <FilterValueHeader column={props.column} />
+      </ResizeHeader>
     ),
     cell: FilterValueCell,
   },
@@ -255,14 +255,16 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     accessorFn: (data) => {
       return data.metadata?.targetKey;
     },
-    size: 85,
-    enableResizing: false,
+    size: 100,
+    minSize: 100,
     filterFn: 'equals',
     meta: {
       headerName: 'Key',
     },
-    header: ({ column }) => (
-      <FilterValueHeader column={column} title={meta(column).headerName} />
+    header: (props) => (
+      <ResizeHeader {...props}>
+        <FilterValueHeader column={props.column} />
+      </ResizeHeader>
     ),
     cell: FilterValueCell,
   },

@@ -1,3 +1,4 @@
+import { CopyButton } from '@/components/CopyButton';
 import { Button, type ButtonProps } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { Dropdown, type DropdownItem } from '@/components/ui/Dropdown';
@@ -39,12 +40,10 @@ function getFacetedColumnData(
 
 interface FilterComponentProps<TData extends Record<string, any>> {
   column: Column<TData>;
-  title: string;
 }
 
 function FacetedFilterHeader<TData extends Record<string, any>>({
   column,
-  title,
   labelComponent,
 }: FilterComponentProps<TData> & {
   labelComponent?: DropdownItem['labelComponent'];
@@ -55,6 +54,7 @@ function FacetedFilterHeader<TData extends Record<string, any>>({
     setFacets(column.getFacetedUniqueValues());
   });
   const data = getFacetedColumnData(facets, labelComponent);
+  const title = column.columnDef.meta?.headerName ?? column.id;
   return (
     <>
       <span>{title}</span>
@@ -74,12 +74,12 @@ function FacetedFilterHeader<TData extends Record<string, any>>({
 
 function FilterValueHeader<TData extends Record<string, any>>({
   column,
-  title,
 }: FilterComponentProps<TData>) {
   const [isFiltered, setIsFiltered] = useState(false);
   useEffect(() => {
     setIsFiltered(column.getIsFiltered());
   });
+  const title = column.columnDef.meta?.headerName ?? column.id;
   return (
     <>
       <span>{title}</span>
@@ -132,17 +132,23 @@ function FilterValueCell<TData extends Record<string, any>>({
   const value = row.getValue(column.id);
   if (!value) return null;
   return (
-    <Button
-      variant='secondary'
-      onClick={() => {
-        const isFiltered = column.getFilterValue() === value;
-        column.setFilterValue(isFiltered ? undefined : value);
-      }}
-      className='mb-auto px-1 py-0'
-      data-slim='right'
-    >
-      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-    </Button>
+    <>
+      <Button
+        variant='secondary'
+        onClick={() => {
+          const isFiltered = column.getFilterValue() === value;
+          column.setFilterValue(isFiltered ? undefined : value);
+        }}
+        className='mb-auto px-1 py-0'
+        data-slim='right'
+      >
+        {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+      </Button>
+      <CopyButton
+        content={String(value)}
+        className='invisible mb-auto ml-2 group-hover/row:visible [&>svg]:size-3'
+      />
+    </>
   );
 }
 

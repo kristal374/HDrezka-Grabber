@@ -239,9 +239,6 @@
   "settings_ContactsTitle": {
     "message": "Contacts"
   },
-  "settings_CopyTitle": {
-    "message": "Copy"
-  },
   "settings_SupportTitle": {
     "message": "Support the Project"
   },
@@ -681,6 +678,12 @@
   },
   "ui_clearSearch": {
     "message": "Clear search"
+  },
+  "ui_copyButton": {
+    "message": "Copy"
+  },
+  "ui_copySuccess": {
+    "message": "Copied!"
   },
   "logger_downloadLogs_button": {
     "message": "Download logs"

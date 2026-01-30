@@ -239,9 +239,6 @@
   "settings_ContactsTitle": {
     "message": "Контакты"
   },
-  "settings_CopyTitle": {
-    "message": "Копировать"
-  },
   "settings_SupportTitle": {
     "message": "Поддержать проект"
   },
@@ -681,6 +678,12 @@
   },
   "ui_clearSearch": {
     "message": "Очистить поиск"
+  },
+  "ui_copyButton": {
+    "message": "Копировать"
+  },
+  "ui_copySuccess": {
+    "message": "Скопировано!"
   },
   "logger_downloadLogs_button": {
     "message": "Скачать логи"

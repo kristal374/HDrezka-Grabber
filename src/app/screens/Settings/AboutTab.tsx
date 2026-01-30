@@ -1,16 +1,8 @@
+import { CopyButton } from '@/components/CopyButton';
 import { GitHubIcon } from '@/components/icons/GitHubIcon';
 import { Panel } from '@/components/Panel';
-import { Button } from '@/components/ui/Button';
 import { OutsideLink } from '@/components/ui/OutsideLink';
-import {
-  CopyCheckIcon,
-  CopyIcon,
-  HeartIcon,
-  MailIcon,
-  ScaleIcon,
-  UserCircle2Icon,
-} from 'lucide-react';
-import { useRef, useState } from 'react';
+import { HeartIcon, MailIcon, ScaleIcon, UserCircle2Icon } from 'lucide-react';
 
 type StoreLink = {
   name: string;
@@ -51,41 +43,6 @@ interface AboutTabProps {
   people?: Person[];
 }
 
-function CopyButton({ content }: { content: string }) {
-  const [isCopied, setIsCopied] = useState(false);
-  const resetTimeout = useRef<NodeJS.Timeout | null>(null);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setIsCopied(true);
-
-      if (resetTimeout.current) clearTimeout(resetTimeout.current);
-      resetTimeout.current = setTimeout(() => setIsCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy content:', content, err);
-    }
-  };
-
-  return (
-    <Button
-      variant='ghost'
-      size='square'
-      onClick={handleCopy}
-      className='rounded'
-      title={browser.i18n.getMessage('settings_CopyTitle')}
-    >
-      <div className='transition-all duration-200'>
-        {isCopied ? (
-          <CopyCheckIcon className='size-4 animate-pulse text-green-500' />
-        ) : (
-          <CopyIcon className='text-settings-text-tertiary group-hover:text-settings-text-accent size-4 transition-all duration-200 group-hover:scale-110' />
-        )}
-      </div>
-    </Button>
-  );
-}
-
 function ExtensionStoreLink({ name, url, icon }: StoreLink) {
   return (
     <a
@@ -102,7 +59,7 @@ function ExtensionStoreLink({ name, url, icon }: StoreLink) {
         width={20}
         height={20}
         loading='lazy'
-        className='size-5 flex-shrink-0 rounded-sm transition-transform duration-200 group-hover:scale-110'
+        className='size-5 shrink-0 rounded-sm transition-transform duration-200 group-hover:scale-110'
       />
       <span className='text-sm leading-none font-bold whitespace-nowrap'>
         {name}
@@ -209,7 +166,7 @@ function ProjectDescription({
                   {card.cardUrl ? (
                     <a
                       href={card.cardUrl}
-                      className='text-settings-text-accent hover:text-link-color transition-colors duration-300'
+                      className='focus-ring text-settings-text-accent hover:text-link-color transition-colors'
                     >
                       {card.cardContent}
                     </a>
@@ -218,7 +175,11 @@ function ProjectDescription({
                   )}
                 </span>
                 {card.needCopyButton && (
-                  <CopyButton content={card.cardContent} />
+                  <CopyButton
+                    content={card.cardContent}
+                    variant='ghost'
+                    className='rounded'
+                  />
                 )}
               </div>
             </InfoCard>
@@ -298,6 +259,9 @@ function ExtensionHeader({
   githubLink: string;
   storeLinks: StoreLink[];
 }) {
+  const split = extensionVersion.split('.');
+  const build = split.pop();
+  const version = `v${split.join('.')}`;
   return (
     <div className='border-settings-border-primary flex flex-col space-y-1.5 border-b p-6'>
       <div className='flex flex-col items-start gap-4'>
@@ -307,8 +271,11 @@ function ExtensionHeader({
               {extensionName}
             </h1>
           </div>
-          <div className='bg-settings-background-primary border-settings-border-primary text-settings-text-primary hover:bg-settings-background-tertiary inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-semibold transition-all duration-300 hover:scale-105'>
-            <span>{extensionVersion}</span>
+          <div
+            className='bg-settings-background-primary border-settings-border-primary text-settings-text-primary hover:bg-settings-background-tertiary inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-semibold transition-all duration-300 hover:scale-105'
+            title={`Build number: ${build}`}
+          >
+            <span>{version}</span>
           </div>
         </div>
 
@@ -349,10 +316,7 @@ function ExtensionHeader({
 
 export function AboutTab({
   extensionName = browser.runtime.getManifest().name,
-  extensionVersion = `v${
-    browser.runtime.getManifest().version_name ??
-    browser.runtime.getManifest().version
-  }`,
+  extensionVersion = browser.runtime.getManifest().version,
   extensionShortDescription = browser.i18n.getMessage(
     'settings_ShortDescription',
   ),
