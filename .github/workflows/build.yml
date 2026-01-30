@@ -45,14 +45,12 @@ jobs:
           FILES_JSON=$(cat /tmp/files.json)
           echo "files=$FILES_JSON" >> $GITHUB_OUTPUT
 
-
       - name: Upload combined artifact (all files)
         uses: actions/upload-artifact@v4
         with:
           name: all-builds
           path: dist/build/**
           retention-days: 30
-
 
   upload-per-file:
     name: ${{ matrix.file.name }}

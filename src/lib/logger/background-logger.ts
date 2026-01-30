@@ -32,7 +32,7 @@ function saveLogToDB(data: LogMessage) {
 
       await deleteOldLogMessage(settings.logMessageLifetime);
     } catch (error: any) {
-      console.log(error.toString());
+      console.log(error);
       for (const message of snapshot) {
         printLog(message);
       }

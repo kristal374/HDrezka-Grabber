@@ -97,7 +97,7 @@ export function useChangeVoiceOver() {
       })
       .catch((error) => {
         if (ignore) return;
-        logger.error('Error update voice over:', error.toString());
+        logger.error('Error update voice over:', error);
 
         dispatch(setVoiceOverAction({ voiceOver: previewVoiceOver }));
         messageBroker.sendMessage(movieInfo!.data.id, {

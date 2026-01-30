@@ -5,9 +5,14 @@
   "default_locale": "en",
   "manifest_version": 2,
   "icons": {
-    "48": "img/icons/48.png",
-    "32": "img/icons/32.png",
-    "16": "img/icons/16.png"
+    "512": "img/icons/prod/512.png",
+    "256": "img/icons/prod/256.png",
+    "128": "img/icons/prod/128.png",
+    "96": "img/icons/prod/96.png",
+    "64": "img/icons/prod/64.png",
+    "48": "img/icons/prod/48.png",
+    "32": "img/icons/prod/32.png",
+    "16": "img/icons/prod/16.png"
   },
   "browser_specific_settings": {
     "gecko": {

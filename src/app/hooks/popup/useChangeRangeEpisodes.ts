@@ -115,7 +115,7 @@ export function useChangeRangeEpisodes() {
       })
       .catch((error) => {
         if (ignore) return;
-        logger.error('Error update episodes info:', error.toString());
+        logger.error('Error update episodes info:', error);
 
         const seasonIds = Object.keys(previewRange);
         const startEpisode = previewRange[seasonIds[0]].episodes[0].id;

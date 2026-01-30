@@ -114,9 +114,9 @@ export async function probeVideoFile({
       logger.debug('Video info received:', result);
       return result;
     })
-    .catch(async (e) => {
-      logger.error('Error while reading video info:', e.toString());
-      throw e as Error;
+    .catch(async (error) => {
+      logger.error('Error while reading video info:', error);
+      throw error as Error;
     })
     .finally(() => {
       input.dispose();
