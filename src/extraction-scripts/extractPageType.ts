@@ -10,7 +10,7 @@ export async function getPageType(tabId: number) {
       return response[0].result as PageType;
     })
     .catch((error) => {
-      logger.error(error.toString());
+      logger.error(error);
       return 'ERROR' as PageType;
     });
 }

@@ -36,7 +36,7 @@ export function makeModifyFetch({
         })
         .catch(async (e) => {
           const error = e as Error;
-          logger.error(error.toString());
+          logger.error(error);
           throw error;
         })
         .finally(async () => {

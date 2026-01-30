@@ -329,7 +329,7 @@ export class DownloadManager {
       });
     } catch (e: any) {
       const error = e as Error;
-      logger.error('Download start failed:', error.toString());
+      logger.error('Download start failed:', error);
       await restoreHardLock().catch(() => {});
       await this.attemptNewDownload({
         fileItem,
@@ -371,7 +371,7 @@ export class DownloadManager {
           }
         })
         .catch(async (error) => {
-          logger.error('Download failed:', error.toString());
+          logger.error('Download failed:', error);
           reject(error);
         });
 

@@ -118,9 +118,8 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
         siteUrl: this.urlDetails.siteUrl,
         data: this.getQueryData(),
         logger,
-      }).catch((e) => {
-        const error = e as Error;
-        logger.error('Server returned a bad response:', error.toString());
+      }).catch((error) => {
+        logger.error('Server returned a bad response:', error);
         return null;
       });
 
