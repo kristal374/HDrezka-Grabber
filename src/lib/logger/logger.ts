@@ -93,6 +93,11 @@ export class Logger {
           : [context, location];
 
       const metadata = this.metadata;
+
+      message = await Promise.all(
+        message.map((m) => (m instanceof Error ? this.getStackTrace(m) : m)),
+      );
+
       this.sendLogMessage({
         timestamp,
         level,
@@ -172,5 +177,19 @@ export class Logger {
     const location =
       sourcemap === null ? callerURL : sourcemap.getOriginalURL(callerURL);
     return [context, location.replace(extensionDomain, '')] as const;
+  }
+
+  private async getStackTrace(error: Error) {
+    const exception = new Error();
+    const urlStackTrace = exception.stack!.match(
+      /((?:chrome|moz)-extension:\/(?:\/.*?)+\.js:(\d+):(\d+))/g,
+    )!;
+    const callerURL = urlStackTrace[0];
+
+    if (!callerURL) return error.stack;
+    const sourcemap = await this.getOrInitializeSourceMapParser(callerURL);
+    return sourcemap !== null
+      ? sourcemap?.normalizeStackTrace(error.stack!)
+      : error.stack;
   }
 }

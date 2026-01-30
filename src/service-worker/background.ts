@@ -114,8 +114,6 @@ async function main() {
   }
 
   logger.info('Service worker is ready.');
-
-  eventBus.setReady();
 }
 
 function messageHandler(
@@ -256,9 +254,11 @@ async function clearExtensionData({
 }
 
 const handleError = async (originalError: Error) => {
-  console.error(originalError.toString());
-  logger.critical(originalError.toString());
+  console.error(originalError);
+  logger.critical(originalError);
 };
 
 self.addEventListener('unhandledrejection', (e) => handleError(e.reason));
-main().catch(handleError);
+main()
+  .catch(handleError)
+  .finally(() => eventBus.setReady());

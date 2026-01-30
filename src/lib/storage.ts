@@ -97,7 +97,7 @@ export function saveInStorage(objName: string, data: any) {
       logger.debug('Update objects in storage:', snapshot);
       await browser.storage.local.set(snapshot);
     } catch (error: any) {
-      logger.critical('Error saving data:', error.toString());
+      logger.critical('Error saving data:', error);
     } finally {
       debounceTimer = null;
     }
