@@ -14,7 +14,7 @@ export function DefaultScreen({ vpnNotice, className, children }: Props) {
         className,
       )}
     >
-      <p className='text-center text-base'>{children}</p>
+      <div className='text-center text-base'>{children}</div>
       {vpnNotice && (
         <p className='text-center text-base'>
           {browser.i18n.getMessage('popup_stub_vpn')}

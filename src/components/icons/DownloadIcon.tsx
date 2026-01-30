@@ -9,7 +9,7 @@ export function DownloadIcon(props: React.ComponentProps<'svg'>) {
       fill='none'
       {...props}
     >
-      <g clip-path='url(#clip0_334_688)'>
+      <g clipPath='url(#clip0_334_688)'>
         <path
           d='M42.0324 0H22.0322V34.2434H3.16491L32.0324 56.794L60.8999 34.2434H42.0324V0Z'
           fill='currentColor'
