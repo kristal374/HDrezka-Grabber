@@ -1,5 +1,10 @@
-import { LoggerEventType, LogLevel } from '@/lib/logger/types';
-import { Alarms, Downloads, Runtime, Storage } from 'webextension-polyfill';
+import type { LoggerEventType, LogLevel } from '@/lib/logger/types';
+import type {
+  Alarms,
+  Downloads,
+  Runtime,
+  Storage,
+} from 'webextension-polyfill';
 
 type Port = Runtime.Port;
 type Alarm = Alarms.Alarm;

@@ -1,14 +1,9 @@
 import browser, { Runtime } from 'webextension-polyfill';
 
-import { SourceMapParser } from '@/lib/logger/source-map';
-import {
-  LoggerEventType,
-  LogLevel,
-  LogMessage,
-  LogMetadata,
-} from '@/lib/logger/types';
-import { isBackground } from '@/lib/logger/utils';
 import { SourceMap } from 'rollup';
+import { SourceMapParser } from './source-map';
+import { LoggerEventType, LogLevel, LogMessage, LogMetadata } from './types';
+import { isBackground } from './utils';
 
 export class Logger {
   private static isBackground = isBackground();
@@ -173,7 +168,7 @@ export class Logger {
 
     const context = callerURL.split('/').at(-1)!.split('.')[0];
     const sourcemap = await this.getOrInitializeSourceMapParser(callerURL);
-    const extensionDomain = browser.runtime.getURL('');
+    const extensionDomain = browser.runtime.getURL('src/');
     const location =
       sourcemap === null ? callerURL : sourcemap.getOriginalURL(callerURL);
     return [context, location.replace(extensionDomain, '')] as const;

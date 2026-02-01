@@ -1,10 +1,14 @@
 import '@/lib/global-scope-init';
 
 import { doDatabaseStuff, dropDatabase } from '@/lib/idb-storage';
-import { Logger, LogMessage } from '@/lib/logger';
-import { clearDebounceTimer, logCreate } from '@/lib/logger/background-logger';
-import { LoggerEventType } from '@/lib/logger/types';
-import { getTraceId } from '@/lib/logger/utils';
+import {
+  clearDebounceTimer,
+  getTraceId,
+  logCreate,
+  Logger,
+  LoggerEventType,
+  LogMessage,
+} from '@/lib/logger';
 import { getSettings } from '@/lib/storage';
 import { EventType, Message, Settings } from '@/lib/types';
 import {

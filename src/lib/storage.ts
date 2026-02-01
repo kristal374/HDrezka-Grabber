@@ -1,4 +1,4 @@
-import { LogLevel } from '@/lib/logger/types';
+import { LogLevel } from '@/lib/logger';
 import browser from 'webextension-polyfill';
 import { Settings } from './types';
 

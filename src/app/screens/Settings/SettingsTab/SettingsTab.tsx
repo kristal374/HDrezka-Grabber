@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { Toggle } from '@/components/ui/Toggle';
 import { SettingsInitialDataContext } from '@/html/settings';
-import { LogLevel } from '@/lib/logger/types';
+import { LogLevel } from '@/lib/logger';
 import { createDefaultSettings, saveInStorage } from '@/lib/storage';
 import { Message } from '@/lib/types';
 import { IS_FIREFOX } from '@/lib/utils';
