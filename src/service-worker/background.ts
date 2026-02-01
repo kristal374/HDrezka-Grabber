@@ -93,10 +93,9 @@ async function main() {
   }
 
   const manifest = browser.runtime.getManifest();
-  if (
-    manifest.version.endsWith('.1') &&
-    !Object.values(manifest.icons ?? {})[0].includes('dev')
-  ) {
+  const IS_DEV = manifest.version.endsWith('.1');
+  const haveDevIcon = Object.values(manifest.icons ?? {})[0].includes('dev');
+  if (IS_DEV && !haveDevIcon) {
     // Устанавливаем спец. иконку, если определяем, что это дев сборка
     const browserAction = browser.browserAction ?? browser.action;
     await browserAction.setIcon({
