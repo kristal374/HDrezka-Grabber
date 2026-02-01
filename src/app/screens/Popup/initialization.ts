@@ -1,6 +1,5 @@
 import { getPageType } from '@/extraction-scripts/extractPageType';
 import { doDatabaseStuff } from '@/lib/idb-storage';
-import { clearDebounceTimer } from '@/lib/logger/background-logger';
 import { getSettings, loadSessionStorageSave } from '@/lib/storage';
 import {
   EventType,
@@ -10,8 +9,6 @@ import {
   Settings,
 } from '@/lib/types';
 import type { Runtime, Tabs } from 'webextension-polyfill';
-
-type Tab = Tabs.Tab;
 
 export type PopupInitData = {
   pageType: PageType;
@@ -27,6 +24,7 @@ export async function popupInit(
 ): Promise<PopupInitData> {
   globalThis.settings = await getSettings();
 
+  // TODO: мы можем открыть попап до установления флага needToRestoreInsideState
   const storage = await browser.storage.session.get('needToRestoreInsideState');
   const needToRestoreInsideState = storage['needToRestoreInsideState'] as
     | boolean
@@ -44,6 +42,11 @@ export async function popupInit(
       if (key === 'settings') {
         globalThis.settings =
           (value.newValue as Settings | undefined) ?? (await getSettings());
+
+        // При обновлении settings мы вызовем setInitData, который обновит
+        // данные внутри RestorePopupState, и если мы не передадим текущее
+        // состояние попапа, тогда будет восстановлено состояние, что было
+        // на момент открытия попапа
         const newSessionStorage = tabId
           ? { sessionStorage: await loadSessionStorageSave(tabId) }
           : {};
@@ -76,7 +79,9 @@ export async function popupInit(
 async function getCurrentTab() {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
   // splitViewId added in Chrome 140+
-  return tabs.length ? (tabs[0] as Tab & { splitViewId?: number }) : undefined;
+  return tabs.length
+    ? (tabs[0] as Tabs.Tab & { splitViewId?: number })
+    : undefined;
 }
 
 async function setDB() {
@@ -92,9 +97,6 @@ async function setDB() {
       const data = message as Message<any>;
       if (data.type !== 'DBDeleted') return;
 
-      // Очищаем логи ожидающие записи
-      clearDebounceTimer();
-
       doDatabaseStuff().then((db) => {
         globalThis.indexedDBObject = db;
         sendResponse(true);
@@ -102,6 +104,7 @@ async function setDB() {
       return true;
     },
   );
+
   eventBus.on(EventType.DBDeletedEvent, async () => {
     globalThis.indexedDBObject = await doDatabaseStuff();
   });

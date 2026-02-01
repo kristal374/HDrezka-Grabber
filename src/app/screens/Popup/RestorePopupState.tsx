@@ -29,10 +29,12 @@ export function RestorePopupState({ children }: RestorePopupStateProps) {
     }
 
     setIsReady(true);
+    logger.info('Restored popup state.');
   }, [initData]);
 
   // Мы должны дождаться пока завершится попытка восстановления состояния попапа,
   // иначе поведение будет непредсказуемым.
+  // TODO: Теоретически если произойдёт сбой инициализации пользователь будет видеть пустой попап
   if (!isReady) return null;
 
   document.documentElement.className = settings.darkMode ? 'dark' : 'light';

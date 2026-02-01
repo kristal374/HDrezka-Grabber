@@ -3,7 +3,7 @@ import { getSeasons } from '@/extraction-scripts/extractSeasons';
 import { PopupInitialDataContext } from '@/html/popup';
 import { sliceSeasons } from '@/lib/utils';
 import { ListVideoIcon } from 'lucide-react';
-import { useContext, useEffect, useMemo } from 'react';
+import { useContext, useEffect } from 'react';
 import {
   selectEpisodeFrom,
   selectEpisodeTo,
@@ -68,18 +68,12 @@ export function EpisodeRangeSelector({
     });
   }, []);
 
-  const seasonValues = useMemo(
-    () =>
-      seasons
-        ? Object.entries(seasons).map(([id, season]) => ({
-            value: id,
-            label: season.title,
-          }))
-        : [],
-    [seasons],
-  );
-
   if (!seasons) return null;
+
+  const seasonValues = Object.entries(seasons).map(([id, season]) => ({
+    value: id,
+    label: season.title,
+  }));
 
   logger.info('New render EpisodeRangeSelector component.');
   return (

@@ -151,7 +151,7 @@ export function QualitySelector() {
           value: q,
           label: q,
           labelComponent({ children, isRenderingInPreview }) {
-            const targetQuality = q as QualityItem;
+            const targetQuality = children as QualityItem;
             const qualityInfo = qualitiesInfo?.[targetQuality] ?? null;
             const videoResolution = qualityInfo?.videoResolution ?? null;
             const realQuality = `${videoResolution?.height}p`;

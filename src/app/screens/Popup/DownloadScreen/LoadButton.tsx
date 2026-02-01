@@ -78,6 +78,7 @@ export function LoadButton() {
   const title = !isCompleted
     ? browser.i18n.getMessage('popup_DownloadStart')
     : undefined;
+
   return (
     <button
       className={cn(

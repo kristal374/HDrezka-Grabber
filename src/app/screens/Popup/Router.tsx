@@ -12,6 +12,7 @@ export function Router() {
   )!;
 
   if (needToRestoreInsideState) {
+    logger.debug('Need to restore extension state.');
     return <RequestToRestoreExtensionState />;
   }
 

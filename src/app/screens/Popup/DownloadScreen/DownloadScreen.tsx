@@ -30,11 +30,12 @@ export function DownloadScreen() {
 
   if (movieInfo === null || !movieInfo.success) {
     logger.info('"MovieInfo" is missing.');
+    // TODO: Теоретически окно может показываться вечно если мы не получим movieInfo
     return <DownloadScreenSkeleton />;
   }
 
   const showSeparatorLine =
-    pageType === 'SERIAL' || subtitleLang || notifications.length > 0;
+    pageType === 'SERIAL' || !!subtitleLang || notifications.length > 0;
 
   logger.info('New render DownloadScreen component.');
   return (
