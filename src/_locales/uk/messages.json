@@ -65,7 +65,7 @@
   "popup_menu_loadManager": {
     "message": "Диспетчер завантажень"
   },
-  "popup_menu_debugWindow": {
+  "popup_menu_loggerWindow": {
     "message": "Журнал подій"
   },
   "popup_realResolution": {

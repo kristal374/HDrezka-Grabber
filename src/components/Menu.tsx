@@ -22,13 +22,16 @@ export function Menu({ className }: MenuProps) {
           strokeWidth={1.5}
         />
       </MenuButton>
-      {/* <MenuButton href='/loadManager' title={browser.i18n.getMessage('popup_menu_loadManager')}>
+      {/* <MenuButton
+        href='/loadManager'
+        title={browser.i18n.getMessage('popup_menu_loadManager')}
+      >
         <SquareKanbanIcon className='size-8 rotate-270' strokeWidth={1.5}  />
       </MenuButton> */}
       {settings.enableLogger && (
         <MenuButton
           href='/logger'
-          title={browser.i18n.getMessage('popup_menu_debugWindow')}
+          title={browser.i18n.getMessage('popup_menu_loggerWindow')}
         >
           <SquareTerminalIcon className='size-8' strokeWidth={1.5} />
         </MenuButton>
@@ -63,8 +66,7 @@ export function MenuButton({
           : browser.windows.create({
               url: browser.runtime.getURL(`${href}.html`),
               type: 'popup',
-              width: 800,
-              height: 600,
+              state: 'maximized',
             });
         if (openInNewTab) {
           // Firefox specific

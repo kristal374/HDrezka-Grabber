@@ -65,7 +65,7 @@
   "popup_menu_loadManager": {
     "message": "Download Manager"
   },
-  "popup_menu_debugWindow": {
+  "popup_menu_loggerWindow": {
     "message": "Event Log"
   },
   "popup_realResolution": {

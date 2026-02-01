@@ -65,7 +65,7 @@
   "popup_menu_loadManager": {
     "message": "Диспетчер загрузок"
   },
-  "popup_menu_debugWindow": {
+  "popup_menu_loggerWindow": {
     "message": "Журнал событий"
   },
   "popup_realResolution": {
