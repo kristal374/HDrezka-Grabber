@@ -191,7 +191,7 @@ export class DownloadManager {
 
     if (loadItem.status !== LoadStatus.DownloadCandidate) {
       // TODO: Тут может возникнуть ошибка когда файл продолжит висеть в очереди
-      logger.error(
+      logger.critical(
         'The start of the load initialization is interrupted - incorrect status:',
         loadItem,
       );
@@ -410,19 +410,48 @@ export class DownloadManager {
   }
 
   private async findLastFileItemByDownloadId({
-    downloadId,
+    downloadItem,
     logger = globalThis.logger,
   }: {
-    downloadId: number;
+    downloadItem: DownloadItem | undefined;
     logger?: Logger;
   }): Promise<FileItem | null> {
     // Ищет последний созданный FileItem, с желаемым downloadId
+    if (!downloadItem) {
+      logger.debug('DownloadItem is empty.');
+      return null;
+    }
+    logger.info('Finding FileItem by downloadId:', downloadItem.id);
 
-    logger.info('Finding FileItem by downloadId:', downloadId);
+    // Любое событие теоретически может быть вызвано до того, как данные будут
+    // сохранены в БД, поэтому мы ждём следующего фрейма, чтобы данные в БД
+    // успели точно обновиться
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Но всё ещё есть вероятность, что событие пришло раньше, чем был
+    // установлен downloadId, однако, если загрузка была инициирована нашим
+    // расширением, мы можем попытаться найти загрузку, сравнив URL,
+    // у downloadItem и файлов из activeDownloads
+    const fileItemsList = await findSomeFilesFromLoadItemIdsInDB(
+      this.queueController.activeDownloadsList,
+    );
+
+    const targetFile = fileItemsList.find(
+      (fileItem) =>
+        fileItem.downloadId === downloadItem.id ||
+        fileItem.url === downloadItem.url,
+    );
+
+    if (targetFile) {
+      logger.debug('Founded FileItem:', targetFile);
+      return targetFile;
+    }
+
+    // Если нам не удалось найти нужный объект, ищем в БД по downloadId
     const fileItems = (await indexedDBObject.getAllFromIndex(
       'fileStorage',
       'download_id',
-      downloadId,
+      downloadItem.id,
     )) as FileItem[];
 
     // Если пользователь очистит историю загрузок в браузере,
@@ -453,35 +482,16 @@ export class DownloadManager {
     logger.info('Download has been created:', downloadItem);
 
     let targetFile = await this.findLastFileItemByDownloadId({
-      downloadId: downloadItem.id,
+      downloadItem,
       logger,
     });
-    if (!targetFile) {
-      // TODO: Если история загрузок будет в какой-то момент очищена,
-      //  может получится так, что в БД уже будет id старой загрузки,
-      //  в то время как новый id ещё не успел создаться
-
-      // Есть вероятность, что событие пришло раньше, чем был установлен
-      // downloadId, и, следовательно, targetFile будет равен null, однако,
-      // если загрузка была инициирована нашим расширением, мы можем попытаться
-      // найти загрузку, сравнив URL, у downloadItem и файлов активных загрузок
-      const fileItemsList = await findSomeFilesFromLoadItemIdsInDB(
-        this.queueController.activeDownloadsList,
-      );
-
-      targetFile =
-        fileItemsList.find(
-          (fileItem) =>
-            fileItem.downloadId === downloadItem.id ||
-            fileItem.url === downloadItem.url,
-        ) ?? null;
-    }
 
     if (!targetFile) {
       // Если нам не удалось найти целевой FileItem - игнорируем событие
       logger.warning(`The related file was not found in the storage.`);
       return;
     }
+
     logger = logger.attachMetadata({ targetKey: targetFile.relatedLoadItemId });
 
     await this.resourceLockManager.lock({
@@ -517,8 +527,12 @@ export class DownloadManager {
     logger = logger.attachMetadata({ traceId: getTraceId() });
     logger.info('An event occurred:', downloadDelta);
 
-    let targetFile = await this.findLastFileItemByDownloadId({
+    const downloadItem = await this.getActiveDownloadItemFromDownloadId({
       downloadId: downloadDelta.id,
+      logger,
+    });
+    let targetFile = await this.findLastFileItemByDownloadId({
+      downloadItem,
       logger,
     });
 
@@ -598,17 +612,10 @@ export class DownloadManager {
       return suggest();
     }
 
-    // handleDeterminingFilenameEvent может быть вызван до того, как данные
-    // сохранятся в БД, поэтому мы ждём следующего фрейма, чтобы данные в БД
-    // успели точно обновиться
-    // TODO: Решение с setTimeout нестабильно и должно быть переработано
-    new Promise((resolve) => setTimeout(resolve, 0)).then(async () => {
-      downloadItem.id;
-      const targetFileItem = await this.findLastFileItemByDownloadId({
-        downloadId: downloadItem.id,
-        logger,
-      });
-
+    this.findLastFileItemByDownloadId({
+      downloadItem: downloadItem,
+      logger,
+    }).then(async (targetFileItem) => {
       if (!targetFileItem) {
         logger.warning('Not found target fileItem for this downloadItem');
         return suggest();
@@ -797,7 +804,7 @@ export class DownloadManager {
           // Если расширение не успело установить своё имя для файла, но уже начало
           // загрузку - удаляем файл, чтоб не путать пользователя
           logger.warning('Filename does not match originally. Deleting file.');
-          await browser.downloads.erase({ id: fileItem.id });
+          await browser.downloads.erase({ id: fileItem.downloadId });
         }
       }
 
