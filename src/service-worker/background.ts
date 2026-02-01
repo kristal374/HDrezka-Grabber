@@ -122,45 +122,35 @@ async function main() {
 function messageHandler(
   message: unknown,
   _sender: MessageSender,
-  sendResponse: (message: unknown) => void,
+  _sendResponse: (message: unknown) => void,
 ) {
   let logger = globalThis.logger;
   logger = logger.attachMetadata({ traceId: getTraceId() });
-  const promiseResponse = <T>(promise: Promise<T>) => {
-    promise.then((response) => sendResponse(response));
-    return true;
-  };
 
   const data = message as Message<any>;
   switch (data.type) {
     case 'getFileSize':
-      return promiseResponse(
-        getOriginalUrlItem({ request: data.message, logger }),
-      );
+      return getOriginalUrlItem({ request: data.message, logger });
     case 'updateVideoInfo':
-      return promiseResponse(updateVideoInfo({ data: data.message, logger }));
+      return updateVideoInfo({ data: data.message, logger });
     case 'trigger':
-      return promiseResponse(
-        downloadManager.initNewDownload({
-          initiator: data.message,
-          logger,
-        }),
-      );
+      return downloadManager.initNewDownload({
+        initiator: data.message,
+        logger,
+      });
     case 'requestToRestoreState':
-      return promiseResponse(
-        downloadManager.stabilizeInsideState({
-          permissionToRestore: data.message,
-          logger,
-        }),
-      );
+      return downloadManager.stabilizeInsideState({
+        permissionToRestore: data.message,
+        logger,
+      });
     case 'clearCache':
-      return promiseResponse(clearCache({ logger }));
+      return clearCache({ logger });
     case 'stopAllDownloads':
-      return promiseResponse(downloadManager.cancelAllDownload({ logger }));
+      return downloadManager.cancelAllDownload({ logger });
     case 'DBDeleted':
-      return promiseResponse(restoreDB());
+      return restoreDB();
     case 'deleteExtensionData':
-      return promiseResponse(clearExtensionData({ logger }));
+      return clearExtensionData({ logger });
     default:
       logger.warning(message);
       return false;
