@@ -194,8 +194,8 @@ export type CurrentEpisode = {
   episodeID: string;
 };
 
-export type MovieProgress = {
-  videoProgressInPercents: number | null;
+export type FileProgress = {
+  fileProgressInPercents: number | null;
   completedLoads: number;
   totalLoads: number;
 } | null;

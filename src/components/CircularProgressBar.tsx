@@ -1,4 +1,4 @@
-import type { MovieProgress } from '@/lib/types';
+import type { FileProgress } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import NumberFlow from '@number-flow/react';
 import { XIcon } from 'lucide-react';
@@ -8,17 +8,17 @@ const RADIUS = 40;
 const STROKE = 6;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-type Props = { progress: NonNullable<MovieProgress> };
+type Props = { progress: NonNullable<FileProgress> };
 
 export function CircularProgressBar({ progress }: Props) {
   const [allowToCancel, setAllowToCancel] = useState<boolean>(() =>
     progress
-      ? !!progress.videoProgressInPercents || progress.completedLoads > 1
+      ? !!progress.fileProgressInPercents || progress.completedLoads > 1
       : false,
   );
-  const isWaiting = !progress.videoProgressInPercents;
+  const isWaiting = !progress.fileProgressInPercents;
   const percent = Math.min(
-    Math.max(progress.videoProgressInPercents ?? 0, 0),
+    Math.max(progress.fileProgressInPercents ?? 0, 0),
     100,
   );
   const offset = CIRCUMFERENCE - (percent / 100) * CIRCUMFERENCE;
