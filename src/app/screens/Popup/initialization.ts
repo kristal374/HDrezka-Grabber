@@ -65,8 +65,11 @@ export async function popupInit(
     tabId && siteUrl ? await getPageType(tabId) : 'DEFAULT';
 
   if (['ERROR', 'DEFAULT'].includes(pageType)) {
-    const isNotSplitView = currentTab?.splitViewId === -1;
-    pageType = !isNotSplitView ? 'SPLIT_VIEW' : pageType;
+    // Если тип вкладки не определён, дополнительно проводим проверку на то
+    // открыта ли вкладка в режиме SplitView
+    const hasSplitViewId = typeof currentTab?.splitViewId !== 'undefined';
+    const isSplitView = hasSplitViewId && currentTab!.splitViewId !== -1;
+    pageType = isSplitView ? 'SPLIT_VIEW' : pageType;
   }
   if (!tabId || !siteUrl) return { pageType, needToRestoreInsideState };
 
