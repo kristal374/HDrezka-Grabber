@@ -128,8 +128,8 @@ function RealtimeIndicator({
       variant={isRealtime ? 'outline' : 'primary'}
       onClick={() => {
         if (FORCE_REALTIME_ONLY) return;
-        setIsRealtime(!isRealtime);
         setSwitchToStable(isRealtime);
+        setIsRealtime(!isRealtime);
         setForceRealtime(false);
       }}
       disabled={!isRealtime && !switchToStable}

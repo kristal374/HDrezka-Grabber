@@ -93,16 +93,19 @@ function FilterValueHeader<TData extends Record<string, any>>({
   );
 }
 
-interface FilterButtonProps extends ButtonProps {
+interface FilterButtonProps extends Omit<
+  ButtonProps,
+  'variant' | 'size' | 'children'
+> {
   amount: number | '*';
 }
 
-function FilterButton({ amount, ...props }: FilterButtonProps) {
+function FilterButton({ amount, className, ...props }: FilterButtonProps) {
   return (
     <Button
       variant={!amount ? 'secondary' : 'primary'}
       size='square'
-      className='relative'
+      className={cn('relative', className)}
       {...props}
     >
       <ListFilterIcon

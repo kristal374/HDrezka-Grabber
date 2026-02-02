@@ -148,29 +148,45 @@ function SearchInput<TData extends Record<string, any>>({
 function ColumnVisibilityMenu<TData extends Record<string, any>>({
   table,
 }: ToolbarProps<TData>) {
+  const defaultValues: string[] = [];
+  const visibleColumns: string[] = [];
   const data: DropdownItem[] = table.getAllColumns().map((column) => {
+    defaultValues.push(column.id);
+    if (column.getIsVisible()) visibleColumns.push(column.id);
     return {
       value: column.id,
       label: column.columnDef.meta?.headerName ?? column.id,
       disabled: !column.getCanHide(),
     };
   });
-  const initialValues = table
-    .getAllColumns()
-    .filter((column) => column.getIsVisible())
-    .map((column) => column.id);
+  const [values, setValues] = useState(visibleColumns);
+  const isCustomized = values.length !== defaultValues.length;
   return (
     <Dropdown
       data={data}
-      value={initialValues}
+      value={values}
+      onValueChange={(values) => setValues(values)}
       onValueClick={(value) => table.getColumn(value)?.toggleVisibility()}
     >
       <Button
-        variant='secondary'
+        variant={isCustomized ? 'primary' : 'secondary'}
         size='square-large'
+        className='relative'
         title={browser.i18n.getMessage('logger_dataTable_columnVisibility')}
       >
-        <Settings2Icon className='size-4' />
+        <Settings2Icon
+          className={cn(
+            'size-4 *:transition-opacity',
+            isCustomized && '[&>circle:first-of-type]:opacity-0',
+          )}
+        />
+        <NumberFlow
+          value={defaultValues.length - values.length}
+          className={cn(
+            'absolute right-0 bottom-0 px-1.5 py-0.5 text-xs transition-opacity',
+            !isCustomized && 'opacity-0',
+          )}
+        />
       </Button>
     </Dropdown>
   );

@@ -288,7 +288,7 @@ export function StableTable<TData extends Record<string, any>>({
       ref={tableContainerRef}
     >
       {showToolbar && <Toolbar table={table} />}
-      <GlobalFilter table={table} />
+      {showToolbar && <GlobalFilter table={table} />}
       <Table
         id='stable'
         style={{

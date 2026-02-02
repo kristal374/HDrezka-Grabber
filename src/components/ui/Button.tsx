@@ -22,6 +22,8 @@ export function Button({
         size === 'default' && 'px-3 pt-1.25 pb-1.5',
         size === 'square' && 'p-1',
         size === 'square-large' && 'px-2.5 py-2.25',
+        (size === 'square' || size === 'square-large') &&
+          'not-disabled:active:scale-95',
         variant === 'primary' &&
           'bg-link-color not-disabled:hover:bg-link-color/75 text-white',
         variant === 'secondary' &&
