@@ -311,8 +311,8 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
                 key={notification.id}
                 className={cn(
                   colors[notification.type ?? 'info'].primary,
-                  'text-light-color flex items-center gap-1 rounded-md pt-1 pr-1.25 pb-1.25 pl-2.5 text-sm',
-                  'absolute w-full origin-bottom shadow-lg transition-transform duration-300',
+                  'flex items-center gap-1 rounded-md pt-1 pr-1.25 pb-1.25 pl-2.5 text-sm',
+                  'not-light:shadow-lg light:border absolute w-full origin-bottom transition-transform duration-300',
                   i === 0 && 'animate-spawn',
                   isCollapsed &&
                     i > NOTIFICATIONS_COLLAPSE_THRESHOLD &&
@@ -343,7 +343,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
                 )}
                 <p
                   className={cn(
-                    'mr-auto text-balance',
+                    'mr-auto font-medium text-balance',
                     isPreview && 'opacity-0 select-none',
                   )}
                 >
@@ -365,7 +365,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
                   variant='ghost'
                   size='square'
                   className={cn(
-                    'text-light-color! mt-0.25 focus-visible:bg-transparent not-disabled:active:scale-92',
+                    'not-light:text-light-color! mt-0.25 focus-visible:bg-transparent not-disabled:active:scale-92',
                     colors[notification.type ?? 'info'].secondaryHover,
                     !isPreview && 'pointer-events-auto',
                   )}
@@ -397,28 +397,32 @@ const colors: Record<
   { primary: string; secondary: string; secondaryHover: string; icon?: string }
 > = {
   info: {
-    primary: 'bg-input',
+    primary: 'bg-input light:border-input-active',
     secondary: 'bg-input-active',
     secondaryHover: 'not-disabled:hover:bg-input-active',
   },
   error: {
-    primary: 'bg-error',
+    primary:
+      'bg-error light:bg-rose-200 light:text-red-900 light:border-rose-400',
     secondary: 'bg-red-500/20',
     secondaryHover: 'not-disabled:hover:bg-red-500/20',
   },
   critical: {
-    primary: 'bg-error',
+    primary:
+      'bg-error light:bg-rose-200 light:text-red-900 light:border-rose-400',
     secondary: 'bg-red-500/20',
     secondaryHover: 'not-disabled:hover:bg-red-500/20',
-    icon: 'text-rose-600',
+    icon: 'text-rose-600 text-rose-800',
   },
   warning: {
-    primary: 'bg-yellow-800',
+    primary:
+      'bg-yellow-800 light:bg-amber-200 light:text-orange-900 light:border-amber-400',
     secondary: 'bg-amber-500/30',
     secondaryHover: 'not-disabled:hover:bg-amber-500/30',
   },
   success: {
-    primary: 'bg-emerald-800',
+    primary:
+      'bg-emerald-800 light:bg-emerald-200 light:text-emerald-900 light:border-emerald-400',
     secondary: 'bg-emerald-500/30',
     secondaryHover: 'not-disabled:hover:bg-emerald-500/30',
   },

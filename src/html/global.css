@@ -37,12 +37,12 @@
     --text-primary: #000000;
     --text-secondary: #222222;
     --text-disabled: #676e78;
-    --check-box: #393943;
-    --check-box-active: #4c4c5a;
-    --input: #d2c2ba;
-    --input-active: #e5d9d2;
-    --background: #ffffff;
-    --popup-border: #313131;
+    --check-box: #323242;
+    --check-box-active: #5c6074;
+    --input: #d9dcf1;
+    --input-active: #b9c2e0;
+    --background: #ebebff;
+    --popup-border: #242836;
     --error: #cc3340;
 
     --settings-background-primary: #fafafa;
@@ -55,9 +55,11 @@
     --settings-text-tertiary: #45556c;
     --settings-text-accent: #0f172b;
 
-    --settings-border-primary: #d4d4d8;
+    --settings-border-primary: #dee3f9;
     --settings-border-secondary: #e2e8f0;
     --settings-border-tertiary: #bedbff;
+
+    --link-color: #1176ff; /* #3d8fff */
   }
 }
 
@@ -166,6 +168,12 @@
   & > * {
     grid-column-start: 1;
     grid-row-start: 1;
+  }
+}
+
+@custom-variant light {
+  &:where(.light *) {
+    @slot;
   }
 }
 
