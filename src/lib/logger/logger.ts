@@ -1,8 +1,7 @@
-import browser, { Runtime } from 'webextension-polyfill';
-
-import { SourceMap } from 'rollup';
+import browser, { type Runtime } from 'webextension-polyfill';
 import { SourceMapParser } from './source-map';
-import { LoggerEventType, LogLevel, LogMessage, LogMetadata } from './types';
+import type { LogMessage, LogMetadata, SourceMap } from './types';
+import { LogLevel, LoggerEventType } from './types';
 import { isBackground } from './utils';
 
 export class Logger {

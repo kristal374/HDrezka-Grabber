@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 
-import { SourceMap } from 'rollup';
+import type { SourceMap } from '@/lib/logger/types';
 
 type CallPosition = {
   source: string;
