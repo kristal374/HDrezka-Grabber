@@ -149,7 +149,7 @@ function FilterValueCell<TData extends Record<string, any>>({
       </Button>
       <CopyButton
         content={String(value)}
-        className='invisible mb-auto ml-2 group-hover/row:visible [&>svg]:size-3'
+        className='invisible mb-auto ml-2 group-focus-within/row:visible group-hover/row:visible [&>svg]:size-3'
       />
     </>
   );
