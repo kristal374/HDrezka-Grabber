@@ -99,8 +99,8 @@ function ChangeSection({
         {browser.i18n.getMessage(`settings_Changelog${type}`)}
       </h2>
       <ul className='mt-2 ml-6 list-outside list-disc space-y-1 pl-6'>
-        {items.map((itm) => (
-          <li className='text-settings-text-tertiary pt-0.5 text-base'>
+        {items.map((itm, i) => (
+          <li key={i} className='text-settings-text-tertiary pt-0.5 text-base'>
             {itm}
           </li>
         ))}

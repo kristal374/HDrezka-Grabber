@@ -1,5 +1,9 @@
 import { CopyButton } from '@/components/CopyButton';
+import { ChromeIcon } from '@/components/icons/ChromeIcon';
+import { EdgeIcon } from '@/components/icons/EdgeIcon';
+import { FirefoxIcon } from '@/components/icons/FirefoxIcon';
 import { GitHubIcon } from '@/components/icons/GitHubIcon';
+import { OperaIcon } from '@/components/icons/OperaIcon';
 import { Panel } from '@/components/Panel';
 import { OutsideLink } from '@/components/ui/OutsideLink';
 import { HeartIcon, MailIcon, ScaleIcon, UserCircle2Icon } from 'lucide-react';
@@ -7,7 +11,7 @@ import { HeartIcon, MailIcon, ScaleIcon, UserCircle2Icon } from 'lucide-react';
 type StoreLink = {
   name: string;
   url: string;
-  icon: string;
+  Icon: React.FC<React.ComponentProps<'svg'>>;
 };
 
 type Card = {
@@ -43,7 +47,7 @@ interface AboutTabProps {
   people?: Person[];
 }
 
-function ExtensionStoreLink({ name, url, icon }: StoreLink) {
+function ExtensionStoreLink({ name, url, Icon }: StoreLink) {
   return (
     <a
       href={url}
@@ -53,12 +57,9 @@ function ExtensionStoreLink({ name, url, icon }: StoreLink) {
       aria-label={name}
       className='focus-ring border-settings-border-primary group bg-settings-background-primary hover:bg-settings-background-tertiary inline-flex h-10 items-center gap-2 rounded-lg border px-3 py-2 transition-transform duration-200 hover:scale-105'
     >
-      <img
-        src={icon}
-        alt={`${name} icon`}
+      <Icon
         width={20}
         height={20}
-        loading='lazy'
         className='size-5 shrink-0 rounded-sm transition-transform duration-200 group-hover:scale-110'
       />
       <span className='text-sm leading-none font-bold whitespace-nowrap'>
@@ -329,23 +330,23 @@ export function AboutTab({
     {
       name: 'Chrome Web Store',
       url: 'https://chromewebstore.google.com/detail/hdrezka-grabber/aamnmboocelpaiagegjicbefiinkcoal',
-      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/64px-Google_Chrome_icon_%28February_2022%29.svg.png',
+      Icon: ChromeIcon,
     },
-    // {
-    //   name: 'Firefox Add-ons',
-    //   url: 'https://addons.mozilla.org/en-US/firefox/addon/your-addon',
-    //   icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/64px-Firefox_logo%2C_2019.svg.png',
-    // },
+    {
+      name: 'Firefox Add-ons',
+      url: 'https://addons.mozilla.org/en-US/firefox/addon/hdrezka-grabber',
+      Icon: FirefoxIcon,
+    },
     {
       name: 'Opera Add-ons',
       url: 'https://addons.opera.com/ru/extensions/details/hdrezka-grabber/',
-      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Opera_2015_icon.svg/64px-Opera_2015_icon.svg.png',
+      Icon: OperaIcon,
     },
-    // {
-    //   name: 'Microsoft Edge',
-    //   url: 'https://microsoftedge.microsoft.com/addons/detail/your-extension-id',
-    //   icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Microsoft_Edge_logo_%282019%29.svg/64px-Microsoft_Edge_logo_%282019%29.svg.png',
-    // },
+    {
+      name: 'Microsoft Edge',
+      url: 'https://microsoftedge.microsoft.com/addons/detail/hdrezka-grabber',
+      Icon: EdgeIcon,
+    },
   ],
   infoCards = [
     {
