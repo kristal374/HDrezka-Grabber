@@ -127,9 +127,9 @@ function ReleaseElement({ release }: { release: Release }) {
         <>
           <hr className='border-settings-border-secondary my-5 border-t-2' />
           <div className='flex flex-col gap-8'>
-            {Object.entries(content).map(([type, items]) => (
+            {Object.entries(content).map(([type, items], i) => (
               <ChangeSection
-                key={type}
+                key={i}
                 type={type as ContentChapter}
                 items={items}
               />
