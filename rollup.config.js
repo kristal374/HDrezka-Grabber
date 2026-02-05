@@ -33,7 +33,9 @@ export default [
         targets: [
           {
             src: [
-              'node_modules/webextension-polyfill/dist/browser-polyfill.min.js',
+              isProduction
+                ? 'node_modules/webextension-polyfill/dist/browser-polyfill.min.js'
+                : 'node_modules/webextension-polyfill/dist/browser-polyfill.js',
               'src/extraction-scripts/InjectionScripts/',
             ],
             dest: 'dist/build/HDrezka-Grabber.build/src/js/',
