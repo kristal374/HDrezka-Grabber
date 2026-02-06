@@ -15,8 +15,7 @@
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript">
   <img alt="Vite" src="https://img.shields.io/badge/Vite-7-646cff?logo=vite">
   <img alt="TailwindCSS" src="https://img.shields.io/badge/TailwindCSS-4-38bdf8?logo=tailwindcss">
-  <img alt="Redux Toolkit" src="https://img.shields.io/badge/Redux_Toolkit-2.2-764abc?logo=redux">
-  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-%E2%89%A518-green?logo=node.js">
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-%E2%89%A524-green?logo=node.js">
 
 <h3>Простое решение для загрузки любимых фильмов и сериалов с <a href="https://rezka.ag">rezka.ag</a>!</h3>
 </div>
@@ -153,7 +152,8 @@ HDrezka Grabber — лучший инструмент для загрузки л
 
 > [!CAUTION]
 > Настоящее расширение распространяется как свободное программное обеспечение с открытым исходным кодом. Оно
-> предоставляет технические средства для взаимодействия с веб-контентом. Расширение не хранит и не распространяет контент
+> предоставляет технические средства для взаимодействия с веб-контентом. Расширение не хранит и не распространяет
+> контент
 > третьих лиц — оно лишь выполняет локальные операции в браузере по запросу пользователя. Пользователь самостоятельно
 > несёт полную ответственность за законность использования расширения в своей юрисдикции и за соблюдение условий
 > использования и лицензионных соглашений соответствующих веб-сайтов.
@@ -162,8 +162,17 @@ HDrezka Grabber — лучший инструмент для загрузки л
 
 Пожалуйста, рассмотрите возможность сделать пожертвование для поддержки развития этого проекта с открытым исходным
 кодом.
+
 <div align="left">
-  Тут ссылки на донаты
+    <form action="https://www.paypal.com/donate" method="post" target="_top">
+      <input type="hidden" name="hosted_button_id" value="HM5S5TFG3ZQVL" />
+      <input type="image" src="https://pics.paypal.com/00/s/MzlmMWYzOTUtOGNhZi00MTE5LTllOGYtNzA0NzY3ODI2NDg5/file.PNG" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+      <img alt="" border="0" src="https://www.paypal.com/en_LV/i/scr/pixel.gif" width="1" height="1" />
+    </form>
+    <a href="https://www.buymeacoffee.com/kristal374" target="_blank">
+        <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 44px !important;width: 160px !important;" >
+    </a>
+
 </div>
 
 Кроме того, вы можете поставить 5-звёздочный рейтинг в [Chrome web store][chrome-web-store]
