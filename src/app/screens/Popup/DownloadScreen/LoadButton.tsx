@@ -82,9 +82,10 @@ export function LoadButton() {
   return (
     <button
       className={cn(
-        'group focus-ring relative flex size-30 cursor-pointer items-center justify-center overflow-clip rounded-full text-white',
-        'bg-popup-border not-disabled:hover:bg-check-box-active transition-transform duration-200 not-disabled:active:scale-96',
-        'focus-visible:ring-3 focus-visible:ring-offset-3',
+        'group relative flex size-30 items-center justify-center overflow-clip rounded-full text-white',
+        'focus-ring cursor-pointer ring-offset-3 focus-visible:ring-3',
+        'transition-transform duration-200 not-disabled:active:scale-96',
+        'bg-popup-border not-disabled:hover:bg-input light:not-disabled:hover:bg-check-box-active',
         isCompleted && 'cursor-not-allowed',
       )}
       type='button'
