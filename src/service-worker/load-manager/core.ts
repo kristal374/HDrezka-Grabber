@@ -607,7 +607,7 @@ export class DownloadManager {
       !settings.trackEventsOnDeterminingFilename
     ) {
       logger.debug('Ignore event from other source.');
-      return suggest();
+      return;
     }
 
     this.findLastFileItemByDownloadId({
