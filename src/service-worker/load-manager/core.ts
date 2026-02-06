@@ -192,21 +192,12 @@ export class DownloadManager {
       nextLoadItemId,
     )) as LoadItem;
 
-    if (loadItem.status !== LoadStatus.DownloadCandidate) {
-      // TODO: Тут может возникнуть ошибка когда файл продолжит висеть в очереди
-      logger.critical(
-        'The start of the load initialization is interrupted - incorrect status:',
-        loadItem,
-      );
-      this.resourceLockManager.unlock({
-        type: 'loadStorage',
-        id: loadItem.id,
-        logger,
-      });
-      return;
+    if (loadItem.status === LoadStatus.DownloadCandidate) {
+      loadItem.status = LoadStatus.InitiatingDownload;
+    } else {
+      logger.error('Invalid status to start downloading:', loadItem);
     }
 
-    loadItem.status = LoadStatus.InitiatingDownload;
     await indexedDBObject.put('loadStorage', loadItem);
 
     const siteLoader = siteLoaderFactory[loadItem.siteType];
@@ -225,7 +216,14 @@ export class DownloadManager {
         ? (subtitleFile?.id ?? null)
         : (videoFile?.id ?? null);
 
-    targetFile.status = LoadStatus.InitiatingDownload;
+    targetFile.status = loadItem.status;
+    if (targetFile.status === LoadStatus.InitiatingDownload) {
+      targetFile.url =
+        targetFile.fileType === 'video'
+          ? await siteLoadItem.getVideoUrl({ logger })
+          : await siteLoadItem.getSubtitlesUrl({ logger });
+    }
+
     await indexedDBObject.put('fileStorage', targetFile);
 
     this.launchFileDownload({ fileItem: targetFile, logger }).then();
@@ -703,15 +701,31 @@ export class DownloadManager {
         fileItem.dependentFileItemId,
       )) as FileItem;
 
-      if (nextFileItem.status !== LoadStatus.DownloadCandidate) {
-        logger.warning(
+      if (nextFileItem.status === LoadStatus.DownloadCandidate) {
+        nextFileItem.status = LoadStatus.InitiatingDownload;
+
+        const loadItem = (await indexedDBObject.getFromIndex(
+          'loadStorage',
+          'load_id',
+          fileItem.relatedLoadItemId,
+        )) as LoadItem;
+
+        const siteLoader = siteLoaderFactory[loadItem.siteType];
+        const siteLoadItem = await siteLoader.build(loadItem);
+
+        nextFileItem.url =
+          nextFileItem.fileType === 'video'
+            ? await siteLoadItem.getVideoUrl({ logger })
+            : await siteLoadItem.getSubtitlesUrl({ logger });
+
+        await indexedDBObject.put('fileStorage', nextFileItem);
+      } else {
+        logger.error(
           'Found a related file, but it is not a candidate:',
           nextFileItem,
         );
-        nextFileItem.status = LoadStatus.InitiatingDownload;
       }
 
-      await indexedDBObject.put('fileStorage', nextFileItem);
       await this.launchFileDownload({ fileItem: nextFileItem, logger });
     } else {
       logger.debug('Marking download as successful.');
