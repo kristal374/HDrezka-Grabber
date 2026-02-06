@@ -15,11 +15,11 @@
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript">
   <img alt="Vite" src="https://img.shields.io/badge/Vite-7-646cff?logo=vite">
   <img alt="TailwindCSS" src="https://img.shields.io/badge/TailwindCSS-4-38bdf8?logo=tailwindcss">
-  <img alt="Redux Toolkit" src="https://img.shields.io/badge/Redux_Toolkit-2.2-764abc?logo=redux">
   <img alt="Node.js" src="https://img.shields.io/badge/Node.js-%E2%89%A518-green?logo=node.js">
 
-<h3>A simple solution for downloading your favorite movies and TV shows from <a href="https://rezka.ag">
-rezka.ag</a>!</h3>
+  <h3>
+    A simple solution for downloading your favorite movies and TV shows from <a href="https://rezka.ag"> rezka.ag</a>!
+  </h3>
 </div>
 
 <p align="center">
@@ -156,11 +156,11 @@ Installing the extension in developer mode.
 ## Disclaimer
 
 > [!CAUTION]
-> This extension is distributed as free open-source software. It provides technical means for interacting with web
-> content. The extension does not store or distribute third-party content — it only performs local operations in the
-> browser at the user's request. The user independently bears full responsibility for the legality of using the
-> extension
-> in their jurisdiction and for compliance with the terms of use and license agreements of the respective websites.
+> This extension is distributed as free open-source software. It provides technical means for interacting with
+> web content. The extension does not store or distribute third-party content — it only performs local operations
+> in the browser at the user's request. The user independently bears full responsibility for the legality of using
+> the extension in their jurisdiction and for compliance with the terms of use and license agreements of the
+> respective websites.
 
 ## Support
 
