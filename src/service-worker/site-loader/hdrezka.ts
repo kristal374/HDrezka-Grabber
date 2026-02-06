@@ -129,7 +129,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
       if (this.serverResponse) {
         if (!this.serverResponse.success) {
           logger.error('Response success flag is false.');
-          return this.serverResponse
+          return this.serverResponse;
         }
 
         if (this.serverResponse.url) {
