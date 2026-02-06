@@ -1,6 +1,9 @@
 import { extractFilename } from '@/lib/filename-maker';
 import { attachTraceId, getTraceId, Logger } from '@/lib/logger';
-import { ResourceLockManager } from '@/lib/resource-lock-manager';
+import {
+  ResourceLockManager,
+  ResourceTarget,
+} from '@/lib/resource-lock-manager';
 import { FileItem, Initiator, LoadItem, LoadStatus } from '@/lib/types';
 import { loadIsCompleted } from '@/lib/utils';
 import {
@@ -551,34 +554,31 @@ export class DownloadManager {
     });
 
     // Пока мы ждали завершения предыдущей задачи объект мог измениться
-    targetFile = (await indexedDBObject.getFromIndex(
+    const fileItem = (await indexedDBObject.getFromIndex(
       'fileStorage',
       'file_id',
       targetFile.id,
     )) as FileItem;
 
     if (downloadDelta.paused?.current === true) {
-      await this.pauseDownload({ fileItem: targetFile, logger });
+      await this.pauseDownload({ fileItem, logger });
     } else if (downloadDelta.paused?.current === false) {
-      await this.unpauseDownload({ fileItem: targetFile, logger });
+      await this.unpauseDownload({ fileItem, logger });
     }
 
     if (downloadDelta.state?.current === 'complete') {
-      await this.successDownload({ fileItem: targetFile, logger });
+      await this.successDownload({ fileItem, logger });
     } else if (downloadDelta.error?.current) {
       if (downloadDelta.error.current === 'USER_CANCELED') {
         logger.debug('Download was canceled by user.');
-        await this.cancelOneDownload({ fileItem: targetFile, logger });
+        await this.cancelOneDownload({ fileItem, logger });
       } else if (downloadDelta.error.current === 'FILE_NO_SPACE') {
         logger.critical('The disk is not enough space for uploading a file!');
-        await this.cancelAllDownloadsOneMovie({ fileItem: targetFile, logger });
+        await this.cancelAllDownload({ fileItem, logger });
       } else {
         logger.error('Download failed:', downloadDelta.error.current);
-        await this.attemptNewDownload({
-          fileItem: targetFile,
-          cause: LoadStatus.DownloadFailed,
-          logger,
-        });
+        const cause = LoadStatus.DownloadFailed;
+        await this.attemptNewDownload({ fileItem, cause, logger });
       }
     } else {
       // Деблокируем объект, иначе он навсегда останется заблокированным
@@ -587,7 +587,7 @@ export class DownloadManager {
       }
       this.resourceLockManager.unlock({
         type: 'loadStorage',
-        id: targetFile.relatedLoadItemId,
+        id: fileItem.relatedLoadItemId,
         logger,
       });
     }
@@ -728,49 +728,69 @@ export class DownloadManager {
 
   @attachTraceId()
   public async cancelAllDownload({
+    fileItem,
     logger = globalThis.logger,
   }: {
+    fileItem?: FileItem;
     logger?: Logger;
   }) {
     // Отменяет все загрузки, что были инициированы расширением
     logger.info('Cancel all downloads.');
 
-    const groupToRemove = [
-      ...this.queueController.activeDownloadsList,
-      ...this.queueController.queueList.flat(2),
-    ];
-    await this.queueController.deleteDownloadGroup({
-      groupToRemove,
-      logger,
-    });
-    return true;
-  }
+    if (fileItem) {
+      const loadItem = (await indexedDBObject.getFromIndex(
+        'loadStorage',
+        'load_id',
+        fileItem.relatedLoadItemId,
+      )) as LoadItem;
 
-  private async cancelAllDownloadsOneMovie({
-    fileItem,
-    logger = globalThis.logger,
-  }: {
-    fileItem: FileItem;
-    logger?: Logger;
-  }) {
-    // Отменяет все загрузки, имеющие одинаковый movieId
-    logger.info('Cancel all downloads for one movie.');
+      await messageBroker.sendMessage(String(loadItem.movieId), {
+        stackable: false,
+        message: 'Недостаточно места на диске!',
+        type: 'critical',
+      });
 
-    const loadItem = (await indexedDBObject.getFromIndex(
-      'loadStorage',
-      'load_id',
-      fileItem.relatedLoadItemId,
-    )) as LoadItem;
+      // Если cancelAllDownload был вызван каким-либо объектом FileItem,
+      // мы должны снять с него блокировку, иначе deleteDownloadGroup не сможет
+      // выполнить массовую блокировку т.к. resourceLockManager.massLock
+      // будет ожидать снятие блокировки с этого самого FileItem
+      this.resourceLockManager.unlock({
+        type: 'loadStorage',
+        id: fileItem.relatedLoadItemId,
+        logger,
+      });
+    }
 
-    await this.breakDownloadWithError({
-      fileItem,
-      cause: LoadStatus.DownloadFailed,
-      logger,
-    });
-    await this.queueController.stopDownload({
-      movieId: loadItem.movieId,
-      cause: LoadStatus.InitiationError,
-      logger,
+    const target: ResourceTarget = { type: 'cancelAll', id: 'undefined' };
+    if (this.resourceLockManager.isLocked(target)) {
+      logger.debug('Canceling all downloads is already in progress.');
+
+      // Просто дожидаемся завершения отмены всех загрузок
+      return await this.resourceLockManager.run({
+        ...target,
+        fn: async () => true,
+        logger,
+      });
+    }
+
+    return await this.resourceLockManager.run({
+      ...target,
+      fn: async () => {
+        const groupToRemove = [
+          ...this.queueController.activeDownloadsList,
+          ...this.queueController.queueList.flat(2),
+        ];
+
+        await this.queueController.deleteDownloadGroup({
+          groupToRemove,
+          cause: fileItem
+            ? LoadStatus.DownloadFailed
+            : LoadStatus.StoppedByUser,
+          logger,
+        });
+
+        return true;
+      },
     });
   }
 
