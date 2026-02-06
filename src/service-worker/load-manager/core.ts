@@ -135,9 +135,14 @@ export class DownloadManager {
     // или отмены их загрузки
     logger.info('Trigger new load:', initiator);
 
+    const target: ResourceTarget = { type: 'urlDetail', id: initiator.movieId };
+    if (this.resourceLockManager.isLocked(target)) {
+      logger.warning('Attempt init new download interrupted:', initiator);
+      return;
+    }
+
     await this.resourceLockManager.run({
-      type: 'urlDetail',
-      id: initiator.movieId,
+      ...target,
       fn: this.queueController.initializeNewDownload.bind(
         this.queueController,
         { initiator, logger },

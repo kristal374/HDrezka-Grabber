@@ -1,4 +1,4 @@
 import { Mutex } from '@/lib/resource-lock-manager/async-mutex';
-import { ResourceLockManager } from './resource-lock-manager';
+import { ResourceLockManager, ResourceTarget } from './resource-lock-manager';
 
-export { Mutex, ResourceLockManager };
+export { Mutex, ResourceLockManager, ResourceTarget };
