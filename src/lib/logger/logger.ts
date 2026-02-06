@@ -136,23 +136,23 @@ export class Logger {
   }
 
   critical(...message: any[]) {
-    this.emit(LogLevel.CRITICAL, message);
+    this.emit(LogLevel.CRITICAL, JSON.parse(JSON.stringify(message)));
   }
 
   error(...message: any[]) {
-    this.emit(LogLevel.ERROR, message);
+    this.emit(LogLevel.ERROR, JSON.parse(JSON.stringify(message)));
   }
 
   warning(...message: any[]) {
-    this.emit(LogLevel.WARNING, message);
+    this.emit(LogLevel.WARNING, JSON.parse(JSON.stringify(message)));
   }
 
   debug(...message: any[]) {
-    this.emit(LogLevel.DEBUG, message);
+    this.emit(LogLevel.DEBUG, JSON.parse(JSON.stringify(message)));
   }
 
   info(...message: any[]) {
-    this.emit(LogLevel.INFO, message);
+    this.emit(LogLevel.INFO, JSON.parse(JSON.stringify(message)));
   }
 
   private async getCallerInfo() {
