@@ -172,7 +172,6 @@ HDrezka Grabber — лучший инструмент для загрузки л
     <a href="https://www.buymeacoffee.com/kristal374" target="_blank">
         <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 44px !important;width: 160px !important;" >
     </a>
-
 </div>
 
 Кроме того, вы можете поставить 5-звёздочный рейтинг в [Chrome web store][chrome-web-store]
