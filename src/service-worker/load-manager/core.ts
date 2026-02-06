@@ -1012,8 +1012,8 @@ export class DownloadManager {
 
     targetFile.url =
       targetFile.fileType === 'video'
-        ? await siteLoadItem.getVideoUrl({ logger })
-        : await siteLoadItem.getSubtitlesUrl({ logger });
+        ? await siteLoadItem.getVideoUrl({ useCache: false, logger })
+        : await siteLoadItem.getSubtitlesUrl({ useCache: false, logger });
 
     await indexedDBObject.put('fileStorage', targetFile);
 

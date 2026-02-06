@@ -14,10 +14,12 @@ const activeReader = new Map<string, Input<UrlSource>>();
 export async function fetchVideoData({
   siteUrl,
   data,
+  cacheDisabled = false,
   logger = globalThis.logger,
 }: {
   siteUrl: string;
   data: QueryData;
+  cacheDisabled?: boolean;
   logger?: Logger;
 }) {
   logger.info('Attempt update video data.');
@@ -31,13 +33,15 @@ export async function fetchVideoData({
     logger,
   });
 
-  const cache = await getFromCache<ResponseVideoData>({
-    url: siteUrl,
-    body,
-    logger,
-  });
+  if (!cacheDisabled) {
+    const cache = await getFromCache<ResponseVideoData>({
+      url: siteUrl,
+      body,
+      logger,
+    });
+    if (cache) return cache;
+  }
 
-  if (cache) return cache;
   return modifiedFetch(fullURL, {
     method: 'POST',
     credentials: 'include',
@@ -115,7 +119,7 @@ export async function probeVideoFile({
       return result;
     })
     .catch(async (error) => {
-      logger.error('Error while reading video info:', error);
+      logger.error('Error while reading video info:', error.toString());
       throw error as Error;
     })
     .finally(() => {

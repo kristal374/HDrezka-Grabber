@@ -22,10 +22,12 @@ const dedupeUrlMap = new Map<string, Promise<URLItem>>();
 export async function getQualityFileSizes({
   urlsContainer,
   siteUrl,
+  cacheDisabled,
   logger = globalThis.logger,
 }: {
   urlsContainer: QualitiesList | null;
   siteUrl: string;
+  cacheDisabled: boolean;
   logger?: Logger;
 }): Promise<URLsContainer | null> {
   logger.info('Attempt to get quality sizes.');
@@ -37,7 +39,12 @@ export async function getQualityFileSizes({
 
   const urlsSizes: (readonly [QualityItem, URLItem])[] = await Promise.all(
     Object.entries(urlsContainer).map(async ([key, urlsList]) => {
-      const request: RequestUrlSize = { urlsList, siteUrl, onlySize: true };
+      const request: RequestUrlSize = {
+        urlsList,
+        siteUrl,
+        onlySize: true,
+        cacheDisabled,
+      };
       const size = await getOriginalUrlItem({ request, logger });
       return [key as QualityItem, size] as const;
     }),
