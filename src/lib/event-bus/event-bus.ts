@@ -173,6 +173,10 @@ export class BufferedEventBus<
                 // отказа от обработки будет принята как ответ обработчика,
                 // и поскольку мы не можем асинхронно отказаться от обработки
                 // вместо этого мы просто не отправляем никакого ответа
+                //
+                // Браузер позже поднимет ошибку: "Error: A listener indicated
+                // an asynchronous response by returning true, but the message
+                // channel closed before a response was received"
               } else {
                 originResolve(value);
               }
