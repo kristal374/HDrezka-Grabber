@@ -102,15 +102,17 @@ HDrezka Grabber — лучший инструмент для загрузки л
 ### Последовательность действий
 
 1. Клонируйте репозиторий:
-    ```bash
-    git clone https://github.com/kristal374/HDrezka-Grabber.git
-    cd HDrezka-Grabber
-    ```
+
+   ```bash
+   git clone https://github.com/kristal374/HDrezka-Grabber.git
+   cd HDrezka-Grabber
+   ```
 
 2. Установите зависимости:
-    ```bash
-    npm ci
-    ```
+
+   ```bash
+   npm ci
+   ```
 
 3. Запустите сборку расширения:
 

@@ -16,7 +16,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "mail.aleks.for.work@gmail.com",
+      "id": "{fc017a17-2915-45fa-862c-ec7e230e4261}",
       "strict_min_version": "128.0",
       "data_collection_permissions": {
         "required": ["none"]
