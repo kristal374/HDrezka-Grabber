@@ -110,13 +110,16 @@
   "popup_messageBroker_SkipDownload": {
     "message": "Download failed. Could not download file."
   },
+  "popup_messageBroker_DiskFull": {
+    "message": "Not enough disk space!"
+  },
   "message_noDataVideo": {
     "message": "Failed to retrieve video data. Check your internet connection or use a VPN."
   },
   "message_errorLoad": {
     "message": "Download error. Check your internet connection or use a VPN."
   },
-  "message_userBreak": {
+  "message_messageBroker_userBreak": {
     "message": "You interrupted the download."
   },
   "settings_TabSettings": {

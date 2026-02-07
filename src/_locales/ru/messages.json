@@ -110,13 +110,16 @@
   "popup_messageBroker_SkipDownload": {
     "message": "Сбой загрузки. Не удалось загрузить файл."
   },
+  "popup_messageBroker_DiskFull": {
+    "message": "Недостаточно места на диске!"
+  },
   "message_noDataVideo": {
     "message": "Не удалось получить данные видео. Проверьте интернет соединение или используйте VPN."
   },
   "message_errorLoad": {
     "message": "Ошибка загрузки. Проверьте интернет соединение или используйте VPN."
   },
-  "message_userBreak": {
+  "message_messageBroker_userBreak": {
     "message": "Вы прервали загрузку."
   },
   "settings_TabSettings": {

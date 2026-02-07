@@ -110,13 +110,16 @@
   "popup_messageBroker_SkipDownload": {
     "message": "Збій завантаження. Не вдалося завантажити файл."
   },
+  "popup_messageBroker_DiskFull": {
+    "message": "Недостатньо місця на диску!"
+  },
   "message_noDataVideo": {
     "message": "Не вдалося отримати дані відео. Перевірте інтернет-з'єднання або використайте VPN."
   },
   "message_errorLoad": {
     "message": "Помилка завантаження. Перевірте інтернет-з'єднання або використайте VPN."
   },
-  "message_userBreak": {
+  "message_messageBroker_userBreak": {
     "message": "Ви перервали завантаження."
   },
   "settings_TabSettings": {

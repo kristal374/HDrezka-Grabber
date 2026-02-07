@@ -61,7 +61,7 @@ export class DownloadManager {
     // Поэтому при старте браузера проводим аудит данных и в случае необходимости
     // восстанавливаем работоспособность расширения.
     logger.info('Started checking inside state of load manager.');
-
+    // TODO: Восстанавливать упавшие файлы налету
     const isFirstRun = await isFirstRunExtension({ logger });
     if (isFirstRun) {
       await clearCache({ logger });
@@ -765,7 +765,7 @@ export class DownloadManager {
 
       await messageBroker.sendMessage(String(loadItem.movieId), {
         stackable: false,
-        message: 'Недостаточно места на диске!',
+        message: browser.i18n.getMessage('popup_messageBroker_DiskFull'),
         type: 'critical',
       });
 

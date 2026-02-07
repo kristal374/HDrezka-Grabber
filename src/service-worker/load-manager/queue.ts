@@ -90,6 +90,12 @@ export class QueueController {
         groupToRemove: activeDownloads,
         logger,
       });
+
+      await messageBroker.sendMessage(initiator.movieId, {
+        stackable: false,
+        message: browser.i18n.getMessage('message_messageBroker_userBreak'),
+        type: 'warning',
+      });
       return false;
     }
 
