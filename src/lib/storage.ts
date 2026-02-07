@@ -15,6 +15,7 @@ export async function setToStorage<T>(key: string, value: T) {
 
 export async function createDefaultSettings() {
   const DEFAULT_SETTINGS: Settings = {
+    afterInstallDismissed: false,
     darkMode: true,
     displayQualitySize: true,
     getRealQuality: true,

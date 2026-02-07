@@ -4,27 +4,30 @@ import { memo } from 'react';
 export const SettingItem = memo(function SettingItem({
   title,
   description,
+  footer,
   children,
   className,
 }: {
   title: string;
   description?: string;
+  footer?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
     <div className={cn('flex items-center justify-between gap-3', className)}>
-      <div className='flex-1 pr-4'>
+      <div className='flex flex-1 flex-col gap-1 pr-4'>
         <h4 className='text-settings-text-secondary text-base font-medium'>
           {title}
         </h4>
         {description && (
-          <p className='text-settings-text-tertiary mt-1 text-sm text-balance'>
+          <p className='text-settings-text-tertiary text-sm text-balance'>
             {description}
           </p>
         )}
+        {footer}
       </div>
-      <div className='flex-shrink-0'>{children}</div>
+      <div className='shrink-0'>{children}</div>
     </div>
   );
 });
