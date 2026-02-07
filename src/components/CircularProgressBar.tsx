@@ -64,7 +64,7 @@ export function CircularProgressBar({ progress }: Props) {
         <div
           className={cn(
             'opacity-0 transition-opacity duration-300 group-hover:opacity-100',
-            'bg-check-box-active absolute flex size-full items-center justify-center',
+            'bg-input light:bg-check-box-active absolute flex size-full items-center justify-center',
           )}
           title={browser.i18n.getMessage('popup_DownloadCancel')}
         >

@@ -286,10 +286,7 @@ function ExtensionHeader({
           </p>
 
           <div className='mb-4 flex items-center gap-1'>
-            <GitHubIcon
-              className='size-5'
-              fill={settings.darkMode ? '#ffffff' : undefined}
-            />
+            <GitHubIcon className='light:fill-[#24292f] size-5 fill-white' />
             <OutsideLink
               url={githubLink}
               text={browser.i18n.getMessage('settings_SourceCode')}

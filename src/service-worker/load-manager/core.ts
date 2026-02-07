@@ -77,6 +77,7 @@ export class DownloadManager {
 
     if (!brokenFileItems.length && !brokenLoadItems.length) {
       logger.debug('Inside state is stable.');
+      await browser.storage.session.set({ needToRestoreInsideState: false });
       return;
     }
 
