@@ -382,6 +382,9 @@
   "settings_itemAfterInstall_firefox": {
     "message": "Всегда выдавать запрос на сохранение файлов"
   },
+  "settings_itemAfterInstall_edge": {
+    "message": "Спрашивать, куда сохранять каждый файл перед его загрузкой"
+  },
   "settings_itemAfterInstall_settingsBrowser": {
     "message": "Настройки браузера"
   },

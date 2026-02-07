@@ -19,7 +19,7 @@ import { SettingsInitialDataContext } from '@/html/settings';
 import { LogLevel } from '@/lib/logger';
 import { createDefaultSettings, saveInStorage } from '@/lib/storage';
 import { Message } from '@/lib/types';
-import { IS_FIREFOX } from '@/lib/utils';
+import { IS_EDGE, IS_FIREFOX } from '@/lib/utils';
 import {
   ChevronRightIcon,
   DownloadIcon,
@@ -190,7 +190,9 @@ export function SettingsTab() {
 
   const afterInstallSettingName = IS_FIREFOX
     ? browser.i18n.getMessage('settings_itemAfterInstall_firefox')
-    : browser.i18n.getMessage('settings_itemAfterInstall_chrome');
+    : IS_EDGE
+      ? browser.i18n.getMessage('settings_itemAfterInstall_edge')
+      : browser.i18n.getMessage('settings_itemAfterInstall_chrome');
 
   return (
     <Panel className='bg-settings-background-primary border-0 p-0 shadow-none'>
