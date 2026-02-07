@@ -119,7 +119,7 @@ Table of Contents:
 
 - For Chromium-based browsers:
   ```bash
-  npm run build:chrome
+  npm run build:chromium
   ```
 - For Gecko-based browsers:
   ```bash

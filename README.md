@@ -118,7 +118,7 @@ HDrezka Grabber — лучший инструмент для загрузки л
 
 - Для браузеров на базе Chromium:
   ```bash
-  npm run build:chrome
+  npm run build:chromium
   ```
 - Для браузеров на базе Gecko:
   ```bash
