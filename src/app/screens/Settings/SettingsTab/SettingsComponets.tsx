@@ -15,19 +15,21 @@ export const SettingItem = memo(function SettingItem({
   className?: string;
 }) {
   return (
-    <div className={cn('flex items-center justify-between gap-3', className)}>
-      <div className='flex flex-1 flex-col gap-1 pr-4'>
-        <h4 className='text-settings-text-secondary text-base font-medium'>
-          {title}
-        </h4>
-        {description && (
-          <p className='text-settings-text-tertiary text-sm text-balance'>
-            {description}
-          </p>
-        )}
-        {footer}
+    <div className={cn('flex flex-col gap-1', className)}>
+      <div className='flex items-center justify-between gap-3'>
+        <div className='flex flex-1 flex-col gap-1 pr-4'>
+          <h4 className='text-settings-text-secondary text-base font-medium'>
+            {title}
+          </h4>
+          {description && (
+            <p className='text-settings-text-tertiary text-sm text-balance'>
+              {description}
+            </p>
+          )}
+        </div>
+        <div className='shrink-0'>{children}</div>
       </div>
-      <div className='shrink-0'>{children}</div>
+      {footer}
     </div>
   );
 });

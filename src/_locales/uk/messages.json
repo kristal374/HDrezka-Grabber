@@ -373,14 +373,23 @@
   "settings_itemAfterInstall_description": {
     "message": "При одночасному завантаженні кількох фільмів/серіалів, браузер запитуватиме підтвердження для кожного файлу окремо, що може сповільнити процес та вплинути на зручність роботи з браузером"
   },
+  "settings_itemAfterInstall_disableTitle": {
+    "message": "Як це зробити:"
+  },
   "settings_itemAfterInstall_chrome": {
     "message": "Запитувати, де зберігати кожен файл перед завантаженням"
   },
   "settings_itemAfterInstall_firefox": {
     "message": "Завжди запитувати де зберегти файли"
   },
-  "settings_itemAfterInstall_openSettings": {
+  "settings_itemAfterInstall_settingsBrowser": {
     "message": "Налаштування браузера"
+  },
+  "settings_itemAfterInstall_settingsDownload": {
+    "message": "Завантаження"
+  },
+  "settings_itemAfterInstall_settingsDisable": {
+    "message": "Вимкнути"
   },
   "settings_itemAfterInstall_button": {
     "message": "Більше не показувати"
@@ -503,7 +512,7 @@
     "message": "Відстежувати події на іменування файлу onDeterminingFilename"
   },
   "settings_itemTrackEventsOnDeterminingFilename_description": {
-    "message": "Не змінюйте, якщо у вас все працює добре! Може допомогти, якщо є інше розширення, яке також відстежує події на іменування файлів, через що виникає конфлікт і файли під час завантаження мають некоректні назви."
+    "message": "Не змінюйте, якщо у вас все працює добре! Може допомогти, якщо є інше розширення, яке також відстежує події на іменування файлів, через що виникає конфлікт і файли під час завантаження мають некоректні назви"
   },
   "settings_filenameFilms": {
     "message": "Шаблон імені файлів для фільмів"

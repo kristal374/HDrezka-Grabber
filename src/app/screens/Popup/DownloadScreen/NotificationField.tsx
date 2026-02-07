@@ -338,7 +338,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
               >
                 {notification.type === 'critical' && (
                   <AlertTriangleIcon
-                    className={cn('size-4', colors.critical.icon)}
+                    className={cn('size-4 shrink-0', colors.critical.icon)}
                   />
                 )}
                 <p

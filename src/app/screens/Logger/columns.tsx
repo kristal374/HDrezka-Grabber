@@ -100,12 +100,15 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
             <span className='font-semibold'>
               {new Date(current).toDateString()}
             </span>
-            <span>{toFormatTime(current, 0)}</span>
+            <span>
+              {new Date(current).toLocaleTimeString()}.
+              {String(current % 1000).padStart(3, '0')}
+            </span>
             <div className='flex items-center gap-2'>
               <span>{current}</span>
               <CopyButton
                 content={String(current)}
-                className='rounded-sm [&>svg]:size-3'
+                className='rounded-sm [&_svg]:size-3'
               />
             </div>
           </TooltipContent>

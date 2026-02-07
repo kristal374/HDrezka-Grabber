@@ -207,31 +207,6 @@ export function SettingsTab() {
               description={browser.i18n.getMessage(
                 'settings_itemAfterInstall_description',
               )}
-              footer={
-                <div className='mt-2 flex items-center gap-1.5'>
-                  <CopyButton
-                    content={
-                      IS_FIREFOX
-                        ? 'about:preferences#general'
-                        : 'chrome://settings/downloads'
-                    }
-                    className='px-2.5 text-xs'
-                  >
-                    <span>
-                      {browser.i18n.getMessage(
-                        'settings_itemAfterInstall_openSettings',
-                      )}
-                    </span>
-                  </CopyButton>
-                  <ChevronRightIcon className='size-4' />
-                  <CopyButton
-                    content={afterInstallSettingName}
-                    className='px-2.5 text-xs'
-                  >
-                    <span>{afterInstallSettingName}</span>
-                  </CopyButton>
-                </div>
-              }
             >
               <Button
                 variant='dangerous'
@@ -241,6 +216,54 @@ export function SettingsTab() {
               >
                 {browser.i18n.getMessage('settings_itemAfterInstall_button')}
               </Button>
+            </SettingItem>
+            <SettingItem
+              title={browser.i18n.getMessage(
+                'settings_itemAfterInstall_disableTitle',
+              )}
+              footer={
+                <div className='-ml-2 flex items-center'>
+                  <CopyButton
+                    variant='ghost'
+                    content={
+                      IS_FIREFOX
+                        ? 'about:preferences#general'
+                        : 'chrome://settings/downloads'
+                    }
+                    noIcon={true}
+                    className='px-2 text-xs'
+                  >
+                    <span>
+                      {browser.i18n.getMessage(
+                        'settings_itemAfterInstall_settingsBrowser',
+                      )}
+                    </span>
+                    <ChevronRightIcon className='size-4' />
+                    <span>
+                      {browser.i18n.getMessage(
+                        'settings_itemAfterInstall_settingsDownload',
+                      )}
+                    </span>
+                  </CopyButton>
+                  <ChevronRightIcon className='size-4' />
+                  <CopyButton
+                    variant='ghost'
+                    content={afterInstallSettingName}
+                    noIcon={true}
+                    className='px-2 text-xs'
+                  >
+                    <span>{afterInstallSettingName}</span>
+                  </CopyButton>
+                  <ChevronRightIcon className='size-4' />
+                  <span className='px-2 text-xs font-medium'>
+                    {browser.i18n.getMessage(
+                      'settings_itemAfterInstall_settingsDisable',
+                    )}
+                  </span>
+                </div>
+              }
+            >
+              <></>
             </SettingItem>
           </SettingsSection>
         )}

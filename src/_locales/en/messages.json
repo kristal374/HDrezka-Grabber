@@ -373,17 +373,26 @@
   "settings_itemAfterInstall_description": {
     "message": "When downloading multiple movies/series simultaneously, the browser will ask for confirmation for each file separately, which may slow down the process and affect browser usability"
   },
+  "settings_itemAfterInstall_disableTitle": {
+    "message": "How to do this:"
+  },
   "settings_itemAfterInstall_chrome": {
     "message": "Ask where to save each file before downloading"
   },
   "settings_itemAfterInstall_firefox": {
     "message": "Always ask you where to save files"
   },
-  "settings_itemAfterInstall_openSettings": {
+  "settings_itemAfterInstall_settingsBrowser": {
     "message": "Browser settings"
   },
+  "settings_itemAfterInstall_settingsDownload": {
+    "message": "Downloads"
+  },
+  "settings_itemAfterInstall_settingsDisable": {
+    "message": "Disable"
+  },
   "settings_itemAfterInstall_button": {
-    "message": "Don't show again"
+    "message": "Dismiss"
   },
   "settings_itemInterfaceTheme_title": {
     "message": "Dark theme"
@@ -503,7 +512,7 @@
     "message": "Track onDeterminingFilename file naming events"
   },
   "settings_itemTrackEventsOnDeterminingFilename_description": {
-    "message": "Do not change if everything works well! May help if there is another extension that also tracks file naming events, causing a conflict and resulting in incorrect file names during download."
+    "message": "Do not change if everything works well! May help if there is another extension that also tracks file naming events, causing a conflict and resulting in incorrect file names during download"
   },
   "settings_filenameFilms": {
     "message": "Filename template for movies"
