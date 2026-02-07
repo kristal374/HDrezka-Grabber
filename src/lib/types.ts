@@ -1,0 +1,373 @@
+import type { LoggerEventType, LogLevel } from '@/lib/logger/types';
+import type {
+  Alarms,
+  Downloads,
+  Runtime,
+  Storage,
+} from 'webextension-polyfill';
+
+type Port = Runtime.Port;
+type Alarm = Alarms.Alarm;
+type DownloadItem = Downloads.DownloadItem;
+type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
+type MessageSender = Runtime.MessageSender;
+type StorageChange = Storage.StorageChange;
+type OnInstalledDetailsType = Runtime.OnInstalledDetailsType;
+
+export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
+
+export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+
+export type RequireAllOrNone<T> = T | { [K in keyof T]?: undefined };
+
+export type MessageType =
+  | 'trigger'
+  | 'getFileSize'
+  | 'updateVideoInfo'
+  | 'requestToRestoreState'
+  | 'setNotification'
+  | 'clearCache'
+  | 'stopAllDownloads'
+  | 'DBDeleted'
+  | 'deleteExtensionData'
+  | 'newFileSize'
+  | 'newVideoResolution';
+
+export type Message<T> = {
+  type: MessageType;
+  message: T;
+};
+
+export type PageType =
+  | 'DEFAULT' // Любая страница, НЕ принадлежащая семейству сайтов rezka.ag
+  | 'FILM' // Страница с фильмом
+  | 'SERIAL' // Страница с сериалом
+  | 'TRAILER' // Страница с трейлером
+  | 'LOCATION_FILM' // Страница с фильмом, недоступным в этом регионе
+  | 'LOCATION_SERIAL' // Страница с сериалом, недоступным в этом регионе
+  | 'UNAVAILABLE' // Страница корректная, но отсутствуют данные плеера
+  | 'ERROR' // Не удалось определить тип страницы
+  | 'SPLIT_VIEW'; // Страница открыта в режиме split-view
+
+export type MovieInfo = {
+  success: boolean;
+  data: FilmData | SerialData;
+  quality: QualityItem;
+  streams: string;
+  subtitle: SubtitleInfo | null;
+  filename: {
+    local: string;
+    origin: string | null;
+  };
+  url: string;
+};
+
+export type SubtitleInfo =
+  | {
+      subtitle: false;
+      subtitle_def: false;
+      subtitle_lns: false;
+    }
+  | {
+      subtitle: string;
+      subtitle_def: string;
+      subtitle_lns: Record<string, string>;
+    };
+
+export type VoiceOverInfo = {
+  id: string;
+  title: string;
+  flag_country: string | null;
+  prem_content?: boolean;
+  is_camrip?: string | null;
+  is_director?: string | null;
+  is_ads?: string | null;
+};
+
+export type Episode = { title: string; id: string };
+export type Season = { title: string; id: string };
+
+export type SeasonsWithEpisodesList = Record<
+  string,
+  { title: string; episodes: Episode[] }
+>;
+
+export type QualityItem =
+  | '360p'
+  | '480p'
+  | '720p'
+  | '1080p'
+  | '1080p Ultra'
+  | '2K'
+  | '4K';
+
+export type Subtitle = {
+  lang: string;
+  code: string;
+  url: string;
+};
+
+export type QualitiesList = Partial<Record<QualityItem, string[]>>;
+
+export type VideoResolution = { width: number; height: number };
+
+export type URLItem = {
+  url: string;
+  fileSize?: number;
+  videoResolution?: VideoResolution | null;
+};
+
+export type URLsContainer = Partial<Record<QualityItem, URLItem>>;
+
+export type RequestUrlSize = {
+  urlsList: string[];
+  siteUrl: string;
+  onlySize?: boolean;
+  cacheDisabled?: boolean;
+};
+
+export type Action = 'get_movie' | 'get_stream' | 'get_episodes';
+
+export type Fields = {
+  id: string;
+  translator_id: string;
+  favs: string;
+};
+
+export type SerialFields = {
+  season: string;
+  episode: string;
+  action: 'get_stream';
+};
+
+export type FilmsFields = {
+  is_camrip: string;
+  is_director: string;
+  is_ads: string;
+  action: 'get_movie';
+};
+
+export type UpdateTranslateFields = { action: 'get_episodes' };
+
+export type FilmData = Fields & FilmsFields;
+export type SerialData = Fields & SerialFields;
+export type UpdateTranslateData = Fields & UpdateTranslateFields;
+
+export type ResponseVideoData = {
+  success: boolean;
+  message: string;
+  premium_content: number;
+  seasons?: string;
+  episodes?: string;
+  url: string;
+  quality: QualityItem;
+  thumbnails: string;
+} & SubtitleInfo;
+
+export type Initiator = {
+  movieId: string;
+  site_url: string;
+  site_type: SiteType;
+  content_type: ContentType;
+  film_name: {
+    localized: string;
+    original: string | null;
+  };
+  range: SeasonsWithEpisodesList | null;
+  voice_over: VoiceOverInfo;
+  quality: QualityItem;
+  subtitle: {
+    lang: string;
+    code: string;
+  } | null;
+  favs: string;
+  timestamp: string;
+};
+
+export type DataForUpdate = {
+  siteURL: string;
+  movieData: QueryData;
+};
+
+export type ActualVideoData = {
+  seasons: SeasonsWithEpisodesList | null;
+  subtitle: SubtitleInfo;
+  streams: string;
+};
+
+export type CurrentEpisode = {
+  seasonID: string;
+  episodeID: string;
+};
+
+export type FileProgress = {
+  fileProgressInPercents: number | null;
+  completedLoads: number;
+  totalLoads: number;
+} | null;
+
+export type URL = string;
+
+export type SubtitleLang = string;
+
+export enum LoadStatus {
+  DownloadCandidate = 'DownloadCandidate',
+  InitiatingDownload = 'InitiatingDownload',
+  InitiationError = 'InitiationError',
+  Downloading = 'Downloading',
+  DownloadPaused = 'DownloadPaused',
+  DownloadFailed = 'DownloadFailed',
+  DownloadSuccess = 'DownloadSuccess',
+  StoppedByUser = 'StoppedByUser',
+}
+
+export enum ContentType {
+  'video',
+  'subtitle',
+  'both',
+}
+
+export type FileType = 'video' | 'subtitle';
+
+export type FileItem = {
+  id: number;
+  fileType: FileType;
+  relatedLoadItemId: number;
+  dependentFileItemId: number | null;
+  downloadId: number | null;
+  fileName: string;
+  url: URL | null;
+  saveAs: boolean;
+  retryAttempts: number;
+  status: LoadStatus;
+  createdAt: number;
+};
+
+export type SiteType = 'hdrezka';
+
+export type LoadItem = {
+  id: number;
+  siteType: SiteType;
+  movieId: number;
+  season: Season | null;
+  episode: Episode | null;
+  content: ContentType;
+  availableQualities: QualityItem[] | null;
+  availableSubtitles: SubtitleLang[] | null;
+  status: LoadStatus;
+};
+
+export type LoadConfig = {
+  voiceOver: VoiceOverInfo;
+  quality: QualityItem;
+  subtitle: {
+    lang: SubtitleLang;
+    code: string;
+  } | null;
+  favs: string;
+  loadItemIds: number[];
+  createdAt: number;
+};
+
+export type UrlDetails = {
+  movieId: number;
+  siteUrl: string;
+  filmTitle: {
+    localized: string;
+    original: string | null;
+  };
+  loadRegistry: number[];
+};
+
+export type FilmQueryData = {
+  id: string;
+  translator_id: string;
+  is_camrip: string;
+  is_ads: string;
+  is_director: string;
+  favs: string;
+  action: 'get_movie';
+};
+
+export type SerialQueryData = {
+  id: string;
+  translator_id: string;
+  season: string;
+  episode: string;
+  favs: string;
+  action: 'get_stream';
+};
+
+export type QueryData = FilmQueryData | SerialQueryData | UpdateTranslateData;
+
+export type Settings = {
+  afterInstallDismissed: boolean;
+  darkMode: boolean;
+  displayQualitySize: boolean;
+  getRealQuality: boolean;
+
+  fileTypePriority: FileType;
+  maxParallelDownloads: number;
+  maxParallelDownloadsEpisodes: number;
+  maxFallbackAttempts: number;
+  timeBetweenDownloadAttempts: number;
+  downloadStartTimeLimit: number;
+
+  actionOnNoQuality: 'skip' | 'reduce_quality' | 'stop';
+  actionOnNoSubtitles: 'skip' | 'ignore' | 'stop';
+  actionOnLoadSubtitleError: 'skip' | 'stop';
+  actionOnLoadVideoError: 'skip' | 'stop';
+
+  createExtensionFolders: boolean;
+  createSeriesFolders: boolean;
+  replaceAllSpaces: boolean;
+  filenameFilmTemplate: string[];
+  filenameSeriesTemplate: string[];
+
+  enableLogger: boolean;
+  debugLevel: LogLevel;
+  logMessageLifetime: number;
+  trackEventsOnDeterminingFilename: boolean;
+};
+
+export enum EventType {
+  NewMessageReceived = 'MessageReceived',
+  NotificationMessage = 'NotificationMessage',
+  NotificationEvent = 'NotificationEvent',
+  DownloadCreated = 'DownloadCreated',
+  DownloadEvent = 'DownloadEvent',
+  ScheduleEvent = 'ScheduleEvent',
+  StorageChanged = 'StorageChanged',
+  DBDeletedMessage = 'DBDeletedMessage',
+  DBDeletedEvent = 'DBDeletedEvent',
+  ExtensionInstalled = 'ExtensionInstalled',
+}
+
+type MessageReceivedHandler = [
+  unknown,
+  MessageSender,
+  (message: unknown) => void,
+];
+
+export type EventBusTypes = {
+  [EventType.NewMessageReceived]: MessageReceivedHandler;
+  [EventType.NotificationMessage]: MessageReceivedHandler;
+  [EventType.NotificationEvent]: Event;
+  [EventType.DownloadCreated]: DownloadItem;
+  [EventType.DownloadEvent]: OnChangedDownloadDeltaType;
+  [EventType.ScheduleEvent]: Alarm;
+  [EventType.StorageChanged]: [Record<string, StorageChange>, string];
+  [EventType.DBDeletedMessage]: MessageReceivedHandler;
+  [EventType.DBDeletedEvent]: Event;
+  [EventType.ExtensionInstalled]: OnInstalledDetailsType;
+
+  // Logger events
+  [LoggerEventType.LogCreate]: Event;
+  [LoggerEventType.LogConnect]: Port;
+};
+
+export type CacheItem = {
+  key: string;
+  timeOfDeath: number;
+  data: any;
+};

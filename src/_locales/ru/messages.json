@@ -1,0 +1,790 @@
+{
+  "manifest_description": {
+    "message": "Быстрое и удобное скачивание фильмов и сериалов с rezka.ag! Получайте доступ к вашим любимым фильмам и сериалам за несколько кликов."
+  },
+  "popup_stub_default": {
+    "message": "Для скачивания видео перейдите на страницу сериала или фильма на сайте"
+  },
+  "popup_stub_trailer": {
+    "message": "Похоже что контент в ожидании выхода.\nВернитесь сюда позже!"
+  },
+  "popup_stub_locationFilm": {
+    "message": "Увы, но фильм не доступен с вашего местоположения :("
+  },
+  "popup_stub_locationSerial": {
+    "message": "Увы, но сериал не доступен с вашего местоположения :("
+  },
+  "popup_stub_vpn": {
+    "message": "Попробуйте воспользоваться VPN."
+  },
+  "popup_stub_unavailable": {
+    "message": "Контент недоступен для загрузки — отсутствуют данные для обработки."
+  },
+  "popup_stub_error": {
+    "message": "Упс! Кажется что-то пошло не так..."
+  },
+  "popup_stub_splitView": {
+    "message": "Вкладка открыта в режиме Split View, вам необходимо выделить желаемое окно для работы с ним."
+  },
+  "popup_loadSerial": {
+    "message": "Загрузить сериал"
+  },
+  "popup_loadSubtitle": {
+    "message": "Загрузить субтитры"
+  },
+  "popup_downloadOnlySubtitle": {
+    "message": "Загрузить только субтитры"
+  },
+  "popup_voiceoverBlock_title": {
+    "message": "Для выбора доступна только одна озвучка"
+  },
+  "popup_textFrom": {
+    "message": "с"
+  },
+  "popup_textTo": {
+    "message": "до"
+  },
+  "popup_textEndEpisodes": {
+    "message": "конца сезона"
+  },
+  "popup_textEndSeasons": {
+    "message": "конца сериала"
+  },
+  "popup_subtitleLang": {
+    "message": "Язык"
+  },
+  "popup_quality": {
+    "message": "Качество"
+  },
+  "popup_translate": {
+    "message": "Озвучка"
+  },
+  "popup_menu_settings": {
+    "message": "Настройки"
+  },
+  "popup_menu_loadManager": {
+    "message": "Диспетчер загрузок"
+  },
+  "popup_menu_loggerWindow": {
+    "message": "Журнал событий"
+  },
+  "popup_realResolution": {
+    "message": "Реальное разрешение видео"
+  },
+  "popup_showAllNotification": {
+    "message": "Показать все"
+  },
+  "popup_DownloadStart": {
+    "message": "Начать загрузку"
+  },
+  "popup_DownloadCancel": {
+    "message": "Отменить загрузку"
+  },
+  "popup_translate_original": {
+    "message": "Оригинал"
+  },
+  "popup_translate_numberOne": {
+    "message": "Озвучка #1"
+  },
+  "popup_translate_unknown": {
+    "message": "Неизвестная озвучка"
+  },
+  "popup_requestToRestore": {
+    "message": "Работа расширения была прервана. Возобновить загрузку?"
+  },
+  "popup_cancelRestore": {
+    "message": "Отменить"
+  },
+  "popup_applyRestore": {
+    "message": "Возобновить"
+  },
+  "popup_error_update_voiceover": {
+    "message": "Ошибка при попытке смены озвучки, попробуйте снова."
+  },
+  "popup_error_update_episode": {
+    "message": "Ошибка при попытке изменить серию, попробуйте снова."
+  },
+  "popup_messageBroker_StopDownload": {
+    "message": "Загрузка прервана. Не удалось загрузить файл."
+  },
+  "popup_messageBroker_SkipDownload": {
+    "message": "Сбой загрузки. Не удалось загрузить файл."
+  },
+  "popup_messageBroker_DiskFull": {
+    "message": "Недостаточно места на диске!"
+  },
+  "popup_messageBroker_userBreak": {
+    "message": "Вы прервали загрузку."
+  },
+  "settings_TabSettings": {
+    "message": "Настройки"
+  },
+  "settings_TabFAQ": {
+    "message": "FAQ"
+  },
+  "settings_TabChangelog": {
+    "message": "История изменений"
+  },
+  "settings_TabAbout": {
+    "message": "О расширении"
+  },
+  "settings_preview_text": {
+    "message": "Предпросмотр результата:"
+  },
+  "settings_showPreview": {
+    "message": "Показать все"
+  },
+  "settings_hidePreview": {
+    "message": "Скрыть"
+  },
+  "settings_showPreview_title": {
+    "message": "Показать все превью"
+  },
+  "settings_hidePreview_title": {
+    "message": "Скрыть дополнительные превью"
+  },
+  "settings_toast_wrongSymbol": {
+    "message": "Имя файла не должно содержать переносов строк и следующих знаков: \\ / * ? : | < > \""
+  },
+  "settings_toast_process": {
+    "message": "В обработке..."
+  },
+  "settings_toast_errorProcess": {
+    "message": "Произошёл сбой."
+  },
+  "settings_restoreInsideState": {
+    "message": "Попытаться восстановить работу расширения"
+  },
+  "settings_restoreInsideState_notification": {
+    "message": "Завершена попытка восстановить работу расширения."
+  },
+  "settings_restoreSettings": {
+    "message": "Восстановить настройки по умолчанию"
+  },
+  "settings_restoreSettings_title": {
+    "message": "Восстановить настройки по умолчанию?"
+  },
+  "settings_restoreSettings_notification": {
+    "message": "Настройки сброшены!"
+  },
+  "settings_clearCache": {
+    "message": "Очистить кэш"
+  },
+  "settings_clearCache_title": {
+    "message": "Очистить кэш расширения?"
+  },
+  "settings_clearCache_notification": {
+    "message": "Кэш очищен!"
+  },
+  "settings_stopAllDownloads": {
+    "message": "Остановить все загрузки"
+  },
+  "settings_stopAllDownloads_title": {
+    "message": "Прервать активные загрузки и очистить очередь?"
+  },
+  "settings_stopAllDownloads_notification": {
+    "message": "Загрузки остановлены!"
+  },
+  "settings_clearDownloadHistory": {
+    "message": "Очистить историю загрузок"
+  },
+  "settings_clearDownloadHistory_title": {
+    "message": "Вы действительно хотите очистить историю загрузок расширения?"
+  },
+  "settings_clearDownloadHistory_description": {
+    "message": "Все текущие загрузки будут прерваны. Это действие невозможно будет отменить позже."
+  },
+  "settings_clearDownloadHistory_notification": {
+    "message": "История загрузок очищена!"
+  },
+  "settings_removeAllExtensionData": {
+    "message": "Удалить все данные расширения"
+  },
+  "settings_removeAllExtensionData_title": {
+    "message": "Вы действительно хотите удалить все данные расширения?"
+  },
+  "settings_removeAllExtensionData_description": {
+    "message": "Все текущие загрузки будут прерваны. Это действие невозможно будет отменить позже."
+  },
+  "settings_removeAllExtensionData_notification": {
+    "message": "Данные расширения удалены!"
+  },
+  "settings_modal_confirm": {
+    "message": "Подтвердить"
+  },
+  "settings_modal_cancel": {
+    "message": "Отмена"
+  },
+  "settings_SourceCode": {
+    "message": "Исходный код на GitHub"
+  },
+  "settings_DownloadExtension": {
+    "message": "Скачать расширение"
+  },
+  "settings_ShortDescription": {
+    "message": "Open Source расширение для загрузки фильмов и сериалов с rezka.ag!"
+  },
+  "settings_LongDescription": {
+    "message": "HDrezka Grabber — универсальный инструмент для загрузки любимых фильмов и сериалов с rezka.ag! Контролируйте всё: выбирайте озвучку, субтитры или если нужно скачайте целый сериал в один клик. Настраивайте шаблон имён файлов для своей медиатеки и ускоряйте процесс с помощью параллельной загрузки. Современный минималистичный интерфейс с поддержкой светлой и тёмной темы, а так же доступность для большинства браузеров делают этот инструмент вашим идеальным помощником."
+  },
+  "settings_AboutTitle": {
+    "message": "О проекте"
+  },
+  "settings_LicenseTitle": {
+    "message": "Лицензия"
+  },
+  "settings_ContactsTitle": {
+    "message": "Контакты"
+  },
+  "settings_SupportTitle": {
+    "message": "Поддержать проект"
+  },
+  "settings_SupportDescription": {
+    "message": "Спасибо что используете $extensionName$. Если вам нравится расширение, пожалуйста, подумайте о внесении небольшого пожертвования в качестве благодарности.",
+    "placeholders": {
+      "extensionName": {
+        "content": "$1"
+      }
+    }
+  },
+  "settings_SupportButton": {
+    "message": "Поддержать"
+  },
+  "settings_patreonSubtitle": {
+    "message": "Ежемесячная поддержка"
+  },
+  "settings_PayPalSubtitle": {
+    "message": "Разовое пожертвование"
+  },
+  "settings_MoneroSubtitle": {
+    "message": "Криптовалютная поддержка"
+  },
+  "settings_GitHubSubtitle": {
+    "message": "Спонсорство через GitHub"
+  },
+  "settings_DevelopersTitle": {
+    "message": "Люди причастные к разработке"
+  },
+  "settings_AuthorDescription": {
+    "message": "Автор проекта. Ответственен за разработку внутренней логики работы расширения."
+  },
+  "settings_SecondPilotDescription": {
+    "message": "Второй пилот. Ответственен за дизайн и внешний вид расширения."
+  },
+  "settings_FaqQuestion_1": {
+    "message": "Как выбрать, куда загружать файлы?"
+  },
+  "settings_FaqAnswer_1": {
+    "message": "Расширение никак не может повлиять на это. Браузер не позволяет расширениям указывать пути вне стандартной папки \"Загрузки\". Единственный вариант — вручную поменять стандартную папку загрузки в настройках браузера."
+  },
+  "settings_FaqQuestion_2": {
+    "message": "При выборе качества 1080р/1080р-Ultra скачивается видеофайл с разрешением 720р"
+  },
+  "settings_FaqAnswer_2": {
+    "message": "Это не баг расширения, а особенность работы сайта. Чтобы показать фильм, плеер запрашивает у сервера ссылку на видео нужного качества. Если сервер перегружен, он может автоматически понизить качество — например, вместо 1080p выдать 720p. Расширение получает ровно ту ссылку, которую возвращает сервер. Проверить ситуацию можно прямо на сайте: в плеере качество тоже снизится."
+  },
+  "settings_FaqQuestion_3": {
+    "message": "Расширение медленно загружает файлы, хотя у меня быстрый интернет"
+  },
+  "settings_FaqAnswer_3": {
+    "message": "Расширение не замедляет загрузку. Скорость зависит не только от вашего интернета, но и от серверов, с которых идёт раздача. В часы пик они могут работать медленнее, из-за чего падает скорость и иногда даже качество видео."
+  },
+  "settings_FaqQuestion_4": {
+    "message": "Как работает расширение?"
+  },
+  "settings_FaqAnswer_4": {
+    "message": "Когда вы открываете выпадающее меню, расширение проверяет, на подходящем ли вы сайте. Если это не фильм или сериал на сайте из семейства rezka.ag, оно просто покажет заглушку и остановится. Если страница подходит, расширение получает данные плеера (серия, озвучка, параметры и т.п.). Для этого на страницу временно вставляется скрипт, который собирает нужную информацию и передаёт её расширению. Когда вы нажимаете «Скачать», расширение формирует имя файла и запрашивает у сервера список ссылок на видео разных качеств. Расширение выбирает нужную ссылку и отдаёт её браузеру, который и запускает скачивание. Далее расширение просто следит за загрузкой и реагирует на её события. Так же оно может управлять сразу несколькими загрузками."
+  },
+  "settings_FaqQuestion_5": {
+    "message": "Зачем расширению нужен доступ ко всем сайтам?"
+  },
+  "settings_FaqAnswer_5": {
+    "message": "Доступ ко всем сайтам нужен для того чтоб расширение могло работать с зеркалами rezka."
+  },
+  "settings_FaqQuestion_6": {
+    "message": "Поддерживает ли расширение другие зеркала сайта?"
+  },
+  "settings_FaqAnswer_6": {
+    "message": "Да, поддерживает. При открытии попапа расширение проверяет, соответствует ли сайт шаблону построения сайта rezka.ag; если нет, оно уведомит вас, что сайт не распознан, и предложит перейти на официальный сайт rezka.ag. Поскольку все ОФИЦИАЛЬНЫЕ зеркала соответствуют шаблону, они будут работать без проблем, но обратите внимание: помимо официальных зеркал могут быть и другие! В редких случаях шаблон в расширении может устареть — тогда загрузка будет невозможна даже с официального сайта."
+  },
+  "settings_FaqQuestion_7": {
+    "message": "Как загружать несколько фильмов/сериалов одновременно?"
+  },
+  "settings_FaqAnswer_7": {
+    "message": "У расширения есть очередь загрузок — вы можете поставить на загрузку несколько фильмов/сериалов, и как только появится свободный слот расширение автоматически поставит на загрузку следующее видео. Количество слотов загрузки можно настроить в разделе «Настройки»."
+  },
+  "settings_FaqQuestion_8": {
+    "message": "Поддерживает ли расширение фоновую загрузку?"
+  },
+  "settings_FaqAnswer_8": {
+    "message": "Да. Расширение поддерживает загрузку в фоне, инициатором загрузки выступает само расширение и пока работает браузер расширение будет загружать файлы."
+  },
+  "settings_FaqQuestion_9": {
+    "message": "Как происходит загрузка файлов, используется ли torrent-протокол?"
+  },
+  "settings_FaqAnswer_9": {
+    "message": "Нет — torrent-протокол не используется. Расширение имитирует работу плеера на сайте и использует потоковую передачу данных. Если вас интересуют правовые аспекты использования расширения: само расширение является лишь внешним интерфейсом для загрузки с сайта, и все правовые вопросы следует адресовать администрации сайта, а не расширению."
+  },
+  "settings_ChangelogProcessing": {
+    "message": "Загрузка данных..."
+  },
+  "settings_ChangelogErrorLoading_title": {
+    "message": "Ошибка загрузки"
+  },
+  "settings_ChangelogErrorLoading_description": {
+    "message": "Не удалось загрузить список изменений."
+  },
+  "settings_ChangelogNoData_title": {
+    "message": "Нет данных"
+  },
+  "settings_ChangelogNoData_description": {
+    "message": "Список изменений пуст или недоступен."
+  },
+  "settings_ChangelogAdded": {
+    "message": "Добавлено"
+  },
+  "settings_ChangelogFixed": {
+    "message": "Исправлено"
+  },
+  "settings_ChangelogChanged": {
+    "message": "Изменено"
+  },
+  "settings_sectionAfterInstall": {
+    "message": "Требуется внимание!"
+  },
+  "settings_sectionInterface": {
+    "message": "Настройки интерфейса"
+  },
+  "settings_sectionDownloadBehavior": {
+    "message": "Поведение при загрузке"
+  },
+  "settings_sectionFailureActions": {
+    "message": "Действия при сбоях"
+  },
+  "settings_sectionFilenameTemplate": {
+    "message": "Настройки именования файлов"
+  },
+  "settings_sectionDebug": {
+    "message": "Отладка расширения"
+  },
+  "settings_itemAfterInstall_title": {
+    "message": "Рекомендуется отключить настройку в браузере"
+  },
+  "settings_itemAfterInstall_description": {
+    "message": "При одновременной загрузке нескольких фильмов/сериалов, браузер будет запрашивать подтверждение для каждого файла отдельно, что может замедлить процесс и повлиять на удобство работы с браузером"
+  },
+  "settings_itemAfterInstall_disableTitle": {
+    "message": "Как это сделать:"
+  },
+  "settings_itemAfterInstall_chrome": {
+    "message": "Перед скачиванием спрашивать, куда сохранить файл"
+  },
+  "settings_itemAfterInstall_firefox": {
+    "message": "Всегда выдавать запрос на сохранение файлов"
+  },
+  "settings_itemAfterInstall_settingsBrowser": {
+    "message": "Настройки браузера"
+  },
+  "settings_itemAfterInstall_settingsDownload": {
+    "message": "Загрузки"
+  },
+  "settings_itemAfterInstall_settingsDisable": {
+    "message": "Отключить"
+  },
+  "settings_itemAfterInstall_button": {
+    "message": "Больше не показывать"
+  },
+  "settings_itemInterfaceTheme_title": {
+    "message": "Темная тема"
+  },
+  "settings_itemInterfaceTheme_description": {
+    "message": "Использовать темное оформление интерфейса"
+  },
+  "settings_itemDisplaySize_title": {
+    "message": "Отображать в попапе размер качества"
+  },
+  "settings_itemDisplaySize_description": {
+    "message": "Расширение будет получать размер файла, который будет отображаться в попапе напротив качества"
+  },
+  "settings_itemGetRealQuality_title": {
+    "message": "Определять реальное качество видео"
+  },
+  "settings_itemGetRealQuality_description": {
+    "message": "Расширение будет определять реальное разрешение видео если сервер попытается подменить качество более низким"
+  },
+  "settings_itemFileTypePriority_title": {
+    "message": "Приоритет загрузки"
+  },
+  "settings_itemFileTypePriority_description": {
+    "message": "Что стоит загружать первым: видео или субтитры"
+  },
+  "settings_itemMaxParallelDownloads_title": {
+    "message": "Максимальное количество одновременных загрузок"
+  },
+  "settings_itemMaxParallelDownloads_description": {
+    "message": "Сколько файлов может загружаться одновременно"
+  },
+  "settings_itemMaxParallelDownloadsEpisodes_title": {
+    "message": "Максимальное количество одновременно загружаемых серий одного сериала"
+  },
+  "settings_itemMaxParallelDownloadsEpisodes_description": {
+    "message": "Сколько серий одного сериала сможет загружаться одновременно, позволяет загружать одновременно несколько сериалов"
+  },
+  "settings_itemMaxFallbackAttempts_title": {
+    "message": "Максимальное количество попыток загрузки файла"
+  },
+  "settings_itemMaxFallbackAttempts_description": {
+    "message": "Максимальное количество попыток загрузки файла перед тем как загрузка будет считаться неудачной"
+  },
+  "settings_itemTimeBetweenDownloadAttempts_title": {
+    "message": "Время между попытками загрузки"
+  },
+  "settings_itemTimeBetweenDownloadAttempts_description": {
+    "message": "Сколько ждать перед тем как снова попытаться загрузить файл"
+  },
+  "settings_itemDownloadStartTimeLimit_title": {
+    "message": "Максимальное время, отведенное для начала загрузки"
+  },
+  "settings_itemDownloadStartTimeLimit_description": {
+    "message": "Через какой период времени запуск загрузки будет считаться неудачным, если загрузка не стартовала."
+  },
+  "settings_itemActionOnNoQuality_title": {
+    "message": "Если при загрузке серии нет выбранного качества"
+  },
+  "settings_itemActionOnNoQuality_description": {
+    "message": "Что делать если у некоторых серий в сериале нет выбранного качества"
+  },
+  "settings_itemActionOnNoSubtitles_title": {
+    "message": "Если при загрузке серии нет выбранных субтитров"
+  },
+  "settings_itemActionOnNoSubtitles_description": {
+    "message": "Что делать если у некоторых серий в сериале нет выбранных субтитров"
+  },
+  "settings_itemActionOnLoadSubtitleError_title": {
+    "message": "Если не удалось загрузить субтитры"
+  },
+  "settings_itemActionOnLoadSubtitleError_description": {
+    "message": "Что делать если произошёл сбой при загрузки субтитров во время загрузки серии"
+  },
+  "settings_itemActionOnLoadVideoError_title": {
+    "message": "Если не удалось загрузить серию"
+  },
+  "settings_itemActionOnLoadVideoError_description": {
+    "message": "Что делать если произошла ошибка загрузки серии"
+  },
+  "settings_itemCreateExtensionFolders_title": {
+    "message": "Создать папку расширения в папке загрузок"
+  },
+  "settings_itemCreateExtensionFolders_description": {
+    "message": "В папке загрузок будет создана новая папка \"HDrezkaGrabber\", в которую будут сохраняться все загруженные файлы"
+  },
+  "settings_itemCreateSeriesFolders_title": {
+    "message": "Создавать отдельную папку для каждого сериала"
+  },
+  "settings_itemCreateSeriesFolders_description": {
+    "message": "Для каждого сериала будет создана отдельная папка с именем сериала"
+  },
+  "settings_itemReplaceAllSpaces_title": {
+    "message": "Заменять все пробелы на нижние подчёркивания (рекомендуется)"
+  },
+  "settings_itemReplaceAllSpaces_description": {
+    "message": "Все пробелы в имени файла будут заменены на нижние подчёркивания"
+  },
+  "settings_itemEnableLogger_title": {
+    "message": "Включить логирование"
+  },
+  "settings_itemEnableLogger_description": {
+    "message": "Включить логирование в консоль"
+  },
+  "settings_itemDebugLevel_title": {
+    "message": "Уровень отладки"
+  },
+  "settings_itemDebugLevel_description": {
+    "message": "Уровень логирования расширения"
+  },
+  "settings_itemLogMessageLifetime_title": {
+    "message": "Время жизни сообщения в журнале"
+  },
+  "settings_itemLogMessageLifetime_description": {
+    "message": "Через сколько будет удалено лог сообщение из хранилища"
+  },
+  "settings_itemTrackEventsOnDeterminingFilename_title": {
+    "message": "Отслеживать события на именование файла onDeterminingFilename"
+  },
+  "settings_itemTrackEventsOnDeterminingFilename_description": {
+    "message": "Не изменяйте если у вас всё работает хорошо! Может помочь если есть другое расширение которое так же отслеживает события на именование фалов из-за чего возникает конфликт и файлы при загрузке имеют некорректные названия"
+  },
+  "settings_filenameFilms": {
+    "message": "Шаблон имени файлов для фильмов"
+  },
+  "settings_filenameSeries": {
+    "message": "Шаблон имени файлов для сериалов"
+  },
+  "settings_filenamePreview_filmWithoutSubtitle": {
+    "message": "Обычный фильм, без субтитров."
+  },
+  "settings_filenamePreview_filmWithSubtitle": {
+    "message": "Обычный фильм, с субтитрами."
+  },
+  "settings_filenamePreview_filmWithoutOrigTitle": {
+    "message": "Нет оригинального названия."
+  },
+  "settings_filenamePreview_filmWithSpecialChars": {
+    "message": "В названии есть спец. символы которые будут обрезаны."
+  },
+  "settings_filenamePreview_filmWithVoiceOverDirectCut": {
+    "message": "Озвучка режиссёрская версия."
+  },
+  "settings_filenamePreview_seriesWithoutSubtitle": {
+    "message": "Обычный сериал, без субтитров."
+  },
+  "settings_filenamePreview_seriesWithSubtitle": {
+    "message": "Обычный сериал, с субтитрами."
+  },
+  "settings_filenamePreview_seriesWithoutOrigTitle": {
+    "message": "Нет оригинального названия."
+  },
+  "settings_filenamePreview_seriesWithSpecialChars": {
+    "message": "В названии есть спец. символы которые будут обрезаны."
+  },
+  "settings_filenamePreview_seriesWithUnusualEpisodeTitle": {
+    "message": "Необычное название серий."
+  },
+  "settings_filenamePlaceholder_N": {
+    "message": "Номер файла"
+  },
+  "settings_filenamePlaceholder_MovieId": {
+    "message": "ID фильма"
+  },
+  "settings_filenamePlaceholder_Title": {
+    "message": "Название фильма"
+  },
+  "settings_filenamePlaceholder_OrigTitle": {
+    "message": "Оригинальное название фильма"
+  },
+  "settings_filenamePlaceholder_Translate": {
+    "message": "Озвучка"
+  },
+  "settings_filenamePlaceholder_TranslateId": {
+    "message": "ID озвучки"
+  },
+  "settings_filenamePlaceholder_Episode": {
+    "message": "Эпизод"
+  },
+  "settings_filenamePlaceholder_EpisodeId": {
+    "message": "ID эпизода"
+  },
+  "settings_filenamePlaceholder_Season": {
+    "message": "Сезон"
+  },
+  "settings_filenamePlaceholder_SeasonId": {
+    "message": "ID сезона"
+  },
+  "settings_filenamePlaceholder_Quality": {
+    "message": "Качество видео"
+  },
+  "settings_filenamePlaceholder_SubtitleCode": {
+    "message": "Код субтитров"
+  },
+  "settings_filenamePlaceholder_SubtitleLang": {
+    "message": "Язык субтитров"
+  },
+  "settings_filenamePlaceholder_Date": {
+    "message": "Дата"
+  },
+  "settings_filenamePlaceholder_Time": {
+    "message": "Время"
+  },
+  "settings_filenameSelectTemplate": {
+    "message": "Выбрать шаблон"
+  },
+  "settings_filenameListTemplate": {
+    "message": "Список готовых шаблонов"
+  },
+  "settings_filenameHelpTemplate": {
+    "message": "Введите % чтобы добавить переменную"
+  },
+  "settings_valueVideo": {
+    "message": "Видео"
+  },
+  "settings_valueSubtitle": {
+    "message": "Субтитры"
+  },
+  "settings_valueSkipEpisode": {
+    "message": "Пропустить серию"
+  },
+  "settings_valueReduceQuality": {
+    "message": "Понизить качество серии"
+  },
+  "settings_valueStopDownload": {
+    "message": "Остановить загрузку сериала"
+  },
+  "settings_valueIgnoreSubtitle": {
+    "message": "Игнорировать"
+  },
+  "settings_valueSkipThisSubtitle": {
+    "message": "Пропустить эти субтитры"
+  },
+  "settings_valueSkipThisEpisode": {
+    "message": "Пропустить эту серию"
+  },
+  "time_1s": {
+    "message": "1 секунда"
+  },
+  "time_5s": {
+    "message": "5 секунд"
+  },
+  "time_10s": {
+    "message": "10 секунд"
+  },
+  "time_15s": {
+    "message": "15 секунд"
+  },
+  "time_20s": {
+    "message": "20 секунд"
+  },
+  "time_25s": {
+    "message": "25 секунд"
+  },
+  "time_30s": {
+    "message": "30 секунд"
+  },
+  "time_1m": {
+    "message": "1 минута"
+  },
+  "time_2m": {
+    "message": "2 минуты"
+  },
+  "time_5m": {
+    "message": "5 минут"
+  },
+  "time_10m": {
+    "message": "10 минут"
+  },
+  "time_15m": {
+    "message": "15 минут"
+  },
+  "time_30m": {
+    "message": "30 минут"
+  },
+  "time_1h": {
+    "message": "1 час"
+  },
+  "time_2h": {
+    "message": "2 часа"
+  },
+  "time_5h": {
+    "message": "5 часов"
+  },
+  "time_12h": {
+    "message": "12 часов"
+  },
+  "time_1d": {
+    "message": "1 день"
+  },
+  "time_2d": {
+    "message": "2 дня"
+  },
+  "time_1w": {
+    "message": "1 неделя"
+  },
+  "time_2w": {
+    "message": "2 недели"
+  },
+  "ui_selectValue": {
+    "message": "Выберите значение"
+  },
+  "ui_search": {
+    "message": "Поиск"
+  },
+  "ui_noResults": {
+    "message": "Ничего не найдено"
+  },
+  "ui_clearSelection": {
+    "message": "Очистить выбор"
+  },
+  "ui_clearSearch": {
+    "message": "Очистить поиск"
+  },
+  "ui_copyButton": {
+    "message": "Копировать"
+  },
+  "ui_copySuccess": {
+    "message": "Скопировано!"
+  },
+  "logger_downloadLogs_button": {
+    "message": "Скачать логи"
+  },
+  "logger_downloadLogs_loading": {
+    "message": "Подготавливаем отчёт для загрузки..."
+  },
+  "logger_downloadLogs_success": {
+    "message": "Журнал событий загружен"
+  },
+  "logger_downloadLogs_error": {
+    "message": "Произошёл непредвиденный сбой при попытке сформировать отчёт"
+  },
+  "logger_uploadLogs_button": {
+    "message": "Открыть логи из файла"
+  },
+  "logger_uploadLogs_reading": {
+    "message": "Файл"
+  },
+  "logger_uploadLogs_quitFile": {
+    "message": "Закрыть файл"
+  },
+  "logger_dataTable_rows": {
+    "message": "строк"
+  },
+  "logger_dataTable_useRegex": {
+    "message": "Использовать регулярное выражение для поиска"
+  },
+  "logger_dataTable_columnVisibility": {
+    "message": "Изменить отображение колонок"
+  },
+  "logger_dataTable_isRealtime": {
+    "message": "Realtime data"
+  },
+  "logger_dataTable_backToRealtime": {
+    "message": "Return to realtime"
+  },
+  "logger_dataTable_forceRealtime": {
+    "message": "Force Realtime"
+  },
+  "logger_globalFilter_create": {
+    "message": "Создать глобальный фильтр"
+  },
+  "logger_globalFilter_applyFilter": {
+    "message": "Применить фильтр"
+  },
+  "logger_globalFilter_removeFilter": {
+    "message": "Отключить фильтр"
+  },
+  "logger_globalFilter_expand": {
+    "message": "Раскрыть опции глобального фильтра"
+  },
+  "logger_globalFilter_collapse": {
+    "message": "Скрыть опции глобального фильтра"
+  },
+  "logger_globalFilter_addNode": {
+    "message": ""
+  },
+  "logger_globalFilter_group": {
+    "message": "Группа"
+  },
+  "logger_globalFilter_condition": {
+    "message": "Условие"
+  },
+  "logger_globalFilter_deleteGroup": {
+    "message": "Удалить группу"
+  },
+  "logger_globalFilter_deleteCondition": {
+    "message": "Удалить условие"
+  },
+  "logger_globalFilter_enableCondition": {
+    "message": "Включить условие"
+  },
+  "logger_globalFilter_disableCondition": {
+    "message": "Отключить условие"
+  }
+}

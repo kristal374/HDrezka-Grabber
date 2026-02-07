@@ -1,0 +1,790 @@
+{
+  "manifest_description": {
+    "message": "Fast and convenient downloading of movies and TV shows from rezka.ag! Access your favorite movies and TV shows in just a few clicks."
+  },
+  "popup_stub_default": {
+    "message": "To download the video, go to the show's or movie's page on the website"
+  },
+  "popup_stub_trailer": {
+    "message": "It seems that the content is pending release.\nCheck back later!"
+  },
+  "popup_stub_locationFilm": {
+    "message": "Sorry, but the movie is not available from your location :("
+  },
+  "popup_stub_locationSerial": {
+    "message": "Sorry, but the series is not available from your location :("
+  },
+  "popup_stub_vpn": {
+    "message": "Try using a VPN."
+  },
+  "popup_stub_unavailable": {
+    "message": "Content is unavailable for download — no data to process."
+  },
+  "popup_stub_error": {
+    "message": "Oops! Something went wrong..."
+  },
+  "popup_stub_splitView": {
+    "message": "The tab is open in Split View mode, you need to select the desired window to work with it."
+  },
+  "popup_loadSerial": {
+    "message": "Load series"
+  },
+  "popup_loadSubtitle": {
+    "message": "Load subtitles"
+  },
+  "popup_downloadOnlySubtitle": {
+    "message": "Download subtitles only"
+  },
+  "popup_voiceoverBlock_title": {
+    "message": "Only one voiceover is available"
+  },
+  "popup_textFrom": {
+    "message": "from"
+  },
+  "popup_textTo": {
+    "message": "to"
+  },
+  "popup_textEndEpisodes": {
+    "message": "end of the season"
+  },
+  "popup_textEndSeasons": {
+    "message": "end of the series"
+  },
+  "popup_subtitleLang": {
+    "message": "Lang"
+  },
+  "popup_quality": {
+    "message": "Quality"
+  },
+  "popup_translate": {
+    "message": "Translate"
+  },
+  "popup_menu_settings": {
+    "message": "Settings"
+  },
+  "popup_menu_loadManager": {
+    "message": "Download Manager"
+  },
+  "popup_menu_loggerWindow": {
+    "message": "Event Log"
+  },
+  "popup_realResolution": {
+    "message": "Actual video resolution"
+  },
+  "popup_showAllNotification": {
+    "message": "Show all"
+  },
+  "popup_DownloadStart": {
+    "message": "Start download"
+  },
+  "popup_DownloadCancel": {
+    "message": "Cancel download"
+  },
+  "popup_translate_original": {
+    "message": "Original"
+  },
+  "popup_translate_numberOne": {
+    "message": "Voiceover #1"
+  },
+  "popup_translate_unknown": {
+    "message": "Unknown voiceover"
+  },
+  "popup_requestToRestore": {
+    "message": "Extension work was interrupted. Resume download?"
+  },
+  "popup_cancelRestore": {
+    "message": "Cancel"
+  },
+  "popup_applyRestore": {
+    "message": "Resume"
+  },
+  "popup_error_update_voiceover": {
+    "message": "Error while trying to change voiceover, please try again."
+  },
+  "popup_error_update_episode": {
+    "message": "Error while trying to change episode, please try again."
+  },
+  "popup_messageBroker_StopDownload": {
+    "message": "Download interrupted. Failed to download file."
+  },
+  "popup_messageBroker_SkipDownload": {
+    "message": "Download failed. Could not download file."
+  },
+  "popup_messageBroker_DiskFull": {
+    "message": "Not enough disk space!"
+  },
+  "popup_messageBroker_userBreak": {
+    "message": "You interrupted the download."
+  },
+  "settings_TabSettings": {
+    "message": "Settings"
+  },
+  "settings_TabFAQ": {
+    "message": "FAQ"
+  },
+  "settings_TabChangelog": {
+    "message": "Changelog"
+  },
+  "settings_TabAbout": {
+    "message": "About Extension"
+  },
+  "settings_preview_text": {
+    "message": "Preview result:"
+  },
+  "settings_showPreview": {
+    "message": "Show all"
+  },
+  "settings_hidePreview": {
+    "message": "Hide"
+  },
+  "settings_showPreview_title": {
+    "message": "Show all previews"
+  },
+  "settings_hidePreview_title": {
+    "message": "Hide additional previews"
+  },
+  "settings_toast_wrongSymbol": {
+    "message": "Filename must not contain line breaks and the following characters: \\ / * ? : | < > \""
+  },
+  "settings_toast_process": {
+    "message": "Processing..."
+  },
+  "settings_toast_errorProcess": {
+    "message": "An error occurred."
+  },
+  "settings_restoreInsideState": {
+    "message": "Try to restore extension operation"
+  },
+  "settings_restoreInsideState_notification": {
+    "message": "Attempt to restore extension operation completed."
+  },
+  "settings_restoreSettings": {
+    "message": "Restore default settings"
+  },
+  "settings_restoreSettings_title": {
+    "message": "Restore default settings?"
+  },
+  "settings_restoreSettings_notification": {
+    "message": "Settings reset!"
+  },
+  "settings_clearCache": {
+    "message": "Clear cache"
+  },
+  "settings_clearCache_title": {
+    "message": "Clear extension cache?"
+  },
+  "settings_clearCache_notification": {
+    "message": "Cache cleared!"
+  },
+  "settings_stopAllDownloads": {
+    "message": "Stop all downloads"
+  },
+  "settings_stopAllDownloads_title": {
+    "message": "Interrupt active downloads and clear queue?"
+  },
+  "settings_stopAllDownloads_notification": {
+    "message": "Downloads stopped!"
+  },
+  "settings_clearDownloadHistory": {
+    "message": "Clear download history"
+  },
+  "settings_clearDownloadHistory_title": {
+    "message": "Are you sure you want to clear the extension's download history?"
+  },
+  "settings_clearDownloadHistory_description": {
+    "message": "All current downloads will be interrupted. This action cannot be undone later."
+  },
+  "settings_clearDownloadHistory_notification": {
+    "message": "Download history cleared!"
+  },
+  "settings_removeAllExtensionData": {
+    "message": "Remove all extension data"
+  },
+  "settings_removeAllExtensionData_title": {
+    "message": "Are you sure you want to remove all extension data?"
+  },
+  "settings_removeAllExtensionData_description": {
+    "message": "All current downloads will be interrupted. This action cannot be undone later."
+  },
+  "settings_removeAllExtensionData_notification": {
+    "message": "Extension data removed!"
+  },
+  "settings_modal_confirm": {
+    "message": "Confirm"
+  },
+  "settings_modal_cancel": {
+    "message": "Cancel"
+  },
+  "settings_SourceCode": {
+    "message": "Source Code on GitHub"
+  },
+  "settings_DownloadExtension": {
+    "message": "Download Extension"
+  },
+  "settings_ShortDescription": {
+    "message": "Open Source extension for downloading movies and TV shows from rezka.ag!"
+  },
+  "settings_LongDescription": {
+    "message": "HDrezka Grabber is a universal tool for downloading your favorite movies and TV shows from rezka.ag! Control everything: choose voiceover, subtitles, or download an entire series in one click if needed. Customize file name templates for your media library and speed up the process with parallel downloads. A modern minimalist interface with light and dark theme support, as well as compatibility with most browsers, makes this tool your perfect assistant."
+  },
+  "settings_AboutTitle": {
+    "message": "About the Project"
+  },
+  "settings_LicenseTitle": {
+    "message": "License"
+  },
+  "settings_ContactsTitle": {
+    "message": "Contacts"
+  },
+  "settings_SupportTitle": {
+    "message": "Support the Project"
+  },
+  "settings_SupportDescription": {
+    "message": "Thank you for using $extensionName$. If you like the extension, please consider making a small donation as a token of appreciation.",
+    "placeholders": {
+      "extensionName": {
+        "content": "$1"
+      }
+    }
+  },
+  "settings_SupportButton": {
+    "message": "Support"
+  },
+  "settings_patreonSubtitle": {
+    "message": "Monthly Support"
+  },
+  "settings_PayPalSubtitle": {
+    "message": "One-Time Donation"
+  },
+  "settings_MoneroSubtitle": {
+    "message": "Cryptocurrency Support"
+  },
+  "settings_GitHubSubtitle": {
+    "message": "Sponsorship via GitHub"
+  },
+  "settings_DevelopersTitle": {
+    "message": "People Involved in Development"
+  },
+  "settings_AuthorDescription": {
+    "message": "Project author. Responsible for developing the internal logic of the extension."
+  },
+  "settings_SecondPilotDescription": {
+    "message": "Co-pilot. Responsible for the design and appearance of the extension."
+  },
+  "settings_FaqQuestion_1": {
+    "message": "How to choose where files are downloaded?"
+  },
+  "settings_FaqAnswer_1": {
+    "message": "The extension cannot influence this in any way. The browser does not allow extensions to specify paths outside the standard \"Downloads\" folder. The only option is to manually change the default download folder in the browser settings."
+  },
+  "settings_FaqQuestion_2": {
+    "message": "When selecting 1080p/1080p-Ultra quality, a 720p video file is downloaded"
+  },
+  "settings_FaqAnswer_2": {
+    "message": "This is not a bug in the extension but a feature of the website. To play a movie, the player requests a link to the video of the required quality from the server. If the server is overloaded, it may automatically lower the quality — for example, deliver 720p instead of 1080p. The extension receives exactly the link the server returns. You can verify this directly on the site: the quality in the player will also drop."
+  },
+  "settings_FaqQuestion_3": {
+    "message": "The extension downloads files slowly even though I have fast internet"
+  },
+  "settings_FaqAnswer_3": {
+    "message": "The extension does not slow down the download. The speed depends not only on your internet connection but also on the servers that distribute the files. During peak hours they may work slower, causing the speed and sometimes even the video quality to drop."
+  },
+  "settings_FaqQuestion_4": {
+    "message": "How does the extension work?"
+  },
+  "settings_FaqAnswer_4": {
+    "message": "When you open the dropdown menu, the extension checks whether you are on a suitable website. If it's not a movie or series on a rezka.ag family site, it simply shows a placeholder and stops. If the page is suitable, the extension retrieves the player data (episode, voiceover, parameters, etc.). To do this, a temporary script is inserted into the page, which collects the necessary information and passes it to the extension. When you click \"Download\", the extension generates a file name and requests from the server a list of links to videos of different qualities. The extension selects the required link and sends it to the browser, which starts the download. After that, the extension simply monitors the download and reacts to its events. It can also manage several downloads at once."
+  },
+  "settings_FaqQuestion_5": {
+    "message": "Why does the extension need access to all websites?"
+  },
+  "settings_FaqAnswer_5": {
+    "message": "Access to all websites is required so that the extension can work with rezka mirrors."
+  },
+  "settings_FaqQuestion_6": {
+    "message": "Does the extension support other mirrors of the site?"
+  },
+  "settings_FaqAnswer_6": {
+    "message": "Yes, it does. When opening the popup, the extension checks whether the site matches the structure pattern of rezka.ag; if not, it will inform you that the site is not recognized and suggest visiting the official rezka.ag site. Since all OFFICIAL mirrors follow the pattern, they will work without issues, but keep in mind: besides official mirrors, there may be others! In rare cases, the pattern in the extension may become outdated — then downloading may be impossible even from the official site."
+  },
+  "settings_FaqQuestion_7": {
+    "message": "How to download multiple movies/series simultaneously?"
+  },
+  "settings_FaqAnswer_7": {
+    "message": "The extension has a download queue — you can queue multiple movies/series for download, and as soon as a slot becomes free, the extension will automatically start downloading the next video. The number of download slots can be configured in the \"Settings\" section."
+  },
+  "settings_FaqQuestion_8": {
+    "message": "Does the extension support background downloading?"
+  },
+  "settings_FaqAnswer_8": {
+    "message": "Yes. The extension supports background downloading. The extension itself initiates the download, and as long as the browser is running, it will continue downloading files."
+  },
+  "settings_FaqQuestion_9": {
+    "message": "How are files downloaded, does it use the torrent protocol?"
+  },
+  "settings_FaqAnswer_9": {
+    "message": "No — the torrent protocol is not used. The extension imitates the way the player works on the website and uses streaming data transfer. If you're interested in the legal aspects of using the extension: the extension is merely an external interface for downloading from the site, and all legal questions should be addressed to the site administration, not the extension."
+  },
+  "settings_ChangelogProcessing": {
+    "message": "Loading data..."
+  },
+  "settings_ChangelogErrorLoading_title": {
+    "message": "Loading error"
+  },
+  "settings_ChangelogErrorLoading_description": {
+    "message": "Failed to load changelog."
+  },
+  "settings_ChangelogNoData_title": {
+    "message": "No data"
+  },
+  "settings_ChangelogNoData_description": {
+    "message": "Changelog is empty or unavailable."
+  },
+  "settings_ChangelogAdded": {
+    "message": "Added"
+  },
+  "settings_ChangelogFixed": {
+    "message": "Fixed"
+  },
+  "settings_ChangelogChanged": {
+    "message": "Changed"
+  },
+  "settings_sectionAfterInstall": {
+    "message": "Attention required!"
+  },
+  "settings_sectionInterface": {
+    "message": "Interface Settings"
+  },
+  "settings_sectionDownloadBehavior": {
+    "message": "Download Behavior"
+  },
+  "settings_sectionFailureActions": {
+    "message": "Failure Actions"
+  },
+  "settings_sectionFilenameTemplate": {
+    "message": "File Naming Settings"
+  },
+  "settings_sectionDebug": {
+    "message": "Extension Debugging"
+  },
+  "settings_itemAfterInstall_title": {
+    "message": "It is recommended to disable the browser setting"
+  },
+  "settings_itemAfterInstall_description": {
+    "message": "When downloading multiple movies/series simultaneously, the browser will ask for confirmation for each file separately, which may slow down the process and affect browser usability"
+  },
+  "settings_itemAfterInstall_disableTitle": {
+    "message": "How to do this:"
+  },
+  "settings_itemAfterInstall_chrome": {
+    "message": "Ask where to save each file before downloading"
+  },
+  "settings_itemAfterInstall_firefox": {
+    "message": "Always ask you where to save files"
+  },
+  "settings_itemAfterInstall_settingsBrowser": {
+    "message": "Browser settings"
+  },
+  "settings_itemAfterInstall_settingsDownload": {
+    "message": "Downloads"
+  },
+  "settings_itemAfterInstall_settingsDisable": {
+    "message": "Disable"
+  },
+  "settings_itemAfterInstall_button": {
+    "message": "Dismiss"
+  },
+  "settings_itemInterfaceTheme_title": {
+    "message": "Dark theme"
+  },
+  "settings_itemInterfaceTheme_description": {
+    "message": "Use dark interface theme"
+  },
+  "settings_itemDisplaySize_title": {
+    "message": "Display quality size in popup"
+  },
+  "settings_itemDisplaySize_description": {
+    "message": "The extension will retrieve the file size, which will be displayed in the popup next to the quality"
+  },
+  "settings_itemGetRealQuality_title": {
+    "message": "Determine actual video quality"
+  },
+  "settings_itemGetRealQuality_description": {
+    "message": "The extension will determine the actual video resolution if the server tries to substitute with lower quality"
+  },
+  "settings_itemFileTypePriority_title": {
+    "message": "Download priority"
+  },
+  "settings_itemFileTypePriority_description": {
+    "message": "What should be downloaded first: video or subtitles"
+  },
+  "settings_itemMaxParallelDownloads_title": {
+    "message": "Maximum number of simultaneous downloads"
+  },
+  "settings_itemMaxParallelDownloads_description": {
+    "message": "How many files can be downloaded simultaneously"
+  },
+  "settings_itemMaxParallelDownloadsEpisodes_title": {
+    "message": "Maximum number of simultaneously downloaded episodes of one series"
+  },
+  "settings_itemMaxParallelDownloadsEpisodes_description": {
+    "message": "How many episodes of one series can be downloaded simultaneously, allows downloading multiple series at once"
+  },
+  "settings_itemMaxFallbackAttempts_title": {
+    "message": "Maximum number of file download attempts"
+  },
+  "settings_itemMaxFallbackAttempts_description": {
+    "message": "Maximum number of file download attempts before the download is considered failed"
+  },
+  "settings_itemTimeBetweenDownloadAttempts_title": {
+    "message": "Time between download attempts"
+  },
+  "settings_itemTimeBetweenDownloadAttempts_description": {
+    "message": "How long to wait before trying to download the file again"
+  },
+  "settings_itemDownloadStartTimeLimit_title": {
+    "message": "Maximum time allocated for download start"
+  },
+  "settings_itemDownloadStartTimeLimit_description": {
+    "message": "After what period of time the download start will be considered failed if the download has not started."
+  },
+  "settings_itemActionOnNoQuality_title": {
+    "message": "If the selected quality is not available when downloading an episode"
+  },
+  "settings_itemActionOnNoQuality_description": {
+    "message": "What to do if some episodes in the series do not have the selected quality"
+  },
+  "settings_itemActionOnNoSubtitles_title": {
+    "message": "If the selected subtitles are not available when downloading an episode"
+  },
+  "settings_itemActionOnNoSubtitles_description": {
+    "message": "What to do if some episodes in the series do not have the selected subtitles"
+  },
+  "settings_itemActionOnLoadSubtitleError_title": {
+    "message": "If subtitles failed to download"
+  },
+  "settings_itemActionOnLoadSubtitleError_description": {
+    "message": "What to do if a failure occurred while downloading subtitles during episode download"
+  },
+  "settings_itemActionOnLoadVideoError_title": {
+    "message": "If episode failed to download"
+  },
+  "settings_itemActionOnLoadVideoError_description": {
+    "message": "What to do if an error occurred while downloading an episode"
+  },
+  "settings_itemCreateExtensionFolders_title": {
+    "message": "Create extension folder in downloads folder"
+  },
+  "settings_itemCreateExtensionFolders_description": {
+    "message": "A new folder \"HDrezkaGrabber\" will be created in the downloads folder, where all downloaded files will be saved"
+  },
+  "settings_itemCreateSeriesFolders_title": {
+    "message": "Create separate folder for each series"
+  },
+  "settings_itemCreateSeriesFolders_description": {
+    "message": "A separate folder with the series name will be created for each series"
+  },
+  "settings_itemReplaceAllSpaces_title": {
+    "message": "Replace all spaces with underscores (recommended)"
+  },
+  "settings_itemReplaceAllSpaces_description": {
+    "message": "All spaces in the filename will be replaced with underscores"
+  },
+  "settings_itemEnableLogger_title": {
+    "message": "Enable logging"
+  },
+  "settings_itemEnableLogger_description": {
+    "message": "Enable logging to console"
+  },
+  "settings_itemDebugLevel_title": {
+    "message": "Debug level"
+  },
+  "settings_itemDebugLevel_description": {
+    "message": "Extension logging level"
+  },
+  "settings_itemLogMessageLifetime_title": {
+    "message": "Log message lifetime in journal"
+  },
+  "settings_itemLogMessageLifetime_description": {
+    "message": "After how long the log message will be deleted from storage"
+  },
+  "settings_itemTrackEventsOnDeterminingFilename_title": {
+    "message": "Track onDeterminingFilename file naming events"
+  },
+  "settings_itemTrackEventsOnDeterminingFilename_description": {
+    "message": "Do not change if everything works well! May help if there is another extension that also tracks file naming events, causing a conflict and resulting in incorrect file names during download"
+  },
+  "settings_filenameFilms": {
+    "message": "Filename template for movies"
+  },
+  "settings_filenameSeries": {
+    "message": "Filename template for series"
+  },
+  "settings_filenamePreview_filmWithoutSubtitle": {
+    "message": "Regular movie, without subtitles."
+  },
+  "settings_filenamePreview_filmWithSubtitle": {
+    "message": "Regular movie, with subtitles."
+  },
+  "settings_filenamePreview_filmWithoutOrigTitle": {
+    "message": "No original title."
+  },
+  "settings_filenamePreview_filmWithSpecialChars": {
+    "message": "Title contains special characters that will be trimmed."
+  },
+  "settings_filenamePreview_filmWithVoiceOverDirectCut": {
+    "message": "Voiceover director's cut."
+  },
+  "settings_filenamePreview_seriesWithoutSubtitle": {
+    "message": "Regular series, without subtitles."
+  },
+  "settings_filenamePreview_seriesWithSubtitle": {
+    "message": "Regular series, with subtitles."
+  },
+  "settings_filenamePreview_seriesWithoutOrigTitle": {
+    "message": "No original title."
+  },
+  "settings_filenamePreview_seriesWithSpecialChars": {
+    "message": "Title contains special characters that will be trimmed."
+  },
+  "settings_filenamePreview_seriesWithUnusualEpisodeTitle": {
+    "message": "Unusual episode title."
+  },
+  "settings_filenamePlaceholder_N": {
+    "message": "File number"
+  },
+  "settings_filenamePlaceholder_MovieId": {
+    "message": "Movie ID"
+  },
+  "settings_filenamePlaceholder_Title": {
+    "message": "Movie title"
+  },
+  "settings_filenamePlaceholder_OrigTitle": {
+    "message": "Original movie title"
+  },
+  "settings_filenamePlaceholder_Translate": {
+    "message": "Voiceover"
+  },
+  "settings_filenamePlaceholder_TranslateId": {
+    "message": "Voiceover ID"
+  },
+  "settings_filenamePlaceholder_Episode": {
+    "message": "Episode"
+  },
+  "settings_filenamePlaceholder_EpisodeId": {
+    "message": "Episode ID"
+  },
+  "settings_filenamePlaceholder_Season": {
+    "message": "Season"
+  },
+  "settings_filenamePlaceholder_SeasonId": {
+    "message": "Season ID"
+  },
+  "settings_filenamePlaceholder_Quality": {
+    "message": "Video quality"
+  },
+  "settings_filenamePlaceholder_SubtitleCode": {
+    "message": "Subtitle code"
+  },
+  "settings_filenamePlaceholder_SubtitleLang": {
+    "message": "Subtitle language"
+  },
+  "settings_filenamePlaceholder_Date": {
+    "message": "Date"
+  },
+  "settings_filenamePlaceholder_Time": {
+    "message": "Time"
+  },
+  "settings_filenameSelectTemplate": {
+    "message": "Select template"
+  },
+  "settings_filenameListTemplate": {
+    "message": "List of ready templates"
+  },
+  "settings_filenameHelpTemplate": {
+    "message": "Enter % to add variable"
+  },
+  "settings_valueVideo": {
+    "message": "Video"
+  },
+  "settings_valueSubtitle": {
+    "message": "Subtitles"
+  },
+  "settings_valueSkipEpisode": {
+    "message": "Skip episode"
+  },
+  "settings_valueReduceQuality": {
+    "message": "Reduce episode quality"
+  },
+  "settings_valueStopDownload": {
+    "message": "Stop series download"
+  },
+  "settings_valueIgnoreSubtitle": {
+    "message": "Ignore"
+  },
+  "settings_valueSkipThisSubtitle": {
+    "message": "Skip these subtitles"
+  },
+  "settings_valueSkipThisEpisode": {
+    "message": "Skip this episode"
+  },
+  "time_1s": {
+    "message": "1 second"
+  },
+  "time_5s": {
+    "message": "5 seconds"
+  },
+  "time_10s": {
+    "message": "10 seconds"
+  },
+  "time_15s": {
+    "message": "15 seconds"
+  },
+  "time_20s": {
+    "message": "20 seconds"
+  },
+  "time_25s": {
+    "message": "25 seconds"
+  },
+  "time_30s": {
+    "message": "30 seconds"
+  },
+  "time_1m": {
+    "message": "1 minute"
+  },
+  "time_2m": {
+    "message": "2 minutes"
+  },
+  "time_5m": {
+    "message": "5 minutes"
+  },
+  "time_10m": {
+    "message": "10 minutes"
+  },
+  "time_15m": {
+    "message": "15 minutes"
+  },
+  "time_30m": {
+    "message": "30 minutes"
+  },
+  "time_1h": {
+    "message": "1 hour"
+  },
+  "time_2h": {
+    "message": "2 hours"
+  },
+  "time_5h": {
+    "message": "5 hours"
+  },
+  "time_12h": {
+    "message": "12 hours"
+  },
+  "time_1d": {
+    "message": "1 day"
+  },
+  "time_2d": {
+    "message": "2 days"
+  },
+  "time_1w": {
+    "message": "1 week"
+  },
+  "time_2w": {
+    "message": "2 weeks"
+  },
+  "ui_selectValue": {
+    "message": "Select value"
+  },
+  "ui_search": {
+    "message": "Search"
+  },
+  "ui_noResults": {
+    "message": "No results found"
+  },
+  "ui_clearSelection": {
+    "message": "Clear selection"
+  },
+  "ui_clearSearch": {
+    "message": "Clear search"
+  },
+  "ui_copyButton": {
+    "message": "Copy"
+  },
+  "ui_copySuccess": {
+    "message": "Copied!"
+  },
+  "logger_downloadLogs_button": {
+    "message": "Download logs"
+  },
+  "logger_downloadLogs_loading": {
+    "message": "Generating logs file to download..."
+  },
+  "logger_downloadLogs_success": {
+    "message": "Logs file downloaded"
+  },
+  "logger_downloadLogs_error": {
+    "message": "An error occurred while generating logs file"
+  },
+  "logger_uploadLogs_button": {
+    "message": "Upload logs from file"
+  },
+  "logger_uploadLogs_reading": {
+    "message": "Reading"
+  },
+  "logger_uploadLogs_quitFile": {
+    "message": "Quit reading file"
+  },
+  "logger_dataTable_rows": {
+    "message": "rows"
+  },
+  "logger_dataTable_useRegex": {
+    "message": "Use regular expression to search"
+  },
+  "logger_dataTable_columnVisibility": {
+    "message": "Change column visibility"
+  },
+  "logger_dataTable_isRealtime": {
+    "message": "Realtime data"
+  },
+  "logger_dataTable_backToRealtime": {
+    "message": "Return to realtime"
+  },
+  "logger_dataTable_forceRealtime": {
+    "message": "Force Realtime"
+  },
+  "logger_globalFilter_create": {
+    "message": "Create global filter"
+  },
+  "logger_globalFilter_applyFilter": {
+    "message": "Apply filter"
+  },
+  "logger_globalFilter_removeFilter": {
+    "message": "Remove filter"
+  },
+  "logger_globalFilter_expand": {
+    "message": "Expand global filter options"
+  },
+  "logger_globalFilter_collapse": {
+    "message": "Collapse global filter options"
+  },
+  "logger_globalFilter_addNode": {
+    "message": "Add"
+  },
+  "logger_globalFilter_group": {
+    "message": "Group"
+  },
+  "logger_globalFilter_condition": {
+    "message": "Condition"
+  },
+  "logger_globalFilter_deleteGroup": {
+    "message": "Delete group"
+  },
+  "logger_globalFilter_deleteCondition": {
+    "message": "Delete condition"
+  },
+  "logger_globalFilter_enableCondition": {
+    "message": "Enable condition"
+  },
+  "logger_globalFilter_disableCondition": {
+    "message": "Disable condition"
+  }
+}

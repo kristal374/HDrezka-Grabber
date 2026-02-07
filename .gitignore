@@ -1,0 +1,9 @@
+# builds
+dist/build/*
+
+# keys
+*.pem
+
+node_modules/
+
+.idea/*

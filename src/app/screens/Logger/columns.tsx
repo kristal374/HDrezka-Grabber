@@ -1,0 +1,304 @@
+import type { LogMessageWithId } from '@/app/hooks/logger/useUpdateLogArray';
+import { CopyButton } from '@/components/CopyButton';
+import {
+  FacetedFilterHeader,
+  FacetedFilterValueInput,
+  facetsFilter,
+  FilterValueCell,
+  FilterValueHeader,
+  type FilterValueInputProps,
+} from '@/components/data-table/Filters';
+import { ResizeHeader } from '@/components/data-table/HeaderCell';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/Tooltip';
+import { LogLevel, toFormatTime } from '@/lib/logger';
+import { cn } from '@/lib/utils';
+import type {
+  CellContext,
+  Column,
+  ColumnDef,
+  ColumnMeta,
+  RowData,
+} from '@tanstack/react-table';
+import { chromeDark, ObjectInspector } from 'react-inspector';
+
+declare module '@tanstack/react-table' {
+  interface ColumnMeta<TData extends RowData, TValue> {
+    /**
+     * Header name to display in column visibility menu
+     */
+    headerName: string;
+    /**
+     * Component to render value for the column
+     */
+    Render?: (props: React.PropsWithChildren) => React.ReactNode;
+    GlobalFilterValueInput?: <TData extends Record<string, any>>(
+      props: FilterValueInputProps<TData>,
+    ) => React.ReactNode;
+  }
+}
+
+/**
+ * Get `meta` object for the column
+ */
+function meta<TData extends Record<string, any>>(column: Column<TData>) {
+  return column.columnDef.meta ?? ({} as ColumnMeta<TData, unknown>);
+}
+
+/**
+ * Component to render value for the column if it has a `meta.Render` function
+ */
+function RenderValue<TData extends Record<string, any>>(
+  props: CellContext<TData, unknown>,
+) {
+  return meta(props.column).Render?.({
+    children: props.row.getValue(props.column.id),
+  });
+}
+
+export const columns: ColumnDef<LogMessageWithId>[] = [
+  {
+    accessorKey: 'timestamp',
+    size: 100,
+    minSize: 100,
+    enableHiding: false,
+    meta: {
+      headerName: 'Timestamp',
+    },
+    header: (props) => (
+      <ResizeHeader {...props}>
+        <span>{meta(props.column).headerName}</span>
+      </ResizeHeader>
+    ),
+    cell: ({ row, table, column }) => {
+      const current = row.original.timestamp;
+      const prev =
+        row.index === 0
+          ? 0
+          : table.getRow(String(row.index - 1)).original.timestamp;
+      return (
+        <Tooltip>
+          <TooltipTrigger>
+            <div
+              className='group/time flex pr-0 outline-none'
+              role='cell'
+              tabIndex={0}
+              data-slim='container'
+            >
+              <span className='focus-ring mr-1 mb-auto ml-auto rounded-sm group-focus-visible/time:ring-2'>
+                {toFormatTime(current, prev)}
+              </span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent
+            className='flex flex-col gap-1 text-sm'
+            sideOffset={-4}
+          >
+            <span className='font-semibold'>
+              {new Date(current).toDateString()}
+            </span>
+            <span>
+              {new Date(current).toLocaleTimeString()}.
+              {String(current % 1000).padStart(3, '0')}
+            </span>
+            <div className='flex items-center gap-2'>
+              <span>{current}</span>
+              <CopyButton
+                content={String(current)}
+                className='rounded-sm [&_svg]:size-3'
+              />
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
+  },
+  {
+    accessorKey: 'level',
+    size: 90,
+    minSize: 90,
+    enableResizing: false,
+    filterFn: facetsFilter,
+    meta: {
+      headerName: 'Level',
+      Render: ({ children }) => {
+        const level = children as LogLevel;
+        return (
+          <span
+            className={cn(
+              'mb-auto rounded-md px-1.5 font-medium',
+              level === LogLevel.CRITICAL && 'bg-white text-red-500',
+              level === LogLevel.ERROR && 'bg-red-800',
+              level === LogLevel.WARNING && 'bg-yellow-700',
+              level === LogLevel.INFO && 'bg-blue-700',
+              level === LogLevel.DEBUG && 'bg-green-700',
+            )}
+            data-critical={level === LogLevel.CRITICAL}
+            data-slim='right'
+          >
+            {LogLevel[level]}
+          </span>
+        );
+      },
+      GlobalFilterValueInput: FacetedFilterValueInput,
+    },
+    header: ({ column }) => (
+      <FacetedFilterHeader
+        column={column}
+        labelComponent={meta(column).Render}
+      />
+    ),
+    cell: RenderValue,
+  },
+  {
+    accessorKey: 'context',
+    size: 100,
+    minSize: 100,
+    enableResizing: false,
+    filterFn: facetsFilter,
+    meta: {
+      headerName: 'Context',
+      Render: ({ children }) => (
+        <span className='font-medium capitalize' data-slim='right'>
+          {children}
+        </span>
+      ),
+      GlobalFilterValueInput: FacetedFilterValueInput,
+    },
+    header: ({ column }) => (
+      <FacetedFilterHeader
+        column={column}
+        labelComponent={meta(column).Render}
+      />
+    ),
+    cell: RenderValue,
+  },
+  {
+    accessorKey: 'message',
+    size: 500,
+    enableHiding: false,
+    filterFn: (row, _columnId, filterValue) => {
+      return row.original.message
+        .map((elem) => {
+          const value = (
+            typeof elem === 'object' ? JSON.stringify(elem) : String(elem)
+          ).toLowerCase();
+          return filterValue.startsWith('regex:')
+            ? new RegExp(filterValue.replace('regex:', '')).test(value)
+            : value.includes(filterValue);
+        })
+        .some((elem) => elem === true);
+    },
+    meta: {
+      headerName: 'Message',
+    },
+    header: (props) => (
+      <ResizeHeader {...props}>{meta(props.column).headerName}</ResizeHeader>
+    ),
+    cell: ({ row, table }) => {
+      let isExpanded = false;
+      // if (
+      //   table.getColumn('message')?.getIsFiltered() &&
+      //   row.columnFilters.message === true
+      // ) {
+      //   isExpanded = true;
+      // }
+      return (
+        <div className='flex w-full flex-col gap-1'>
+          {row.original.message.map((elem, i) => {
+            if (typeof elem === 'object') {
+              return (
+                <ObjectInspector
+                  key={i}
+                  data={elem}
+                  expandLevel={isExpanded ? 5 : undefined}
+                  // @ts-ignore
+                  theme={{ ...chromeDark, BASE_BACKGROUND_COLOR: '#0000' }}
+                />
+              );
+            }
+            return <span key={i}>{String(elem)}</span>;
+          })}
+        </div>
+      );
+    },
+  },
+  {
+    id: 'location',
+    size: 265,
+    accessorFn: (data) => {
+      const [src] = data.location.replace('src/', '').split(':');
+      return src;
+    },
+    filterFn: facetsFilter,
+    meta: {
+      headerName: 'Location',
+      GlobalFilterValueInput: FacetedFilterValueInput,
+    },
+    header: (props) => (
+      <ResizeHeader {...props}>
+        <FacetedFilterHeader column={props.column} />
+      </ResizeHeader>
+    ),
+    cell: ({ row }) => (
+      <span className='font-medium'>
+        {row.original.location.replace('src/', '')}
+      </span>
+    ),
+  },
+  {
+    id: 'sessionId',
+    accessorFn: (data) => {
+      return data.metadata?.sessionId;
+    },
+    size: 135,
+    filterFn: 'equals',
+    meta: {
+      headerName: 'Session ID',
+    },
+    header: (props) => (
+      <ResizeHeader {...props}>
+        <FilterValueHeader column={props.column} />
+      </ResizeHeader>
+    ),
+    cell: FilterValueCell,
+  },
+  {
+    id: 'traceId',
+    accessorFn: (data) => {
+      return data.metadata?.traceId;
+    },
+    size: 135,
+    filterFn: 'equals',
+    meta: {
+      headerName: 'Trace ID',
+    },
+    header: (props) => (
+      <ResizeHeader {...props}>
+        <FilterValueHeader column={props.column} />
+      </ResizeHeader>
+    ),
+    cell: FilterValueCell,
+  },
+  {
+    id: 'targetKey',
+    accessorFn: (data) => {
+      return data.metadata?.targetKey;
+    },
+    size: 100,
+    minSize: 100,
+    filterFn: 'equals',
+    meta: {
+      headerName: 'Key',
+    },
+    header: (props) => (
+      <ResizeHeader {...props}>
+        <FilterValueHeader column={props.column} />
+      </ResizeHeader>
+    ),
+    cell: FilterValueCell,
+  },
+];

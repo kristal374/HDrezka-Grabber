@@ -1,0 +1,343 @@
+import { selectMovieInfo } from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
+import { selectRange } from '@/app/screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
+import { useAppSelector } from '@/app/screens/Popup/DownloadScreen/store/store';
+import { getFromStorage } from '@/lib/storage';
+import { EventType, FileProgress, LoadItem } from '@/lib/types';
+import { loadIsCompleted } from '@/lib/utils';
+import equal from 'fast-deep-equal/es6';
+import { useCallback, useEffect, useState } from 'react';
+import browser from 'webextension-polyfill';
+import { useTrackingCurrentProgress } from './useTrackingCurrentProgress';
+
+type MovieLoadStatuses = {
+  completed: number[];
+  in_progress: number[];
+};
+
+export function useTrackingTotalProgressForMovie(movieId: number) {
+  const movieInfo = useAppSelector(selectMovieInfo)!;
+  const range = useAppSelector(selectRange);
+
+  const [loadItem, setLoadItem] = useState<LoadItem | null>(null);
+  const [loadItemIds, setLoadItemIds] = useState<number[] | null>(null);
+  const [loadStatuses, setLoadStatuses] = useState<MovieLoadStatuses | null>(
+    null,
+  );
+  const fileProgressInPercents = useTrackingCurrentProgress(loadItem);
+
+  const completedLoads = loadStatuses?.completed.length ?? 0;
+  const inProgressLoads = loadStatuses?.in_progress.length ?? 0;
+  const totalLoads = completedLoads + inProgressLoads;
+
+  const progress: FileProgress | null =
+    totalLoads > 0
+      ? { fileProgressInPercents, completedLoads, totalLoads }
+      : null;
+
+  useEffect(() => {
+    setup(movieId).then((result) => {
+      if (result) {
+        setLoadItem(result.targetLoadItem);
+        setLoadItemIds(result.loadItemIds);
+        setLoadStatuses(result.movieLoadStatuses);
+      }
+      eventBus.setReady();
+    });
+  }, [movieId]);
+
+  useEffect(() => {
+    if (!loadStatuses || totalLoads === 0 || completedLoads !== totalLoads) {
+      return;
+    }
+    setTimeout(() => {
+      setLoadItem(null);
+      setLoadItemIds(null);
+      setLoadStatuses(null);
+    }, 3000);
+  }, [loadStatuses]);
+
+  const handleActiveDownloadsChange = useCallback(
+    async (oldValue: number[] | undefined, newValue: number[] | undefined) => {
+      const newSet = new Set(newValue ?? []);
+      const oldSet = new Set(oldValue ?? []);
+
+      const added = [...newSet.difference(oldSet)];
+      const removed = [...oldSet.difference(newSet)];
+
+      if (!loadItemIds || !loadStatuses) {
+        const [targetLoadItem, targetLoadConfig, newLoadStatuses] =
+          await getNewTarget(added, movieId);
+
+        if (!targetLoadConfig) return;
+        setLoadItemIds(targetLoadConfig.loadItemIds);
+        setLoadStatuses(newLoadStatuses);
+        setLoadItem(targetLoadItem);
+        return;
+      }
+
+      const wasAnyLoadItemIdsRemoved = removed.some((id) =>
+        loadItemIds.includes(id),
+      );
+      const loadItemWasRemoved = loadItem?.id && removed.includes(loadItem.id);
+      const wasAnyLoadItemIdsAdded = added.some((id) =>
+        loadItemIds.includes(id),
+      );
+      const needUpdateLoadItem = loadItemWasRemoved || wasAnyLoadItemIdsAdded;
+
+      if (wasAnyLoadItemIdsRemoved) {
+        setLoadStatuses(await updateAllLoadStatuses(loadItemIds));
+      }
+
+      if (!needUpdateLoadItem) return;
+      const newLoadItem = await getTargetLoadItemFromActiveDownloads(
+        newValue!,
+        movieId,
+        loadItemIds,
+      );
+
+      if (!equal(loadItem, newLoadItem)) {
+        setLoadItem(newLoadItem);
+      }
+    },
+    [movieId, loadItemIds, loadStatuses, loadItem, range, movieInfo],
+  );
+
+  const handleQueueChange = useCallback(
+    async (oldValue: QueueItem[], newValue: QueueItem[]) => {
+      const changes = detectQueueChanges(oldValue, newValue);
+
+      if (changes.completed?.length && loadItemIds) {
+        for (const movie of changes.completed) {
+          const movieId = Array.isArray(movie) ? movie[0] : movie;
+          if (loadItemIds.includes(movieId)) {
+            setLoadStatuses(await updateAllLoadStatuses(loadItemIds));
+            break;
+          }
+        }
+      }
+
+      if (changes.initialized?.length && !loadItemIds) {
+        const activeDownloads =
+          await getFromStorage<number[]>('activeDownloads');
+        let [targetLoadItem, targetLoadConfig, newLoadStatuses] =
+          await getNewTarget(activeDownloads, movieId);
+
+        if (!targetLoadConfig) {
+          [targetLoadItem, targetLoadConfig, newLoadStatuses] =
+            await getNewTarget(changes.initialized, movieId);
+          if (!targetLoadConfig) return;
+        }
+
+        setLoadItemIds(targetLoadConfig.loadItemIds);
+        setLoadStatuses(newLoadStatuses);
+        setLoadItem(targetLoadItem);
+      }
+    },
+    [loadItemIds, movieId],
+  );
+
+  useEffect(() => {
+    const handleLocalStorageChange = async (
+      changes: Record<string, browser.Storage.StorageChange>,
+      areaName: string,
+    ) => {
+      if (areaName !== 'local') return;
+
+      for (const [key, value] of Object.entries(changes)) {
+        switch (key) {
+          case 'activeDownloads':
+            await handleActiveDownloadsChange(
+              value.oldValue as number[] | undefined,
+              value.newValue as number[] | undefined,
+            );
+            break;
+          case 'queue':
+            await handleQueueChange(
+              value.oldValue as QueueItem[],
+              value.newValue as QueueItem[],
+            );
+            break;
+          case 'settings':
+            // ignore settings changes
+            break;
+          default:
+            logger.warning('Unknown event type:', key);
+        }
+      }
+    };
+
+    return eventBus.mountHandler(
+      EventType.StorageChanged,
+      browser.storage.onChanged,
+      handleLocalStorageChange,
+    );
+  }, [loadItem, loadItemIds, loadStatuses, range, movieInfo]);
+
+  return progress;
+}
+
+async function setup(movieId: number) {
+  const activeDownloads = await getFromStorage<number[]>('activeDownloads');
+  const queue = await getFromStorage<number[]>('queue');
+
+  if (!activeDownloads) return null;
+
+  let targetLoadItem = await getTargetLoadItemFromActiveDownloads(
+    activeDownloads,
+    movieId,
+  );
+
+  if (targetLoadItem) {
+    const targetLoadConfig = await indexedDBObject.getFromIndex(
+      'loadConfig',
+      'load_item_ids',
+      targetLoadItem.id,
+    );
+
+    if (!targetLoadConfig) return null;
+    const loadItemIds = targetLoadConfig.loadItemIds;
+    const movieLoadStatuses = await updateAllLoadStatuses(loadItemIds);
+
+    return { targetLoadItem, loadItemIds, movieLoadStatuses };
+  } else if (queue) {
+    const [targetLoadItem, targetLoadConfig, movieLoadStatuses] =
+      await getNewTarget(queue, movieId);
+
+    if (!targetLoadConfig) return null;
+    const loadItemIds = targetLoadConfig.loadItemIds;
+
+    return { targetLoadItem, loadItemIds, movieLoadStatuses };
+  }
+
+  return null;
+}
+
+async function getNewTarget(
+  loadItemIdsSequence: QueueItem[] | undefined,
+  movieId: number,
+) {
+  for (const movie of loadItemIdsSequence ?? []) {
+    const targetLoadItem = (await indexedDBObject.getFromIndex(
+      'loadStorage',
+      'load_id',
+      Array.isArray(movie) ? movie[0] : movie,
+    )) as LoadItem;
+
+    if (targetLoadItem?.movieId !== movieId) continue;
+    const targetLoadConfig = (await indexedDBObject.getFromIndex(
+      'loadConfig',
+      'load_item_ids',
+      targetLoadItem.id,
+    ))!;
+
+    const movieLoadStatuses = await updateAllLoadStatuses(
+      targetLoadConfig.loadItemIds,
+    );
+    return [targetLoadItem, targetLoadConfig, movieLoadStatuses] as const;
+  }
+  return [null, null, null] as const;
+}
+
+async function updateAllLoadStatuses(downloadItemIds: number[]) {
+  const range = IDBKeyRange.bound(
+    Math.min(...downloadItemIds),
+    Math.max(...downloadItemIds),
+  );
+  const downloadItems = (await indexedDBObject.getAllFromIndex(
+    'loadStorage',
+    'load_id',
+    range,
+  )) as LoadItem[];
+  return await getLoadStatuses(downloadItems);
+}
+
+async function getLoadStatuses(downloadItems: LoadItem[]) {
+  const loadStatuses: MovieLoadStatuses = {
+    completed: [],
+    in_progress: [],
+  };
+  downloadItems.forEach((item) => {
+    loadIsCompleted(item.status)
+      ? loadStatuses.completed.push(item.id)
+      : loadStatuses.in_progress.push(item.id);
+  });
+
+  return loadStatuses;
+}
+
+type QueueItem = number | number[];
+type QueueChanges = { initialized?: QueueItem[]; completed?: QueueItem[] };
+
+function detectQueueChanges(
+  oldValue: QueueItem[] | undefined,
+  newValue: QueueItem[] | undefined,
+): QueueChanges {
+  if (oldValue === undefined) return { initialized: newValue };
+  if (newValue === undefined) return { completed: oldValue };
+
+  const usedOld = new Set<number>();
+  const usedNew = new Set<number>();
+
+  oldValue.forEach((oldItem, i) => {
+    newValue.some((newItem, j) => {
+      if (typeof oldItem !== typeof newItem) return false;
+      const match =
+        (typeof oldItem === 'number' && oldItem === newItem) ||
+        (Array.isArray(oldItem) &&
+          Array.isArray(newItem) &&
+          isAncestor(oldItem, newItem));
+      if (match) {
+        usedOld.add(i);
+        usedNew.add(j);
+        return true;
+      }
+      return false;
+    });
+  });
+
+  const completed = oldValue.filter((_, i) => !usedOld.has(i));
+  const initialized = newValue.filter((_, i) => !usedNew.has(i));
+
+  const result: QueueChanges = {};
+  if (initialized.length) result.initialized = initialized;
+  if (completed.length) result.completed = completed;
+  return result;
+}
+
+function isAncestor(oldArr: number[], newArr: number[]): boolean {
+  if (newArr.length > oldArr.length) return false;
+  const offset = oldArr.length - newArr.length;
+  return newArr.every((val, idx) => oldArr[offset + idx] === val);
+}
+
+async function getTargetLoadItemFromActiveDownloads(
+  activeDownloads: number[],
+  movieId: number,
+  loadItemIds?: number[],
+) {
+  let targetDownload: LoadItem | null = null;
+  if (!loadItemIds) {
+    const loadItems = (await Promise.all(
+      activeDownloads.map((id) =>
+        indexedDBObject.getFromIndex('loadStorage', 'load_id', id),
+      ),
+    )) as LoadItem[];
+    const matchingDownloads = loadItems.filter(
+      (item) => item.movieId === movieId,
+    );
+    if (matchingDownloads.length !== 0) targetDownload = matchingDownloads[0];
+  } else {
+    const matchingDownloadIds = activeDownloads.filter((id) =>
+      loadItemIds.includes(id),
+    );
+
+    if (matchingDownloadIds.length !== 0) {
+      targetDownload = (await indexedDBObject.getFromIndex(
+        'loadStorage',
+        'load_id',
+        matchingDownloadIds[0],
+      )) as LoadItem;
+    }
+  }
+  return targetDownload;
+}
