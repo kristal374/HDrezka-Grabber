@@ -14,7 +14,6 @@ export async function setToStorage<T>(key: string, value: T) {
 }
 
 export async function createDefaultSettings() {
-  // TODO: set default settings
   const DEFAULT_SETTINGS: Settings = {
     darkMode: true,
     displayQualitySize: true,
@@ -36,19 +35,9 @@ export async function createDefaultSettings() {
     createSeriesFolders: false,
     replaceAllSpaces: true,
     filenameFilmTemplate: ['%orig_title%'],
-    filenameSeriesTemplate: [
-      '%orig_title%',
-      '_',
-      '%n%',
-      '_S-',
-      '%season_id%',
-      'E-',
-      '%episode_id%',
-      'Q-',
-      '%quality%',
-    ],
+    filenameSeriesTemplate: ['%orig_title%', ' S', '%season_id%', 'E', '%episode_id%'],
 
-    enableLogger: true,
+    enableLogger: false,
     debugLevel: LogLevel.DEBUG,
     logMessageLifetime: 172_800_000, // ms, equals 2 days
     trackEventsOnDeterminingFilename: true,
