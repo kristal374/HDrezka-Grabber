@@ -307,21 +307,7 @@ export class DownloadManager {
 
           updatedFileItem.downloadId = downloadId;
           await indexedDBObject.put('fileStorage', updatedFileItem);
-
-          if (!loadIsCompleted(updatedFileItem.status)) {
-            logger.debug('Canceling download:', downloadId);
-            await this.cancelOneDownload({ fileItem: updatedFileItem, logger });
-          } else {
-            logger.debug(
-              'The file has already finished downloading',
-              updatedFileItem,
-            );
-            this.resourceLockManager.unlock({
-              type: 'loadStorage',
-              id: fileItem.relatedLoadItemId,
-              logger,
-            });
-          }
+          await this.cancelOneDownload({ fileItem: updatedFileItem, logger });
         } else {
           fileItem.downloadId = downloadId;
           await indexedDBObject.put('fileStorage', fileItem);
@@ -850,7 +836,9 @@ export class DownloadManager {
 
       await this.breakDownloadWithError({
         fileItem,
-        cause: LoadStatus.StoppedByUser,
+        cause: loadIsCompleted(fileItem.status)
+          ? fileItem.status
+          : LoadStatus.StoppedByUser,
         logger,
       });
     } else if (!loadIsCompleted(fileItem.status)) {
