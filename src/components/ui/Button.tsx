@@ -33,7 +33,7 @@ export function Button({
         variant === 'ghost' &&
           'not-disabled:hover:bg-input focus-visible:bg-input',
         variant === 'dangerous' &&
-          'bg-red-500/15 text-red-500 not-disabled:hover:bg-red-500/40 not-disabled:hover:text-red-200 focus-visible:bg-red-500/40 focus-visible:text-red-200',
+          'not-light:not-disabled:hover:text-red-200 not-light:focus-visible:text-red-200 bg-red-500/15 text-red-500 not-disabled:hover:bg-red-500/40 focus-visible:bg-red-500/40',
         className,
       )}
       type='button'
