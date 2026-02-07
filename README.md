@@ -6,16 +6,15 @@
   <img src="assets/HD_logo.png" width="334" alt="Logo">
 
   <br>
-  <img alt="Version" src="https://img.shields.io/github/package-json/v/kristal374/HDrezka-Grabber">
+  <img alt="Version" src="https://img.shields.io/github/package-json/version/kristal374/HDrezka-Grabber">
   <img alt="License" src="https://img.shields.io/github/license/kristal374/HDrezka-Grabber">
   <img alt="Type" src="https://img.shields.io/badge/type-browser_extension-5c2d91">
 
   <br>
   <img alt="React" src="https://img.shields.io/github/package-json/dependency-version/kristal374/HDrezka-Grabber/react?logo=react&color=61dafb">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript">
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-7-646cff?logo=vite">
   <img alt="TailwindCSS" src="https://img.shields.io/badge/TailwindCSS-4-38bdf8?logo=tailwindcss">
-  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-%E2%89%A524-green?logo=node.js">
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-7-646cff?logo=vite">
 
   <h3>
     Простое решение для загрузки любимых фильмов и сериалов с <a href="https://rezka.ag">rezka.ag</a>!
