@@ -30,7 +30,7 @@ jobs:
         if: steps.npm-cache.outputs.cache-hit != 'true'
 
       - name: Build app
-        run: node run-build.js --browser all --production true --zip true --keep-dist-dir false --build-number ${{ github.run_number }}
+        run: npm run build:prod -- --build-number ${{ github.run_number }}
 
       - name: List dist/build files and set job output
         id: list-files

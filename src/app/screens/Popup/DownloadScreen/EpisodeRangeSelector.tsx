@@ -3,7 +3,7 @@ import { getSeasons } from '@/extraction-scripts/extractSeasons';
 import { PopupInitialDataContext } from '@/html/popup';
 import { sliceSeasons } from '@/lib/utils';
 import { ListVideoIcon } from 'lucide-react';
-import { useContext, useEffect, useMemo } from 'react';
+import { useContext, useEffect } from 'react';
 import {
   selectEpisodeFrom,
   selectEpisodeTo,
@@ -68,18 +68,12 @@ export function EpisodeRangeSelector({
     });
   }, []);
 
-  const seasonValues = useMemo(
-    () =>
-      seasons
-        ? Object.entries(seasons).map(([id, season]) => ({
-            value: id,
-            label: season.title,
-          }))
-        : [],
-    [seasons],
-  );
-
   if (!seasons) return null;
+
+  const seasonValues = Object.entries(seasons).map(([id, season]) => ({
+    value: id,
+    label: season.title,
+  }));
 
   logger.info('New render EpisodeRangeSelector component.');
   return (
@@ -108,6 +102,7 @@ export function EpisodeRangeSelector({
             className='py-0.5'
             width='5.3125rem' // 85px
             side='top'
+            needSearch={Object.keys(seasons).length > 12}
             data={seasonValues}
             value={seasonFrom}
             onValueChange={(value) => {
@@ -124,6 +119,7 @@ export function EpisodeRangeSelector({
           </label>
 
           <Combobox
+            key={seasonFrom}
             id='episodeFrom'
             className='py-0.5'
             width='7.1875rem' // 115px
@@ -154,6 +150,7 @@ export function EpisodeRangeSelector({
             className='py-0.5'
             width={downloadToEnd ? '14.4rem' : '5.3125rem'}
             side='top'
+            needSearch={Object.keys(seasons).length > 12}
             data={[
               {
                 value: '-2',
@@ -189,6 +186,7 @@ export function EpisodeRangeSelector({
               </label>
 
               <Combobox
+                key={seasonTo}
                 id='episodeTo'
                 className='py-0.5'
                 width='7.1875rem' // 115px

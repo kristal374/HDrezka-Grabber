@@ -90,6 +90,12 @@ export class QueueController {
         groupToRemove: activeDownloads,
         logger,
       });
+
+      await messageBroker.sendMessage(initiator.movieId, {
+        stackable: false,
+        message: browser.i18n.getMessage('popup_messageBroker_userBreak'),
+        type: 'warning',
+      });
       return false;
     }
 
@@ -214,6 +220,8 @@ export class QueueController {
         updatedLoadItems.map((loadItem) => writeTx.store.put(loadItem)),
       );
       await writeTx.done;
+    } catch (error) {
+      logger.critical('Error when trying to stop downloads:', error);
     } finally {
       await this.resourceLockManager.massUnlock({
         type: 'loadStorage',
@@ -243,9 +251,9 @@ export class QueueController {
       return loadItem;
     }
 
-    loadItem.status = cause;
-
     if (this.activeDownloads.state.includes(loadItem.id)) {
+      loadItem.status = cause;
+
       const relatedFiles = (await indexedDBObject.getAllFromIndex(
         'fileStorage',
         'load_item_id',
@@ -285,6 +293,13 @@ export class QueueController {
       // Поскольку нам нужно удалить всего один единственный объект,
       // мы можем не бояться того, что после удаления диапазон объектов
       // внутри массива сместится
+
+      loadItem.status = !loadIsCompleted(loadItem.status)
+        ? cause !== LoadStatus.StoppedByUser
+          ? LoadStatus.InitiationError
+          : cause
+        : loadItem.status;
+
       for (let i = 0; i < this.queue.state.length; i++) {
         const group = this.queue.state[i];
 

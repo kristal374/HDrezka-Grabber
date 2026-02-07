@@ -10,21 +10,24 @@ import {
   SERIES_PREVIEW,
   SERIES_READY_TEMPLATES,
 } from '@/app/screens/Settings/SettingsTab/FilenameComponentData';
+import { CopyButton } from '@/components/CopyButton';
 import { Panel } from '@/components/Panel';
 import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { Toggle } from '@/components/ui/Toggle';
 import { SettingsInitialDataContext } from '@/html/settings';
-import { LogLevel } from '@/lib/logger/types';
+import { LogLevel } from '@/lib/logger';
 import { createDefaultSettings, saveInStorage } from '@/lib/storage';
 import { Message } from '@/lib/types';
 import { IS_FIREFOX } from '@/lib/utils';
 import {
+  ChevronRightIcon,
   DownloadIcon,
   FolderCogIcon,
   LucideBug,
-  Monitor,
-  ShieldAlert,
+  MonitorIcon,
+  ShieldAlertIcon,
+  TriangleAlertIcon,
 } from 'lucide-react';
 import { useCallback, useContext } from 'react';
 import { toast } from 'sonner';
@@ -185,13 +188,66 @@ export function SettingsTab() {
     });
   }, []);
 
+  const afterInstallSettingName = IS_FIREFOX
+    ? browser.i18n.getMessage('settings_itemAfterInstall_firefox')
+    : browser.i18n.getMessage('settings_itemAfterInstall_chrome');
+
   return (
     <Panel className='bg-settings-background-primary border-0 p-0 shadow-none'>
       <ConfirmationModal />
       <div className='flex flex-col gap-12'>
+        {!settings.afterInstallDismissed && (
+          <SettingsSection
+            title={browser.i18n.getMessage('settings_sectionAfterInstall')}
+            icon={TriangleAlertIcon}
+            className='to-error light:to-rose-200 border-rose-400 bg-linear-to-r from-transparent from-40%'
+          >
+            <SettingItem
+              title={browser.i18n.getMessage('settings_itemAfterInstall_title')}
+              description={browser.i18n.getMessage(
+                'settings_itemAfterInstall_description',
+              )}
+              footer={
+                <div className='mt-2 flex items-center gap-1.5'>
+                  <CopyButton
+                    content={
+                      IS_FIREFOX
+                        ? 'about:preferences#general'
+                        : 'chrome://settings/downloads'
+                    }
+                    className='px-2.5 text-xs'
+                  >
+                    <span>
+                      {browser.i18n.getMessage(
+                        'settings_itemAfterInstall_openSettings',
+                      )}
+                    </span>
+                  </CopyButton>
+                  <ChevronRightIcon className='size-4' />
+                  <CopyButton
+                    content={afterInstallSettingName}
+                    className='px-2.5 text-xs'
+                  >
+                    <span>{afterInstallSettingName}</span>
+                  </CopyButton>
+                </div>
+              }
+            >
+              <Button
+                variant='dangerous'
+                onClick={() => {
+                  updateSetting('afterInstallDismissed')(true);
+                }}
+              >
+                {browser.i18n.getMessage('settings_itemAfterInstall_button')}
+              </Button>
+            </SettingItem>
+          </SettingsSection>
+        )}
+
         <SettingsSection
           title={browser.i18n.getMessage('settings_sectionInterface')}
-          icon={Monitor}
+          icon={MonitorIcon}
         >
           <SettingsItemToggle
             title={browser.i18n.getMessage('settings_itemInterfaceTheme_title')}
@@ -404,7 +460,7 @@ export function SettingsTab() {
 
         <SettingsSection
           title={browser.i18n.getMessage('settings_sectionFailureActions')}
-          icon={ShieldAlert}
+          icon={ShieldAlertIcon}
         >
           <SettingsItemSelect
             title={browser.i18n.getMessage(

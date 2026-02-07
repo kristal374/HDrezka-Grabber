@@ -1,4 +1,4 @@
-import { LogLevel } from '@/lib/logger/types';
+import { LogLevel } from '@/lib/logger';
 import browser from 'webextension-polyfill';
 import { Settings } from './types';
 
@@ -14,8 +14,8 @@ export async function setToStorage<T>(key: string, value: T) {
 }
 
 export async function createDefaultSettings() {
-  // TODO: set default settings
   const DEFAULT_SETTINGS: Settings = {
+    afterInstallDismissed: false,
     darkMode: true,
     displayQualitySize: true,
     getRealQuality: true,
@@ -38,17 +38,13 @@ export async function createDefaultSettings() {
     filenameFilmTemplate: ['%orig_title%'],
     filenameSeriesTemplate: [
       '%orig_title%',
-      '_',
-      '%n%',
-      '_S-',
+      ' S',
       '%season_id%',
-      'E-',
+      'E',
       '%episode_id%',
-      'Q-',
-      '%quality%',
     ],
 
-    enableLogger: true,
+    enableLogger: false,
     debugLevel: LogLevel.DEBUG,
     logMessageLifetime: 172_800_000, // ms, equals 2 days
     trackEventsOnDeterminingFilename: true,

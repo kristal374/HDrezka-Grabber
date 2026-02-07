@@ -65,7 +65,7 @@
   "popup_menu_loadManager": {
     "message": "Download Manager"
   },
-  "popup_menu_debugWindow": {
+  "popup_menu_loggerWindow": {
     "message": "Event Log"
   },
   "popup_realResolution": {
@@ -110,13 +110,10 @@
   "popup_messageBroker_SkipDownload": {
     "message": "Download failed. Could not download file."
   },
-  "message_noDataVideo": {
-    "message": "Failed to retrieve video data. Check your internet connection or use a VPN."
+  "popup_messageBroker_DiskFull": {
+    "message": "Not enough disk space!"
   },
-  "message_errorLoad": {
-    "message": "Download error. Check your internet connection or use a VPN."
-  },
-  "message_userBreak": {
+  "popup_messageBroker_userBreak": {
     "message": "You interrupted the download."
   },
   "settings_TabSettings": {
@@ -352,6 +349,9 @@
   "settings_ChangelogChanged": {
     "message": "Changed"
   },
+  "settings_sectionAfterInstall": {
+    "message": "Attention required!"
+  },
   "settings_sectionInterface": {
     "message": "Interface Settings"
   },
@@ -366,6 +366,24 @@
   },
   "settings_sectionDebug": {
     "message": "Extension Debugging"
+  },
+  "settings_itemAfterInstall_title": {
+    "message": "It is recommended to disable the browser setting"
+  },
+  "settings_itemAfterInstall_description": {
+    "message": "When downloading multiple movies/series simultaneously, the browser will ask for confirmation for each file separately, which may slow down the process and affect browser usability"
+  },
+  "settings_itemAfterInstall_chrome": {
+    "message": "Ask where to save each file before downloading"
+  },
+  "settings_itemAfterInstall_firefox": {
+    "message": "Always ask you where to save files"
+  },
+  "settings_itemAfterInstall_openSettings": {
+    "message": "Browser settings"
+  },
+  "settings_itemAfterInstall_button": {
+    "message": "Don't show again"
   },
   "settings_itemInterfaceTheme_title": {
     "message": "Dark theme"

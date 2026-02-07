@@ -16,7 +16,7 @@ export async function getMovieInfo(tabId: number) {
 }
 
 function extractMovieInfo(pathToInjectScript: string) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = pathToInjectScript;
     document.documentElement.appendChild(script);
@@ -28,6 +28,11 @@ function extractMovieInfo(pathToInjectScript: string) {
         document.documentElement.removeChild(script);
         resolve(result);
       }
-    }, 30);
+    }, 10);
+
+    setTimeout(() => {
+      clearInterval(intervalId);
+      reject('Movie info extraction timeout.');
+    }, 1000);
   });
 }

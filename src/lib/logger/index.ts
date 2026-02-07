@@ -1,16 +1,19 @@
+import { clearDebounceTimer, logCreate } from './background-logger';
 import { attachTraceId } from './decorator';
 import { Logger } from './logger';
-import type { LogMessage } from './types';
-import { LogLevel } from './types';
+import { LogLevel, type LogMessage, LoggerEventType } from './types';
 import { getSessionId, getTraceId, printLog, toFormatTime } from './utils';
 
 export {
-  attachTraceId,
-  getSessionId,
-  getTraceId,
-  Logger,
   LogLevel,
   LogMessage,
+  Logger,
+  LoggerEventType,
+  attachTraceId,
+  clearDebounceTimer,
+  getSessionId,
+  getTraceId,
+  logCreate,
   printLog,
   toFormatTime,
 };

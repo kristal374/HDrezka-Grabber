@@ -1,4 +1,5 @@
 import type { LogMessageWithId } from '@/app/hooks/logger/useUpdateLogArray';
+import { CopyButton } from '@/components/CopyButton';
 import {
   FacetedFilterHeader,
   FacetedFilterValueInput,
@@ -8,6 +9,11 @@ import {
   type FilterValueInputProps,
 } from '@/components/data-table/Filters';
 import { ResizeHeader } from '@/components/data-table/HeaderCell';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/Tooltip';
 import { LogLevel, toFormatTime } from '@/lib/logger';
 import { cn } from '@/lib/utils';
 import type {
@@ -62,24 +68,48 @@ export const columns: ColumnDef<LogMessageWithId>[] = [
     meta: {
       headerName: 'Timestamp',
     },
-    header: ({ column }) => (
-      <span className='ml-auto'>{meta(column).headerName}</span>
+    header: (props) => (
+      <ResizeHeader {...props}>
+        <span>{meta(props.column).headerName}</span>
+      </ResizeHeader>
     ),
     cell: ({ row, table, column }) => {
-      if (row.index === 0) return toFormatTime(row.original.timestamp, 0);
-      let prev = table.getRow(String(row.index - 1)).original.timestamp;
       const current = row.original.timestamp;
-      if (
-        row.columnFilters.level ||
-        row.columnFilters.context ||
-        row.columnFilters.message
-      ) {
-        prev = 0;
-      }
+      const prev =
+        row.index === 0
+          ? 0
+          : table.getRow(String(row.index - 1)).original.timestamp;
       return (
-        <span className='ml-auto' data-slim='right'>
-          {toFormatTime(current, prev)}
-        </span>
+        <Tooltip>
+          <TooltipTrigger>
+            <div
+              className='group/time flex pr-0 outline-none'
+              role='cell'
+              tabIndex={0}
+              data-slim='container'
+            >
+              <span className='focus-ring mr-1 mb-auto ml-auto rounded-sm group-focus-visible/time:ring-2'>
+                {toFormatTime(current, prev)}
+              </span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent
+            className='flex flex-col gap-1 text-sm'
+            sideOffset={-4}
+          >
+            <span className='font-semibold'>
+              {new Date(current).toDateString()}
+            </span>
+            <span>{toFormatTime(current, 0)}</span>
+            <div className='flex items-center gap-2'>
+              <span>{current}</span>
+              <CopyButton
+                content={String(current)}
+                className='rounded-sm [&>svg]:size-3'
+              />
+            </div>
+          </TooltipContent>
+        </Tooltip>
       );
     },
   },

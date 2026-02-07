@@ -65,7 +65,7 @@
   "popup_menu_loadManager": {
     "message": "Диспетчер загрузок"
   },
-  "popup_menu_debugWindow": {
+  "popup_menu_loggerWindow": {
     "message": "Журнал событий"
   },
   "popup_realResolution": {
@@ -110,13 +110,10 @@
   "popup_messageBroker_SkipDownload": {
     "message": "Сбой загрузки. Не удалось загрузить файл."
   },
-  "message_noDataVideo": {
-    "message": "Не удалось получить данные видео. Проверьте интернет соединение или используйте VPN."
+  "popup_messageBroker_DiskFull": {
+    "message": "Недостаточно места на диске!"
   },
-  "message_errorLoad": {
-    "message": "Ошибка загрузки. Проверьте интернет соединение или используйте VPN."
-  },
-  "message_userBreak": {
+  "popup_messageBroker_userBreak": {
     "message": "Вы прервали загрузку."
   },
   "settings_TabSettings": {
@@ -352,6 +349,9 @@
   "settings_ChangelogChanged": {
     "message": "Изменено"
   },
+  "settings_sectionAfterInstall": {
+    "message": "Требуется внимание!"
+  },
   "settings_sectionInterface": {
     "message": "Настройки интерфейса"
   },
@@ -366,6 +366,24 @@
   },
   "settings_sectionDebug": {
     "message": "Отладка расширения"
+  },
+  "settings_itemAfterInstall_title": {
+    "message": "Рекомендуется отключить настройку в браузере"
+  },
+  "settings_itemAfterInstall_description": {
+    "message": "При одновременной загрузке нескольких фильмов/сериалов, браузер будет запрашивать подтверждение для каждого файла отдельно, что может замедлить процесс и повлиять на удобство работы с браузером"
+  },
+  "settings_itemAfterInstall_chrome": {
+    "message": "Перед скачиванием спрашивать, куда сохранить файл"
+  },
+  "settings_itemAfterInstall_firefox": {
+    "message": "Всегда выдавать запрос на сохранение файлов"
+  },
+  "settings_itemAfterInstall_openSettings": {
+    "message": "Настройки браузера"
+  },
+  "settings_itemAfterInstall_button": {
+    "message": "Больше не показывать"
   },
   "settings_itemInterfaceTheme_title": {
     "message": "Темная тема"

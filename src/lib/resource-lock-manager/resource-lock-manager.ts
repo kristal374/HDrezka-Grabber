@@ -4,9 +4,9 @@ import { MutexWithSoftLock } from '@/lib/resource-lock-manager/mutex-with-soft-l
 
 type ResourceTargetType = Extract<keyof HDrezkaGrabberDB, string>;
 
-type ResourceTarget = {
+export type ResourceTarget = {
   id: string | number;
-  type: ResourceTargetType;
+  type: ResourceTargetType | 'cancelAll';
 };
 
 export class ResourceLockManager {
@@ -23,6 +23,11 @@ export class ResourceLockManager {
     }
 
     return ResourceLockManager.locks.get(resourceId)!;
+  }
+
+  isLocked({ type, id }: ResourceTarget): boolean {
+    const mutex = this.getMutex({ type, id });
+    return mutex.isLocked();
   }
 
   async lock({

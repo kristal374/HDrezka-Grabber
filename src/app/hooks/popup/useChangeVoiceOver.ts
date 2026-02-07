@@ -24,7 +24,7 @@ export function useChangeVoiceOver() {
 
   const movieInfo = useAppSelector(selectMovieInfo);
   const voiceOver = useAppSelector(selectCurrentVoiceOver);
-  const [previewVoiceOver, setPreviewVoiceOver] = useState(voiceOver);
+  const [previousVoiceOver, setPreviousVoiceOver] = useState(voiceOver);
 
   const updateVoiceOver = useCallback(async (): Promise<ActualVideoData> => {
     if (!movieInfo || !voiceOver) {
@@ -65,11 +65,11 @@ export function useChangeVoiceOver() {
 
     logger.info('Attempt to update voice over.');
 
-    if (!voiceOver || equal(voiceOver, previewVoiceOver)) return;
+    if (!voiceOver || equal(voiceOver, previousVoiceOver)) return;
     logger.debug('Voice over:', voiceOver);
 
-    if (!previewVoiceOver) {
-      setPreviewVoiceOver(voiceOver);
+    if (!previousVoiceOver) {
+      setPreviousVoiceOver(voiceOver);
       return;
     }
 
@@ -93,13 +93,13 @@ export function useChangeVoiceOver() {
             }),
           );
         }
-        setPreviewVoiceOver(voiceOver);
+        setPreviousVoiceOver(voiceOver);
       })
       .catch((error) => {
         if (ignore) return;
         logger.error('Error update voice over:', error);
 
-        dispatch(setVoiceOverAction({ voiceOver: previewVoiceOver }));
+        dispatch(setVoiceOverAction({ voiceOver: previousVoiceOver }));
         messageBroker.sendMessage(movieInfo!.data.id, {
           stackable: true,
           message: browser.i18n.getMessage('popup_error_update_voiceover'),

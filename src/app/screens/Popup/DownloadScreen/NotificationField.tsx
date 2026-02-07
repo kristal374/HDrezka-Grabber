@@ -41,6 +41,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
       }
       const stackId = `${elem.type}-${elem.message}`;
       let stackIndex = stacks.get(stackId);
+
       if (stackIndex === undefined) {
         stackIndex = notificationsToShow.length;
         stacks.set(stackId, stackIndex);
@@ -90,13 +91,12 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
 
   const collapseClosingTimeoutRef = useRef<number | null>(null);
   const clearCollapseClosingTimeout = () => {
-    if (collapseClosingTimeoutRef.current) {
-      clearTimeout(collapseClosingTimeoutRef.current);
-      collapseClosingTimeoutRef.current = null;
-      containerRef.current?.parentElement?.classList.remove(
-        NOTIFICATIONS_COLLAPSE_FADE_CLASS,
-      );
-    }
+    if (!collapseClosingTimeoutRef.current) return;
+    clearTimeout(collapseClosingTimeoutRef.current);
+    collapseClosingTimeoutRef.current = null;
+    containerRef.current?.parentElement?.classList.remove(
+      NOTIFICATIONS_COLLAPSE_FADE_CLASS,
+    );
   };
 
   const resolveEncodedValue = (marker: 'gap' | 'max-height') => {
@@ -131,6 +131,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
     let elemTranslates: number[] = [];
     const elems =
       containerRef.current.querySelectorAll('& > *:not([data-marker])') ?? [];
+
     if (!elems.length) {
       // skip if there are no elements
     } else if (!calculatedElemHeights.length || !isCollapsed) {
@@ -159,6 +160,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
         elemTranslates.shift();
       }
     }
+
     setElemHeights(elemHeights);
     setFirstElemHeight(elemHeights[0] ?? 0);
     // setTotalHeight(elemHeights.reduce((acc, curr) => acc + curr + gap, 0));
@@ -181,6 +183,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
     const top = container.querySelector('[data-marker="top"]');
     const bottom = container.querySelector('[data-marker="bottom"]');
     if (!top || !bottom) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -193,6 +196,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
       },
       { root: container.parentElement },
     );
+
     observer.observe(top);
     observer.observe(bottom);
     return () => observer.disconnect();
@@ -214,14 +218,14 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
             className={cn(
               showTopShadow ? 'opacity-100' : 'opacity-0',
               'pointer-events-none absolute inset-0 z-1000 transition-opacity duration-300',
-              'from-background bg-gradient-to-b to-transparent to-10%',
+              'from-background bg-linear-to-b to-transparent to-10%',
             )}
           />
           <div
             className={cn(
               showBottomShadow ? 'opacity-100' : 'opacity-0',
               'pointer-events-none absolute inset-0 z-1000 transition-opacity duration-300',
-              'from-background bg-gradient-to-t to-transparent to-10%',
+              'from-background bg-linear-to-t to-transparent to-10%',
             )}
           />
         </>
@@ -274,7 +278,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
               'pointer-events-none absolute inset-0 z-1000',
               'flex items-end justify-center',
               'opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100',
-              'from-background via-background bg-gradient-to-t via-10% to-transparent',
+              'from-background via-background bg-linear-to-t via-10% to-transparent',
             )}
           >
             <Button
@@ -307,8 +311,8 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
                 key={notification.id}
                 className={cn(
                   colors[notification.type ?? 'info'].primary,
-                  'text-light-color flex items-center gap-1 rounded-md pt-1 pr-1.25 pb-1.25 pl-2.5 text-sm',
-                  'absolute w-full origin-bottom shadow-lg transition-transform duration-300',
+                  'flex items-center gap-1 rounded-md pt-1 pr-1.25 pb-1.25 pl-2.5 text-sm',
+                  'not-light:shadow-lg light:border absolute w-full origin-bottom transition-transform duration-300',
                   i === 0 && 'animate-spawn',
                   isCollapsed &&
                     i > NOTIFICATIONS_COLLAPSE_THRESHOLD &&
@@ -339,7 +343,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
                 )}
                 <p
                   className={cn(
-                    'mr-auto text-balance',
+                    'mr-auto font-medium text-balance',
                     isPreview && 'opacity-0 select-none',
                   )}
                 >
@@ -348,7 +352,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
                 {notification.stack?.length && (
                   <span
                     className={cn(
-                      'rounded-full border-2 border-transparent px-1.5 text-xs leading-[1.5] font-medium select-none',
+                      'rounded-full border-2 border-transparent px-1.5 text-xs leading-normal font-medium select-none',
                       colors[notification.type ?? 'info'].secondary,
                       (isPreview || notification.stack.length <= 1) &&
                         'opacity-0',
@@ -361,7 +365,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
                   variant='ghost'
                   size='square'
                   className={cn(
-                    '!text-light-color mt-0.25 focus-visible:bg-transparent not-disabled:active:scale-92',
+                    'not-light:text-light-color! mt-0.25 focus-visible:bg-transparent not-disabled:active:scale-92',
                     colors[notification.type ?? 'info'].secondaryHover,
                     !isPreview && 'pointer-events-auto',
                   )}
@@ -393,28 +397,32 @@ const colors: Record<
   { primary: string; secondary: string; secondaryHover: string; icon?: string }
 > = {
   info: {
-    primary: 'bg-input',
+    primary: 'bg-input light:border-input-active',
     secondary: 'bg-input-active',
     secondaryHover: 'not-disabled:hover:bg-input-active',
   },
   error: {
-    primary: 'bg-error',
+    primary:
+      'bg-error light:bg-rose-200 light:text-red-900 light:border-rose-400',
     secondary: 'bg-red-500/20',
     secondaryHover: 'not-disabled:hover:bg-red-500/20',
   },
   critical: {
-    primary: 'bg-error',
+    primary:
+      'bg-error light:bg-rose-200 light:text-red-900 light:border-rose-400',
     secondary: 'bg-red-500/20',
     secondaryHover: 'not-disabled:hover:bg-red-500/20',
-    icon: 'text-rose-600',
+    icon: 'text-rose-600 text-rose-800',
   },
   warning: {
-    primary: 'bg-yellow-800',
+    primary:
+      'bg-yellow-800 light:bg-amber-200 light:text-orange-900 light:border-amber-400',
     secondary: 'bg-amber-500/30',
     secondaryHover: 'not-disabled:hover:bg-amber-500/30',
   },
   success: {
-    primary: 'bg-emerald-800',
+    primary:
+      'bg-emerald-800 light:bg-emerald-200 light:text-emerald-900 light:border-emerald-400',
     secondary: 'bg-emerald-500/30',
     secondaryHover: 'not-disabled:hover:bg-emerald-500/30',
   },

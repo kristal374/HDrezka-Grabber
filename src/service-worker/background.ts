@@ -1,28 +1,20 @@
 import '@/lib/global-scope-init';
 
-import { doDatabaseStuff, dropDatabase } from '@/lib/idb-storage';
-import { Logger, LogMessage } from '@/lib/logger';
-import { clearDebounceTimer, logCreate } from '@/lib/logger/background-logger';
-import { LoggerEventType } from '@/lib/logger/types';
-import { getTraceId } from '@/lib/logger/utils';
+import { doDatabaseStuff } from '@/lib/idb-storage';
+import { getTraceId, LoggerEventType } from '@/lib/logger';
 import { getSettings } from '@/lib/storage';
-import { EventType, Message, Settings } from '@/lib/types';
+import { EventType } from '@/lib/types';
 import {
-  abortAllFetches,
-  clearCache,
-  getOriginalUrlItem,
-  stopAllVideoReader,
-  updateVideoInfo,
-} from '@/service-worker/network-layer';
-import { Alarms, Runtime, Storage } from 'webextension-polyfill';
-import { DownloadManager } from './load-manager/core';
-
-type Port = Runtime.Port;
-type StorageChange = Storage.StorageChange;
-type Alarm = Alarms.Alarm;
-type MessageSender = Runtime.MessageSender;
-
-let downloadManager: DownloadManager;
+  alarmHandler,
+  errorHandler,
+  messageHandler,
+  newLogHandler,
+  onConnectHandler,
+  onInstalledHandler,
+  restoreDBHandler,
+  storageChangeHandler,
+} from '@/service-worker/handlers';
+import { buildDownloadManager } from '@/service-worker/load-manager/constructor';
 
 async function main() {
   let logger = globalThis.logger;
@@ -34,6 +26,12 @@ async function main() {
     LoggerEventType.LogConnect,
     browser.runtime.onConnect,
     onConnectHandler,
+  );
+
+  eventBus.mountHandler(
+    EventType.ExtensionInstalled,
+    browser.runtime.onInstalled,
+    onInstalledHandler,
   );
 
   eventBus.mountHandler(
@@ -54,7 +52,7 @@ async function main() {
     storageChangeHandler,
   );
 
-  eventBus.mountHandler(EventType.DBDeletedEvent, globalThis, restoreDB);
+  eventBus.mountHandler(EventType.DBDeletedEvent, globalThis, restoreDBHandler);
 
   eventBus.mountHandler(LoggerEventType.LogCreate, globalThis, newLogHandler);
 
@@ -70,7 +68,8 @@ async function main() {
 
   globalThis.indexedDBObject = await doDatabaseStuff();
   globalThis.settings = await getSettings();
-  downloadManager = await DownloadManager.build();
+
+  const downloadManager = await buildDownloadManager();
   await downloadManager.stabilizeInsideState({ logger });
 
   eventBus.on(
@@ -93,10 +92,9 @@ async function main() {
   }
 
   const manifest = browser.runtime.getManifest();
-  if (
-    manifest.version.endsWith('.1') &&
-    !Object.values(manifest.icons ?? {})[0].includes('dev')
-  ) {
+  const IS_DEV = manifest.version.endsWith('.1');
+  const haveDevIcon = Object.values(manifest.icons ?? {})[0].includes('dev');
+  if (IS_DEV && !haveDevIcon) {
     // Устанавливаем спец. иконку, если определяем, что это дев сборка
     const browserAction = browser.browserAction ?? browser.action;
     await browserAction.setIcon({
@@ -116,149 +114,7 @@ async function main() {
   logger.info('Service worker is ready.');
 }
 
-function messageHandler(
-  message: unknown,
-  _sender: MessageSender,
-  sendResponse: (message: unknown) => void,
-) {
-  let logger = globalThis.logger;
-  logger = logger.attachMetadata({ traceId: getTraceId() });
-  const promiseResponse = <T>(promise: Promise<T>) => {
-    promise.then((response) => sendResponse(response));
-    return true;
-  };
-
-  const data = message as Message<any>;
-  switch (data.type) {
-    case 'getFileSize':
-      return promiseResponse(
-        getOriginalUrlItem({ request: data.message, logger }),
-      );
-    case 'updateVideoInfo':
-      return promiseResponse(updateVideoInfo({ data: data.message, logger }));
-    case 'trigger':
-      return promiseResponse(
-        downloadManager.initNewDownload({
-          initiator: data.message,
-          logger,
-        }),
-      );
-    case 'requestToRestoreState':
-      return promiseResponse(
-        downloadManager.stabilizeInsideState({
-          permissionToRestore: data.message,
-          logger,
-        }),
-      );
-    case 'clearCache':
-      return promiseResponse(clearCache({ logger }));
-    case 'stopAllDownloads':
-      return promiseResponse(downloadManager.cancelAllDownload({ logger }));
-    case 'DBDeleted':
-      return promiseResponse(restoreDB());
-    case 'deleteExtensionData':
-      return promiseResponse(clearExtensionData({ logger }));
-    default:
-      logger.warning(message);
-      return false;
-  }
-}
-
-async function alarmHandler(alarm: Alarm) {
-  if (alarm.name.startsWith('repeat-download-')) {
-    const [_matchString, loadItemId, targetFileId] = alarm.name.match(
-      /repeat-download-(\d+)-(\d+)/,
-    )!;
-    await downloadManager.executeRetry({
-      loadItemId: Number(loadItemId),
-      targetFileId: Number(targetFileId),
-      logger,
-    });
-  }
-}
-
-async function storageChangeHandler(
-  changes: Record<string, StorageChange>,
-  areaName: string,
-) {
-  if (areaName !== 'local') return;
-  for (const [key, value] of Object.entries(changes)) {
-    if (key === 'settings') {
-      globalThis.settings =
-        (value.newValue as Settings | undefined) ?? (await getSettings());
-    }
-  }
-}
-
-async function onConnectHandler(port: Port) {
-  const newLogMessageHandler = (message: unknown, _port: Port) => {
-    return logCreate(message as LogMessage);
-  };
-
-  const disconnectHandler = () => {
-    port.onMessage.removeListener(newLogMessageHandler);
-    port.onDisconnect.removeListener(disconnectHandler);
-  };
-
-  port.onMessage.addListener(newLogMessageHandler);
-  port.onDisconnect.addListener(disconnectHandler);
-}
-
-async function newLogHandler(message: Event) {
-  // Мы должны привести объект к виду, в котором мы сможем сохранить его в БД.
-  // JSON, это самый простой, хоть и не самый эффективный способ
-  logCreate(JSON.parse(JSON.stringify((message as CustomEvent).detail)));
-}
-
-async function restoreDB() {
-  globalThis.indexedDBObject = await doDatabaseStuff();
-}
-
-async function clearExtensionData({
-  logger = globalThis.logger,
-}: {
-  logger?: Logger;
-}) {
-  // Отключаем на время получение любых сообщений чтоб не нарушить состояние
-  eventBus.off(EventType.NewMessageReceived, messageHandler);
-
-  await downloadManager.cancelAllDownload({ logger });
-
-  // Прерываем активные запросы, иначе могут возникнуть ошибки после удаления БД
-  abortAllFetches({ logger });
-  stopAllVideoReader({ logger });
-
-  // Ждём 3 секунды чтоб усели обработаться все события в downloadManager
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-
-  // Очищаем на всякий случай логи ожидающие записи
-  clearDebounceTimer();
-
-  await browser.storage.local.clear();
-  await browser.storage.sync.clear();
-  await browser.storage.session.clear();
-  await dropDatabase();
-
-  // Рассылаем уведомления о том, что база данных удалена и её необходимо пересоздать
-  await browser.runtime
-    .sendMessage<Message<undefined>>({
-      type: 'DBDeleted',
-      message: undefined,
-    })
-    .catch(() => {});
-  await restoreDB();
-
-  // Не забываем снова подписаться на новые уведомления
-  eventBus.on(EventType.NewMessageReceived, messageHandler);
-  return true;
-}
-
-const handleError = async (originalError: Error) => {
-  console.error(originalError);
-  logger.critical(originalError);
-};
-
-self.addEventListener('unhandledrejection', (e) => handleError(e.reason));
+self.addEventListener('unhandledrejection', (e) => errorHandler(e.reason));
 main()
-  .catch(handleError)
+  .catch(errorHandler)
   .finally(() => eventBus.setReady());

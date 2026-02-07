@@ -1,5 +1,10 @@
-import { LoggerEventType, LogLevel } from '@/lib/logger/types';
-import { Alarms, Downloads, Runtime, Storage } from 'webextension-polyfill';
+import type { LoggerEventType, LogLevel } from '@/lib/logger/types';
+import type {
+  Alarms,
+  Downloads,
+  Runtime,
+  Storage,
+} from 'webextension-polyfill';
 
 type Port = Runtime.Port;
 type Alarm = Alarms.Alarm;
@@ -7,6 +12,7 @@ type DownloadItem = Downloads.DownloadItem;
 type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
 type MessageSender = Runtime.MessageSender;
 type StorageChange = Storage.StorageChange;
+type OnInstalledDetailsType = Runtime.OnInstalledDetailsType;
 
 export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -194,8 +200,8 @@ export type CurrentEpisode = {
   episodeID: string;
 };
 
-export type MovieProgress = {
-  videoProgressInPercents: number | null;
+export type FileProgress = {
+  fileProgressInPercents: number | null;
   completedLoads: number;
   totalLoads: number;
 } | null;
@@ -295,6 +301,7 @@ export type SerialQueryData = {
 export type QueryData = FilmQueryData | SerialQueryData | UpdateTranslateData;
 
 export type Settings = {
+  afterInstallDismissed: boolean;
   darkMode: boolean;
   displayQualitySize: boolean;
   getRealQuality: boolean;
@@ -333,6 +340,7 @@ export enum EventType {
   StorageChanged = 'StorageChanged',
   DBDeletedMessage = 'DBDeletedMessage',
   DBDeletedEvent = 'DBDeletedEvent',
+  ExtensionInstalled = 'ExtensionInstalled',
 }
 
 type MessageReceivedHandler = [
@@ -351,6 +359,7 @@ export type EventBusTypes = {
   [EventType.StorageChanged]: [Record<string, StorageChange>, string];
   [EventType.DBDeletedMessage]: MessageReceivedHandler;
   [EventType.DBDeletedEvent]: Event;
+  [EventType.ExtensionInstalled]: OnInstalledDetailsType;
 
   // Logger events
   [LoggerEventType.LogCreate]: Event;

@@ -28,14 +28,28 @@ export interface SiteLoaderInstance {
   getQueryData({ logger }: { logger?: Logger }): QueryData;
 
   getVideoData({
+    useCache,
     logger,
   }: {
+    useCache?: boolean;
     logger?: Logger;
   }): Promise<ResponseVideoData | null>;
 
-  getVideoUrl({ logger }: { logger?: Logger }): Promise<string | null>;
+  getVideoUrl({
+    useCache,
+    logger,
+  }: {
+    useCache?: boolean;
+    logger?: Logger;
+  }): Promise<string | null>;
 
-  getSubtitlesUrl({ logger }: { logger?: Logger }): Promise<string | null>;
+  getSubtitlesUrl({
+    useCache,
+    logger,
+  }: {
+    useCache?: boolean;
+    logger?: Logger;
+  }): Promise<string | null>;
 
   createAndGetFile({
     logger,

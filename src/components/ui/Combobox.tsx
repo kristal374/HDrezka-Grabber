@@ -77,7 +77,7 @@ export function Combobox({
     );
   }, []);
 
-  const [inputValue, setInputValue] = useState(!needSearch ? '' : undefined);
+  const [inputValue, setInputValue] = useState('');
 
   return (
     <ComboboxPrimitive.Root

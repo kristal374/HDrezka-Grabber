@@ -105,8 +105,10 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
   }
 
   async getVideoData({
+    useCache = true,
     logger = globalThis.logger,
   }: {
+    useCache: boolean;
     logger?: Logger;
   }): Promise<ResponseVideoData | null> {
     logger.info('Attempting to get video data.');
@@ -117,13 +119,19 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
       this.serverResponse = await fetchVideoData({
         siteUrl: this.urlDetails.siteUrl,
         data: this.getQueryData(),
+        cacheDisabled: !useCache,
         logger,
       }).catch((error) => {
         logger.error('Server returned a bad response:', error);
         return null;
       });
 
-      if (this.serverResponse?.success) {
+      if (this.serverResponse) {
+        if (!this.serverResponse.success) {
+          logger.error('Response success flag is false.');
+          return this.serverResponse;
+        }
+
         if (this.serverResponse.url) {
           this.qualitiesList = decodeVideoURL(this.serverResponse.url)!;
           this.downloadItem.availableQualities = Object.keys(
@@ -143,7 +151,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
 
         await indexedDBObject.put('loadStorage', this.downloadItem);
       } else {
-        logger.error('Response success flag is false.');
+        logger.error('Server response was not received.');
       }
     }
 
@@ -151,13 +159,15 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
   }
 
   async getVideoUrl({
+    useCache = true,
     logger = globalThis.logger,
   }: {
+    useCache?: boolean;
     logger?: Logger;
   }): Promise<string | null> {
     logger.info('Attempting to get video link.');
 
-    const videoData = await this.getVideoData({ logger });
+    const videoData = await this.getVideoData({ useCache, logger });
     if (!videoData?.url) {
       logger.warning('No video link was found.');
       return null;
@@ -179,6 +189,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
         urlsList: this.qualitiesList![this.loadConfig.quality]!,
         siteUrl: this.urlDetails.siteUrl,
         onlySize: true,
+        cacheDisabled: !useCache,
       };
       const urlItem = await getOriginalUrlItem({ request, logger });
       if ((urlItem.fileSize ?? 0) > 0) return urlItem.url;
@@ -189,6 +200,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
     const qualitySizes = (await getQualityFileSizes({
       urlsContainer: this.qualitiesList,
       siteUrl: this.urlDetails.siteUrl,
+      cacheDisabled: !useCache,
       logger,
     }))!;
     const targetWeight = getQualityWeight(this.loadConfig.quality);
@@ -205,8 +217,10 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
   }
 
   async getSubtitlesUrl({
+    useCache = true,
     logger = globalThis.logger,
   }: {
+    useCache?: boolean;
     logger?: Logger;
   }): Promise<string | null> {
     logger.info('Attempting to get subtitle link.');
@@ -216,7 +230,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
       return null;
     }
 
-    const videoData = await this.getVideoData({ logger });
+    const videoData = await this.getVideoData({ useCache, logger });
     if (!videoData?.subtitle) {
       logger.warning('No subtitles link was found.');
       return null;
@@ -275,10 +289,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
       dependentFileItemId: null,
       downloadId: null,
       fileName: await this.makeFilename({ fileType, timestamp, logger }),
-      url:
-        fileType === 'video'
-          ? await this.getVideoUrl({ logger })
-          : await this.getSubtitlesUrl({ logger }),
+      url: null,
       saveAs: false,
       retryAttempts: 0,
       status: LoadStatus.DownloadCandidate,

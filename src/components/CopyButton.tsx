@@ -7,6 +7,7 @@ export function CopyButton({
   content,
   variant = 'secondary',
   className,
+  children,
   ...props
 }: Omit<ButtonProps, 'size' | 'title' | 'onClick'> & { content: string }) {
   const [isCopied, setIsCopied] = useState(false);
@@ -30,8 +31,8 @@ export function CopyButton({
   return (
     <Button
       variant={variant}
-      size='square'
-      className={cn('grid-stack *:transition-[scale,opacity]', className)}
+      size={!!children ? 'default' : 'square'}
+      className={className}
       onClick={handleCopy}
       title={
         isCopied
@@ -40,18 +41,21 @@ export function CopyButton({
       }
       {...props}
     >
-      <CheckIcon
-        className={cn(
-          'size-4 scale-65 text-green-500 opacity-0',
-          isCopied && 'scale-100 opacity-100',
-        )}
-      />
-      <CopyIcon
-        className={cn(
-          'size-4 scale-100 group-hover:scale-110',
-          isCopied && 'scale-70 opacity-0',
-        )}
-      />
+      {children}
+      <div className='grid-stack *:transition-[scale,opacity]'>
+        <CheckIcon
+          className={cn(
+            'size-4 scale-65 text-green-500 opacity-0',
+            isCopied && 'scale-100 opacity-100',
+          )}
+        />
+        <CopyIcon
+          className={cn(
+            'size-4 scale-100 group-hover:scale-110',
+            isCopied && 'scale-70 opacity-0',
+          )}
+        />
+      </div>
     </Button>
   );
 }

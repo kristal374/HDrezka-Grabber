@@ -7,13 +7,11 @@ export interface SourceMap {
   mappings: string;
 }
 
-export enum LogLevel {
-  CRITICAL,
-  ERROR,
-  WARNING,
-  INFO,
-  DEBUG,
-}
+export type LogMetadata = {
+  sessionId?: number;
+  traceId?: number;
+  targetKey?: number;
+};
 
 export type LogMessage = {
   timestamp: number;
@@ -24,11 +22,13 @@ export type LogMessage = {
   metadata?: LogMetadata;
 };
 
-export type LogMetadata = {
-  sessionId?: number;
-  traceId?: number;
-  targetKey?: number;
-};
+export enum LogLevel {
+  CRITICAL,
+  ERROR,
+  WARNING,
+  INFO,
+  DEBUG,
+}
 
 export enum LoggerEventType {
   LogCreate = 'LogCreate',

@@ -1,4 +1,5 @@
-import { LogMessage, printLog } from '@/lib/logger';
+import { LogMessage } from './types';
+import { printLog } from './utils';
 
 const pendingUpdates: LogMessage[] = [];
 let debounceTimer: NodeJS.Timeout | null = null;

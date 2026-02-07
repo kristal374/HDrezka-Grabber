@@ -99,7 +99,10 @@ export function Dropdown({
         return item?.value === selected?.value;
       }}
     >
-      <ComboboxPrimitive.Trigger render={children} />
+      <ComboboxPrimitive.Trigger
+        render={children}
+        className='not-disabled:active:scale-100'
+      />
       <ComboboxPrimitive.Portal>
         <ComboboxPrimitive.Positioner
           className='z-100 outline-none'

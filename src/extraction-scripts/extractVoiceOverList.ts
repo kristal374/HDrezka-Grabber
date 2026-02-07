@@ -8,7 +8,7 @@ export async function getVoiceOverList(tabId: number) {
     })
     .then((response) => {
       let result = response[0].result as VoiceOverInfo[] | null;
-      if (!!result) {
+      if (result) {
         result = result.map((item) => {
           if (item.title.startsWith('popup_translate_')) {
             item.title = browser.i18n.getMessage(item.title);

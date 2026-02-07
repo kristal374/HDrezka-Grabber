@@ -4,8 +4,11 @@ import {
   setCurrentEpisodeAction,
 } from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
 import {
+  selectEpisodeFrom,
+  selectEpisodeTo,
   selectRange,
-  selectSeasons,
+  selectSeasonFrom,
+  selectSeasonTo,
   setEpisodeFromAction,
   setEpisodeToAction,
   setSeasonFromAction,
@@ -35,10 +38,9 @@ export function useChangeRangeEpisodes() {
 
   const movieInfo = useAppSelector(selectMovieInfo);
   const range = useAppSelector(selectRange);
-  const seasons = useAppSelector(selectSeasons);
   const voiceOver = useAppSelector(selectCurrentVoiceOver);
   const currentEpisode = useAppSelector(selectCurrentEpisode);
-  const [previewRange, setPreviewRange] = useState(range);
+  const [previousRange, setPreviousRange] = useState(range);
 
   const updateCurrentEpisode = useCallback(
     async (newCurrentEpisode: CurrentEpisode) => {
@@ -64,6 +66,16 @@ export function useChangeRangeEpisodes() {
     [movieInfo, voiceOver],
   );
 
+  const getRangeLimits = useCallback(() => {
+    return dispatch((_dispatch, getState) => {
+      const seasonFrom = selectSeasonFrom(getState());
+      const episodeFrom = selectEpisodeFrom(getState());
+      const seasonTo = selectSeasonTo(getState());
+      const episodeTo = selectEpisodeTo(getState());
+      return { seasonFrom, episodeFrom, seasonTo, episodeTo };
+    });
+  }, [dispatch]);
+
   useEffect(() => {
     // При обновлении range-а мы должны отслеживать только самый первый эпизод
     // в списке. При обновлении данных эпизода мы должны обновить списки
@@ -74,7 +86,7 @@ export function useChangeRangeEpisodes() {
 
     logger.info('Attempt to update current episode.');
 
-    if (!range || equal(range, previewRange)) return;
+    if (!range || equal(range, previousRange)) return;
     logger.debug('Range episodes:', range);
 
     const isFirstUpdate = currentEpisode === null;
@@ -90,12 +102,12 @@ export function useChangeRangeEpisodes() {
     const newCurrentEpisode: CurrentEpisode = { seasonID, episodeID };
 
     if (equal(currentEpisode ?? {}, newCurrentEpisode)) {
-      setPreviewRange(range);
+      setPreviousRange(range);
       return;
     }
-    if (!previewRange) {
+    if (!previousRange) {
       dispatch(setCurrentEpisodeAction({ currentEpisode: newCurrentEpisode }));
-      setPreviewRange(range);
+      setPreviousRange(range);
       return;
     }
 
@@ -111,34 +123,21 @@ export function useChangeRangeEpisodes() {
         );
         dispatch(setSubtitleListAction({ subtitlesInfo: response.subtitle }));
         dispatch(setQualitiesListAction({ stream: response.streams }));
-        setPreviewRange(range);
+        setPreviousRange(range);
       })
       .catch((error) => {
         if (ignore) return;
         logger.error('Error update episodes info:', error);
 
-        const seasonIds = Object.keys(previewRange);
-        const startEpisode = previewRange[seasonIds[0]].episodes[0].id;
-        const endEpisode = previewRange[seasonIds.at(-1)!].episodes.at(-1)!.id;
+        const seasonIds = Object.keys(previousRange);
+        const startEpisode = previousRange[seasonIds[0]].episodes[0].id;
 
+        const { seasonTo, episodeTo } = getRangeLimits();
         dispatch(setSeasonFromAction({ value: seasonIds[0] }));
         dispatch(setEpisodeFromAction({ value: startEpisode }));
-        if (
-          Object.keys(seasons!).at(-1) === seasonIds.at(-1)! &&
-          seasons![seasonIds.at(-1)!].episodes.at(-1)!.id === endEpisode
-        ) {
-          dispatch(setSeasonToAction({ value: '-2' }));
-          dispatch(setEpisodeToAction({ value: '' }));
-        } else if (
-          seasonIds.at(-1) === seasonIds[0] &&
-          seasons![seasonIds.at(-1)!].episodes.at(-1)!.id === endEpisode
-        ) {
-          dispatch(setSeasonToAction({ value: '-1' }));
-          dispatch(setEpisodeToAction({ value: '' }));
-        } else {
-          dispatch(setSeasonToAction({ value: seasonIds.at(-1)! }));
-          dispatch(setEpisodeToAction({ value: endEpisode }));
-        }
+        dispatch(setSeasonToAction({ value: seasonTo }));
+        dispatch(setEpisodeToAction({ value: episodeTo }));
+
         messageBroker.sendMessage(movieInfo!.data.id, {
           stackable: true,
           message: browser.i18n.getMessage('popup_error_update_episode'),

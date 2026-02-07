@@ -172,10 +172,11 @@ export class BufferedEventBus<
                 // sendResponse, попытка вернуть false или undefined в качестве
                 // отказа от обработки будет принята как ответ обработчика,
                 // и поскольку мы не можем асинхронно отказаться от обработки
-                // вместо этого мы поднимаем ошибку в качестве отказа
-                throw new Error(
-                  'Cannot opt out of processing in an asynchronous response.',
-                );
+                // вместо этого мы просто не отправляем никакого ответа
+                //
+                // Браузер позже поднимет ошибку: "Error: A listener indicated
+                // an asynchronous response by returning true, but the message
+                // channel closed before a response was received"
               } else {
                 originResolve(value);
               }

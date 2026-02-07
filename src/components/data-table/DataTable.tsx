@@ -138,7 +138,7 @@ export function RealtimeTable<TData extends Record<string, any>>({
         className='isolate'
         style={{ ...getColumnWidths(table) }}
       >
-        <TableHeader className='sticky top-0 z-1'>
+        <TableHeader className='sticky top-0 z-10'>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className='flex'>
               {headerGroup.headers.map((header) => {
@@ -288,7 +288,7 @@ export function StableTable<TData extends Record<string, any>>({
       ref={tableContainerRef}
     >
       {showToolbar && <Toolbar table={table} />}
-      <GlobalFilter table={table} />
+      {showToolbar && <GlobalFilter table={table} />}
       <Table
         id='stable'
         style={{
@@ -296,7 +296,7 @@ export function StableTable<TData extends Record<string, any>>({
           ...getColumnWidths(table),
         }}
       >
-        <TableHeader className='sticky top-0 z-1 w-full'>
+        <TableHeader className='sticky top-0 z-10 w-full'>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className='flex'>
               {headerGroup.headers.map((header) => {

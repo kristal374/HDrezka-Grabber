@@ -65,7 +65,7 @@
   "popup_menu_loadManager": {
     "message": "Диспетчер завантажень"
   },
-  "popup_menu_debugWindow": {
+  "popup_menu_loggerWindow": {
     "message": "Журнал подій"
   },
   "popup_realResolution": {
@@ -110,13 +110,10 @@
   "popup_messageBroker_SkipDownload": {
     "message": "Збій завантаження. Не вдалося завантажити файл."
   },
-  "message_noDataVideo": {
-    "message": "Не вдалося отримати дані відео. Перевірте інтернет-з'єднання або використайте VPN."
+  "popup_messageBroker_DiskFull": {
+    "message": "Недостатньо місця на диску!"
   },
-  "message_errorLoad": {
-    "message": "Помилка завантаження. Перевірте інтернет-з'єднання або використайте VPN."
-  },
-  "message_userBreak": {
+  "popup_messageBroker_userBreak": {
     "message": "Ви перервали завантаження."
   },
   "settings_TabSettings": {
@@ -352,6 +349,9 @@
   "settings_ChangelogChanged": {
     "message": "Змінено"
   },
+  "settings_sectionAfterInstall": {
+    "message": "Потрібна увага!"
+  },
   "settings_sectionInterface": {
     "message": "Налаштування інтерфейсу"
   },
@@ -366,6 +366,24 @@
   },
   "settings_sectionDebug": {
     "message": "Налагодження розширення"
+  },
+  "settings_itemAfterInstall_title": {
+    "message": "Рекомендується вимкнути налаштування в браузері"
+  },
+  "settings_itemAfterInstall_description": {
+    "message": "При одночасному завантаженні кількох фільмів/серіалів, браузер запитуватиме підтвердження для кожного файлу окремо, що може сповільнити процес та вплинути на зручність роботи з браузером"
+  },
+  "settings_itemAfterInstall_chrome": {
+    "message": "Запитувати, де зберігати кожен файл перед завантаженням"
+  },
+  "settings_itemAfterInstall_firefox": {
+    "message": "Завжди запитувати де зберегти файли"
+  },
+  "settings_itemAfterInstall_openSettings": {
+    "message": "Налаштування браузера"
+  },
+  "settings_itemAfterInstall_button": {
+    "message": "Більше не показувати"
   },
   "settings_itemInterfaceTheme_title": {
     "message": "Темна тема"

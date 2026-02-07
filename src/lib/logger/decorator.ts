@@ -1,4 +1,4 @@
-import { getTraceId } from '@/lib/logger/utils';
+import { getTraceId } from './utils';
 
 export function attachTraceId(): MethodDecorator & PropertyDecorator {
   return function (

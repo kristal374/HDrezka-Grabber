@@ -18,7 +18,7 @@ export default defineConfig({
   root: 'src/html/',
   build: {
     target: 'es2024',
-    minify: isProduction,
+    minify: isProduction ? 'esbuild' : false,
     sourcemap: !isProduction,
     outDir: '../../dist/build/HDrezka-Grabber.build',
     emptyOutDir: false,

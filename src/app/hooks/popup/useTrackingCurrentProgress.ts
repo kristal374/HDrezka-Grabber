@@ -1,5 +1,3 @@
-import browser from 'webextension-polyfill';
-
 import { FileItem, LoadItem } from '@/lib/types';
 import { loadIsCompleted } from '@/lib/utils';
 import { useEffect, useState } from 'react';

@@ -31,6 +31,7 @@ export function DynamicTable<TData extends Record<string, any>>({
 
   const [scrollFromBottom, setScrollFromBottom] = useState(0);
   useEffect(() => {
+    if (!forceRealtime) return;
     setIsRealtime(true);
     setSwitchToStable(false);
   }, [forceRealtime]);

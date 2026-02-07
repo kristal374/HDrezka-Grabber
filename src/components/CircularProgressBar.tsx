@@ -1,4 +1,4 @@
-import type { MovieProgress } from '@/lib/types';
+import type { FileProgress } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import NumberFlow from '@number-flow/react';
 import { XIcon } from 'lucide-react';
@@ -8,17 +8,17 @@ const RADIUS = 40;
 const STROKE = 6;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-type Props = { progress: NonNullable<MovieProgress> };
+type Props = { progress: NonNullable<FileProgress> };
 
 export function CircularProgressBar({ progress }: Props) {
   const [allowToCancel, setAllowToCancel] = useState<boolean>(() =>
     progress
-      ? !!progress.videoProgressInPercents || progress.completedLoads > 1
+      ? !!progress.fileProgressInPercents || progress.completedLoads > 1
       : false,
   );
-  const isWaiting = !progress.videoProgressInPercents;
+  const isWaiting = !progress.fileProgressInPercents;
   const percent = Math.min(
-    Math.max(progress.videoProgressInPercents ?? 0, 0),
+    Math.max(progress.fileProgressInPercents ?? 0, 0),
     100,
   );
   const offset = CIRCUMFERENCE - (percent / 100) * CIRCUMFERENCE;
@@ -64,7 +64,7 @@ export function CircularProgressBar({ progress }: Props) {
         <div
           className={cn(
             'opacity-0 transition-opacity duration-300 group-hover:opacity-100',
-            'bg-input absolute flex size-full items-center justify-center',
+            'bg-input light:bg-check-box-active absolute flex size-full items-center justify-center',
           )}
           title={browser.i18n.getMessage('popup_DownloadCancel')}
         >

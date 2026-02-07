@@ -53,7 +53,7 @@ export function QualitySelector() {
         const currentQualitiesInfo = selectQualityInfo(getState());
 
         const updates = Object.fromEntries(
-          Object.entries(urlItem).filter(([, v]) => Boolean(v)),
+          Object.entries(urlItem).filter(([, v]) => v !== undefined),
         );
         const qualityInfo: URLsContainer = {
           [qualityItem]: { ...currentQualitiesInfo?.[qualityItem], ...updates },
@@ -151,54 +151,73 @@ export function QualitySelector() {
           value: q,
           label: q,
           labelComponent({ children, isRenderingInPreview }) {
-            const targetQuality = q as QualityItem;
-            const qualityInfo = qualitiesInfo?.[targetQuality] ?? null;
-            const videoResolution = qualityInfo?.videoResolution ?? null;
-            const realQuality = `${videoResolution?.height}p`;
-            const realQualityPill = (
+            const targetQuality = children as QualityItem;
+            const qualityInfo = qualitiesInfo?.[targetQuality];
+            const videoResolution = qualityInfo?.videoResolution;
+            const realResolution = `${videoResolution?.height}p`;
+            const isDifferentQuality = targetQuality !== realResolution;
+            const realResolutionPill = isDifferentQuality ? (
               <span
                 className={cn(
-                  'in-data-selected:bg-input',
-                  'bg-input-active ml-1.75 inline-flex items-center gap-1 rounded-md px-1.25',
+                  'bg-input-active in-data-selected:bg-input relative inline-flex items-center gap-1',
+                  'ml-1.75 overflow-clip rounded-md px-1.25 transition-opacity',
+                  isRenderingInPreview && !videoResolution && 'opacity-0',
                 )}
               >
                 {isRenderingInPreview && (
                   <OctagonAlertIcon className='size-4' />
                 )}
-                <span>{realQuality}</span>
+                <span
+                  className={cn(
+                    'transition-opacity',
+                    videoResolution === undefined && 'opacity-0',
+                  )}
+                >
+                  {videoResolution === undefined
+                    ? targetQuality.split(' ')[0]
+                    : videoResolution === null
+                      ? '???'
+                      : realResolution}
+                </span>
+                {videoResolution === undefined && (
+                  <div
+                    className='animate-shimmer absolute inset-0 bg-linear-to-r from-transparent via-white/45 to-transparent bg-no-repeat'
+                    style={{ backgroundSize: '1rem' }}
+                  />
+                )}
               </span>
-            );
+            ) : null;
             return (
               <>
-                {qualityInfo && settings.getRealQuality ? (
-                  videoResolution && targetQuality !== realQuality ? (
-                    <>
-                      {targetQuality}
-                      {isRenderingInPreview ? (
-                        <Tooltip>
-                          <TooltipTrigger>{realQualityPill}</TooltipTrigger>
-                          <TooltipContent
-                            align='center'
-                            side='top'
-                            className='flex w-58 items-center justify-between'
-                          >
-                            <p className='text-sm text-balance'>
-                              {browser.i18n.getMessage('popup_realResolution')}
-                            </p>
-                            <span className='bg-input-active w-fit shrink-0 rounded-sm px-1.25 pb-0.25 text-sm font-medium'>
-                              {videoResolution.width} x {videoResolution.height}
-                            </span>
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : (
-                        realQualityPill
-                      )}
-                    </>
-                  ) : (
-                    targetQuality
-                  )
-                ) : (
-                  children
+                {targetQuality}
+                {settings.getRealQuality && (
+                  <>
+                    {isRenderingInPreview
+                      ? !!videoResolution &&
+                        realResolutionPill && (
+                          <Tooltip>
+                            <TooltipTrigger>
+                              {realResolutionPill}
+                            </TooltipTrigger>
+                            <TooltipContent
+                              align='center'
+                              side='top'
+                              className='flex w-58 items-center justify-between'
+                            >
+                              <p className='text-sm text-balance'>
+                                {browser.i18n.getMessage(
+                                  'popup_realResolution',
+                                )}
+                              </p>
+                              <span className='bg-input-active w-fit shrink-0 rounded-sm px-1.25 pb-0.25 text-sm font-medium'>
+                                {videoResolution.width} x{' '}
+                                {videoResolution.height}
+                              </span>
+                            </TooltipContent>
+                          </Tooltip>
+                        )
+                      : realResolutionPill}
+                  </>
                 )}
                 {settings.displayQualitySize ? (
                   <span className='ml-auto'>

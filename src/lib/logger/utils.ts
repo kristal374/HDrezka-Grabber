@@ -1,7 +1,7 @@
 import browser from 'webextension-polyfill';
 
-import { LogLevel, LogMessage } from '@/lib/logger/types';
 import { hashCode } from '@/lib/utils';
+import { LogLevel, LogMessage } from './types';
 
 let lastCallTime: number = 0;
 
@@ -36,7 +36,7 @@ export function toFormatTime(time: number, base: number): string {
 export function printLog(message: LogMessage) {
   // Вывод цветного сообщения в консоль
   const timestamp = toFormatTime(message.timestamp, lastCallTime);
-  const extensionDomain = browser.runtime.getURL('');
+  const extensionDomain = browser.runtime.getURL('src/');
   const location = `${extensionDomain}${message.location}`;
 
   if (typeof browser.runtime.getBrowserInfo === 'function') {

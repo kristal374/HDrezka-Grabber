@@ -93,16 +93,19 @@ function FilterValueHeader<TData extends Record<string, any>>({
   );
 }
 
-interface FilterButtonProps extends ButtonProps {
+interface FilterButtonProps extends Omit<
+  ButtonProps,
+  'variant' | 'size' | 'children'
+> {
   amount: number | '*';
 }
 
-function FilterButton({ amount, ...props }: FilterButtonProps) {
+function FilterButton({ amount, className, ...props }: FilterButtonProps) {
   return (
     <Button
       variant={!amount ? 'secondary' : 'primary'}
       size='square'
-      className='relative'
+      className={cn('relative', className)}
       {...props}
     >
       <ListFilterIcon
@@ -146,7 +149,7 @@ function FilterValueCell<TData extends Record<string, any>>({
       </Button>
       <CopyButton
         content={String(value)}
-        className='invisible mb-auto ml-2 group-hover/row:visible [&>svg]:size-3'
+        className='invisible mb-auto ml-2 group-focus-within/row:visible group-hover/row:visible [&>svg]:size-3'
       />
     </>
   );

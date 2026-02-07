@@ -2,7 +2,7 @@ import { selectMovieInfo } from '@/app/screens/Popup/DownloadScreen/store/Downlo
 import { selectRange } from '@/app/screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
 import { useAppSelector } from '@/app/screens/Popup/DownloadScreen/store/store';
 import { getFromStorage } from '@/lib/storage';
-import { EventType, LoadItem, MovieProgress } from '@/lib/types';
+import { EventType, FileProgress, LoadItem } from '@/lib/types';
 import { loadIsCompleted } from '@/lib/utils';
 import equal from 'fast-deep-equal/es6';
 import { useCallback, useEffect, useState } from 'react';
@@ -23,15 +23,15 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
   const [loadStatuses, setLoadStatuses] = useState<MovieLoadStatuses | null>(
     null,
   );
-  const videoProgressInPercents = useTrackingCurrentProgress(loadItem);
+  const fileProgressInPercents = useTrackingCurrentProgress(loadItem);
 
   const completedLoads = loadStatuses?.completed.length ?? 0;
   const inProgressLoads = loadStatuses?.in_progress.length ?? 0;
   const totalLoads = completedLoads + inProgressLoads;
 
-  const progress: MovieProgress | null =
+  const progress: FileProgress | null =
     totalLoads > 0
-      ? { videoProgressInPercents, completedLoads, totalLoads }
+      ? { fileProgressInPercents, completedLoads, totalLoads }
       : null;
 
   useEffect(() => {
@@ -46,14 +46,95 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
   }, [movieId]);
 
   useEffect(() => {
-    if (!loadStatuses || totalLoads === 0 || completedLoads !== totalLoads)
+    if (!loadStatuses || totalLoads === 0 || completedLoads !== totalLoads) {
       return;
+    }
     setTimeout(() => {
       setLoadItem(null);
       setLoadItemIds(null);
       setLoadStatuses(null);
     }, 3000);
   }, [loadStatuses]);
+
+  const handleActiveDownloadsChange = useCallback(
+    async (oldValue: number[] | undefined, newValue: number[] | undefined) => {
+      const newSet = new Set(newValue ?? []);
+      const oldSet = new Set(oldValue ?? []);
+
+      const added = [...newSet.difference(oldSet)];
+      const removed = [...oldSet.difference(newSet)];
+
+      if (!loadItemIds || !loadStatuses) {
+        const [targetLoadItem, targetLoadConfig, newLoadStatuses] =
+          await getNewTarget(added, movieId);
+
+        if (!targetLoadConfig) return;
+        setLoadItemIds(targetLoadConfig.loadItemIds);
+        setLoadStatuses(newLoadStatuses);
+        setLoadItem(targetLoadItem);
+        return;
+      }
+
+      const wasAnyLoadItemIdsRemoved = removed.some((id) =>
+        loadItemIds.includes(id),
+      );
+      const loadItemWasRemoved = loadItem?.id && removed.includes(loadItem.id);
+      const wasAnyLoadItemIdsAdded = added.some((id) =>
+        loadItemIds.includes(id),
+      );
+      const needUpdateLoadItem = loadItemWasRemoved || wasAnyLoadItemIdsAdded;
+
+      if (wasAnyLoadItemIdsRemoved) {
+        setLoadStatuses(await updateAllLoadStatuses(loadItemIds));
+      }
+
+      if (!needUpdateLoadItem) return;
+      const newLoadItem = await getTargetLoadItemFromActiveDownloads(
+        newValue!,
+        movieId,
+        loadItemIds,
+      );
+
+      if (!equal(loadItem, newLoadItem)) {
+        setLoadItem(newLoadItem);
+      }
+    },
+    [movieId, loadItemIds, loadStatuses, loadItem, range, movieInfo],
+  );
+
+  const handleQueueChange = useCallback(
+    async (oldValue: QueueItem[], newValue: QueueItem[]) => {
+      const changes = detectQueueChanges(oldValue, newValue);
+
+      if (changes.completed?.length && loadItemIds) {
+        for (const movie of changes.completed) {
+          const movieId = Array.isArray(movie) ? movie[0] : movie;
+          if (loadItemIds.includes(movieId)) {
+            setLoadStatuses(await updateAllLoadStatuses(loadItemIds));
+            break;
+          }
+        }
+      }
+
+      if (changes.initialized?.length && !loadItemIds) {
+        const activeDownloads =
+          await getFromStorage<number[]>('activeDownloads');
+        let [targetLoadItem, targetLoadConfig, newLoadStatuses] =
+          await getNewTarget(activeDownloads, movieId);
+
+        if (!targetLoadConfig) {
+          [targetLoadItem, targetLoadConfig, newLoadStatuses] =
+            await getNewTarget(changes.initialized, movieId);
+          if (!targetLoadConfig) return;
+        }
+
+        setLoadItemIds(targetLoadConfig.loadItemIds);
+        setLoadStatuses(newLoadStatuses);
+        setLoadItem(targetLoadItem);
+      }
+    },
+    [loadItemIds, movieId],
+  );
 
   useEffect(() => {
     const handleLocalStorageChange = async (
@@ -85,96 +166,12 @@ export function useTrackingTotalProgressForMovie(movieId: number) {
       }
     };
 
-    eventBus.addMessageSource(
+    return eventBus.mountHandler(
       EventType.StorageChanged,
       browser.storage.onChanged,
+      handleLocalStorageChange,
     );
-    eventBus.on(EventType.StorageChanged, handleLocalStorageChange);
-
-    return () => {
-      eventBus.removeMessageSource(
-        EventType.StorageChanged,
-        browser.storage.onChanged,
-      );
-      eventBus.off(EventType.StorageChanged, handleLocalStorageChange);
-    };
   }, [loadItem, loadItemIds, loadStatuses, range, movieInfo]);
-
-  const handleActiveDownloadsChange = useCallback(
-    async (oldValue: number[] | undefined, newValue: number[] | undefined) => {
-      const newSet = new Set(newValue ?? []);
-      const oldSet = new Set(oldValue ?? []);
-
-      const added = [...newSet].filter((id) => !oldSet.has(id));
-      const removed = [...oldSet].filter((id) => !newSet.has(id));
-
-      if (!loadItemIds || !loadStatuses) {
-        const [targetLoadItem, targetLoadConfig, newLoadStatuses] =
-          await getNewTarget(added, movieId);
-
-        if (!targetLoadConfig) return;
-        setLoadItemIds(targetLoadConfig.loadItemIds);
-        setLoadStatuses(newLoadStatuses);
-        setLoadItem(targetLoadItem);
-        return;
-      }
-
-      const removedTouchesLoadIds = removed.some((id) =>
-        loadItemIds.includes(id),
-      );
-      const loadItemWasRemoved = loadItem?.id && removed.includes(loadItem.id);
-      const addedTouchesLoadIds = added.some((id) => loadItemIds.includes(id));
-      const needUpdateLoadItem = loadItemWasRemoved || addedTouchesLoadIds;
-
-      if (removedTouchesLoadIds) {
-        setLoadStatuses(await updateAllLoadStatuses(loadItemIds));
-      }
-
-      if (!needUpdateLoadItem) return;
-      const newLoadItem = await getTargetLoadItemFromActiveDownloads(
-        newValue!,
-        movieId,
-        loadItemIds,
-      );
-
-      if (!equal(loadItem, newLoadItem)) {
-        setLoadItem(newLoadItem);
-      }
-    },
-    [loadItemIds, loadStatuses, loadItem, range, movieInfo],
-  );
-
-  const handleQueueChange = useCallback(
-    async (oldValue: QueueItem[], newValue: QueueItem[]) => {
-      const changes = detectQueueChanges(oldValue, newValue);
-
-      if (changes.completed?.length && loadItemIds) {
-        for (const movie of changes.completed) {
-          const movieId = Array.isArray(movie) ? movie[0] : movie;
-          if (loadItemIds.includes(movieId))
-            setLoadStatuses(await updateAllLoadStatuses(loadItemIds));
-        }
-      }
-
-      if (changes.initialized?.length && !loadItemIds) {
-        const activeDownloads =
-          await getFromStorage<number[]>('activeDownloads');
-        let [targetLoadItem, targetLoadConfig, newLoadStatuses] =
-          await getNewTarget(activeDownloads, movieId);
-
-        if (!targetLoadConfig) {
-          [targetLoadItem, targetLoadConfig, newLoadStatuses] =
-            await getNewTarget(changes.initialized, movieId);
-          if (!targetLoadConfig) return;
-        }
-
-        setLoadItemIds(targetLoadConfig.loadItemIds);
-        setLoadStatuses(newLoadStatuses);
-        setLoadItem(targetLoadItem);
-      }
-    },
-    [loadItemIds, movieId],
-  );
 
   return progress;
 }

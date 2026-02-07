@@ -26,24 +26,22 @@ export function SubtitleSelector() {
 
   if (subtitlesList === null) return null;
 
-  const onOpenChange = (open: boolean) => {
-    dispatch(
-      setDownloadSubtitleAction({
-        downloadSubtitle: open,
-      }),
-    );
-  };
-
   logger.info('New render SubtitleSelector component.');
 
   return (
     <>
-      <Reveal open={downloadSubtitle} onOpenChange={onOpenChange}>
-        <RevealTrigger>
+      <Reveal open={downloadSubtitle}>
+        <RevealTrigger nativeButton={false}>
           <CheckboxWithLabel
             id='downloadSubtitle'
             checked={downloadSubtitle}
-            onCheckedChange={onOpenChange}
+            onCheckedChange={(value: boolean) => {
+              dispatch(
+                setDownloadSubtitleAction({
+                  downloadSubtitle: value,
+                }),
+              );
+            }}
           >
             {browser.i18n.getMessage('popup_loadSubtitle')}
           </CheckboxWithLabel>
@@ -51,21 +49,6 @@ export function SubtitleSelector() {
 
         <RevealContent>
           <div className='mt-3 flex flex-col gap-2.5'>
-            <CheckboxWithLabel
-              id='downloadOnlySubtitle'
-              className='ml-7.5'
-              checked={downloadOnlySubtitle}
-              onCheckedChange={(value) =>
-                dispatch(
-                  setDownloadOnlySubtitleAction({
-                    downloadOnlySubtitle: value,
-                  }),
-                )
-              }
-            >
-              {browser.i18n.getMessage('popup_downloadOnlySubtitle')}
-            </CheckboxWithLabel>
-
             <div className='flex items-center gap-2.5'>
               <label
                 htmlFor='subtitles'
@@ -90,6 +73,21 @@ export function SubtitleSelector() {
                 }
               />
             </div>
+
+            <CheckboxWithLabel
+              id='downloadOnlySubtitle'
+              className='ml-7.5'
+              checked={downloadOnlySubtitle}
+              onCheckedChange={(value) =>
+                dispatch(
+                  setDownloadOnlySubtitleAction({
+                    downloadOnlySubtitle: value,
+                  }),
+                )
+              }
+            >
+              {browser.i18n.getMessage('popup_downloadOnlySubtitle')}
+            </CheckboxWithLabel>
           </div>
         </RevealContent>
       </Reveal>

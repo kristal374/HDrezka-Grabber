@@ -1,14 +1,8 @@
-import browser, { Runtime } from 'webextension-polyfill';
-
-import { SourceMapParser } from '@/lib/logger/source-map';
-import {
-  LoggerEventType,
-  LogLevel,
-  LogMessage,
-  LogMetadata,
-} from '@/lib/logger/types';
-import { isBackground } from '@/lib/logger/utils';
-import { SourceMap } from 'rollup';
+import browser, { type Runtime } from 'webextension-polyfill';
+import { SourceMapParser } from './source-map';
+import type { LogMessage, LogMetadata, SourceMap } from './types';
+import { LogLevel, LoggerEventType } from './types';
+import { isBackground } from './utils';
 
 export class Logger {
   private static isBackground = isBackground();
@@ -142,23 +136,23 @@ export class Logger {
   }
 
   critical(...message: any[]) {
-    this.emit(LogLevel.CRITICAL, message);
+    this.emit(LogLevel.CRITICAL, JSON.parse(JSON.stringify(message)));
   }
 
   error(...message: any[]) {
-    this.emit(LogLevel.ERROR, message);
+    this.emit(LogLevel.ERROR, JSON.parse(JSON.stringify(message)));
   }
 
   warning(...message: any[]) {
-    this.emit(LogLevel.WARNING, message);
+    this.emit(LogLevel.WARNING, JSON.parse(JSON.stringify(message)));
   }
 
   debug(...message: any[]) {
-    this.emit(LogLevel.DEBUG, message);
+    this.emit(LogLevel.DEBUG, JSON.parse(JSON.stringify(message)));
   }
 
   info(...message: any[]) {
-    this.emit(LogLevel.INFO, message);
+    this.emit(LogLevel.INFO, JSON.parse(JSON.stringify(message)));
   }
 
   private async getCallerInfo() {
@@ -173,7 +167,7 @@ export class Logger {
 
     const context = callerURL.split('/').at(-1)!.split('.')[0];
     const sourcemap = await this.getOrInitializeSourceMapParser(callerURL);
-    const extensionDomain = browser.runtime.getURL('');
+    const extensionDomain = browser.runtime.getURL('src/');
     const location =
       sourcemap === null ? callerURL : sourcemap.getOriginalURL(callerURL);
     return [context, location.replace(extensionDomain, '')] as const;
