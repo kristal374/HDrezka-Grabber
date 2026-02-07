@@ -93,7 +93,7 @@ export class QueueController {
 
       await messageBroker.sendMessage(initiator.movieId, {
         stackable: false,
-        message: browser.i18n.getMessage('message_messageBroker_userBreak'),
+        message: browser.i18n.getMessage('popup_messageBroker_userBreak'),
         type: 'warning',
       });
       return false;

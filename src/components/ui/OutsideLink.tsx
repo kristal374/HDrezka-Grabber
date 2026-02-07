@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { ExternalLinkIcon } from 'lucide-react';
 
-interface OutsideLinkProps {
+interface OutsideLinkProps extends React.PropsWithChildren {
   url: string;
   text?: string;
   icon?: true;
@@ -15,6 +15,7 @@ export function OutsideLink({
   icon,
   underlineOnHover,
   className,
+  children,
 }: OutsideLinkProps) {
   return (
     <a
@@ -28,7 +29,7 @@ export function OutsideLink({
         className,
       )}
     >
-      {text ?? url}
+      {children ?? text ?? url}
       {icon && <ExternalLinkIcon className='size-4' />}
     </a>
   );

@@ -300,6 +300,7 @@ export type SerialQueryData = {
 export type QueryData = FilmQueryData | SerialQueryData | UpdateTranslateData;
 
 export type Settings = {
+  afterInstallDismissed: boolean;
   darkMode: boolean;
   displayQualitySize: boolean;
   getRealQuality: boolean;
