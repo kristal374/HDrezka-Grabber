@@ -22,6 +22,7 @@ type Port = Runtime.Port;
 type StorageChange = Storage.StorageChange;
 type Alarm = Alarms.Alarm;
 type MessageSender = Runtime.MessageSender;
+type OnInstalledDetailsType = Runtime.OnInstalledDetailsType;
 
 export function messageHandler(
   message: unknown,
@@ -156,4 +157,11 @@ export async function clearExtensionData({
 export async function errorHandler(originalError: Error) {
   console.error(originalError);
   logger.critical(originalError);
+}
+
+export async function onInstalledHandler(details: OnInstalledDetailsType) {
+  if (details.reason === 'install') {
+    await browser.storage.local.clear();
+    await browser.runtime.openOptionsPage();
+  }
 }

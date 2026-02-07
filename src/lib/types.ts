@@ -12,6 +12,7 @@ type DownloadItem = Downloads.DownloadItem;
 type OnChangedDownloadDeltaType = Downloads.OnChangedDownloadDeltaType;
 type MessageSender = Runtime.MessageSender;
 type StorageChange = Storage.StorageChange;
+type OnInstalledDetailsType = Runtime.OnInstalledDetailsType;
 
 export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -338,6 +339,7 @@ export enum EventType {
   StorageChanged = 'StorageChanged',
   DBDeletedMessage = 'DBDeletedMessage',
   DBDeletedEvent = 'DBDeletedEvent',
+  ExtensionInstalled = 'ExtensionInstalled',
 }
 
 type MessageReceivedHandler = [
@@ -356,6 +358,7 @@ export type EventBusTypes = {
   [EventType.StorageChanged]: [Record<string, StorageChange>, string];
   [EventType.DBDeletedMessage]: MessageReceivedHandler;
   [EventType.DBDeletedEvent]: Event;
+  [EventType.ExtensionInstalled]: OnInstalledDetailsType;
 
   // Logger events
   [LoggerEventType.LogCreate]: Event;

@@ -10,6 +10,7 @@ import {
   messageHandler,
   newLogHandler,
   onConnectHandler,
+  onInstalledHandler,
   restoreDBHandler,
   storageChangeHandler,
 } from '@/service-worker/handlers';
@@ -25,6 +26,12 @@ async function main() {
     LoggerEventType.LogConnect,
     browser.runtime.onConnect,
     onConnectHandler,
+  );
+
+  eventBus.mountHandler(
+    EventType.ExtensionInstalled,
+    browser.runtime.onInstalled,
+    onInstalledHandler,
   );
 
   eventBus.mountHandler(
