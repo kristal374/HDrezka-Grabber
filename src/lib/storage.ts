@@ -35,7 +35,13 @@ export async function createDefaultSettings() {
     createSeriesFolders: false,
     replaceAllSpaces: true,
     filenameFilmTemplate: ['%orig_title%'],
-    filenameSeriesTemplate: ['%orig_title%', ' S', '%season_id%', 'E', '%episode_id%'],
+    filenameSeriesTemplate: [
+      '%orig_title%',
+      ' S',
+      '%season_id%',
+      'E',
+      '%episode_id%',
+    ],
 
     enableLogger: false,
     debugLevel: LogLevel.DEBUG,
