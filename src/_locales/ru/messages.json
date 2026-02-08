@@ -385,6 +385,9 @@
   "settings_itemAfterInstall_edge": {
     "message": "Спрашивать, куда сохранять каждый файл перед его загрузкой"
   },
+  "settings_itemAfterInstall_opera": {
+    "message": "Запрашивать папку сохранения перед загрузкой файла"
+  },
   "settings_itemAfterInstall_settingsBrowser": {
     "message": "Настройки браузера"
   },

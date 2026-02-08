@@ -14,6 +14,9 @@ export const IS_FIREFOX =
 export const IS_EDGE =
   typeof window !== 'undefined' && navigator.userAgent.indexOf('Edg') !== -1;
 
+export const IS_OPERA =
+  typeof window !== 'undefined' && navigator.userAgent.indexOf('OPR') !== -1;
+
 export function sliceSeasons(
   seasons: SeasonsWithEpisodesList,
   seasonFrom: string,
