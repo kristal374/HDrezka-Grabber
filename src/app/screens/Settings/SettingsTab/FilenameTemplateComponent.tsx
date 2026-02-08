@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/Button';
-import { Combobox } from '@/components/ui/Combobox';
+import { Dropdown, type DropdownItem } from '@/components/ui/Dropdown';
 import {
   Reveal,
   RevealContent,
@@ -10,8 +10,10 @@ import {
   makePathAndFilename,
   Replacements,
 } from '@/lib/filename-maker';
+import type { SetState } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { ChevronDownIcon } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { FilenameTemplateInput, Placeholder } from './FilenameTemplateInput';
 import { SettingItemProps } from './SettingsTab';
 
@@ -49,10 +51,14 @@ export function FilenameTemplateComponent({
         <FilenameTemplateInput
           fieldId={fieldId}
           value={value}
-          setValue={setValue}
+          setValue={(v) => {
+            setValue(v);
+            setLocalValue(v);
+          }}
           placeholders={placeholders}
         />
-        <DropDownMenu
+        <FilenamePreviewsDropdown
+          value={value}
           setValue={setValue}
           setLocalValue={setLocalValue}
           placeholders={placeholders}
@@ -86,74 +92,83 @@ function templateToPreview(
   );
 }
 
-type DropDownMenuProps = {
-  setValue: (value: string[]) => void;
-  setLocalValue: (value: string[]) => void;
+type FilenameDropdownProps = {
+  value: string[];
+  setValue: SetState<string[]>;
+  setLocalValue: SetState<string[]>;
   placeholders: Placeholder[];
   readyTemplates: string[][];
 };
 
-function DropDownMenu({
+function FilenamePreviewsDropdown({
+  value,
   setValue,
   setLocalValue,
   placeholders,
   readyTemplates,
-}: DropDownMenuProps) {
+}: FilenameDropdownProps) {
+  const valueChangeTimeoutRef = useRef<number | null>(null);
   const handleTemplateSelect = (template: string[]) => {
+    // `localValue` update in `onClose` happens right after `onValueChange`.
+    // to prevent stale `value` set as `localValue`
+    // this timeout blocks `onClose` from updating `localValue`
+    valueChangeTimeoutRef.current = window.setTimeout(() => {
+      window.clearTimeout(valueChangeTimeoutRef.current!);
+    }, 0);
     setValue(template);
     setLocalValue(template);
   };
+  const handleDropdownClose = () => {
+    if (valueChangeTimeoutRef.current) return;
+    setLocalValue(value);
+  };
+
+  const data: DropdownItem[] = readyTemplates.map((template) => {
+    const preview = templateToPreview(template, placeholders);
+    return {
+      value: JSON.stringify(template),
+      label: preview.join(''),
+      labelComponent: () => {
+        return template.map((part, i) => {
+          const isPlaceholder = part.startsWith('%') && part.endsWith('%');
+          return (
+            <span
+              key={i}
+              className={cn(
+                isPlaceholder &&
+                  'bg-input-active in-data-selected:bg-input-active/50 rounded',
+              )}
+            >
+              {preview[i]}
+            </span>
+          );
+        });
+      },
+    };
+  });
 
   return (
-    <>
-      <Combobox
-        width='1.75rem'
-        containerClassName='absolute top-1/2 right-2 -translate-y-1/2 border-0 [&>svg]:!opacity-100'
-        className='p-1'
-        itemClassName='block !bg-transparent'
-        showChevron={true}
-        align='end'
-        side='top'
-        value={JSON.stringify(readyTemplates[0])}
-        onValueChange={(value) => {
-          handleTemplateSelect(JSON.parse(value));
-        }}
-        onValueHover={(value) => {
-          setLocalValue(JSON.parse(value));
-        }}
+    <Dropdown
+      itemClassName='block !bg-transparent'
+      align='end'
+      side='top'
+      multiple={false}
+      value={JSON.stringify(readyTemplates[0])}
+      onValueChange={(value) => handleTemplateSelect(JSON.parse(value))}
+      onValueHover={(value) => setLocalValue(JSON.parse(value))}
+      onClose={handleDropdownClose}
+      showCheckmark={false}
+      data={data}
+    >
+      <Button
+        variant='ghost'
+        size='square'
+        className='absolute top-1/2 right-2 -translate-y-1/2'
         title={browser.i18n.getMessage('settings_filenameSelectTemplate')}
-        data={readyTemplates.map((template) => {
-          const preview = templateToPreview(template, placeholders);
-          return {
-            value: JSON.stringify(template),
-            label: preview.join(''),
-            labelComponent: ({ isRenderingInPreview }) => {
-              if (isRenderingInPreview) {
-                return <span className='invisible'>|</span>;
-              }
-              return (
-                <>
-                  {template.map((part, i) => {
-                    const isPlaceholder =
-                      part.startsWith('%') && part.endsWith('%');
-                    return (
-                      <span
-                        className={cn(
-                          isPlaceholder &&
-                            'bg-input-active [[data-selected]_&]:bg-input-active/50 rounded',
-                        )}
-                      >
-                        {preview[i]}
-                      </span>
-                    );
-                  })}
-                </>
-              );
-            },
-          };
-        })}
-      />
-    </>
+      >
+        <ChevronDownIcon className='size-4' />
+      </Button>
+    </Dropdown>
   );
 }
 

@@ -14,7 +14,8 @@ import { toast } from 'sonner';
 import type { SettingItemProps } from './SettingsTab';
 
 export const MARKUP = '\\[__display__\\](__id__)';
-export const REGEXP_PLACEHOLDER_TEMPLATE = /(\\\[([A-я\s]+)\\]\((%[a-z_]+%)\))/;
+export const REGEXP_PLACEHOLDER_TEMPLATE =
+  /(\\\[([A-яі\s]+)\\]\((%[a-z_]+%)\))/;
 
 export const INVALID_CHARACTERS = /[\n\\\/:*?"<>|]/g;
 
@@ -35,14 +36,18 @@ export const format = (str: string, args: Record<string, string>): string => {
   );
 };
 
-const isPlaceholder = (str: string, placeholders: Placeholder[]): boolean =>
-  placeholders.some((placeholder) => placeholder.id === str);
+const isPlaceholder = (str: string, placeholders: Placeholder[]): boolean => {
+  return placeholders.some((placeholder) => {
+    return placeholder.id === str;
+  });
+};
 
 const findTargetPlaceholder = (
   str: string,
   placeholders: Placeholder[],
-): Placeholder | undefined =>
-  placeholders.find((placeholder) => placeholder.id === str);
+): Placeholder | undefined => {
+  return placeholders.find((placeholder) => placeholder.id === str);
+};
 
 const placeholderIdToValue = (
   item: string,
@@ -126,11 +131,11 @@ export function FilenameTemplateInput({
   useEffect(() => {
     const newUserTemplate = splitStringAlongPlaceholderBorder(
       rawUserTemplate,
-    ).map((item) =>
-      REGEXP_PLACEHOLDER_TEMPLATE.test(item)
+    ).map((item) => {
+      return REGEXP_PLACEHOLDER_TEMPLATE.test(item)
         ? item.match(REGEXP_PLACEHOLDER_TEMPLATE)![3]
-        : item,
-    );
+        : item;
+    });
     if (!equal(value, newUserTemplate)) {
       setValue(newUserTemplate);
     }
@@ -197,15 +202,15 @@ export function FilenameTemplateInput({
           'font-mono bg-background hover:bg-input border-transparent',
           'rounded-lg border-2',
         ),
-        mentions__highlighter: cn('py-2 pl-2 pr-10 !text-base', '!border-0'),
+        mentions__highlighter: cn('py-2 pl-2 pr-10 text-base!', 'border-0!'),
         mentions__input: cn(
-          'py-2 pl-2 pr-10 !text-base',
+          'py-2 pl-2 pr-10 text-base!',
           'rounded-lg border-2',
           'focus-ring text-settings-text-primary border-input hover:border-input-active',
         ),
         mentions__suggestions:
-          '!bg-input !mt-5 -ml-2.5 text-foreground text-sm border-input-active rounded-md border shadow-md',
-        mentions__suggestions__list: 'flex flex-col !p-1',
+          'bg-input! mt-5! -ml-2.5 text-foreground text-sm border-input-active rounded-md border shadow-md',
+        mentions__suggestions__list: 'flex flex-col p-1!',
         mentions__suggestions__item:
           'flex grow cursor-default items-center rounded-sm px-2.5 py-1.5 text-sm select-none',
         'mentions__suggestions__item--focused': 'bg-link-color',

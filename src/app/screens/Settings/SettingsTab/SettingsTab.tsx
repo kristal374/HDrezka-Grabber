@@ -18,7 +18,7 @@ import { Toggle } from '@/components/ui/Toggle';
 import { SettingsInitialDataContext } from '@/html/settings';
 import { LogLevel } from '@/lib/logger';
 import { createDefaultSettings, saveInStorage } from '@/lib/storage';
-import { Message } from '@/lib/types';
+import { Message, type SetState } from '@/lib/types';
 import { IS_EDGE, IS_FIREFOX, IS_OPERA } from '@/lib/utils';
 import {
   ChevronRightIcon,
@@ -36,7 +36,7 @@ import { SettingItem, SettingsSection } from './SettingsComponets';
 
 export type SettingItemProps<T> = {
   value: T;
-  setValue: (value: T) => void;
+  setValue: SetState<T>;
 };
 
 function SettingsItemSelect({
