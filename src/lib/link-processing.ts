@@ -49,10 +49,17 @@ export function sortQualityItem<T extends Partial<Record<QualityItem, any>>>(
 export function decodeVideoURL(stream: string | false): QualitiesList | null {
   if (!stream) return null;
 
+  let cleanedStream: string;
+  try {
+    cleanedStream = clearTrash(stream);
+  } catch {
+    cleanedStream = stream;
+  }
+
   const urlsContainer: QualitiesList = {};
-  clearTrash(stream)
-    .split(',')
-    .map((item) => {
+
+  cleanedStream.split(',')
+    .forEach((item) => {
       const qualityName = item.match(/\[.*?]/)![0];
       const qualityURLs = item.slice(qualityName.length);
       urlsContainer[qualityName.slice(1, -1) as QualityItem] = qualityURLs
