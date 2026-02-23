@@ -326,22 +326,22 @@ export function AboutTab({
   storeLinks = [
     {
       name: 'Chrome Web Store',
-      url: 'https://chromewebstore.google.com/detail/hdrezka-grabber/aamnmboocelpaiagegjicbefiinkcoal',
+      url: 'https://chromewebstore.google.com/detail/hdrezka-grabber/aamnmboocelpaiagegjicbefiinkcoal/',
       Icon: ChromeIcon,
     },
     {
       name: 'Firefox Add-ons',
-      url: 'https://addons.mozilla.org/en-US/firefox/addon/hdrezka-grabber',
+      url: 'https://addons.mozilla.org/firefox/addon/hdrezka-grabber/',
       Icon: FirefoxIcon,
     },
     {
       name: 'Opera Add-ons',
-      url: 'https://addons.opera.com/ru/extensions/details/hdrezka-grabber/',
+      url: 'https://addons.opera.com/extensions/details/hdrezka-grabber/',
       Icon: OperaIcon,
     },
     {
       name: 'Microsoft Edge',
-      url: 'https://microsoftedge.microsoft.com/addons/detail/hdrezka-grabber',
+      url: 'https://microsoftedge.microsoft.com/addons/detail/hdrezka-grabber/ngighangjonmjnbjbmbagfepbegpbndk/',
       Icon: EdgeIcon,
     },
   ],

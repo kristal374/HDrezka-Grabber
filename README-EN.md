@@ -23,16 +23,16 @@
 </div>
 
 <p align="center">
-  <a href="https://chromewebstore.google.com/detail/hdrezka-grabber/aamnmboocelpaiagegjicbefiinkcoal" target="_blank">
+  <a href="https://chromewebstore.google.com/detail/hdrezka-grabber/aamnmboocelpaiagegjicbefiinkcoal/" target="_blank">
     <img alt="Available on Chrome Web Store" src="assets/Store-icon-chrome.png" style="height: 60px;" />
   </a>
-  <a href="" target="_blank">
+  <a href="https://addons.mozilla.org/firefox/addon/hdrezka-grabber/" target="_blank">
     <img alt="Available on Firefox Add-ons" src="assets/Store-icon-firefox.png" style="height: 60px;" />
   </a>
-  <a href="https://addons.opera.com/en/extensions/details/hdrezka-grabber/" target="_blank">
+  <a href="https://addons.opera.com/extensions/details/hdrezka-grabber/" target="_blank">
     <img alt="Available on Opera Add-ons" src="assets/Store-icon-opera.png" style="height: 60px;" />
   </a>
-  <a href="" target="_blank">
+  <a href="https://microsoftedge.microsoft.com/addons/detail/hdrezka-grabber/ngighangjonmjnbjbmbagfepbegpbndk/" target="_blank">
     <img alt="Available on Microsoft Store" src="assets/Store-icon-edge.png" style="height: 60px;" />
   </a>
 </p>
