@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.0.0-Unreleased] - yyyy-mm-dd
+## [[1.0.0](https://github.com/kristal374/HDrezka-Grabber/releases/tag/v1.0.0)] - 2026-02-24
 
 Крупнейшее обновление! Всё расширение полностью переписано с нуля, было написано свыше 25 тысяч новых строк кода, при этом процесс сборки позволил сократить размер расширения в два раза по сравнению предыдущей версией.
 

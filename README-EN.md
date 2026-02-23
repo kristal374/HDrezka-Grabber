@@ -16,7 +16,6 @@
   <img alt="TailwindCSS" src="https://img.shields.io/badge/TailwindCSS-4-38bdf8?logo=tailwindcss">
   <img alt="Vite" src="https://img.shields.io/badge/Vite-7-646cff?logo=vite">
 
-
   <h3>
     A simple solution for downloading your favorite movies and TV shows from <a href="https://rezka.ag"> rezka.ag</a>!
   </h3>
