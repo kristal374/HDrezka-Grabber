@@ -18,8 +18,8 @@ import { Toggle } from '@/components/ui/Toggle';
 import { SettingsInitialDataContext } from '@/html/settings';
 import { LogLevel } from '@/lib/logger';
 import { createDefaultSettings, saveInStorage } from '@/lib/storage';
-import { Message } from '@/lib/types';
-import { IS_FIREFOX } from '@/lib/utils';
+import { Message, type SetState } from '@/lib/types';
+import { IS_EDGE, IS_FIREFOX, IS_OPERA } from '@/lib/utils';
 import {
   ChevronRightIcon,
   DownloadIcon,
@@ -36,7 +36,7 @@ import { SettingItem, SettingsSection } from './SettingsComponets';
 
 export type SettingItemProps<T> = {
   value: T;
-  setValue: (value: T) => void;
+  setValue: SetState<T>;
 };
 
 function SettingsItemSelect({
@@ -190,7 +190,11 @@ export function SettingsTab() {
 
   const afterInstallSettingName = IS_FIREFOX
     ? browser.i18n.getMessage('settings_itemAfterInstall_firefox')
-    : browser.i18n.getMessage('settings_itemAfterInstall_chrome');
+    : IS_EDGE
+      ? browser.i18n.getMessage('settings_itemAfterInstall_edge')
+      : IS_OPERA
+        ? browser.i18n.getMessage('settings_itemAfterInstall_opera')
+        : browser.i18n.getMessage('settings_itemAfterInstall_chrome');
 
   return (
     <Panel className='bg-settings-background-primary border-0 p-0 shadow-none'>
@@ -222,7 +226,7 @@ export function SettingsTab() {
                 'settings_itemAfterInstall_disableTitle',
               )}
               footer={
-                <div className='-ml-2 flex items-center'>
+                <div className='-ml-2 flex flex-wrap items-center gap-y-1'>
                   <CopyButton
                     variant='ghost'
                     content={
@@ -246,20 +250,24 @@ export function SettingsTab() {
                     </span>
                   </CopyButton>
                   <ChevronRightIcon className='size-4' />
-                  <CopyButton
-                    variant='ghost'
-                    content={afterInstallSettingName}
-                    noIcon={true}
-                    className='px-2 text-xs'
-                  >
-                    <span>{afterInstallSettingName}</span>
-                  </CopyButton>
-                  <ChevronRightIcon className='size-4' />
-                  <span className='px-2 text-xs font-medium'>
-                    {browser.i18n.getMessage(
-                      'settings_itemAfterInstall_settingsDisable',
-                    )}
-                  </span>
+                  <div className='flex flex-wrap items-center gap-y-1'>
+                    <div className='flex items-center'>
+                      <CopyButton
+                        variant='ghost'
+                        content={afterInstallSettingName}
+                        noIcon={true}
+                        className='px-2 text-xs'
+                      >
+                        <span>{afterInstallSettingName}</span>
+                      </CopyButton>
+                      <ChevronRightIcon className='size-4' />
+                    </div>
+                    <span className='px-2 pt-1.25 pb-1.5 text-xs font-medium select-none'>
+                      {browser.i18n.getMessage(
+                        'settings_itemAfterInstall_settingsDisable',
+                      )}
+                    </span>
+                  </div>
                 </div>
               }
             >

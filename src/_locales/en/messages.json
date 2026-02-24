@@ -382,6 +382,12 @@
   "settings_itemAfterInstall_firefox": {
     "message": "Always ask you where to save files"
   },
+  "settings_itemAfterInstall_edge": {
+    "message": "Ask where to save each file before downloading"
+  },
+  "settings_itemAfterInstall_opera": {
+    "message": "Ask where to save each file before downloading"
+  },
   "settings_itemAfterInstall_settingsBrowser": {
     "message": "Browser settings"
   },

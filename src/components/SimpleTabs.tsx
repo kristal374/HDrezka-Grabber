@@ -99,7 +99,7 @@ export function SimpleTabs<ID extends string>({
                   )}
                   <span className='grid'>
                     {/* Invisible span used to provide font-semibold width of the container
-                    to prevernt it from jumping in size when isActive toggles */}
+                    to prevent it from jumping in size when isActive toggles */}
                     <span className='pointer-events-none col-start-1 row-start-1 font-semibold opacity-0 select-none'>
                       {tab.label}
                     </span>

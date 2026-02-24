@@ -28,7 +28,13 @@ type DropdownProps = {
   data: DataItem[];
   onValueHover?: (value: string) => void;
   onValueClick?: (value: string) => void;
+  onClose?: () => void;
   // needSearch?: boolean;
+  /**
+   * Show checkmark on selected items
+   * @default true
+   */
+  showCheckmark?: boolean;
   clearSelection?: boolean;
   children: React.ReactElement;
 } & (
@@ -54,7 +60,9 @@ export function Dropdown({
   onValueChange,
   onValueHover,
   onValueClick,
+  onClose,
   // needSearch,
+  showCheckmark = true,
   clearSelection,
   children,
 }: DropdownProps) {
@@ -95,6 +103,9 @@ export function Dropdown({
       onItemHighlighted={(item) => {
         if (item) onValueHover?.(item.value);
       }}
+      onOpenChange={(open) => {
+        if (!open) onClose?.();
+      }}
       isItemEqualToValue={(item, selected) => {
         return item?.value === selected?.value;
       }}
@@ -131,16 +142,18 @@ export function Dropdown({
                   value={item}
                   className={cn(
                     'data-highlighted:bg-link-color! data-highlighted:text-foreground',
-                    'relative grid cursor-default grid-cols-[1rem_1fr] items-center gap-2 rounded-sm px-2 py-1.5 text-sm select-none',
+                    'relative grid cursor-default grid-cols-[auto_1fr] items-center gap-2 rounded-sm px-2 py-1.5 text-sm select-none',
                     'outline-none data-disabled:pointer-events-none data-disabled:opacity-50',
                     itemClassName,
                   )}
                   disabled={item.disabled}
                   onClick={() => onValueClick?.(item.value)}
                 >
-                  <ComboboxPrimitive.ItemIndicator className='invisible col-start-1 data-selected:visible'>
-                    <CheckIcon className='size-4' />
-                  </ComboboxPrimitive.ItemIndicator>
+                  {showCheckmark && (
+                    <ComboboxPrimitive.ItemIndicator className='invisible col-start-1 data-selected:visible'>
+                      <CheckIcon className='size-4' />
+                    </ComboboxPrimitive.ItemIndicator>
+                  )}
                   <div className='col-start-2 flex items-center'>
                     {labelRender(item, false)}
                   </div>

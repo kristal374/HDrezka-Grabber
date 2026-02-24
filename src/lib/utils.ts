@@ -11,6 +11,12 @@ export const IS_FIREFOX =
   (typeof window !== 'undefined' &&
     navigator.userAgent.indexOf('Firefox') !== -1);
 
+export const IS_EDGE =
+  typeof window !== 'undefined' && navigator.userAgent.indexOf('Edg') !== -1;
+
+export const IS_OPERA =
+  typeof window !== 'undefined' && navigator.userAgent.indexOf('OPR') !== -1;
+
 export function sliceSeasons(
   seasons: SeasonsWithEpisodesList,
   seasonFrom: string,
@@ -88,4 +94,33 @@ export function formatBytes(bytes?: number) {
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+/**
+ * Сравнивает две версии формата "X.Y.Z", и возвращает:
+ * -1, если предыдущая версия меньше текущей.
+ * 0, если версии равны.
+ * 1, если предыдущая версия больше текущей.
+ */
+export function compareVersions(previous: string, current: string): number {
+  const normalize = (version: string) =>
+    version
+      .trim()
+      .split('.')
+      .map((part) => parseInt(part, 10) || 0);
+
+  const vPrevious = normalize(previous);
+  const vCurrent = normalize(current);
+
+  const maxLength = Math.max(vPrevious.length, vCurrent.length);
+
+  for (let i = 0; i < maxLength; i++) {
+    const num1 = vPrevious[i] ?? 0;
+    const num2 = vCurrent[i] ?? 0;
+
+    if (num1 > num2) return 1;
+    if (num1 < num2) return -1;
+  }
+
+  return 0;
 }

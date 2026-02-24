@@ -28,7 +28,7 @@ import { chromeDark, ObjectInspector } from 'react-inspector';
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
     /**
-     * Header name to display in column visibility menu
+     * Header name to display in a column visibility menu
      */
     headerName: string;
     /**

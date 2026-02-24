@@ -15,7 +15,7 @@ export { DataItem as ComboboxItem };
 
 interface ComboboxProps {
   /**
-   * Id of the combobox to activate it via <label /> element
+   * ID of the combobox to activate it via <label /> element
    */
   id?: string;
   /**
@@ -27,7 +27,7 @@ interface ComboboxProps {
    */
   itemClassName?: string;
   /**
-   * ClassName for the combobox container to change position of whole combobox
+   * ClassName for the combobox container to change the position of the whole combobox
    */
   containerClassName?: string;
   /**

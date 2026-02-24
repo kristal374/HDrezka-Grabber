@@ -256,7 +256,7 @@ export function StableTable<TData extends Record<string, any>>({
 
   const { rows } = table.getRowModel();
 
-  //dynamic row height virtualization - alternatively you could use a simpler fixed row height strategy without the need for `measureElement`
+  //dynamic row height virtualization - alternatively, you could use a simpler fixed row height strategy without the need for `measureElement`
   const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
     count: rows.length,
     estimateSize: () => 45, //estimate row height for accurate scrollbar dragging

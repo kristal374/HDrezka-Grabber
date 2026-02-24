@@ -382,6 +382,12 @@
   "settings_itemAfterInstall_firefox": {
     "message": "Завжди запитувати де зберегти файли"
   },
+  "settings_itemAfterInstall_edge": {
+    "message": "Запитувати про розташування для збереження файлів перед завантаженням"
+  },
+  "settings_itemAfterInstall_opera": {
+    "message": "Запитувати щодо місця зберігання кожного файла до його завантаження"
+  },
   "settings_itemAfterInstall_settingsBrowser": {
     "message": "Налаштування браузера"
   },

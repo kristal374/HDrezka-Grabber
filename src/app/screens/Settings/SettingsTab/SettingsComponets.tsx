@@ -16,9 +16,9 @@ export const SettingItem = memo(function SettingItem({
 }) {
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      <div className='flex items-center justify-between gap-3'>
-        <div className='flex flex-1 flex-col gap-1 pr-4'>
-          <h4 className='text-settings-text-secondary text-base font-medium'>
+      <div className='flex items-center justify-between gap-6'>
+        <div className='flex flex-1 flex-col gap-1'>
+          <h4 className='text-settings-text-secondary text-base font-medium text-balance'>
             {title}
           </h4>
           {description && (

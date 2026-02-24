@@ -124,7 +124,7 @@ export async function addHeaderModificationRule(
   const isSubtitleFile = /\.vtt/.test(target.pathname);
 
   const origin = (source ?? target).origin;
-  const referer = isMediaFile ? `${origin}/` : target.href;
+  const referer = isMediaFile ? `${origin}/` : (source ?? target).href;
   const secFetchSite = isMediaFile ? 'cross-site' : 'same-origin';
   const secFetchDest = isMediaFile && !isSubtitleFile ? 'video' : 'empty';
 
