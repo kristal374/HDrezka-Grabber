@@ -74,7 +74,7 @@ export function FilenameTemplateComponent({
 }
 
 /**
- * Takes template array and returns array of strings with placeholders replaced by their display values
+ * Takes a template array and returns an array of strings with placeholders replaced by their display values
  * Needs to be `.join('')` to get plain string
  */
 function templateToPreview(
@@ -110,7 +110,7 @@ function FilenamePreviewsDropdown({
   const valueChangeTimeoutRef = useRef<number | null>(null);
   const handleTemplateSelect = (template: string[]) => {
     // `localValue` update in `onClose` happens right after `onValueChange`.
-    // to prevent stale `value` set as `localValue`
+    // to prevent stale `value` set as `localValue`,
     // this timeout blocks `onClose` from updating `localValue`
     valueChangeTimeoutRef.current = window.setTimeout(() => {
       window.clearTimeout(valueChangeTimeoutRef.current!);
