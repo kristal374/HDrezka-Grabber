@@ -2,7 +2,7 @@ import browser, { type Runtime } from 'webextension-polyfill';
 import { SourceMapParser } from './source-map';
 import type { LogMessage, LogMetadata, SourceMap } from './types';
 import { LogLevel, LoggerEventType } from './types';
-import { isBackground } from './utils';
+import { cloneMessage, isBackground } from './utils';
 
 export class Logger {
   private static isBackground = isBackground();
@@ -136,23 +136,23 @@ export class Logger {
   }
 
   critical(...message: any[]) {
-    this.emit(LogLevel.CRITICAL, JSON.parse(JSON.stringify(message)));
+    this.emit(LogLevel.CRITICAL, cloneMessage(message));
   }
 
   error(...message: any[]) {
-    this.emit(LogLevel.ERROR, JSON.parse(JSON.stringify(message)));
+    this.emit(LogLevel.ERROR, cloneMessage(message));
   }
 
   warning(...message: any[]) {
-    this.emit(LogLevel.WARNING, JSON.parse(JSON.stringify(message)));
+    this.emit(LogLevel.WARNING, cloneMessage(message));
   }
 
   debug(...message: any[]) {
-    this.emit(LogLevel.DEBUG, JSON.parse(JSON.stringify(message)));
+    this.emit(LogLevel.DEBUG, cloneMessage(message));
   }
 
   info(...message: any[]) {
-    this.emit(LogLevel.INFO, JSON.parse(JSON.stringify(message)));
+    this.emit(LogLevel.INFO, cloneMessage(message));
   }
 
   private async getCallerInfo() {

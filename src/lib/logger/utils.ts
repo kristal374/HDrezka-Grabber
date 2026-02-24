@@ -124,6 +124,13 @@ function printLogForFirefox(
   );
 }
 
+export function cloneMessage(message: any[]): any[] {
+  return message.map((value) => {
+    if (value instanceof Error) return value;
+    return JSON.parse(JSON.stringify(value));
+  });
+}
+
 export function isBackground() {
   const isCurrentPathname = (path: string | undefined) => {
     if (!path) return false;
