@@ -173,7 +173,7 @@ export async function onInstalledHandler(details: OnInstalledDetailsType) {
     await browser.runtime.openOptionsPage();
   } else if (details.reason === 'update') {
     const needUpdate = (version?: string) =>
-      !version || compareVersions(version ?? '0.0.1', currentVersion) == -1;
+      !version || compareVersions(version ?? '0.0.1', currentVersion) === 1;
 
     if (needUpdate('1.0.0.57')) {
       logger.debug('Update to version 1.0.0.57');
