@@ -4,10 +4,7 @@ import { CheckIcon, CopyIcon } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-interface CopyButtonProps extends Omit<
-  ButtonProps,
-  'size' | 'title' | 'onClick'
-> {
+interface CopyButtonProps extends Omit<ButtonProps, 'size' | 'onClick'> {
   content: string;
   noIcon?: boolean;
 }
@@ -16,6 +13,7 @@ export function CopyButton({
   content,
   noIcon,
   variant = 'secondary',
+  title,
   className,
   children,
   ...props
@@ -53,7 +51,7 @@ export function CopyButton({
       title={
         isCopied
           ? browser.i18n.getMessage('ui_copySuccess')
-          : browser.i18n.getMessage('ui_copyButton')
+          : (title ?? browser.i18n.getMessage('ui_copyButton'))
       }
       {...props}
     >

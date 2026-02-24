@@ -102,7 +102,7 @@ export function formatBytes(bytes?: number) {
  * 0, если версии равны.
  * 1, если предыдущая версия больше текущей.
  */
-export function compareVersions(previous: string, current: string): number {
+export function compareVersions(previous: string, next: string): number {
   const normalize = (version: string) =>
     version
       .trim()
@@ -110,7 +110,7 @@ export function compareVersions(previous: string, current: string): number {
       .map((part) => parseInt(part, 10) || 0);
 
   const vPrevious = normalize(previous);
-  const vCurrent = normalize(current);
+  const vCurrent = normalize(next);
 
   const maxLength = Math.max(vPrevious.length, vCurrent.length);
 

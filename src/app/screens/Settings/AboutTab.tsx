@@ -260,9 +260,7 @@ function ExtensionHeader({
   githubLink: string;
   storeLinks: StoreLink[];
 }) {
-  const split = extensionVersion.split('.');
-  const build = split.pop();
-  const version = `v${split.join('.')}`;
+  const copyContent = `v${extensionVersion}-t${new Date().toISOString()}`;
   return (
     <div className='border-settings-border-primary flex flex-col space-y-1.5 border-b p-6'>
       <div className='flex flex-col items-start gap-4'>
@@ -272,12 +270,9 @@ function ExtensionHeader({
               {extensionName}
             </h1>
           </div>
-          <div
-            className='bg-settings-background-primary border-settings-border-primary text-settings-text-primary hover:bg-settings-background-tertiary inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-semibold transition-all duration-300 hover:scale-105'
-            title={`Build number: ${build}`}
-          >
-            <span>{version}</span>
-          </div>
+          <CopyButton content={copyContent} title={copyContent}>
+            v{extensionVersion}
+          </CopyButton>
         </div>
 
         <div className='w-full'>
