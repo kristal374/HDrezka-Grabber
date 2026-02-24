@@ -58,14 +58,13 @@ export function decodeVideoURL(stream: string | false): QualitiesList | null {
 
   const urlsContainer: QualitiesList = {};
 
-  cleanedStream.split(',')
-    .forEach((item) => {
-      const qualityName = item.match(/\[.*?]/)![0];
-      const qualityURLs = item.slice(qualityName.length);
-      urlsContainer[qualityName.slice(1, -1) as QualityItem] = qualityURLs
-        .split(/\sor\s/)
-        .filter((item) => /https?:\/\/.*mp4$/.test(item));
-    });
+  cleanedStream.split(',').forEach((item) => {
+    const qualityName = item.match(/\[.*?]/)![0];
+    const qualityURLs = item.slice(qualityName.length);
+    urlsContainer[qualityName.slice(1, -1) as QualityItem] = qualityURLs
+      .split(/\sor\s/)
+      .filter((item) => /https?:\/\/.*mp4$/.test(item));
+  });
 
   return sortQualityItem(urlsContainer);
 }
