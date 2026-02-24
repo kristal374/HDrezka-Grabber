@@ -162,9 +162,9 @@ export async function errorHandler(originalError: Error) {
 
 export async function onInstalledHandler(details: OnInstalledDetailsType) {
   logger.info('Event onInstalled called:', details);
-  const currentVersion = browser.runtime.getManifest().version;
+  const nextVersion = browser.runtime.getManifest().version;
 
-  if (details.previousVersion === currentVersion) {
+  if (details.previousVersion === nextVersion) {
     logger.debug('The extension has already been updated.');
     return;
   }
@@ -173,14 +173,14 @@ export async function onInstalledHandler(details: OnInstalledDetailsType) {
     await browser.runtime.openOptionsPage();
   } else if (details.reason === 'update') {
     const needUpdate = (version?: string) =>
-      !version || compareVersions(version ?? '0.0.1', currentVersion) === 1;
+      !version || compareVersions(details.previousVersion!, version) === -1;
 
     if (needUpdate('1.0.0.57')) {
       logger.debug('Update to version 1.0.0.57');
       await browser.storage.local.clear();
     }
     if (needUpdate()) {
-      logger.debug(`Update to version ${currentVersion}`);
+      logger.debug(`Update to version ${nextVersion}`);
 
       // Обновление после сбоя декодирования ссылок, у пользователей
       // могут оставаться поломанные загрузки в хранилище расширения
