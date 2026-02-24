@@ -162,19 +162,24 @@ export async function errorHandler(originalError: Error) {
 
 export async function onInstalledHandler(details: OnInstalledDetailsType) {
   logger.info('Event onInstalled called:', details);
+  const currentVersion = browser.runtime.getManifest().version;
+
+  if (details.previousVersion === currentVersion) {
+    logger.debug('The extension has already been updated.');
+    return;
+  }
 
   if (details.reason === 'install') {
     await browser.runtime.openOptionsPage();
   } else if (details.reason === 'update') {
-    const needUpdate = (curr?: string) =>
-      !curr || compareVersions(details.previousVersion ?? '0.0.1', curr) == -1;
+    const needUpdate = (version?: string) =>
+      !version || compareVersions(version ?? '0.0.1', currentVersion) == -1;
 
     if (needUpdate('1.0.0.57')) {
       logger.debug('Update to version 1.0.0.57');
       await browser.storage.local.clear();
     }
     if (needUpdate()) {
-      const currentVersion = browser.runtime.getManifest().version;
       logger.debug(`Update to version ${currentVersion}`);
 
       // Обновление после сбоя декодирования ссылок, у пользователей
