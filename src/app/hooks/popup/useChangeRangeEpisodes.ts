@@ -44,8 +44,8 @@ export function useChangeRangeEpisodes() {
 
   const updateCurrentEpisode = useCallback(
     async (newCurrentEpisode: CurrentEpisode) => {
-      if (!movieInfo || !voiceOver || !currentEpisode) {
-        throw new Error('Absent movieInfo, voiceOver or currentEpisode.');
+      if (!movieInfo || !voiceOver || !newCurrentEpisode) {
+        throw new Error('Absent movieInfo, voiceOver or newCurrentEpisode.');
       }
 
       return (await browser.runtime.sendMessage<Message<DataForUpdate>>({

@@ -1,16 +1,13 @@
 import { Combobox } from '@/components/ui/Combobox';
-import { getSeasons } from '@/extraction-scripts/extractSeasons';
-import { PopupInitialDataContext } from '@/html/popup';
 import { sliceSeasons } from '@/lib/utils';
 import { ListVideoIcon } from 'lucide-react';
-import { useContext, useEffect } from 'react';
+import { useEffect } from 'react';
 import {
   selectEpisodeFrom,
   selectEpisodeTo,
   selectSeasonFrom,
   selectSeasons,
   selectSeasonTo,
-  setDefaultSeasonsAction,
   setEpisodeFromAction,
   setEpisodeToAction,
   setRangeAction,
@@ -19,17 +16,8 @@ import {
 } from './store/EpisodeRangeSelector.slice';
 import { useAppDispatch, useAppSelector } from './store/store';
 
-interface EpisodeRangeSelectorProps {
-  defaultSeasonStart: string;
-  defaultEpisodeStart: string;
-}
-
-export function EpisodeRangeSelector({
-  defaultSeasonStart,
-  defaultEpisodeStart,
-}: EpisodeRangeSelectorProps) {
+export function EpisodeRangeSelector() {
   const dispatch = useAppDispatch();
-  const { tabId, pageType } = useContext(PopupInitialDataContext)!;
 
   const seasons = useAppSelector(selectSeasons);
 
@@ -53,20 +41,6 @@ export function EpisodeRangeSelector({
 
     dispatch(setRangeAction({ range: newRange }));
   }, [seasons, seasonFrom, episodeFrom, seasonTo, episodeTo]);
-
-  useEffect(() => {
-    // Если у нас нет списка эпизодов/сезонов, получаем их со страницы сайта
-    if (seasons !== null) return;
-    getSeasons(tabId!, pageType).then((result) => {
-      dispatch(
-        setDefaultSeasonsAction({
-          seasons: result,
-          defaultSeason: defaultSeasonStart,
-          defaultEpisode: defaultEpisodeStart,
-        }),
-      );
-    });
-  }, []);
 
   if (!seasons) return null;
 

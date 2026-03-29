@@ -179,7 +179,7 @@ export async function onInstalledHandler(details: OnInstalledDetailsType) {
       logger.debug('Update to version 1.0.0.57');
       await browser.storage.local.clear();
     }
-    if (needUpdate()) {
+    if (needUpdate('1.0.0.59')) {
       logger.debug(`Update to version ${nextVersion}`);
 
       // Обновление после сбоя декодирования ссылок, у пользователей
@@ -202,5 +202,6 @@ export async function onInstalledHandler(details: OnInstalledDetailsType) {
         await browser.storage.local.set({ settings: newSettings });
       }
     }
+    // if (needUpdate()) {}
   }
 }
