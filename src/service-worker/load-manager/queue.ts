@@ -364,9 +364,9 @@ export class QueueController {
       loadItems.map((item) => loadItemsStore.put(item)),
     );
 
-    loadConfigStore.put(loadConfig);
-    urlDetailStore.put(currentPage);
-    tx.done;
+    await loadConfigStore.put(loadConfig);
+    await urlDetailStore.put(currentPage);
+    await tx.done;
 
     return loadConfig.loadItemIds;
   }

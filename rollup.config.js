@@ -28,7 +28,7 @@ export default [
       nodeResolve({ browser: true, preferBuiltins: false }),
       commonjs(),
       typescript(),
-      !isProduction ? terser() : undefined,
+      isProduction ? terser() : undefined,
       copy({
         targets: [
           {

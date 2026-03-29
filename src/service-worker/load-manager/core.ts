@@ -456,9 +456,9 @@ export class DownloadManager {
       logger.debug('Found multiple FileItems with the same downloadId.');
       return fileItems.reduce((a, b) => (a.createdAt > b.createdAt ? a : b));
     }
-
-    logger.debug('Founded FileItem:', fileItems[0]);
-    return fileItems.length ? fileItems[0] : null;
+    const fileItem = fileItems.length ? fileItems[0] : null;
+    logger.debug('Founded FileItem:', fileItem);
+    return fileItem;
   }
 
   async handleCreateEvent(downloadItem: DownloadItem) {

@@ -1,9 +1,8 @@
-import { useChangeMovieInfo } from '@/app/hooks/popup/useChangeMovieInfo';
 import { useChangeRangeEpisodes } from '@/app/hooks/popup/useChangeRangeEpisodes';
 import { useChangeVoiceOver } from '@/app/hooks/popup/useChangeVoiceOver';
+import { useInitData } from '@/app/hooks/popup/useInitData';
 import { Menu } from '@/components/Menu';
 import { PopupInitialDataContext } from '@/html/popup';
-import type { FilmData, SerialData } from '@/lib/types';
 import { useContext } from 'react';
 import { DownloadScreenSkeleton } from './DownloadScreenSkeleton';
 import { EpisodeRangeSelector } from './EpisodeRangeSelector';
@@ -24,9 +23,9 @@ export function DownloadScreen() {
   const notifications = useAppSelector(selectNotifications);
   const subtitleLang = useAppSelector(selectCurrentSubtitle);
 
+  useInitData();
   useChangeVoiceOver();
   useChangeRangeEpisodes();
-  useChangeMovieInfo();
 
   if (movieInfo === null || !movieInfo.success) {
     logger.info('"MovieInfo" is missing.');
@@ -49,22 +48,14 @@ export function DownloadScreen() {
           isLimitedMaxHeight={pageType === 'SERIAL' && !!subtitleLang}
         />
 
-        <EpisodeRangeSelector
-          defaultSeasonStart={(movieInfo?.data as SerialData).season}
-          defaultEpisodeStart={(movieInfo?.data as SerialData).episode}
-        />
+        <EpisodeRangeSelector />
 
         <SubtitleSelector />
         {showSeparatorLine && (
           <hr className='border-popup-border w-full border-b' />
         )}
 
-        <VoiceOverSelector
-          defaultVoiceOverId={movieInfo!.data.translator_id}
-          is_camrip={(movieInfo?.data as FilmData)?.is_camrip}
-          is_director={(movieInfo?.data as FilmData)?.is_director}
-          is_ads={(movieInfo?.data as FilmData)?.is_ads}
-        />
+        <VoiceOverSelector />
         <QualitySelector />
       </div>
     </div>

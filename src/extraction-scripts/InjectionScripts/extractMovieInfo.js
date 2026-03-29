@@ -1,4 +1,4 @@
-/* global CDNPlayerInfo, CDNPlayer */
+/* global CDNPlayer */
 
 (async () => {
   const thisScript = document.currentScript;
@@ -31,16 +31,16 @@
     movieInfo.is_ads = translator.is_ads;
   } else {
     const currentEpisode = await extractCurrentEpisode();
-    movieInfo.season = currentEpisode.season_id;
-    movieInfo.episode = currentEpisode.episode_id;
+    movieInfo.season = currentEpisode.season_id ?? movieInfo.season;
+    movieInfo.episode = currentEpisode.episode_id ?? movieInfo.episode;
   }
 
   const resultExtractedData = {
     success: true,
     data: movieInfo,
     quality: videoInfo.quality,
-    streams: videoInfo.streams,
-    subtitle: await extractSubtitle(),
+    streams: '',
+    subtitle: false,
     filename: await extractFilename(),
     url: await extractURL(),
   };
@@ -55,19 +55,9 @@ async function extractFilename() {
   };
 }
 
-async function extractSubtitle() {
-  const subtitleInfo = {
-    subtitle: CDNPlayerInfo?.subtitle,
-    subtitle_def: CDNPlayerInfo?.subtitle_def,
-    subtitle_lns: CDNPlayerInfo?.subtitle_lns,
-  };
-  return !subtitleInfo.subtitle ? null : subtitleInfo;
-}
-
 async function extractQuality() {
   return {
     quality: CDNPlayer?.api('quality'),
-    streams: CDNPlayerInfo?.streams,
   };
 }
 

@@ -2,54 +2,19 @@ import { FlagKZ } from '@/components/icons/FlagKZ';
 import { FlagUA } from '@/components/icons/FlagUA';
 import { PremiumIcon } from '@/components/icons/PremiumIcon';
 import { Combobox } from '@/components/ui/Combobox';
-import { getVoiceOverList } from '@/extraction-scripts/extractVoiceOverList';
-import { PopupInitialDataContext } from '@/html/popup';
 import type { VoiceOverInfo } from '@/lib/types';
-import { useContext, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from './store/store';
 import {
   selectCurrentVoiceOver,
   selectVoiceOverList,
   setVoiceOverAction,
-  setVoiceOverListAction,
 } from './store/VoiceOverSelector.slice';
 
-interface VoiceOverSelectorProps {
-  defaultVoiceOverId: string;
-  is_camrip?: string;
-  is_director?: string;
-  is_ads?: string;
-}
-
-export function VoiceOverSelector({
-  defaultVoiceOverId,
-  is_camrip,
-  is_director,
-  is_ads,
-}: VoiceOverSelectorProps) {
+export function VoiceOverSelector() {
   const dispatch = useAppDispatch();
-  const { tabId, pageType } = useContext(PopupInitialDataContext)!;
 
   const voiceOverList = useAppSelector(selectVoiceOverList);
   const currentVoiceOver = useAppSelector(selectCurrentVoiceOver);
-
-  useEffect(() => {
-    // Если у нас нет списка озвучек - получаем его со страницы сайта
-    if (voiceOverList !== null) return;
-    getVoiceOverList(tabId!).then((result) => {
-      dispatch(setVoiceOverListAction({ voiceOverList: result }));
-      const targetVoiceOver =
-        result?.find((voiceOver) =>
-          pageType === 'SERIAL'
-            ? voiceOver.id === defaultVoiceOverId
-            : voiceOver.id === defaultVoiceOverId &&
-              voiceOver.is_camrip === is_camrip &&
-              voiceOver.is_director === is_director &&
-              voiceOver.is_ads === is_ads,
-        ) || null;
-      dispatch(setVoiceOverAction({ voiceOver: targetVoiceOver }));
-    });
-  }, [voiceOverList]);
 
   if (!voiceOverList) return null;
 

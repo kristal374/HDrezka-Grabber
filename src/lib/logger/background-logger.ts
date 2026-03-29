@@ -29,7 +29,7 @@ function saveLogToDB(data: LogMessage) {
         await tx.store.put(message);
       }
       debounceTimer = null;
-      tx.done;
+      await tx.done;
 
       await deleteOldLogMessage(settings.logMessageLifetime);
     } catch (error: any) {

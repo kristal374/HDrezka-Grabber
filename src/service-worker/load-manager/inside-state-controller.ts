@@ -184,6 +184,6 @@ export async function findBrokenLoadItemInActiveDownloads({
   const brokenDownloads = await Promise.all(
     brokenLoadItemIds.map((id) => tx.store.get(id)),
   );
-  tx.done;
+  await tx.done;
   return brokenDownloads as LoadItem[];
 }
