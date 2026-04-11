@@ -1,3 +1,4 @@
+import { isMp4Url } from '@/lib/link-processing';
 import { Logger } from '@/lib/logger';
 import {
   Message,
@@ -40,7 +41,7 @@ export async function getQualityFileSizes({
   const urlsSizes: (readonly [QualityItem, URLItem])[] = await Promise.all(
     Object.entries(urlsContainer).map(async ([key, urlsList]) => {
       const request: RequestUrlSize = {
-        urlsList,
+        urlsList: urlsList.urlsArr.filter(isMp4Url),
         siteUrl,
         onlySize: true,
         cacheDisabled,

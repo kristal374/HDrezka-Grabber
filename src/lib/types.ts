@@ -101,13 +101,18 @@ export type QualityItem =
   | '2K'
   | '4K';
 
+export type QualityDetail = {
+  isPremContent: boolean;
+  urlsArr: string[];
+};
+
 export type Subtitle = {
   lang: string;
   code: string;
   url: string;
 };
 
-export type QualitiesList = Partial<Record<QualityItem, string[]>>;
+export type QualitiesList = Partial<Record<QualityItem, QualityDetail>>;
 
 export type VideoResolution = { width: number; height: number };
 
@@ -168,6 +173,7 @@ export type Initiator = {
   movieId: string;
   site_url: string;
   site_type: SiteType;
+  load_protocol: LoadProtocol;
   content_type: ContentType;
   film_name: {
     localized: string;
@@ -227,6 +233,11 @@ export enum ContentType {
   'both',
 }
 
+export enum LoadProtocol {
+  'streaming',
+  'hls',
+}
+
 export type FileType = 'video' | 'subtitle';
 
 export type FileItem = {
@@ -276,6 +287,7 @@ export type UrlDetails = {
     localized: string;
     original: string | null;
   };
+  loadProtocol: LoadProtocol;
   loadRegistry: number[];
 };
 

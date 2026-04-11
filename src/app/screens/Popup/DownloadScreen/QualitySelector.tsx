@@ -6,7 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/Tooltip';
-import { sortQualityItem } from '@/lib/link-processing';
+import { isMp4Url, sortQualityItem } from '@/lib/link-processing';
 import {
   EventType,
   Message,
@@ -85,7 +85,7 @@ export function QualitySelector() {
         .sendMessage<Message<RequestUrlSize>>({
           type: 'getFileSize',
           message: {
-            urlsList: value,
+            urlsList: value.urlsArr.filter(isMp4Url),
             siteUrl: movieInfo.url,
             cacheDisabled: needFileSize !== needResolution,
           },
@@ -118,8 +118,8 @@ export function QualitySelector() {
       if (data.type !== 'newFileSize' && data.type !== 'newVideoResolution')
         return false;
 
-      for (const [quality, urls] of Object.entries(qualitiesList)) {
-        if (!urls.includes(data.message.url)) continue;
+      for (const [quality, details] of Object.entries(qualitiesList)) {
+        if (!details.urlsArr.includes(data.message.url)) continue;
         updateQualityInfo(quality as QualityItem, data.message);
       }
       return true;

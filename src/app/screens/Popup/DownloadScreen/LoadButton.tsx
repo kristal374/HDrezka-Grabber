@@ -4,7 +4,7 @@ import { useTrackingTotalProgressForMovie } from '@/app/hooks/popup/useTrackingT
 import { CircularProgressBar } from '@/components/CircularProgressBar';
 import { AnimatedCheckIcon } from '@/components/icons/AnimatedCheckIcon';
 import { DownloadIcon } from '@/components/icons/DownloadIcon';
-import { ContentType, Initiator, Message } from '@/lib/types';
+import { ContentType, Initiator, LoadProtocol, Message } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useCallback } from 'react';
 import { selectMovieInfo } from './store/DownloadScreen.slice';
@@ -36,6 +36,7 @@ export function LoadButton() {
     const initiator: Initiator = {
       movieId: movieInfo.data.id,
       site_url: movieInfo.url,
+      load_protocol: LoadProtocol.streaming,
       site_type: 'hdrezka',
       content_type: downloadSubtitle
         ? downloadOnlySubtitle

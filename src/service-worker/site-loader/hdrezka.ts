@@ -7,6 +7,8 @@ import {
   decodeSubtitleURL,
   decodeVideoURL,
   getQualityWeight,
+  isM3u8Url,
+  isMp4Url,
   sortQualityItem,
 } from '@/lib/link-processing';
 import { Logger } from '@/lib/logger';
@@ -18,8 +20,10 @@ import {
   Initiator,
   LoadConfig,
   LoadItem,
+  LoadProtocol,
   LoadStatus,
   type Optional,
+  QualitiesList,
   QualityItem,
   QueryData,
   RequestUrlSize,
@@ -45,7 +49,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
   public readonly loadConfig: LoadConfig;
   public readonly urlDetails: UrlDetails;
   private serverResponse: ResponseVideoData | null = null;
-  private qualitiesList: Partial<Record<QualityItem, string[]>> | null = null;
+  private qualitiesList: QualitiesList | null = null;
   private subtitlesList: Subtitle[] | null = null;
 
   constructor({ async_param }: { async_param?: SiteLoaderAsyncParams }) {
@@ -185,8 +189,13 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
     if (
       this.downloadItem.availableQualities!.includes(this.loadConfig.quality)
     ) {
+      const urlsArr = this.qualitiesList![this.loadConfig.quality]!.urlsArr;
       const request: RequestUrlSize = {
-        urlsList: this.qualitiesList![this.loadConfig.quality]!,
+        urlsList: urlsArr.filter((url) =>
+          this.urlDetails.loadProtocol === LoadProtocol.streaming
+            ? isMp4Url(url)
+            : isM3u8Url(url),
+        ),
         siteUrl: this.urlDetails.siteUrl,
         onlySize: true,
         cacheDisabled: !useCache,
@@ -372,6 +381,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
   static createUrlDetails(initiator: Initiator): UrlDetails {
     return {
       movieId: parseInt(initiator.movieId),
+      loadProtocol: initiator.load_protocol,
       siteUrl: initiator.site_url,
       filmTitle: initiator.film_name,
       loadRegistry: [],
