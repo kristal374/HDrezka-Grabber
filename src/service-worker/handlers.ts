@@ -8,7 +8,6 @@ import {
 } from '@/lib/logger';
 import { getSettings } from '@/lib/storage';
 import { EventType, Message, Settings } from '@/lib/types';
-import { compareVersions } from '@/lib/utils';
 import { getDownloadManager } from '@/service-worker/load-manager/constructor';
 import {
   abortAllFetches,
@@ -23,7 +22,6 @@ type Port = Runtime.Port;
 type StorageChange = Storage.StorageChange;
 type Alarm = Alarms.Alarm;
 type MessageSender = Runtime.MessageSender;
-type OnInstalledDetailsType = Runtime.OnInstalledDetailsType;
 
 export function messageHandler(
   message: unknown,
@@ -158,50 +156,4 @@ export async function clearExtensionData({
 export async function errorHandler(originalError: Error) {
   console.error(originalError);
   logger.critical(originalError);
-}
-
-export async function onInstalledHandler(details: OnInstalledDetailsType) {
-  logger.info('Event onInstalled called:', details);
-  const nextVersion = browser.runtime.getManifest().version;
-
-  if (details.previousVersion === nextVersion) {
-    logger.debug('The extension has already been updated.');
-    return;
-  }
-
-  if (details.reason === 'install') {
-    await browser.runtime.openOptionsPage();
-  } else if (details.reason === 'update') {
-    const needUpdate = (version?: string) =>
-      !version || compareVersions(details.previousVersion!, version) === -1;
-
-    if (needUpdate('1.0.0.57')) {
-      logger.debug('Update to version 1.0.0.57');
-      await browser.storage.local.clear();
-    }
-    if (needUpdate('1.0.0.59')) {
-      logger.debug(`Update to version ${nextVersion}`);
-
-      // Обновление после сбоя декодирования ссылок, у пользователей
-      // могут оставаться поломанные загрузки в хранилище расширения
-      const downloadManager = getDownloadManager();
-      await downloadManager.cancelAllDownload({ logger });
-      await browser.storage.session.clear();
-
-      if (browser.i18n.getUILanguage() === 'uk') {
-        // Исправляем шаблоны имён файлов для пользователей с укр. локализацией
-        const newSettings: Settings = JSON.parse(JSON.stringify(settings));
-        newSettings.filenameFilmTemplate = ['%orig_title%'];
-        newSettings.filenameSeriesTemplate = [
-          '%orig_title%',
-          ' S',
-          '%season_id%',
-          'E',
-          '%episode_id%',
-        ];
-        await browser.storage.local.set({ settings: newSettings });
-      }
-    }
-    // if (needUpdate()) {}
-  }
 }

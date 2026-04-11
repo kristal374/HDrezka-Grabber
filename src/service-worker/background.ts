@@ -10,11 +10,11 @@ import {
   messageHandler,
   newLogHandler,
   onConnectHandler,
-  onInstalledHandler,
   restoreDBHandler,
   storageChangeHandler,
 } from '@/service-worker/handlers';
 import { buildDownloadManager } from '@/service-worker/load-manager/constructor';
+import { onInstalledHandler } from '@/service-worker/updates';
 
 async function main() {
   let logger = globalThis.logger;

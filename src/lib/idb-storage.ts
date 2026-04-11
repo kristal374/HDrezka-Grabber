@@ -1,10 +1,11 @@
 import { LogMessage } from '@/lib/logger';
-import { DBSchema, deleteDB, IDBPDatabase, openDB } from 'idb';
+import { DBSchema, deleteDB, IDBPDatabase, IDBPTransaction, openDB } from 'idb';
 import {
   CacheItem,
   FileItem,
   LoadConfig,
   LoadItem,
+  LoadProtocol,
   Optional,
   UrlDetails,
 } from './types';
@@ -60,14 +61,25 @@ export interface HDrezkaGrabberDB extends DBSchema {
   };
 }
 
+type StoreNames = (
+  | 'urlDetail'
+  | 'loadConfig'
+  | 'loadStorage'
+  | 'fileStorage'
+  | 'logStorage'
+  | 'cacheStorage'
+)[];
+
 export async function doDatabaseStuff(): Promise<
   IDBPDatabase<HDrezkaGrabberDB>
 > {
-  const db = await openDB<HDrezkaGrabberDB>('HDrezkaGrabberDB', 1, {
-    upgrade(db, oldVersion, _newVersion, _transaction, _event) {
-      switch (oldVersion) {
-        case 0:
-          createDBv0(db);
+  const db = await openDB<HDrezkaGrabberDB>('HDrezkaGrabberDB', 2, {
+    upgrade(db, oldVersion, _newVersion, transaction, _event) {
+      if (oldVersion < 1) {
+        createDBv0(db);
+      }
+      if (oldVersion < 2) {
+        migrateToV1(transaction);
       }
     },
     terminated() {
@@ -133,4 +145,20 @@ function createDBv0(db: IDBPDatabase<HDrezkaGrabberDB>) {
   });
   cacheStorage.createIndex('key', 'key');
   cacheStorage.createIndex('time_of_death', 'timeOfDeath');
+}
+
+async function migrateToV1(
+  transaction: IDBPTransaction<HDrezkaGrabberDB, StoreNames, 'versionchange'>,
+) {
+  logger.info('Migration DB to version 1.');
+  const store = transaction.objectStore('urlDetail');
+
+  let cursor = await store.openCursor();
+  while (cursor) {
+    const value = cursor.value;
+    value.loadProtocol = LoadProtocol.streaming;
+    await cursor.update(value);
+    cursor = await cursor.continue();
+  }
+  logger.info('Migration DB to version 1 completed.');
 }
