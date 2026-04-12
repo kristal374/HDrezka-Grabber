@@ -7,31 +7,120 @@ import {
 } from '@/lib/types';
 import { getFromCache, setInCache } from '@/service-worker/network-layer/cache';
 import { makeModifyFetch } from '@/service-worker/network-layer/modify-fetch';
+import { requestDirectlyFromPage } from '@/service-worker/network-layer/page-bridge';
 import { Input, MP4, UrlSource } from 'mediabunny';
 
 const activeReader = new Map<string, Input<UrlSource>>();
 
-export async function fetchVideoData({
+const POST_HEADERS = {
+  Accept: 'application/json, text/javascript, */*; q=0.01',
+  'X-Requested-With': 'XMLHttpRequest',
+  'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+} as const;
+
+function buildRequestParams(siteUrl: string): {
+  relativeUrl: string;
+  fullURL: string;
+} {
+  const params = new URLSearchParams({ t: Date.now().toString() });
+  const relativeUrl = `/ajax/get_cdn_series/?${params}`;
+  const fullURL = `${new URL(siteUrl).origin}${relativeUrl}`;
+  return { relativeUrl, fullURL };
+}
+
+async function fetchFromPage({
+  tabId,
+  relativeUrl,
   siteUrl,
   data,
+  logger,
+}: {
+  tabId: number;
+  relativeUrl: string;
+  siteUrl: string;
+  data: QueryData;
+  logger: Logger;
+}): Promise<ResponseVideoData> {
+  logger.info('Attempt fetch data from page.');
+  const response = await requestDirectlyFromPage({
+    tabId,
+    url: relativeUrl,
+    siteUrl,
+    body: data,
+    method: 'POST',
+    logger,
+  });
+
+  if ('error' in response) throw new Error(response.error);
+  return { cloudflare_protected: true, ...response };
+}
+
+async function fetchDirectly({
+  tabId,
+  fullURL,
+  relativeUrl,
+  siteUrl,
+  body,
+  data,
+  modifiedFetch,
+  logger,
+}: {
+  tabId: number;
+  fullURL: string;
+  relativeUrl: string;
+  siteUrl: string;
+  body: string;
+  data: QueryData;
+  modifiedFetch: typeof fetch;
+  logger: Logger;
+}): Promise<ResponseVideoData> {
+  logger.info('Attempt fetch data directly.');
+  const response = await modifiedFetch(fullURL, {
+    method: 'POST',
+    credentials: 'include',
+    body,
+    headers: POST_HEADERS,
+  });
+
+  logger.debug('Server response status:', response.status);
+
+  if (response.status !== 403) {
+    return response.json();
+  }
+
+  messageBroker
+    .sendMessage(data.id, {
+      stackable: false,
+      message: browser.i18n.getMessage('popup_messageBroker_CloudflareProtect'),
+      type: 'warning',
+      unique: true,
+      closable: false,
+    })
+    .then();
+
+  return fetchFromPage({ tabId, relativeUrl, siteUrl, data, logger });
+}
+
+export async function fetchVideoData({
+  tabId,
+  siteUrl,
+  data,
+  useCloudflareBypass = false,
   cacheDisabled = false,
   logger = globalThis.logger,
 }: {
+  tabId: number;
   siteUrl: string;
   data: QueryData;
+  useCloudflareBypass: boolean;
   cacheDisabled?: boolean;
   logger?: Logger;
-}) {
+}): Promise<ResponseVideoData> {
   logger.info('Attempt update video data.');
 
-  const time = new Date().getTime();
-  const params = new URLSearchParams({ t: time.toString() });
-  const fullURL = `${new URL(siteUrl).origin}/ajax/get_cdn_series/?${params}`;
+  const { relativeUrl, fullURL } = buildRequestParams(siteUrl);
   const body = new URLSearchParams(data).toString();
-  const [_getFinallyUrl, modifiedFetch] = makeModifyFetch({
-    sourceUrl: siteUrl,
-    logger,
-  });
+  const [, modifiedFetch] = makeModifyFetch({ sourceUrl: siteUrl, logger });
 
   if (!cacheDisabled) {
     const cache = await getFromCache<ResponseVideoData>({
@@ -42,22 +131,23 @@ export async function fetchVideoData({
     if (cache) return cache;
   }
 
-  return modifiedFetch(fullURL, {
-    method: 'POST',
-    credentials: 'include',
-    body: body,
-    headers: {
-      Accept: 'application/json, text/javascript, */*; q=0.01',
-      'X-Requested-With': 'XMLHttpRequest',
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    },
-  }).then(async (response) => {
-    const serverResponse: ResponseVideoData = await response.json();
+  const serverResponse = useCloudflareBypass
+    ? await fetchFromPage({ tabId, relativeUrl, siteUrl, data, logger })
+    : await fetchDirectly({
+        tabId,
+        fullURL,
+        relativeUrl,
+        siteUrl,
+        body,
+        data,
+        modifiedFetch,
+        logger,
+      });
 
-    logger.debug('Server response:', serverResponse);
-    setInCache({ data: serverResponse, url: siteUrl, body, logger }).then();
-    return serverResponse;
-  });
+  logger.debug('Server response:', serverResponse);
+  setInCache({ data: serverResponse, url: siteUrl, body, logger }).then();
+
+  return serverResponse;
 }
 
 export async function probeVideoFile({

@@ -116,6 +116,12 @@
   "popup_messageBroker_userBreak": {
     "message": "Ви перервали завантаження."
   },
+  "popup_messageBroker_CloudflareProtect": {
+    "message": "Сайт захищений Cloudflare. Не закривайте сторінку, щоб розширення могло продовжити роботу!"
+  },
+  "popup_messageBroker_PageHasBeenClosed": {
+    "message": "Сторінку було закрито! Розширення не змогло продовжити завантаження."
+  },
   "settings_TabSettings": {
     "message": "Налаштування"
   },

@@ -1,6 +1,7 @@
 import {
   selectCurrentEpisode,
   selectMovieInfo,
+  selectUseCloudflareBypass,
   setCurrentEpisodeAction,
 } from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
 import {
@@ -21,6 +22,7 @@ import {
 } from '@/app/screens/Popup/DownloadScreen/store/store';
 import { setSubtitleListAction } from '@/app/screens/Popup/DownloadScreen/store/SubtitleSelector.slice';
 import { selectCurrentVoiceOver } from '@/app/screens/Popup/DownloadScreen/store/VoiceOverSelector.slice';
+import { PopupInitialDataContext } from '@/html/popup';
 import type {
   ActualVideoData,
   CurrentEpisode,
@@ -31,12 +33,14 @@ import type {
   SerialFields,
 } from '@/lib/types';
 import equal from 'fast-deep-equal/es6';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 
 export function useChangeRangeEpisodes() {
   const dispatch = useAppDispatch();
+  const { tabId } = useContext(PopupInitialDataContext)!;
 
   const movieInfo = useAppSelector(selectMovieInfo);
+  const useCloudflareBypass = useAppSelector(selectUseCloudflareBypass);
   const range = useAppSelector(selectRange);
   const voiceOver = useAppSelector(selectCurrentVoiceOver);
   const currentEpisode = useAppSelector(selectCurrentEpisode);
@@ -51,6 +55,8 @@ export function useChangeRangeEpisodes() {
       return (await browser.runtime.sendMessage<Message<DataForUpdate>>({
         type: 'updateVideoInfo',
         message: {
+          tabId: tabId!,
+          useCloudflareBypass,
           siteURL: movieInfo.url,
           movieData: {
             id: movieInfo.data.id,

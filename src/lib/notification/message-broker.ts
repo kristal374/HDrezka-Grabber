@@ -8,7 +8,10 @@ export type PopupNotification = {
   stackable: boolean;
   message: string;
   type: 'error' | 'critical' | 'warning' | 'info' | 'success';
+  unique?: boolean;
+  closable?: boolean;
 };
+
 type NotificationMessage = {
   movieId: MessageTarget;
   notification: PopupNotification;
@@ -19,6 +22,9 @@ export class MessageBroker {
   private readonly OK_STATUS = 'ok';
 
   async sendMessage(movieId: MessageTarget, notification: PopupNotification) {
+    notification.closable = notification.closable ?? true;
+    notification.unique = notification.unique ?? false;
+
     const message = { movieId, notification };
     // Сначала пытаемся отправить уведомление стандартным способом
     await browser.runtime

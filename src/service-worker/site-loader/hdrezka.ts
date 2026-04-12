@@ -121,6 +121,8 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
       logger.debug('Saved request data was not found. Fetching from server.');
 
       this.serverResponse = await fetchVideoData({
+        tabId: this.loadConfig.tabId,
+        useCloudflareBypass: this.loadConfig.useCloudflareBypass,
         siteUrl: this.urlDetails.siteUrl,
         data: this.getQueryData(),
         cacheDisabled: !useCache,
@@ -192,7 +194,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
       const urlsArr = this.qualitiesList![this.loadConfig.quality]!.urlsArr;
       const request: RequestUrlSize = {
         urlsList: urlsArr.filter((url) =>
-          this.urlDetails.loadProtocol === LoadProtocol.streaming
+          this.loadConfig.loadProtocol === LoadProtocol.streaming
             ? isMp4Url(url)
             : isM3u8Url(url),
         ),
@@ -300,7 +302,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
       fileName: await this.makeFilename({ fileType, timestamp, logger }),
       url: null,
       saveAs: false,
-      retryAttempts: 0,
+      retryAttempts: 1, // Первый запрос идёт по умолчанию, поэтому мы его записываем сразу
       status: LoadStatus.DownloadCandidate,
       createdAt: timestamp,
     } as Optional<FileItem, 'id'>;
@@ -369,11 +371,14 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
 
   static createLoadConfig(initiator: Initiator): LoadConfig {
     return {
+      tabId: initiator.tabId,
+      useCloudflareBypass: initiator.useCloudflareBypass,
       voiceOver: initiator.voice_over,
       quality: initiator.quality,
       subtitle: initiator.subtitle,
       favs: initiator.favs,
       loadItemIds: [],
+      loadProtocol: initiator.load_protocol,
       createdAt: parseInt(initiator.timestamp),
     };
   }
@@ -381,7 +386,6 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
   static createUrlDetails(initiator: Initiator): UrlDetails {
     return {
       movieId: parseInt(initiator.movieId),
-      loadProtocol: initiator.load_protocol,
       siteUrl: initiator.site_url,
       filmTitle: initiator.film_name,
       loadRegistry: [],

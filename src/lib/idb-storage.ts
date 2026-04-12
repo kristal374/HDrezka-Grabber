@@ -151,12 +151,14 @@ async function migrateToV1(
   transaction: IDBPTransaction<HDrezkaGrabberDB, StoreNames, 'versionchange'>,
 ) {
   logger.info('Migration DB to version 1.');
-  const store = transaction.objectStore('urlDetail');
+  const store = transaction.objectStore('loadConfig');
 
   let cursor = await store.openCursor();
   while (cursor) {
     const value = cursor.value;
     value.loadProtocol = LoadProtocol.streaming;
+    value.useCloudflareBypass = false;
+    value.tabId = -1;
     await cursor.update(value);
     cursor = await cursor.continue();
   }

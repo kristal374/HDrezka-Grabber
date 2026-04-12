@@ -21,7 +21,6 @@
   </h3>
 </div>
 
-
 <div align="center">
 
 [<img alt="Available on Chrome Web Store" src="assets/Store-icon-chrome.png" style="height: 60px;"/>](https://chromewebstore.google.com/detail/hdrezka-grabber/aamnmboocelpaiagegjicbefiinkcoal/)

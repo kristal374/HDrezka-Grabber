@@ -158,6 +158,10 @@ export type FilmData = Fields & FilmsFields;
 export type SerialData = Fields & SerialFields;
 export type UpdateTranslateData = Fields & UpdateTranslateFields;
 
+type CloudflareProtected = {
+  cloudflare_protected?: boolean;
+};
+
 export type ResponseVideoData = {
   success: boolean;
   message: string;
@@ -167,10 +171,13 @@ export type ResponseVideoData = {
   url: string;
   quality: QualityItem;
   thumbnails: string;
-} & SubtitleInfo;
+} & SubtitleInfo &
+  CloudflareProtected;
 
 export type Initiator = {
   movieId: string;
+  tabId: number;
+  useCloudflareBypass: boolean;
   site_url: string;
   site_type: SiteType;
   load_protocol: LoadProtocol;
@@ -191,6 +198,8 @@ export type Initiator = {
 };
 
 export type DataForUpdate = {
+  tabId: number;
+  useCloudflareBypass: boolean;
   siteURL: string;
   movieData: QueryData;
 };
@@ -199,6 +208,7 @@ export type ActualVideoData = {
   seasons: SeasonsWithEpisodesList | null;
   subtitle: SubtitleInfo;
   streams: string;
+  cloudflareProtectedIsUsed: boolean;
 };
 
 export type CurrentEpisode = {
@@ -269,6 +279,8 @@ export type LoadItem = {
 };
 
 export type LoadConfig = {
+  tabId: number | -1;
+  useCloudflareBypass: boolean;
   voiceOver: VoiceOverInfo;
   quality: QualityItem;
   subtitle: {
@@ -277,6 +289,7 @@ export type LoadConfig = {
   } | null;
   favs: string;
   loadItemIds: number[];
+  loadProtocol: LoadProtocol;
   createdAt: number;
 };
 
@@ -287,7 +300,6 @@ export type UrlDetails = {
     localized: string;
     original: string | null;
   };
-  loadProtocol: LoadProtocol;
   loadRegistry: number[];
 };
 

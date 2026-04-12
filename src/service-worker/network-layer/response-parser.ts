@@ -59,6 +59,8 @@ export async function updateVideoInfo({
 }): Promise<ActualVideoData> {
   logger.info('Request to update video data:', data);
   const serverResponse = await fetchVideoData({
+    tabId: data.tabId,
+    useCloudflareBypass: data.useCloudflareBypass,
     siteUrl: data.siteURL,
     data: data.movieData,
     logger,
@@ -74,5 +76,6 @@ export async function updateVideoInfo({
       subtitle_lns: serverResponse.subtitle_lns,
     } as SubtitleInfo,
     streams: serverResponse.url,
+    cloudflareProtectedIsUsed: serverResponse.cloudflare_protected ?? false,
   };
 }

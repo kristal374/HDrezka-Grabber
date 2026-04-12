@@ -1,5 +1,6 @@
 import {
   selectMovieInfo,
+  selectUseCloudflareBypass,
   setCurrentEpisodeAction,
 } from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
 import { setSeasonsAction } from '@/app/screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
@@ -20,9 +21,10 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 
 export function useChangeVoiceOver() {
   const dispatch = useAppDispatch();
-  const { pageType } = useContext(PopupInitialDataContext)!;
+  const { pageType, tabId } = useContext(PopupInitialDataContext)!;
 
   const movieInfo = useAppSelector(selectMovieInfo);
+  const useCloudflareBypass = useAppSelector(selectUseCloudflareBypass);
   const voiceOver = useAppSelector(selectCurrentVoiceOver);
   const [previousVoiceOver, setPreviousVoiceOver] = useState(voiceOver);
 
@@ -34,6 +36,8 @@ export function useChangeVoiceOver() {
     return (await browser.runtime.sendMessage<Message<DataForUpdate>>({
       type: 'updateVideoInfo',
       message: {
+        tabId: tabId!,
+        useCloudflareBypass,
         siteURL: movieInfo.url,
         movieData:
           pageType === 'SERIAL'
