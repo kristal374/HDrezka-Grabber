@@ -71,6 +71,9 @@
   "popup_realResolution": {
     "message": "Реальна роздільна здатність відео"
   },
+  "popup_premiumContentOnly": {
+    "message": "Цей контент доступний для завантаження лише при наявності HDrezka Premium"
+  },
   "popup_showAllNotification": {
     "message": "Показати всі"
   },
@@ -117,7 +120,7 @@
     "message": "Ви перервали завантаження."
   },
   "popup_messageBroker_CloudflareProtect": {
-    "message": "Сайт захищений Cloudflare. Не закривайте сторінку, щоб розширення могло продовжити роботу!"
+    "message": "Сайт захищений Cloudflare. Не закривайте сторінку, щоб розширення могло продовжувати завантаження!"
   },
   "popup_messageBroker_PageHasBeenClosed": {
     "message": "Сторінку було закрито! Розширення не змогло продовжити завантаження."
