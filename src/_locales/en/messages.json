@@ -9,16 +9,16 @@
     "message": "It seems that the content is pending release.\nCheck back later!"
   },
   "popup_stub_locationFilm": {
-    "message": "Sorry, but the movie is not available from your location :("
+    "message": "Sorry, but the movie is not available in your region :("
   },
   "popup_stub_locationSerial": {
-    "message": "Sorry, but the series is not available from your location :("
+    "message": "Sorry, but the series is not available in your region :("
   },
   "popup_stub_vpn": {
-    "message": "Try using a VPN."
+    "message": "Try using a VPN"
   },
   "popup_stub_unavailable": {
-    "message": "Content is unavailable for download — no data to process."
+    "message": "Content is unavailable for download — no data to process"
   },
   "popup_stub_error": {
     "message": "Oops! Something went wrong..."

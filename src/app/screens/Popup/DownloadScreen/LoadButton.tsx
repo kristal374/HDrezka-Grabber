@@ -7,7 +7,7 @@ import { DownloadIcon } from '@/components/icons/DownloadIcon';
 import { PopupInitialDataContext } from '@/html/popup';
 import { ContentType, Initiator, LoadProtocol, Message } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { useCallback, useContext } from 'react';
+import { useContext } from 'react';
 import {
   selectMovieInfo,
   selectUseCloudflareBypass,
@@ -39,7 +39,7 @@ export function LoadButton() {
     parseInt(movieInfo.data.id),
   );
 
-  const handleClick = useCallback(() => {
+  const handleClick = () => {
     const initiator: Initiator = {
       movieId: movieInfo.data.id,
       tabId: tabId!,
@@ -73,15 +73,7 @@ export function LoadButton() {
       type: 'trigger',
       message: initiator,
     });
-  }, [
-    movieInfo,
-    range,
-    voiceOver,
-    subtitleLang,
-    downloadSubtitle,
-    quality,
-    downloadOnlySubtitle,
-  ]);
+  };
 
   const isCompleted =
     !!progress && progress.completedLoads === progress.totalLoads;

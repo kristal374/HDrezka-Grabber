@@ -1,10 +1,10 @@
 import { useChangeRangeEpisodes } from '@/app/hooks/popup/useChangeRangeEpisodes';
 import { useChangeVoiceOver } from '@/app/hooks/popup/useChangeVoiceOver';
 import { useInitData } from '@/app/hooks/popup/useInitData';
+import { LoadButtonSkeleton } from '@/app/screens/Popup/DownloadScreen/LoadButtonSkeleton';
 import { Menu } from '@/components/Menu';
 import { PopupInitialDataContext } from '@/html/popup';
 import { useContext } from 'react';
-import { DownloadScreenSkeleton } from './DownloadScreenSkeleton';
 import { EpisodeRangeSelector } from './EpisodeRangeSelector';
 import { LoadButton } from './LoadButton';
 import { NotificationField } from './NotificationField';
@@ -27,11 +27,9 @@ export function DownloadScreen() {
   useChangeVoiceOver();
   useChangeRangeEpisodes();
 
-  if (movieInfo === null || !movieInfo.success) {
-    logger.info('"MovieInfo" is missing.');
-    // TODO: Теоретически окно может показываться вечно если мы не получим movieInfo
-    return <DownloadScreenSkeleton />;
-  }
+  const isLoading = movieInfo === null || !movieInfo.success;
+
+  // TODO: Теоретически окно может показываться вечно если мы не получим movieInfo
 
   const showSeparatorLine =
     pageType === 'SERIAL' || !!subtitleLang || notifications.length > 0;
@@ -40,24 +38,26 @@ export function DownloadScreen() {
   return (
     <div className='flex size-full flex-col gap-5'>
       <div className='relative flex items-center justify-center'>
-        <LoadButton />
+        {isLoading ? <LoadButtonSkeleton /> : <LoadButton />}
         <Menu />
       </div>
-      <div className='flex w-full flex-col gap-3'>
-        <NotificationField
-          isLimitedMaxHeight={pageType === 'SERIAL' && !!subtitleLang}
-        />
+      {!isLoading && (
+        <div className='flex w-full flex-col gap-3'>
+          <NotificationField
+            isLimitedMaxHeight={pageType === 'SERIAL' && !!subtitleLang}
+          />
 
-        <EpisodeRangeSelector />
+          <EpisodeRangeSelector />
 
-        <SubtitleSelector />
-        {showSeparatorLine && (
-          <hr className='border-popup-border w-full border-b' />
-        )}
+          <SubtitleSelector />
+          {showSeparatorLine && (
+            <hr className='border-popup-border w-full border-b' />
+          )}
 
-        <VoiceOverSelector />
-        <QualitySelector />
-      </div>
+          <VoiceOverSelector />
+          <QualitySelector />
+        </div>
+      )}
     </div>
   );
 }
