@@ -550,15 +550,9 @@ export class DownloadManager {
       targetFile.id,
     )) as FileItem;
 
-    if (
-      downloadDelta.paused?.current === true &&
-      downloadItem?.state === 'in_progress'
-    ) {
+    if (downloadDelta.paused?.current === true) {
       await this.pauseDownload({ fileItem, logger });
-    } else if (
-      downloadDelta.paused?.current === false &&
-      downloadItem!.paused
-    ) {
+    } else if (downloadDelta.paused?.current === false) {
       await this.unpauseDownload({ fileItem, logger });
     }
 
