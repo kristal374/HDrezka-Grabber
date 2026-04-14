@@ -279,7 +279,7 @@ export type LoadItem = {
 };
 
 export type LoadConfig = {
-  tabId: number | -1;
+  tabId: number | undefined;
   useCloudflareBypass: boolean;
   voiceOver: VoiceOverInfo;
   quality: QualityItem;

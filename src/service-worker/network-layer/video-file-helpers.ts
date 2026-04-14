@@ -35,13 +35,18 @@ async function fetchFromPage({
   data,
   logger,
 }: {
-  tabId: number;
+  tabId: number | undefined;
   relativeUrl: string;
   siteUrl: string;
   data: QueryData;
   logger: Logger;
 }): Promise<ResponseVideoData> {
   logger.info('Attempt fetch data from page.');
+  if (!tabId) {
+    logger.warning('Tab ID is not exist.');
+    throw new Error('Tab is not exist.');
+  }
+
   const response = await requestDirectlyFromPage({
     tabId,
     url: relativeUrl,
@@ -65,7 +70,7 @@ async function fetchDirectly({
   modifiedFetch,
   logger,
 }: {
-  tabId: number;
+  tabId: number | undefined;
   fullURL: string;
   relativeUrl: string;
   siteUrl: string;
@@ -109,7 +114,7 @@ export async function fetchVideoData({
   cacheDisabled = false,
   logger = globalThis.logger,
 }: {
-  tabId: number;
+  tabId: number | undefined;
   siteUrl: string;
   data: QueryData;
   useCloudflareBypass: boolean;

@@ -1,5 +1,12 @@
 import { LogMessage } from '@/lib/logger';
-import { DBSchema, deleteDB, IDBPDatabase, IDBPTransaction, openDB } from 'idb';
+import {
+  DBSchema,
+  deleteDB,
+  IDBPDatabase,
+  IDBPTransaction,
+  openDB,
+  StoreNames,
+} from 'idb';
 import {
   CacheItem,
   FileItem,
@@ -60,15 +67,6 @@ export interface HDrezkaGrabberDB extends DBSchema {
     };
   };
 }
-
-type StoreNames = (
-  | 'urlDetail'
-  | 'loadConfig'
-  | 'loadStorage'
-  | 'fileStorage'
-  | 'logStorage'
-  | 'cacheStorage'
-)[];
 
 export async function doDatabaseStuff(): Promise<
   IDBPDatabase<HDrezkaGrabberDB>
@@ -148,19 +146,52 @@ function createDBv0(db: IDBPDatabase<HDrezkaGrabberDB>) {
 }
 
 async function migrateToV1(
-  transaction: IDBPTransaction<HDrezkaGrabberDB, StoreNames, 'versionchange'>,
+  transaction: IDBPTransaction<
+    HDrezkaGrabberDB,
+    DBStoreName[],
+    'versionchange'
+  >,
 ) {
   logger.info('Migration DB to version 1.');
-  const store = transaction.objectStore('loadConfig');
+
+  await updateStoreValues(transaction, 'loadConfig', (value) => {
+    value.loadProtocol = LoadProtocol.streaming;
+    value.useCloudflareBypass = false;
+    value.tabId = undefined;
+    return value;
+  });
+
+  await updateStoreValues(transaction, 'fileStorage', (value) => {
+    if (value.retryAttempts === 0) {
+      value.downloadId = 1;
+    }
+    return value;
+  });
+
+  logger.info('Migration DB to version 1 completed.');
+}
+
+type DBStoreName = StoreNames<HDrezkaGrabberDB>;
+type CursorValue<TName extends DBStoreName> = HDrezkaGrabberDB[TName]['value'];
+
+async function updateStoreValues<
+  TStores extends readonly DBStoreName[],
+  TName extends TStores[number],
+>(
+  transaction: IDBPTransaction<HDrezkaGrabberDB, TStores, 'versionchange'>,
+  storeName: TName,
+  fn: (
+    value: CursorValue<TName>,
+  ) => CursorValue<TName> | Promise<CursorValue<TName>>,
+) {
+  logger.debug(`Start updating "${storeName}" store.`);
+  const store = transaction.objectStore(storeName);
 
   let cursor = await store.openCursor();
   while (cursor) {
-    const value = cursor.value;
-    value.loadProtocol = LoadProtocol.streaming;
-    value.useCloudflareBypass = false;
-    value.tabId = -1;
-    await cursor.update(value);
+    const nextValue = await fn(cursor.value);
+    await cursor.update(nextValue);
     cursor = await cursor.continue();
   }
-  logger.info('Migration DB to version 1 completed.');
+  logger.debug(`Finish updating "${storeName}" store.`);
 }
