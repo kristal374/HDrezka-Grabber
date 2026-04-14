@@ -1,3 +1,4 @@
+import { getQualityWeight, parseQuality } from '@/lib/link-processing';
 import { LogMessage } from '@/lib/logger';
 import {
   DBSchema,
@@ -165,6 +166,14 @@ async function migrateToV1(
     if (value.retryAttempts === 0) {
       value.downloadId = 1;
     }
+    return value;
+  });
+
+  await updateStoreValues(transaction, 'loadStorage', (value) => {
+    value.availableQualities =
+      value.availableQualities
+        ?.map(parseQuality)
+        .sort((a, b) => getQualityWeight(a) - getQualityWeight(b)) ?? null;
     return value;
   });
 

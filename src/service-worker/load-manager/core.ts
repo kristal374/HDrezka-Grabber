@@ -555,7 +555,10 @@ export class DownloadManager {
       downloadItem?.state === 'in_progress'
     ) {
       await this.pauseDownload({ fileItem, logger });
-    } else if (downloadDelta.paused?.current === false && downloadItem!.paused) {
+    } else if (
+      downloadDelta.paused?.current === false &&
+      downloadItem!.paused
+    ) {
       await this.unpauseDownload({ fileItem, logger });
     }
 

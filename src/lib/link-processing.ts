@@ -87,8 +87,8 @@ export function getTargetSubtitle(subtitles: Subtitle[], codeLang: string) {
 }
 
 function extractQualityDetail(rawItem: string) {
-  const qualityItem = rawItem.match(/\[.*?]/)![0];
-  const premQualityName = qualityItem.match(/>\s?(\d+[pk](?:\s+Ultra)?)\s?</i);
+  const qualityItem = rawItem.match(/\[.*?]/)![0].slice(1, -1);
+  const qualityName = parseQuality(qualityItem);
 
   const qualityURLs = rawItem
     .slice(qualityItem.length)
@@ -96,12 +96,16 @@ function extractQualityDetail(rawItem: string) {
     .map((item) => item.trim());
 
   return {
-    quality: premQualityName ? premQualityName[1] : qualityItem.slice(1, -1),
+    quality: qualityName,
     detail: {
-      isPremContent: !!premQualityName,
+      isPremContent: qualityName !== qualityItem,
       urlsArr: qualityURLs,
     },
   };
+}
+export function parseQuality(qualityItem: string): QualityItem {
+  const premQualityName = qualityItem.match(/>\s?(\d+[pk](?:\s+Ultra)?)\s?</i);
+  return (premQualityName ? premQualityName[1] : qualityItem) as QualityItem;
 }
 
 export function isMp4Url(url: string) {
