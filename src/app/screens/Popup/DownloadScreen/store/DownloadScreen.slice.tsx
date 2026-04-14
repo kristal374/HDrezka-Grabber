@@ -10,12 +10,18 @@ export const setCurrentEpisodeAction = createAction<{
   currentEpisode: CurrentEpisode | null;
 }>('main/setCurrentEpisode');
 
+export const setUseCloudflareBypassAction = createAction<{
+  useCloudflareBypass: boolean;
+}>('main/setUseCloudflareBypass');
+
 const initialMain: {
   movieInfo: MovieInfo | null;
   currentEpisode: CurrentEpisode | null;
+  useCloudflareBypass: boolean;
 } = {
   movieInfo: null,
   currentEpisode: null,
+  useCloudflareBypass: false,
 };
 
 export const mainComponentReducer = createReducer(initialMain, (builder) => {
@@ -27,9 +33,18 @@ export const mainComponentReducer = createReducer(initialMain, (builder) => {
     logger.debug('Set currentEpisode:', action.payload.currentEpisode);
     state.currentEpisode = action.payload.currentEpisode;
   });
+  builder.addCase(setUseCloudflareBypassAction, (state, action) => {
+    logger.debug(
+      'Set useCloudflareBypass:',
+      action.payload.useCloudflareBypass,
+    );
+    state.useCloudflareBypass = action.payload.useCloudflareBypass;
+  });
 });
 
 export const selectMovieInfo = (state: AppState) =>
   state.mainComponentReducer.movieInfo;
 export const selectCurrentEpisode = (state: AppState) =>
   state.mainComponentReducer.currentEpisode;
+export const selectUseCloudflareBypass = (state: AppState) =>
+  state.mainComponentReducer.useCloudflareBypass;

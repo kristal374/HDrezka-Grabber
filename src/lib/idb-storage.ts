@@ -1,10 +1,19 @@
+import { getQualityWeight, parseQuality } from '@/lib/link-processing';
 import { LogMessage } from '@/lib/logger';
-import { DBSchema, deleteDB, IDBPDatabase, openDB } from 'idb';
+import {
+  DBSchema,
+  deleteDB,
+  IDBPDatabase,
+  IDBPTransaction,
+  openDB,
+  StoreNames,
+} from 'idb';
 import {
   CacheItem,
   FileItem,
   LoadConfig,
   LoadItem,
+  LoadProtocol,
   Optional,
   UrlDetails,
 } from './types';
@@ -63,11 +72,13 @@ export interface HDrezkaGrabberDB extends DBSchema {
 export async function doDatabaseStuff(): Promise<
   IDBPDatabase<HDrezkaGrabberDB>
 > {
-  const db = await openDB<HDrezkaGrabberDB>('HDrezkaGrabberDB', 1, {
-    upgrade(db, oldVersion, _newVersion, _transaction, _event) {
-      switch (oldVersion) {
-        case 0:
-          createDBv0(db);
+  const db = await openDB<HDrezkaGrabberDB>('HDrezkaGrabberDB', 2, {
+    upgrade(db, oldVersion, _newVersion, transaction, _event) {
+      if (oldVersion < 1) {
+        createDBv0(db);
+      }
+      if (oldVersion < 2) {
+        migrateToV1(transaction);
       }
     },
     terminated() {
@@ -133,4 +144,63 @@ function createDBv0(db: IDBPDatabase<HDrezkaGrabberDB>) {
   });
   cacheStorage.createIndex('key', 'key');
   cacheStorage.createIndex('time_of_death', 'timeOfDeath');
+}
+
+async function migrateToV1(
+  transaction: IDBPTransaction<
+    HDrezkaGrabberDB,
+    DBStoreName[],
+    'versionchange'
+  >,
+) {
+  logger.info('Migration DB to version 1.');
+
+  await updateStoreValues(transaction, 'loadConfig', (value) => {
+    value.loadProtocol = LoadProtocol.streaming;
+    value.useCloudflareBypass = false;
+    value.tabId = undefined;
+    return value;
+  });
+
+  await updateStoreValues(transaction, 'fileStorage', (value) => {
+    if (value.retryAttempts === 0) {
+      value.downloadId = 1;
+    }
+    return value;
+  });
+
+  await updateStoreValues(transaction, 'loadStorage', (value) => {
+    value.availableQualities =
+      value.availableQualities
+        ?.map(parseQuality)
+        .sort((a, b) => getQualityWeight(a) - getQualityWeight(b)) ?? null;
+    return value;
+  });
+
+  logger.info('Migration DB to version 1 completed.');
+}
+
+type DBStoreName = StoreNames<HDrezkaGrabberDB>;
+type CursorValue<TName extends DBStoreName> = HDrezkaGrabberDB[TName]['value'];
+
+async function updateStoreValues<
+  TStores extends readonly DBStoreName[],
+  TName extends TStores[number],
+>(
+  transaction: IDBPTransaction<HDrezkaGrabberDB, TStores, 'versionchange'>,
+  storeName: TName,
+  fn: (
+    value: CursorValue<TName>,
+  ) => CursorValue<TName> | Promise<CursorValue<TName>>,
+) {
+  logger.debug(`Start updating "${storeName}" store.`);
+  const store = transaction.objectStore(storeName);
+
+  let cursor = await store.openCursor();
+  while (cursor) {
+    const nextValue = await fn(cursor.value);
+    await cursor.update(nextValue);
+    cursor = await cursor.continue();
+  }
+  logger.debug(`Finish updating "${storeName}" store.`);
 }

@@ -35,7 +35,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
     const stacks = new Map<string, number>();
     for (let i = 0; i < copiedNotifications.length; i++) {
       const elem = copiedNotifications[i];
-      if (!elem.stackable) {
+      if (!elem.unique && !elem.stackable) {
         notificationsToShow.push(elem);
         continue;
       }
@@ -349,7 +349,7 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
                 >
                   {notification.message}
                 </p>
-                {notification.stack?.length && (
+                {notification.stack?.length && !notification.unique && (
                   <span
                     className={cn(
                       'rounded-full border-2 border-transparent px-1.5 text-xs leading-normal font-medium select-none',
@@ -361,19 +361,21 @@ export function NotificationField({ isLimitedMaxHeight }: Props) {
                     <NumberFlow value={notification.stack.length} />
                   </span>
                 )}
-                <Button
-                  variant='ghost'
-                  size='square'
-                  className={cn(
-                    'not-light:text-light-color! mt-0.25 focus-visible:bg-transparent not-disabled:active:scale-92',
-                    colors[notification.type ?? 'info'].secondaryHover,
-                    !isPreview && 'pointer-events-auto',
-                  )}
-                  disabled={isPreview}
-                  onClick={() => handleCloseNotification(notification)}
-                >
-                  <XIcon className='size-4' />
-                </Button>
+                {notification.closable && (
+                  <Button
+                    variant='ghost'
+                    size='square'
+                    className={cn(
+                      'not-light:text-light-color! mt-0.25 focus-visible:bg-transparent not-disabled:active:scale-92',
+                      colors[notification.type ?? 'info'].secondaryHover,
+                      !isPreview && 'pointer-events-auto',
+                    )}
+                    disabled={isPreview}
+                    onClick={() => handleCloseNotification(notification)}
+                  >
+                    <XIcon className='size-4' />
+                  </Button>
+                )}
               </div>
             );
           })}

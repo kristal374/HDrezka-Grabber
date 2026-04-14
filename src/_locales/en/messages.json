@@ -9,16 +9,16 @@
     "message": "It seems that the content is pending release.\nCheck back later!"
   },
   "popup_stub_locationFilm": {
-    "message": "Sorry, but the movie is not available from your location :("
+    "message": "Sorry, but the movie is not available in your region :("
   },
   "popup_stub_locationSerial": {
-    "message": "Sorry, but the series is not available from your location :("
+    "message": "Sorry, but the series is not available in your region :("
   },
   "popup_stub_vpn": {
-    "message": "Try using a VPN."
+    "message": "Try using a VPN"
   },
   "popup_stub_unavailable": {
-    "message": "Content is unavailable for download — no data to process."
+    "message": "Content is unavailable for download — no data to process"
   },
   "popup_stub_error": {
     "message": "Oops! Something went wrong..."
@@ -71,6 +71,9 @@
   "popup_realResolution": {
     "message": "Actual video resolution"
   },
+  "popup_premiumContentOnly": {
+    "message": "This content available for downloading only with HDrezka Premium"
+  },
   "popup_showAllNotification": {
     "message": "Show all"
   },
@@ -115,6 +118,12 @@
   },
   "popup_messageBroker_userBreak": {
     "message": "You interrupted the download."
+  },
+  "popup_messageBroker_CloudflareProtect": {
+    "message": "The site is protected by Cloudflare. Do not close the page for the extension to continue downloading!"
+  },
+  "popup_messageBroker_PageHasBeenClosed": {
+    "message": "The page has been closed! The extension could not continue loading."
   },
   "settings_TabSettings": {
     "message": "Settings"

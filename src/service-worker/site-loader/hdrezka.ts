@@ -7,6 +7,8 @@ import {
   decodeSubtitleURL,
   decodeVideoURL,
   getQualityWeight,
+  isM3u8Url,
+  isMp4Url,
   sortQualityItem,
 } from '@/lib/link-processing';
 import { Logger } from '@/lib/logger';
@@ -18,8 +20,10 @@ import {
   Initiator,
   LoadConfig,
   LoadItem,
+  LoadProtocol,
   LoadStatus,
   type Optional,
+  QualitiesList,
   QualityItem,
   QueryData,
   RequestUrlSize,
@@ -45,7 +49,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
   public readonly loadConfig: LoadConfig;
   public readonly urlDetails: UrlDetails;
   private serverResponse: ResponseVideoData | null = null;
-  private qualitiesList: Partial<Record<QualityItem, string[]>> | null = null;
+  private qualitiesList: QualitiesList | null = null;
   private subtitlesList: Subtitle[] | null = null;
 
   constructor({ async_param }: { async_param?: SiteLoaderAsyncParams }) {
@@ -117,6 +121,8 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
       logger.debug('Saved request data was not found. Fetching from server.');
 
       this.serverResponse = await fetchVideoData({
+        tabId: this.loadConfig.tabId,
+        useCloudflareBypass: this.loadConfig.useCloudflareBypass,
         siteUrl: this.urlDetails.siteUrl,
         data: this.getQueryData(),
         cacheDisabled: !useCache,
@@ -185,8 +191,13 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
     if (
       this.downloadItem.availableQualities!.includes(this.loadConfig.quality)
     ) {
+      const urlsArr = this.qualitiesList![this.loadConfig.quality]!.urlsArr;
       const request: RequestUrlSize = {
-        urlsList: this.qualitiesList![this.loadConfig.quality]!,
+        urlsList: urlsArr.filter((url) =>
+          this.loadConfig.loadProtocol === LoadProtocol.streaming
+            ? isMp4Url(url)
+            : isM3u8Url(url),
+        ),
         siteUrl: this.urlDetails.siteUrl,
         onlySize: true,
         cacheDisabled: !useCache,
@@ -291,7 +302,7 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
       fileName: await this.makeFilename({ fileType, timestamp, logger }),
       url: null,
       saveAs: false,
-      retryAttempts: 0,
+      retryAttempts: 1, // Первый запрос идёт по умолчанию, поэтому мы его записываем сразу
       status: LoadStatus.DownloadCandidate,
       createdAt: timestamp,
     } as Optional<FileItem, 'id'>;
@@ -360,11 +371,14 @@ class HDrezkaLoaderImplementation implements SiteLoaderInstance {
 
   static createLoadConfig(initiator: Initiator): LoadConfig {
     return {
+      tabId: initiator.tabId,
+      useCloudflareBypass: initiator.useCloudflareBypass,
       voiceOver: initiator.voice_over,
       quality: initiator.quality,
       subtitle: initiator.subtitle,
       favs: initiator.favs,
       loadItemIds: [],
+      loadProtocol: initiator.load_protocol,
       createdAt: parseInt(initiator.timestamp),
     };
   }

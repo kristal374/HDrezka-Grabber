@@ -4,10 +4,14 @@ import { useTrackingTotalProgressForMovie } from '@/app/hooks/popup/useTrackingT
 import { CircularProgressBar } from '@/components/CircularProgressBar';
 import { AnimatedCheckIcon } from '@/components/icons/AnimatedCheckIcon';
 import { DownloadIcon } from '@/components/icons/DownloadIcon';
-import { ContentType, Initiator, Message } from '@/lib/types';
+import { PopupInitialDataContext } from '@/html/popup';
+import { ContentType, Initiator, LoadProtocol, Message } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { useCallback } from 'react';
-import { selectMovieInfo } from './store/DownloadScreen.slice';
+import { useContext } from 'react';
+import {
+  selectMovieInfo,
+  selectUseCloudflareBypass,
+} from './store/DownloadScreen.slice';
 import { selectRange } from './store/EpisodeRangeSelector.slice';
 import { selectCurrentQuality } from './store/QualitySelector.slice';
 import { useAppSelector } from './store/store';
@@ -19,7 +23,10 @@ import {
 import { selectCurrentVoiceOver } from './store/VoiceOverSelector.slice';
 
 export function LoadButton() {
+  const { tabId } = useContext(PopupInitialDataContext)!;
+
   const movieInfo = useAppSelector(selectMovieInfo)!;
+  const useCloudflareBypass = useAppSelector(selectUseCloudflareBypass);
   const range = useAppSelector(selectRange);
   const voiceOver = useAppSelector(selectCurrentVoiceOver)!;
   const subtitleLang = useAppSelector(selectCurrentSubtitle);
@@ -32,10 +39,13 @@ export function LoadButton() {
     parseInt(movieInfo.data.id),
   );
 
-  const handleClick = useCallback(() => {
+  const handleClick = () => {
     const initiator: Initiator = {
       movieId: movieInfo.data.id,
+      tabId: tabId!,
+      useCloudflareBypass,
       site_url: movieInfo.url,
+      load_protocol: LoadProtocol.streaming,
       site_type: 'hdrezka',
       content_type: downloadSubtitle
         ? downloadOnlySubtitle
@@ -63,15 +73,7 @@ export function LoadButton() {
       type: 'trigger',
       message: initiator,
     });
-  }, [
-    movieInfo,
-    range,
-    voiceOver,
-    subtitleLang,
-    downloadSubtitle,
-    quality,
-    downloadOnlySubtitle,
-  ]);
+  };
 
   const isCompleted =
     !!progress && progress.completedLoads === progress.totalLoads;

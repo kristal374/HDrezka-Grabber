@@ -101,13 +101,18 @@ export type QualityItem =
   | '2K'
   | '4K';
 
+export type QualityDetail = {
+  isPremContent: boolean;
+  urlsArr: string[];
+};
+
 export type Subtitle = {
   lang: string;
   code: string;
   url: string;
 };
 
-export type QualitiesList = Partial<Record<QualityItem, string[]>>;
+export type QualitiesList = Partial<Record<QualityItem, QualityDetail>>;
 
 export type VideoResolution = { width: number; height: number };
 
@@ -153,6 +158,10 @@ export type FilmData = Fields & FilmsFields;
 export type SerialData = Fields & SerialFields;
 export type UpdateTranslateData = Fields & UpdateTranslateFields;
 
+type CloudflareProtected = {
+  cloudflare_protected?: boolean;
+};
+
 export type ResponseVideoData = {
   success: boolean;
   message: string;
@@ -162,12 +171,16 @@ export type ResponseVideoData = {
   url: string;
   quality: QualityItem;
   thumbnails: string;
-} & SubtitleInfo;
+} & SubtitleInfo &
+  CloudflareProtected;
 
 export type Initiator = {
   movieId: string;
+  tabId: number;
+  useCloudflareBypass: boolean;
   site_url: string;
   site_type: SiteType;
+  load_protocol: LoadProtocol;
   content_type: ContentType;
   film_name: {
     localized: string;
@@ -185,6 +198,8 @@ export type Initiator = {
 };
 
 export type DataForUpdate = {
+  tabId: number;
+  useCloudflareBypass: boolean;
   siteURL: string;
   movieData: QueryData;
 };
@@ -193,6 +208,7 @@ export type ActualVideoData = {
   seasons: SeasonsWithEpisodesList | null;
   subtitle: SubtitleInfo;
   streams: string;
+  cloudflareProtectedIsUsed: boolean;
 };
 
 export type CurrentEpisode = {
@@ -227,6 +243,11 @@ export enum ContentType {
   'both',
 }
 
+export enum LoadProtocol {
+  'streaming',
+  'hls',
+}
+
 export type FileType = 'video' | 'subtitle';
 
 export type FileItem = {
@@ -258,6 +279,8 @@ export type LoadItem = {
 };
 
 export type LoadConfig = {
+  tabId: number | undefined;
+  useCloudflareBypass: boolean;
   voiceOver: VoiceOverInfo;
   quality: QualityItem;
   subtitle: {
@@ -266,6 +289,7 @@ export type LoadConfig = {
   } | null;
   favs: string;
   loadItemIds: number[];
+  loadProtocol: LoadProtocol;
   createdAt: number;
 };
 

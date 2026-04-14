@@ -178,7 +178,10 @@ export class BufferedEventBus<
                 // an asynchronous response by returning true, but the message
                 // channel closed before a response was received"
               } else {
-                originResolve(value);
+                if (source === browser.runtime.onMessage) {
+                  const [_message, _sender, sendResponse] = args;
+                  sendResponse(value);
+                } else originResolve(value);
               }
             };
           }
@@ -244,10 +247,7 @@ export class BufferedEventBus<
         const result = this.callHandlersAndCollect(message.type, message.args);
         if (result && typeof (result as any).then === 'function') {
           // асинхронный результат
-          (result as Promise<any>).then(
-            (r) => message.resolve?.(r),
-            (e) => message.reject?.(e),
-          );
+          (result as Promise<any>).then(message.resolve, message.reject);
         } else {
           // синхронный результат
           message.resolve?.(result);

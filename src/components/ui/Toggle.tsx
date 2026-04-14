@@ -1,24 +1,27 @@
 import { cn } from '@/lib/utils';
-import { memo } from 'react';
 
-export const Toggle = memo(function Toggle({
+export function Toggle({
   checked,
   onChange,
   disabled = false,
+  className,
+  ...props
 }: {
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
+  className?: string;
 }) {
   return (
     <button
       type='button'
       className={cn(
-        'group focus-ring relative inline-flex w-11.5 flex-shrink-0 cursor-pointer items-center rounded-full p-0.75',
+        'group focus-ring relative inline-flex w-11.5 shrink-0 cursor-pointer items-center rounded-full p-0.75',
         checked
           ? 'bg-link-color not-disabled:hover:bg-link-color/75'
           : 'bg-input not-disabled:hover:bg-input-active',
         'disabled:cursor-not-allowed disabled:opacity-50',
+        className,
       )}
       role='switch'
       aria-checked={checked}
@@ -34,4 +37,4 @@ export const Toggle = memo(function Toggle({
       />
     </button>
   );
-});
+}

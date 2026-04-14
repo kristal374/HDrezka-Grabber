@@ -1,4 +1,7 @@
-import { setMovieInfoAction } from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
+import {
+  setMovieInfoAction,
+  setUseCloudflareBypassAction,
+} from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
 import { setDefaultSeasonsAction } from '@/app/screens/Popup/DownloadScreen/store/EpisodeRangeSelector.slice';
 import {
   setCurrentQualityAction,
@@ -66,12 +69,17 @@ export function useInitData() {
         action: 'get_movie',
       } satisfies FilmsFields;
 
-      const actualPlayerInfo = await updatePlayerInfo(movieInfo.url, {
+      const actualPlayerInfo = await updatePlayerInfo(tabId!, movieInfo.url, {
         ...defaultFields,
         ...(pageType === 'SERIAL' ? serialField : filmsField),
       });
 
       dispatch(setMovieInfoAction({ movieInfo }));
+      dispatch(
+        setUseCloudflareBypassAction({
+          useCloudflareBypass: actualPlayerInfo.cloudflareProtectedIsUsed,
+        }),
+      );
 
       dispatch(
         setSubtitleListAction({ subtitlesInfo: actualPlayerInfo.subtitle }),
@@ -93,10 +101,14 @@ export function useInitData() {
   }, []);
 }
 
-async function updatePlayerInfo(siteURL: string, movieData: QueryData) {
+async function updatePlayerInfo(
+  tabId: number,
+  siteURL: string,
+  movieData: QueryData,
+) {
   return (await browser.runtime.sendMessage<Message<DataForUpdate>>({
     type: 'updateVideoInfo',
-    message: { siteURL, movieData },
+    message: { tabId, useCloudflareBypass: false, siteURL, movieData },
   })) as ActualVideoData;
 }
 

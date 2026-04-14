@@ -9,16 +9,16 @@
     "message": "Схоже, що контент в очікуванні виходу.\nПоверніться сюди пізніше!"
   },
   "popup_stub_locationFilm": {
-    "message": "На жаль, але фільм недоступний з вашого місцезнаходження :("
+    "message": "На жаль, але фільм недоступний у вашому регіоні :("
   },
   "popup_stub_locationSerial": {
-    "message": "На жаль, але серіал недоступний з вашого місцезнаходження :("
+    "message": "На жаль, але серіал недоступний у вашому регіоні :("
   },
   "popup_stub_vpn": {
-    "message": "Спробуйте скористатися VPN."
+    "message": "Спробуйте скористатися VPN"
   },
   "popup_stub_unavailable": {
-    "message": "Контент недоступний для завантаження — відсутні дані для обробки."
+    "message": "Контент недоступний для завантаження — відсутні дані для обробки"
   },
   "popup_stub_error": {
     "message": "Упс! Здається, щось пішло не так..."
@@ -71,6 +71,9 @@
   "popup_realResolution": {
     "message": "Реальна роздільна здатність відео"
   },
+  "popup_premiumContentOnly": {
+    "message": "Цей контент доступний для завантаження лише при наявності HDrezka Premium"
+  },
   "popup_showAllNotification": {
     "message": "Показати всі"
   },
@@ -115,6 +118,12 @@
   },
   "popup_messageBroker_userBreak": {
     "message": "Ви перервали завантаження."
+  },
+  "popup_messageBroker_CloudflareProtect": {
+    "message": "Сайт захищений Cloudflare. Не закривайте сторінку, щоб розширення могло продовжувати завантаження!"
+  },
+  "popup_messageBroker_PageHasBeenClosed": {
+    "message": "Сторінку було закрито! Розширення не змогло продовжити завантаження."
   },
   "settings_TabSettings": {
     "message": "Налаштування"

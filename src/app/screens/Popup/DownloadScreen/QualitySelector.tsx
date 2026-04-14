@@ -1,12 +1,13 @@
 import { selectMovieInfo } from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
 import { AnimatedLoaderIcon } from '@/components/icons/AnimatedLoaderIcon';
+import { PremiumIcon } from '@/components/icons/PremiumIcon';
 import { Combobox } from '@/components/ui/Combobox';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/Tooltip';
-import { sortQualityItem } from '@/lib/link-processing';
+import { isMp4Url, sortQualityItem } from '@/lib/link-processing';
 import {
   EventType,
   Message,
@@ -16,7 +17,7 @@ import {
   URLsContainer,
 } from '@/lib/types';
 import { cn, formatBytes } from '@/lib/utils';
-import { OctagonAlertIcon } from 'lucide-react';
+import { LockIcon, OctagonAlertIcon } from 'lucide-react';
 import { useCallback, useEffect } from 'react';
 import type { Runtime } from 'webextension-polyfill';
 import {
@@ -28,6 +29,7 @@ import {
   setCurrentQualityAction,
 } from './store/QualitySelector.slice';
 import { useAppDispatch, useAppSelector } from './store/store';
+import { selectCurrentVoiceOver } from './store/VoiceOverSelector.slice';
 
 export function QualitySelector() {
   const dispatch = useAppDispatch();
@@ -36,6 +38,7 @@ export function QualitySelector() {
   const quality = useAppSelector(selectCurrentQuality);
   const qualitiesList = useAppSelector(selectQualitiesList);
   const qualitiesInfo = useAppSelector(selectQualityInfo);
+  const currentVoiceOver = useAppSelector(selectCurrentVoiceOver);
 
   const getTargetQualityInfo = useCallback(
     (qualityItem: QualityItem) => {
@@ -85,7 +88,7 @@ export function QualitySelector() {
         .sendMessage<Message<RequestUrlSize>>({
           type: 'getFileSize',
           message: {
-            urlsList: value,
+            urlsList: value.urlsArr.filter(isMp4Url),
             siteUrl: movieInfo.url,
             cacheDisabled: needFileSize !== needResolution,
           },
@@ -118,8 +121,8 @@ export function QualitySelector() {
       if (data.type !== 'newFileSize' && data.type !== 'newVideoResolution')
         return false;
 
-      for (const [quality, urls] of Object.entries(qualitiesList)) {
-        if (!urls.includes(data.message.url)) continue;
+      for (const [quality, details] of Object.entries(qualitiesList)) {
+        if (!details.urlsArr.includes(data.message.url)) continue;
         updateQualityInfo(quality as QualityItem, data.message);
       }
       return true;
@@ -156,11 +159,16 @@ export function QualitySelector() {
             const videoResolution = qualityInfo?.videoResolution;
             const realResolution = `${videoResolution?.height}p`;
             const isDifferentQuality = targetQuality !== realResolution;
+            const isPremContent =
+              currentVoiceOver?.prem_content === true ||
+              qualitiesList[targetQuality]?.isPremContent === true;
+            const isLockedContent =
+              isPremContent && qualityInfo?.fileSize === 8554559;
             const realResolutionPill = isDifferentQuality ? (
               <span
                 className={cn(
                   'bg-input-active in-data-selected:bg-input relative inline-flex items-center gap-1',
-                  'ml-1.75 overflow-clip rounded-md px-1.25 transition-opacity',
+                  'overflow-clip rounded-md px-1.25 transition-opacity',
                   isRenderingInPreview && !videoResolution && 'opacity-0',
                 )}
               >
@@ -188,9 +196,10 @@ export function QualitySelector() {
               </span>
             ) : null;
             return (
-              <>
+              <div className='flex grow items-center gap-2'>
                 {targetQuality}
-                {settings.getRealQuality && (
+                {isPremContent && <PremiumIcon className='size-4' />}
+                {settings.getRealQuality && !isLockedContent && (
                   <>
                     {isRenderingInPreview
                       ? !!videoResolution &&
@@ -202,7 +211,7 @@ export function QualitySelector() {
                             <TooltipContent
                               align='center'
                               side='top'
-                              className='flex w-58 items-center justify-between'
+                              className='flex w-58 items-center justify-between gap-1.5'
                             >
                               <p className='text-sm text-balance'>
                                 {browser.i18n.getMessage(
@@ -219,7 +228,7 @@ export function QualitySelector() {
                       : realResolutionPill}
                   </>
                 )}
-                {settings.displayQualitySize ? (
+                {settings.displayQualitySize && !isLockedContent ? (
                   <span className='ml-auto'>
                     {qualityInfo ? (
                       formatBytes(qualityInfo?.fileSize)
@@ -228,7 +237,19 @@ export function QualitySelector() {
                     )}
                   </span>
                 ) : undefined}
-              </>
+                {isLockedContent && (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <LockIcon className='ml-auto size-4' />
+                    </TooltipTrigger>
+                    <TooltipContent align='center' side='top' className='w-58'>
+                      <p className='text-sm text-balance'>
+                        {browser.i18n.getMessage('popup_premiumContentOnly')}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
             );
           },
         }))}

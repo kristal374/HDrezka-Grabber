@@ -6,19 +6,19 @@
     "message": "Для скачивания видео перейдите на страницу сериала или фильма на сайте"
   },
   "popup_stub_trailer": {
-    "message": "Похоже что контент в ожидании выхода.\nВернитесь сюда позже!"
+    "message": "Похоже, что контент в ожидании выхода.\nВернитесь сюда позже!"
   },
   "popup_stub_locationFilm": {
-    "message": "Увы, но фильм не доступен с вашего местоположения :("
+    "message": "К сожалению, этот фильм не доступен в вашем регионе :("
   },
   "popup_stub_locationSerial": {
-    "message": "Увы, но сериал не доступен с вашего местоположения :("
+    "message": "К сожалению, этот сериал не доступен в вашем регионе :("
   },
   "popup_stub_vpn": {
-    "message": "Попробуйте воспользоваться VPN."
+    "message": "Попробуйте воспользоваться VPN"
   },
   "popup_stub_unavailable": {
-    "message": "Контент недоступен для загрузки — отсутствуют данные для обработки."
+    "message": "Контент недоступен для загрузки — отсутствуют данные для обработки"
   },
   "popup_stub_error": {
     "message": "Упс! Кажется что-то пошло не так..."
@@ -71,6 +71,9 @@
   "popup_realResolution": {
     "message": "Реальное разрешение видео"
   },
+  "popup_premiumContentOnly": {
+    "message": "Этот контент доступен для скачивания только при наличии HDrezka Premium"
+  },
   "popup_showAllNotification": {
     "message": "Показать все"
   },
@@ -115,6 +118,12 @@
   },
   "popup_messageBroker_userBreak": {
     "message": "Вы прервали загрузку."
+  },
+  "popup_messageBroker_CloudflareProtect": {
+    "message": "Сайт защищён Cloudflare. Не закрывайте страницу, чтобы расширение могло продолжать загрузку!"
+  },
+  "popup_messageBroker_PageHasBeenClosed": {
+    "message": "Страница была закрыта! Расширение не смогло продолжить загрузку."
   },
   "settings_TabSettings": {
     "message": "Настройки"

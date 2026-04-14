@@ -56,15 +56,11 @@ export function decodeVideoURL(stream: string | false): QualitiesList | null {
     cleanedStream = stream;
   }
 
-  const urlsContainer: QualitiesList = {};
-
-  cleanedStream.split(',').forEach((item) => {
-    const qualityName = item.match(/\[.*?]/)![0];
-    const qualityURLs = item.slice(qualityName.length);
-    urlsContainer[qualityName.slice(1, -1) as QualityItem] = qualityURLs
-      .split(/\sor\s/)
-      .filter((item) => /https?:\/\/.*mp4$/.test(item));
-  });
+  const urlsContainer = cleanedStream.split(',').reduce((acc, currentValue) => {
+    const qualityDetail = extractQualityDetail(currentValue);
+    acc[qualityDetail.quality as QualityItem] = qualityDetail.detail;
+    return acc;
+  }, {} as QualitiesList);
 
   return sortQualityItem(urlsContainer);
 }
@@ -88,4 +84,34 @@ export function decodeSubtitleURL(subtitles: SubtitleInfo | null) {
 
 export function getTargetSubtitle(subtitles: Subtitle[], codeLang: string) {
   return subtitles.find((s) => s.code === codeLang) ?? null;
+}
+
+function extractQualityDetail(rawItem: string) {
+  const qualityItem = rawItem.match(/\[.*?]/)![0].slice(1, -1);
+  const qualityName = parseQuality(qualityItem);
+
+  const qualityURLs = rawItem
+    .slice(qualityItem.length)
+    .split(/\sor\s/)
+    .map((item) => item.trim());
+
+  return {
+    quality: qualityName,
+    detail: {
+      isPremContent: qualityName !== qualityItem,
+      urlsArr: qualityURLs,
+    },
+  };
+}
+export function parseQuality(qualityItem: string): QualityItem {
+  const premQualityName = qualityItem.match(/>\s?(\d+[pk](?:\s+Ultra)?)\s?</i);
+  return (premQualityName ? premQualityName[1] : qualityItem) as QualityItem;
+}
+
+export function isMp4Url(url: string) {
+  return /https?:\/\/.*mp4$/.test(url);
+}
+
+export function isM3u8Url(url: string) {
+  return /https?:\/\/.*m3u8$/.test(url);
 }

@@ -572,9 +572,6 @@ export class DownloadManager {
       }
     } else {
       // Деблокируем объект, иначе он навсегда останется заблокированным
-      if (!downloadDelta.paused) {
-        logger.warning('Unknown download event:', downloadDelta);
-      }
       this.resourceLockManager.unlock({
         type: 'loadStorage',
         id: fileItem.relatedLoadItemId,
@@ -873,7 +870,14 @@ export class DownloadManager {
 
     fileItem.status = LoadStatus.DownloadPaused;
     await indexedDBObject.put('fileStorage', fileItem);
-    await browser.downloads.pause(fileItem.downloadId!);
+
+    const downloadItem = await this.getActiveDownloadItemFromDownloadId({
+      downloadId: fileItem.downloadId!,
+      logger,
+    });
+    if (!downloadItem?.paused) {
+      browser.downloads.pause(fileItem.downloadId!).then();
+    }
   }
 
   private async unpauseDownload({
@@ -888,7 +892,14 @@ export class DownloadManager {
 
     fileItem.status = LoadStatus.Downloading;
     await indexedDBObject.put('fileStorage', fileItem);
-    await browser.downloads.resume(fileItem.downloadId!);
+
+    const downloadItem = await this.getActiveDownloadItemFromDownloadId({
+      downloadId: fileItem.downloadId!,
+      logger,
+    });
+    if (downloadItem?.paused) {
+      browser.downloads.resume(fileItem.downloadId!).then();
+    }
   }
 
   private async attemptNewDownload({
