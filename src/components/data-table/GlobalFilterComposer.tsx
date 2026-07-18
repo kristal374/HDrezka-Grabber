@@ -7,7 +7,10 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { Dropdown, type DropdownItem } from '@/components/ui/Dropdown';
-import { SplitElement } from '@/components/ui/SplitElement';
+import {
+  InteractiveGroup,
+  InteractiveGroupSeparator,
+} from '@/components/ui/InteractiveGroup';
 import { cn } from '@/lib/utils';
 import type { Table as TanstackTable } from '@tanstack/react-table';
 import {
@@ -228,7 +231,7 @@ function AddFilterNodeButton({ index }: { index: string }) {
   const [value, setValue] = useState(data[0].value);
   const label = data.find((item) => item.value === value)!.label!;
   return (
-    <SplitElement>
+    <InteractiveGroup>
       <Button
         variant='secondary'
         onClick={() => {
@@ -245,7 +248,7 @@ function AddFilterNodeButton({ index }: { index: string }) {
         {browser.i18n.getMessage('logger_globalFilter_addNode')}{' '}
         {label.toLowerCase()}
       </Button>
-      <div className='bg-settings-border-primary h-full w-px' />
+      <InteractiveGroupSeparator className='bg-settings-border-primary' />
       <Dropdown
         multiple={false}
         data={data}
@@ -256,7 +259,7 @@ function AddFilterNodeButton({ index }: { index: string }) {
           <ChevronDownIcon className='size-4' />
         </Button>
       </Dropdown>
-    </SplitElement>
+    </InteractiveGroup>
   );
 }
 

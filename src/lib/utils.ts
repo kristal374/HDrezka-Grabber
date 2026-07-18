@@ -1,10 +1,6 @@
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 import { LoadStatus, SeasonsWithEpisodesList } from './types';
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+export { cn } from 'cnfast';
 
 export const IS_FIREFOX =
   typeof globalThis.browser?.runtime.getBrowserInfo === 'function' ||

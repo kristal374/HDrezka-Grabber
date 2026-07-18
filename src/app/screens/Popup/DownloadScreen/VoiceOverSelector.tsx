@@ -1,5 +1,4 @@
-import { FlagKZ } from '@/components/icons/FlagKZ';
-import { FlagUA } from '@/components/icons/FlagUA';
+import { FlagIcon } from '@/components/icons/Flags';
 import { PremiumIcon } from '@/components/icons/PremiumIcon';
 import { Combobox } from '@/components/ui/Combobox';
 import type { VoiceOverInfo } from '@/lib/types';
@@ -68,21 +67,4 @@ export function VoiceOverSelector() {
       />
     </div>
   );
-}
-
-function FlagIcon({
-  country,
-  className,
-}: {
-  country: string;
-  className?: string;
-}) {
-  switch (country) {
-    case 'ua':
-      return <FlagUA className={className} />;
-    case 'kz':
-      return <FlagKZ className={className} />;
-    default:
-      return null;
-  }
 }

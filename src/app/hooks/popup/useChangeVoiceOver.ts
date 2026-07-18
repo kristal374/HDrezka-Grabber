@@ -17,7 +17,7 @@ import {
 import { PopupInitialDataContext } from '@/html/popup';
 import type { ActualVideoData, DataForUpdate, Message } from '@/lib/types';
 import equal from 'fast-deep-equal/es6';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 export function useChangeVoiceOver() {
   const dispatch = useAppDispatch();
@@ -28,7 +28,7 @@ export function useChangeVoiceOver() {
   const voiceOver = useAppSelector(selectCurrentVoiceOver);
   const [previousVoiceOver, setPreviousVoiceOver] = useState(voiceOver);
 
-  const updateVoiceOver = useCallback(async (): Promise<ActualVideoData> => {
+  const updateVoiceOver = async (): Promise<ActualVideoData> => {
     if (!movieInfo || !voiceOver) {
       throw new Error('Absent movieInfo or voiceOver.');
     }
@@ -58,7 +58,7 @@ export function useChangeVoiceOver() {
               },
       },
     })) as ActualVideoData;
-  }, [pageType, movieInfo, voiceOver]);
+  };
 
   useEffect(() => {
     // При обновлении озвучки мы должны обновить список эпизодов (если есть),

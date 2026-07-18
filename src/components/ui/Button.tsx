@@ -1,11 +1,11 @@
 import { cn } from '@/lib/utils';
 
-export interface ButtonProps extends React.ComponentProps<'button'> {
+interface ButtonProps extends React.ComponentProps<'button'> {
   size?: 'default' | 'square' | 'square-large';
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'dangerous';
 }
 
-export function Button({
+function Button({
   size = 'default',
   variant = 'primary',
   title,
@@ -39,7 +39,11 @@ export function Button({
       type='button'
       title={title}
       aria-label={ariaLabel ?? title}
+      data-interactive
       {...props}
     />
   );
 }
+
+export { Button };
+export type { ButtonProps };

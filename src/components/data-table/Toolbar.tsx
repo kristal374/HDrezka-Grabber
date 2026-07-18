@@ -2,7 +2,7 @@ import { useDataTableFeatures } from '@/components/data-table/FeaturesContext';
 import { Button } from '@/components/ui/Button';
 import { Dropdown, type DropdownItem } from '@/components/ui/Dropdown';
 import { Input } from '@/components/ui/Input';
-import { SplitElement } from '@/components/ui/SplitElement';
+import { InteractiveGroup } from '@/components/ui/InteractiveGroup';
 import {
   Tooltip,
   TooltipContent,
@@ -92,7 +92,7 @@ function SearchInput<TData extends Record<string, any>>({
   return (
     <Tooltip open={!!regexError}>
       <TooltipTrigger>
-        <SplitElement className='w-72'>
+        <InteractiveGroup className='w-72'>
           <div className='grow'>
             <Input
               value={search}
@@ -136,7 +136,7 @@ function SearchInput<TData extends Record<string, any>>({
               <RegexIcon className='size-4' />
             </Button>
           )}
-        </SplitElement>
+        </InteractiveGroup>
       </TooltipTrigger>
       <TooltipContent align='start' side='bottom' className='bg-red-900'>
         <p className='text-sm'>{regexError}</p>

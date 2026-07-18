@@ -150,7 +150,10 @@ export function Dropdown({
                   onClick={() => onValueClick?.(item.value)}
                 >
                   {showCheckmark && (
-                    <ComboboxPrimitive.ItemIndicator className='invisible col-start-1 data-selected:visible'>
+                    <ComboboxPrimitive.ItemIndicator
+                      keepMounted
+                      className='invisible col-start-1 data-selected:visible'
+                    >
                       <CheckIcon className='size-4' />
                     </ComboboxPrimitive.ItemIndicator>
                   )}

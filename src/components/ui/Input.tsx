@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-export interface InputProps extends React.ComponentProps<'input'> {}
+interface InputProps extends React.ComponentProps<'input'> {}
 
 function Input({
   type,
@@ -23,9 +23,11 @@ function Input({
       )}
       placeholder={placeholder}
       title={placeholder}
+      data-interactive
       {...props}
     />
   );
 }
 
 export { Input };
+export type { InputProps };

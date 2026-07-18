@@ -17,8 +17,8 @@ import {
   URLsContainer,
 } from '@/lib/types';
 import { cn, formatBytes } from '@/lib/utils';
-import { LockIcon, OctagonAlertIcon } from 'lucide-react';
-import { useCallback, useEffect } from 'react';
+import { TriangleAlertIcon, TvMinimalPlayIcon } from 'lucide-react';
+import { useEffect } from 'react';
 import type { Runtime } from 'webextension-polyfill';
 import {
   addQualityInfoAction,
@@ -31,6 +31,8 @@ import {
 import { useAppDispatch, useAppSelector } from './store/store';
 import { selectCurrentVoiceOver } from './store/VoiceOverSelector.slice';
 
+const PREMIUM_CONTENT_STUB_SIZE = 8554559;
+
 export function QualitySelector() {
   const dispatch = useAppDispatch();
   const movieInfo = useAppSelector(selectMovieInfo)!;
@@ -40,32 +42,26 @@ export function QualitySelector() {
   const qualitiesInfo = useAppSelector(selectQualityInfo);
   const currentVoiceOver = useAppSelector(selectCurrentVoiceOver);
 
-  const getTargetQualityInfo = useCallback(
-    (qualityItem: QualityItem) => {
-      return dispatch((_dispatch, getState) => {
-        const currentQualitiesInfo = selectQualityInfo(getState());
-        return currentQualitiesInfo?.[qualityItem];
-      });
-    },
-    [dispatch],
-  );
+  const getTargetQualityInfo = (qualityItem: QualityItem) => {
+    return dispatch((_dispatch, getState) => {
+      const currentQualitiesInfo = selectQualityInfo(getState());
+      return currentQualitiesInfo?.[qualityItem];
+    });
+  };
 
-  const updateQualityInfo = useCallback(
-    (qualityItem: QualityItem, urlItem: URLItem) => {
-      dispatch((dispatch, getState) => {
-        const currentQualitiesInfo = selectQualityInfo(getState());
+  const updateQualityInfo = (qualityItem: QualityItem, urlItem: URLItem) => {
+    dispatch((dispatch, getState) => {
+      const currentQualitiesInfo = selectQualityInfo(getState());
 
-        const updates = Object.fromEntries(
-          Object.entries(urlItem).filter(([, v]) => v !== undefined),
-        );
-        const qualityInfo: URLsContainer = {
-          [qualityItem]: { ...currentQualitiesInfo?.[qualityItem], ...updates },
-        };
-        dispatch(addQualityInfoAction({ qualityInfo }));
-      });
-    },
-    [dispatch],
-  );
+      const updates = Object.fromEntries(
+        Object.entries(urlItem).filter(([, v]) => v !== undefined),
+      );
+      const qualityInfo: URLsContainer = {
+        [qualityItem]: { ...currentQualitiesInfo?.[qualityItem], ...updates },
+      };
+      dispatch(addQualityInfoAction({ qualityInfo }));
+    });
+  };
 
   useEffect(() => {
     const needToUpdate = settings.displayQualitySize || settings.getRealQuality;
@@ -106,7 +102,7 @@ export function QualitySelector() {
     return () => {
       ignore = true;
     };
-  }, [qualitiesList, getTargetQualityInfo, updateQualityInfo]);
+  }, [qualitiesList]);
 
   useEffect(() => {
     if (!qualitiesList) return;
@@ -133,7 +129,7 @@ export function QualitySelector() {
       browser.runtime.onMessage,
       handleMessage,
     );
-  }, [qualitiesList, updateQualityInfo]);
+  }, [qualitiesList]);
 
   if (!qualitiesList) return null;
   logger.info('New render QualitySelector component.');
@@ -157,13 +153,14 @@ export function QualitySelector() {
             const targetQuality = children as QualityItem;
             const qualityInfo = qualitiesInfo?.[targetQuality];
             const videoResolution = qualityInfo?.videoResolution;
-            const realResolution = `${videoResolution?.height}p`;
+            const realResolution = `${Math.round((Number(videoResolution?.width) / 16) * 9)}p`;
             const isDifferentQuality = targetQuality !== realResolution;
             const isPremContent =
               currentVoiceOver?.prem_content === true ||
               qualitiesList[targetQuality]?.isPremContent === true;
             const isLockedContent =
-              isPremContent && qualityInfo?.fileSize === 8554559;
+              isPremContent &&
+              qualityInfo?.fileSize === PREMIUM_CONTENT_STUB_SIZE;
             const realResolutionPill = isDifferentQuality ? (
               <span
                 className={cn(
@@ -173,7 +170,7 @@ export function QualitySelector() {
                 )}
               >
                 {isRenderingInPreview && (
-                  <OctagonAlertIcon className='size-4' />
+                  <TvMinimalPlayIcon className='size-4' />
                 )}
                 <span
                   className={cn(
@@ -199,35 +196,26 @@ export function QualitySelector() {
               <div className='flex grow items-center gap-2'>
                 {targetQuality}
                 {isPremContent && <PremiumIcon className='size-4' />}
-                {settings.getRealQuality && !isLockedContent && (
-                  <>
-                    {isRenderingInPreview
-                      ? !!videoResolution &&
-                        realResolutionPill && (
-                          <Tooltip>
-                            <TooltipTrigger>
-                              {realResolutionPill}
-                            </TooltipTrigger>
-                            <TooltipContent
-                              align='center'
-                              side='top'
-                              className='flex w-58 items-center justify-between gap-1.5'
-                            >
-                              <p className='text-sm text-balance'>
-                                {browser.i18n.getMessage(
-                                  'popup_realResolution',
-                                )}
-                              </p>
-                              <span className='bg-input-active w-fit shrink-0 rounded-sm px-1.25 pb-0.25 text-sm font-medium'>
-                                {videoResolution.width} x{' '}
-                                {videoResolution.height}
-                              </span>
-                            </TooltipContent>
-                          </Tooltip>
-                        )
-                      : realResolutionPill}
-                  </>
-                )}
+                {settings.getRealQuality &&
+                  !isLockedContent &&
+                  !!videoResolution &&
+                  realResolutionPill && (
+                    <Tooltip>
+                      <TooltipTrigger>{realResolutionPill}</TooltipTrigger>
+                      <TooltipContent
+                        align='center'
+                        side='top'
+                        className='flex w-58 items-center justify-between gap-1.5'
+                      >
+                        <p className='text-sm text-balance'>
+                          {browser.i18n.getMessage('popup_realResolution')}
+                        </p>
+                        <span className='bg-input-active w-fit shrink-0 rounded-sm px-1.25 pb-0.25 text-sm font-medium'>
+                          {videoResolution.width} x {videoResolution.height}
+                        </span>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
                 {settings.displayQualitySize && !isLockedContent ? (
                   <span className='ml-auto'>
                     {qualityInfo ? (
@@ -240,7 +228,7 @@ export function QualitySelector() {
                 {isLockedContent && (
                   <Tooltip>
                     <TooltipTrigger>
-                      <LockIcon className='ml-auto size-4' />
+                      <TriangleAlertIcon className='ml-auto size-4' />
                     </TooltipTrigger>
                     <TooltipContent align='center' side='top' className='w-58'>
                       <p className='text-sm text-balance'>

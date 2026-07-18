@@ -17,18 +17,18 @@ import { getMovieInfo } from '@/extraction-scripts/extractMovieInfo';
 import { getSeasons } from '@/extraction-scripts/extractSeasons';
 import { getVoiceOverList } from '@/extraction-scripts/extractVoiceOverList';
 import { PopupInitialDataContext } from '@/html/popup';
-import {
-  type ActualVideoData,
-  type DataForUpdate,
-  type Fields,
+import type {
+  ActualVideoData,
+  DataForUpdate,
+  Fields,
   FilmData,
   FilmsFields,
-  type Message,
+  Message,
   MovieInfo,
   PageType,
-  type QueryData,
-  type SerialData,
-  type SerialFields,
+  QueryData,
+  SerialData,
+  SerialFields,
   VoiceOverInfo,
 } from '@/lib/types';
 import { useContext, useEffect } from 'react';
