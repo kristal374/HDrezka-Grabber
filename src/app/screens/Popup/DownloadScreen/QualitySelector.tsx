@@ -1,5 +1,6 @@
 import { selectMovieInfo } from '@/app/screens/Popup/DownloadScreen/store/DownloadScreen.slice';
 import { AnimatedLoaderIcon } from '@/components/icons/AnimatedLoaderIcon';
+import { LockIcon } from '@/components/icons/LockIcon';
 import { PremiumIcon } from '@/components/icons/PremiumIcon';
 import { Combobox } from '@/components/ui/Combobox';
 import {
@@ -17,7 +18,7 @@ import {
   URLsContainer,
 } from '@/lib/types';
 import { cn, formatBytes } from '@/lib/utils';
-import { TriangleAlertIcon, TvMinimalPlayIcon } from 'lucide-react';
+import { TvMinimalPlayIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import type { Runtime } from 'webextension-polyfill';
 import {
@@ -198,22 +199,23 @@ export function QualitySelector() {
                 {isPremContent && <PremiumIcon className='size-4' />}
                 {settings.getRealQuality &&
                   !isLockedContent &&
-                  !!videoResolution &&
                   realResolutionPill && (
                     <Tooltip>
                       <TooltipTrigger>{realResolutionPill}</TooltipTrigger>
-                      <TooltipContent
-                        align='center'
-                        side='top'
-                        className='flex w-58 items-center justify-between gap-1.5'
-                      >
-                        <p className='text-sm text-balance'>
-                          {browser.i18n.getMessage('popup_realResolution')}
-                        </p>
-                        <span className='bg-input-active w-fit shrink-0 rounded-sm px-1.25 pb-0.25 text-sm font-medium'>
-                          {videoResolution.width} x {videoResolution.height}
-                        </span>
-                      </TooltipContent>
+                      {!!videoResolution && (
+                        <TooltipContent
+                          align='center'
+                          side='top'
+                          className='flex w-58 items-center justify-between gap-1.5'
+                        >
+                          <p className='text-sm text-balance'>
+                            {browser.i18n.getMessage('popup_realResolution')}
+                          </p>
+                          <span className='bg-input-active w-fit shrink-0 rounded-sm px-1.25 pb-0.25 text-sm font-medium'>
+                            {videoResolution.width} x {videoResolution.height}
+                          </span>
+                        </TooltipContent>
+                      )}
                     </Tooltip>
                   )}
                 {settings.displayQualitySize && !isLockedContent ? (
@@ -228,7 +230,7 @@ export function QualitySelector() {
                 {isLockedContent && (
                   <Tooltip>
                     <TooltipTrigger>
-                      <TriangleAlertIcon className='ml-auto size-4' />
+                      <LockIcon className='ml-auto size-4' />
                     </TooltipTrigger>
                     <TooltipContent align='center' side='top' className='w-58'>
                       <p className='text-sm text-balance'>

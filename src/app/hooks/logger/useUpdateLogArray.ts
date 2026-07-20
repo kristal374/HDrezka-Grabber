@@ -7,7 +7,10 @@ export type LogMessageWithId = LogMessage & { id: number };
 const NEWEST_DATA_LIMIT = IS_FIREFOX ? 500 : 100;
 const REALTIME_INTERVAL = IS_FIREFOX ? 1000 : 250;
 
-export function useUpdateLogArray(isRealtime: boolean) {
+export function useUpdateLogArray(
+  isRealtime: boolean,
+  filterSkipped?: boolean,
+) {
   const dataStore = useRef<LogMessageWithId[]>([]);
   const [newestData, setNewestData] = useState<LogMessageWithId[]>([]);
   const [totalData, setTotalData] = useState<LogMessageWithId[]>([]);
@@ -15,32 +18,37 @@ export function useUpdateLogArray(isRealtime: boolean) {
   useEffect(() => {
     if (!isRealtime) return;
     const readDB = async () => {
-      dataStore.current = (await indexedDBObject.getAll(
+      const data = (await indexedDBObject.getAll(
         'logStorage',
       )) as LogMessageWithId[];
+      // dataStore.current = filterSkipped ? data.filter((log) => log.skip) : data;
+      dataStore.current = data;
       setNewestData(dataStore.current.slice(-NEWEST_DATA_LIMIT));
     };
+    readDB();
+  }, [filterSkipped]);
 
-    let interval: NodeJS.Timeout;
-    readDB().then(() => {
-      interval = setInterval(async () => {
-        const range = IDBKeyRange.lowerBound(
-          dataStore.current.at(-1)?.timestamp ?? 0,
-          true,
-        );
-        const newLogMessages = (await indexedDBObject.getAllFromIndex(
-          'logStorage',
-          'timestamp',
-          range,
-        )) as LogMessageWithId[];
-        if (newLogMessages.length === 0) return;
-        dataStore.current.push(...newLogMessages);
-        setNewestData(dataStore.current.slice(-NEWEST_DATA_LIMIT));
-      }, REALTIME_INTERVAL);
-    });
+  useEffect(() => {
+    if (!isRealtime) return;
+    let interval: number;
+    interval = window.setInterval(async () => {
+      if (dataStore.current.length === 0) return;
+      const range = IDBKeyRange.lowerBound(
+        dataStore.current.at(-1)?.timestamp ?? 0,
+        true,
+      );
+      const newLogMessages = (await indexedDBObject.getAllFromIndex(
+        'logStorage',
+        'timestamp',
+        range,
+      )) as LogMessageWithId[];
+      if (newLogMessages.length === 0) return;
+      dataStore.current.push(...newLogMessages);
+      setNewestData(dataStore.current.slice(-NEWEST_DATA_LIMIT));
+    }, REALTIME_INTERVAL);
 
     return () => {
-      clearInterval(interval);
+      window.clearInterval(interval);
     };
   }, [isRealtime]);
 

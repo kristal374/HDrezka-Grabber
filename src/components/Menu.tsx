@@ -1,7 +1,8 @@
 import { CogIcon } from '@/components/icons/CogIcon';
-import { Button } from '@/components/ui/Button';
+import { Button, LinkButton } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { SquareTerminalIcon } from 'lucide-react';
+import type { PropsWithChildren } from 'react';
 
 interface MenuProps {
   className?: string;
@@ -40,15 +41,13 @@ export function Menu({ className }: MenuProps) {
   );
 }
 
-interface MenuButtonProps extends Omit<
-  React.ComponentProps<'button'>,
-  'onClick' | 'className'
-> {
+interface MenuButtonProps extends PropsWithChildren {
   /**
    * Path to an HTML file without .html extension
    */
   href: `/${string}`;
   openInNewTab?: boolean;
+  title?: string;
 }
 
 export function MenuButton({
@@ -56,15 +55,19 @@ export function MenuButton({
   openInNewTab = false,
   ...props
 }: MenuButtonProps) {
+  const url = browser.runtime.getURL(`${href}.html`);
+  if (openInNewTab) {
+    return <LinkButton variant='ghost' size='square' href={url} {...props} />;
+  }
   return (
     <Button
       variant='ghost'
       size='square'
       onClick={() => {
         openInNewTab
-          ? window.open(browser.runtime.getURL(`${href}.html`))
+          ? window.open(url)
           : browser.windows.create({
-              url: browser.runtime.getURL(`${href}.html`),
+              url,
               type: 'popup',
               state: 'maximized',
             });

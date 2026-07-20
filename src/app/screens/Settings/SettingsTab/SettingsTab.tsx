@@ -97,47 +97,44 @@ export function SettingsTab() {
     [settings],
   );
 
-  const notificationPromise = useCallback(
-    async (promise: Promise<any>, notification: string) => {
-      return toast.promise(promise, {
-        loading: browser.i18n.getMessage('settings_toast_process'),
-        success: () => notification,
-        error: (e) => {
-          console.error(e);
-          return browser.i18n.getMessage('settings_toast_errorProcess');
-        },
-      });
-    },
-    [],
-  );
+  const notificationPromise = async (
+    promise: Promise<any>,
+    notification: string,
+  ) => {
+    return toast.promise(promise, {
+      loading: browser.i18n.getMessage('settings_toast_process'),
+      success: () => notification,
+      error: (e) => {
+        console.error(e);
+        return browser.i18n.getMessage('settings_toast_errorProcess');
+      },
+    });
+  };
 
-  const requestPermission = useCallback(
-    async ({
-      title,
-      description,
-      onConfirm,
-      notificationText,
-    }: {
-      title: string;
-      description?: string;
-      onConfirm: () => Promise<any>;
-      notificationText?: string;
-    }) => {
-      const result = await confirmRequest({ title, description });
+  const requestConfirmation = async ({
+    title,
+    description,
+    onConfirm,
+    notificationText,
+  }: {
+    title: string;
+    description?: string;
+    onConfirm: () => Promise<any>;
+    notificationText?: string;
+  }) => {
+    const result = await confirmRequest({ title, description });
 
-      if (result) {
-        const process = onConfirm();
-        if (notificationText) {
-          await notificationPromise(process, notificationText);
-        } else {
-          await process;
-        }
+    if (result) {
+      const process = onConfirm();
+      if (notificationText) {
+        await notificationPromise(process, notificationText);
+      } else {
+        await process;
       }
-    },
-    [],
-  );
+    }
+  };
 
-  const handleRestoreState = useCallback(async () => {
+  const handleRestoreState = async () => {
     const process = browser.runtime.sendMessage<Message<boolean>>({
       type: 'requestToRestoreState',
       message: true,
@@ -146,24 +143,24 @@ export function SettingsTab() {
       process,
       browser.i18n.getMessage('settings_restoreInsideState_notification'),
     );
-  }, []);
+  };
 
-  const handleClearCache = useCallback(async () => {
+  const handleClearCache = async () => {
     await browser.runtime.sendMessage<Message<undefined>>({
       type: 'clearCache',
       message: undefined,
     });
     await browser.storage.session.clear();
-  }, []);
+  };
 
-  const handleStopAllDownloads = useCallback(async () => {
+  const handleStopAllDownloads = async () => {
     await browser.runtime.sendMessage<Message<undefined>>({
       type: 'stopAllDownloads',
       message: undefined,
     });
-  }, []);
+  };
 
-  const handleClearDownloadHistory = useCallback(async () => {
+  const handleClearDownloadHistory = async () => {
     await browser.runtime.sendMessage<Message<undefined>>({
       type: 'stopAllDownloads',
       message: undefined,
@@ -179,14 +176,14 @@ export function SettingsTab() {
       tx.objectStore('fileStorage').clear(),
     ]);
     await tx.done;
-  }, []);
+  };
 
-  const handleRemoveExtensionData = useCallback(async () => {
+  const handleRemoveExtensionData = async () => {
     await browser.runtime.sendMessage<Message<undefined>>({
       type: 'deleteExtensionData',
       message: undefined,
     });
-  }, []);
+  };
 
   const afterInstallSettingName = IS_FIREFOX
     ? browser.i18n.getMessage('settings_itemAfterInstall_firefox')
@@ -765,7 +762,7 @@ export function SettingsTab() {
 
             <Button
               onClick={() => {
-                requestPermission({
+                requestConfirmation({
                   title: browser.i18n.getMessage(
                     'settings_restoreSettings_title',
                   ),
@@ -781,7 +778,7 @@ export function SettingsTab() {
 
             <Button
               onClick={() => {
-                requestPermission({
+                requestConfirmation({
                   title: browser.i18n.getMessage('settings_clearCache_title'),
                   onConfirm: handleClearCache,
                   notificationText: browser.i18n.getMessage(
@@ -795,7 +792,7 @@ export function SettingsTab() {
 
             <Button
               onClick={() => {
-                requestPermission({
+                requestConfirmation({
                   title: browser.i18n.getMessage(
                     'settings_stopAllDownloads_title',
                   ),
@@ -811,7 +808,7 @@ export function SettingsTab() {
 
             <Button
               onClick={() => {
-                requestPermission({
+                requestConfirmation({
                   title: browser.i18n.getMessage(
                     'settings_clearDownloadHistory_title',
                   ),
@@ -830,7 +827,7 @@ export function SettingsTab() {
 
             <Button
               onClick={() => {
-                requestPermission({
+                requestConfirmation({
                   title: browser.i18n.getMessage(
                     'settings_removeAllExtensionData_title',
                   ),

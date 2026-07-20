@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/Button';
-import { X } from 'lucide-react';
+import { XIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -43,6 +43,17 @@ export function confirmRequest(options: ConfirmOptions): Promise<boolean> {
 export function ConfirmationModal() {
   const [, forceUpdate] = useState({});
 
+  const handleCancel = () => {
+    if (confirmState.options?.onCancel) {
+      confirmState.options.onCancel();
+    }
+    confirmState.isOpen = false;
+    if (confirmState.resolve) {
+      confirmState.resolve(false);
+    }
+    notify();
+  };
+
   useEffect(() => {
     return subscribe(() => forceUpdate({}));
   }, []);
@@ -78,17 +89,6 @@ export function ConfirmationModal() {
     notify();
   };
 
-  const handleCancel = () => {
-    if (confirmState.options?.onCancel) {
-      confirmState.options.onCancel();
-    }
-    confirmState.isOpen = false;
-    if (confirmState.resolve) {
-      confirmState.resolve(false);
-    }
-    notify();
-  };
-
   if (!confirmState.isOpen || !confirmState.options) {
     return null;
   }
@@ -111,7 +111,7 @@ export function ConfirmationModal() {
             </h3>
           </div>
           <Button variant='ghost' size='square' onClick={handleCancel}>
-            <X className='h-5 w-5' />
+            <XIcon className='size-5' />
           </Button>
         </div>
 
