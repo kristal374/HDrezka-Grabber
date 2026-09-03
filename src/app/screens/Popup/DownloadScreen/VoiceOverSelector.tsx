@@ -1,4 +1,4 @@
-import { FlagIcon } from '@/components/icons/Flags';
+import { FlagIcon } from '@/components/icons/FlagIcons';
 import { PremiumIcon } from '@/components/icons/PremiumIcon';
 import { Combobox } from '@/components/ui/Combobox';
 import type { VoiceOverInfo } from '@/lib/types';
