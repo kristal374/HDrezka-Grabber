@@ -4,6 +4,10 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,22 +16,16 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Cache npm dependencies
-        uses: actions/cache@v3
-        id: npm-cache
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
         with:
-          path: |
-            ~/.npm
-            **/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
+          node-version: 'lts/*'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
-        if: steps.npm-cache.outputs.cache-hit != 'true'
 
       - name: Build app
         run: npm run build:prod -- --build-number ${{ github.run_number }}
@@ -46,7 +44,7 @@ jobs:
           echo "files=$FILES_JSON" >> $GITHUB_OUTPUT
 
       - name: Upload combined artifact (all files)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: all-builds
           path: dist/build/**
@@ -63,13 +61,13 @@ jobs:
 
     steps:
       - name: Download combined artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: all-builds
           path: extracted/dist/build/
 
       - name: Upload single file as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.file.name }}
           path: extracted/${{ matrix.file.path }}

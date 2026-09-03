@@ -1,0 +1,63 @@
+name: Publish extension
+
+# Runs after "Build extension" workflow finishes on main
+on:
+  workflow_run:
+    workflows: ["Build extension"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # Only publish successful builds that originated from a push to main
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Download build artifacts from triggering run
+        uses: actions/download-artifact@v8
+        with:
+          name: all-builds
+          path: dist/build
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: List downloaded files
+        run: ls -R dist/build
+
+      # Requires to create GitHub Secret: BPP_KEYS (JSON string with store credentials):
+      # {
+      #   "chrome": {
+      #     "extId": "<chrome-web-store-extension-id>",
+      #     "clientId": "<gcp-oauth-client-id>",
+      #     "clientSecret": "<gcp-oauth-client-secret>",
+      #     "refreshToken": "<gcp-oauth-refresh-token>"
+      #   },
+      #   "firefox": {
+      #     "extId": "<addons-mozilla-org-extension-id-or-slug>",
+      #     "apiKey": "<amo-jwt-issuer>",
+      #     "apiSecret": "<amo-jwt-secret>"
+      #   },
+      #   "edge": {
+      #     "productId": "<edge-addons-product-id>",
+      #     "clientId": "<partner-center-client-id>",
+      #     "apiKey": "<partner-center-api-key>"
+      #   }
+      # }
+      - name: Publish to Chrome Web Store, Firefox Add-ons and Edge Add-ons
+        uses: PlasmoHQ/bpp@v3
+        with:
+          keys: ${{ secrets.BPP_KEYS }}
+          chrome-file: dist/build/HDrezka-Grabber.chromium.zip
+          edge-file: dist/build/HDrezka-Grabber.chromium.zip
+          firefox-file: dist/build/HDrezka-Grabber.firefox.xpi
+          verbose: true
