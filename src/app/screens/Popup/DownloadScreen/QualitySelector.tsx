@@ -32,7 +32,7 @@ import {
 import { useAppDispatch, useAppSelector } from './store/store';
 import { selectCurrentVoiceOver } from './store/VoiceOverSelector.slice';
 
-const PREMIUM_CONTENT_STUB_SIZE = 8554559;
+const PREMIUM_CONTENT_STUB_SIZE = 7949309;
 
 export function QualitySelector() {
   const dispatch = useAppDispatch();

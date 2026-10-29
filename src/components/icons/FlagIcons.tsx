@@ -14,6 +14,8 @@ export function FlagIcon({
       return <FlagBY className={className} />;
     case 'ge':
       return <FlagGE className={className} />;
+    case 'uz':
+      return <FlagUZ className={className} />;
     default:
       return null;
   }
@@ -85,6 +87,27 @@ export function FlagGE({ className }: { className?: string }) {
       <rect x='3' y='8.25' width='1' height='1' fill='#FF0000' />
       <rect x='12' y='1.75' width='1' height='1' fill='#FF0000' />
       <rect x='12' y='8.25' width='1' height='1' fill='#FF0000' />
+    </svg>
+  );
+}
+
+export function FlagUZ({ className }: { className?: string }) {
+  return (
+    <svg
+      width='16'
+      height='11'
+      viewBox='0 0 16 11'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+      className={className}
+    >
+      <rect width='16' height='3.5' fill='#00AFCA' />
+      <rect y='3.5' width='16' height='0.25' fill='#DA291C' />
+      <rect y='3.75' width='16' height='3.5' fill='#FFFFFF' />
+      <rect y='7.25' width='16' height='0.25' fill='#DA291C' />
+      <rect y='7.5' width='16' height='3.5' fill='#43B02A' />
+      <circle cx='3' cy='1.75' r='1.125' fill='#FFFFFF' />
+      <circle cx='4.25' cy='1.75' r='1.125' fill='#00AFCA' />
     </svg>
   );
 }
