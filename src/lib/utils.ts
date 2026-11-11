@@ -122,4 +122,3 @@ export function compareVersions(previous: string, next: string): number {
 
   return 0;
 }
-

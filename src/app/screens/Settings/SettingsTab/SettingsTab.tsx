@@ -799,4 +799,3 @@ export function SettingsTab() {
     </Panel>
   );
 }
-
