@@ -1,4 +1,6 @@
-import { cn } from '@/lib/utils';
+import { CopyButton } from '@/components/CopyButton';
+import { cn, IS_CHROME, IS_EDGE, IS_FIREFOX, IS_OPERA } from '@/lib/utils';
+import { ChevronRightIcon } from 'lucide-react';
 import { memo } from 'react';
 
 export const SettingItem = memo(function SettingItem({
@@ -68,3 +70,58 @@ export function SettingsSection({
     </div>
   );
 }
+
+export function BrowserSettingsAfterInstallPath() {
+  const browserSettingSection = IS_CHROME
+    ? browser.i18n.getMessage(
+        'settings_itemAfterInstall_settingsDownload_chrome',
+      )
+    : browser.i18n.getMessage('settings_itemAfterInstall_settingsDownload');
+
+  const browserSettingName = IS_FIREFOX
+    ? browser.i18n.getMessage('settings_itemAfterInstall_firefox')
+    : IS_EDGE
+      ? browser.i18n.getMessage('settings_itemAfterInstall_edge')
+      : IS_OPERA
+        ? browser.i18n.getMessage('settings_itemAfterInstall_opera')
+        : browser.i18n.getMessage('settings_itemAfterInstall_chrome');
+
+  return (
+    <div className='-ml-2 flex flex-wrap items-center gap-y-1'>
+      <CopyButton
+        variant='ghost'
+        content={
+          IS_FIREFOX
+            ? 'about:preferences#downloads'
+            : 'chrome://settings/downloads'
+        }
+        noIcon={true}
+        className='px-2 text-sm'
+      >
+        <span>
+          {browser.i18n.getMessage('settings_itemAfterInstall_settingsBrowser')}
+        </span>
+        <ChevronRightIcon className='size-4' />
+        <span>{browserSettingSection}</span>
+      </CopyButton>
+      <ChevronRightIcon className='size-4' />
+      <div className='flex flex-wrap items-center gap-y-1'>
+        <div className='flex items-center'>
+          <CopyButton
+            variant='ghost'
+            content={browserSettingName}
+            noIcon={true}
+            className='px-2 text-sm'
+          >
+            <span>{browserSettingName}</span>
+          </CopyButton>
+          <ChevronRightIcon className='size-4' />
+        </div>
+        <span className='px-2 pt-1.25 pb-1.5 text-sm font-medium select-none'>
+          {browser.i18n.getMessage('settings_itemAfterInstall_settingsDisable')}
+        </span>
+      </div>
+    </div>
+  );
+}
+

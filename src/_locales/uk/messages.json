@@ -389,7 +389,7 @@
     "message": "Запитувати, де зберігати кожен файл перед завантаженням"
   },
   "settings_itemAfterInstall_firefox": {
-    "message": "Завжди запитувати де зберегти файли"
+    "message": "Запитувати, де зберігати файли перед завантаженням"
   },
   "settings_itemAfterInstall_edge": {
     "message": "Запитувати про розташування для збереження файлів перед завантаженням"
@@ -401,6 +401,9 @@
     "message": "Налаштування браузера"
   },
   "settings_itemAfterInstall_settingsDownload": {
+    "message": "Завантаження"
+  },
+  "settings_itemAfterInstall_settingsDownload_chrome": {
     "message": "Завантаження"
   },
   "settings_itemAfterInstall_settingsDisable": {

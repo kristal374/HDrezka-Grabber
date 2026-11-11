@@ -389,7 +389,7 @@
     "message": "Перед скачиванием спрашивать, куда сохранить файл"
   },
   "settings_itemAfterInstall_firefox": {
-    "message": "Всегда выдавать запрос на сохранение файлов"
+    "message": "Спрашивать, где сохранять файлы, перед загрузкой"
   },
   "settings_itemAfterInstall_edge": {
     "message": "Спрашивать, куда сохранять каждый файл перед его загрузкой"
@@ -402,6 +402,9 @@
   },
   "settings_itemAfterInstall_settingsDownload": {
     "message": "Загрузки"
+  },
+  "settings_itemAfterInstall_settingsDownload_chrome": {
+    "message": "Скачанные файлы"
   },
   "settings_itemAfterInstall_settingsDisable": {
     "message": "Отключить"

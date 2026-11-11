@@ -389,7 +389,7 @@
     "message": "Ask where to save each file before downloading"
   },
   "settings_itemAfterInstall_firefox": {
-    "message": "Always ask you where to save files"
+    "message": "Ask where to save files before downloading"
   },
   "settings_itemAfterInstall_edge": {
     "message": "Ask where to save each file before downloading"
@@ -401,6 +401,9 @@
     "message": "Browser settings"
   },
   "settings_itemAfterInstall_settingsDownload": {
+    "message": "Downloads"
+  },
+  "settings_itemAfterInstall_settingsDownload_chrome": {
     "message": "Downloads"
   },
   "settings_itemAfterInstall_settingsDisable": {

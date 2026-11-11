@@ -13,6 +13,8 @@ export const IS_EDGE =
 export const IS_OPERA =
   typeof window !== 'undefined' && navigator.userAgent.indexOf('OPR') !== -1;
 
+export const IS_CHROME = !IS_FIREFOX && !IS_EDGE && !IS_OPERA;
+
 export function sliceSeasons(
   seasons: SeasonsWithEpisodesList,
   seasonFrom: string,
@@ -120,3 +122,4 @@ export function compareVersions(previous: string, next: string): number {
 
   return 0;
 }
+
